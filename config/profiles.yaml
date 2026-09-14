@@ -46,6 +46,8 @@ profiles:
       - project-knowledge-capture
       - project-memory
       - linkedin-post
+      - user-personalization
+      - personalized-content
       - azure-cleanup
   distributed:
     extends: durable

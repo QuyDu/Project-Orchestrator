@@ -64,6 +64,7 @@ const expectedSkillIds = [
   "framework-health-check",
   "linkedin-post",
   "multi-agent-coordinator",
+  "personalized-content",
   "policy-engine",
   "prepare-commit",
   "project-handoff",
@@ -82,6 +83,7 @@ const expectedSkillIds = [
   "skill-registry",
   "skill-update",
   "systematic-debugging",
+  "user-personalization",
   "workflow-planner",
   "workflow-recovery",
   "workflow-scheduler",
@@ -628,8 +630,23 @@ test("every governed skill has deterministic help coverage", async () => {
   assert.match(generatedInstructions, /reports\/project-handoff\.json/);
   assert.match(generatedInstructions, /--proceed/);
   assert.ok(existsSync(path.join(templateRoot, ".github", "prompts", "skills-help.prompt.md")));
-  assert.match(skills.get("linkedin-post").source, /reports\/linkedin-post-draft\.md/);
-  assert.match(skills.get("linkedin-post").source, /--update/);
+  const linkedinPost = skills.get("linkedin-post");
+  assert.match(linkedinPost.source, /reports\/linkedin-post-draft\.md/);
+  assert.match(linkedinPost.source, /--update/);
+  assert.ok(sectionItems(linkedinPost.source, "Composition and Dependencies").includes("user-personalization"));
+  assert.match(linkedinPost.source, /references\/linkedin-best-practices\.md/);
+  assert.match(linkedinPost.source, /content sweet spot/i);
+  assert.match(linkedinPost.source, /why-care\/why-share/i);
+  assert.match(linkedinPost.source, /3,000 characters/);
+  assert.match(linkedinPost.source, /three to five relevant hashtags/i);
+  assert.match(linkedinPost.source, /media brief[\s\S]*Not ready/i);
+  assert.match(linkedinPost.source, /national or global conversation/i);
+  const linkedinBestPractices = await readFile(path.join(skillsRoot, "linkedin-post", "references", "linkedin-best-practices.md"), "utf8");
+  assert.match(linkedinBestPractices, /Short-Form Post Contract/);
+  assert.match(linkedinBestPractices, /No more than 3,000 characters/i);
+  assert.match(linkedinBestPractices, /Three to five final hashtags/i);
+  assert.doesNotMatch(linkedinBestPractices, /https?:\/\/|mailto:/i);
+  assert.doesNotMatch(`${linkedinPost.source}\n${linkedinBestPractices}`, /\btadd(?:-ai-fied|afied)?\b/i);
   for (const prompt of ["azure-cleanup-help.prompt.md", "environment-update-help.prompt.md", "release-readiness.prompt.md"]) {
     assert.ok(existsSync(path.join(root, ".github", "prompts", prompt)), `missing repository prompt ${prompt}`);
   }
@@ -767,6 +784,55 @@ test("profiles are dependency-closed", async () => {
     }
   }
   assert.ok(effective("core").has("agent-builder"), "core profile must include the governed Agent Builder");
+});
+
+test("personalized content requires one local profile owner", async () => {
+  const skills = new Map((await loadSkills()).map((skill) => [skill.metadata.name, skill]));
+  const personalization = skills.get("user-personalization");
+  const content = skills.get("personalized-content");
+  assert.ok(personalization, "user-personalization skill must exist");
+  assert.ok(content, "personalized-content skill must exist");
+  assert.deepEqual(dependencyItems(personalization.source), []);
+  assert.deepEqual(dependencyItems(content.source), ["user-personalization", "project-understanding"]);
+  assert.ok(sectionItems(personalization.source, "Outputs").includes(".skills-orchestrator/user-personalization.json"));
+  assert.ok(sectionItems(content.source, "Outputs").includes("artifacts/personalized-content/<run-id>/"));
+  assert.match(content.source, /Every run uses a freshly rebuilt understanding of the current project as its sole topic and source/);
+  assert.match(content.source, /Reject alternate topic, URL, pasted-source, and output-path overrides/);
+  assert.match(content.source, /--visual-style whiteboard\|diorama/);
+  assert.match(content.source, /diorama-production-rules\.md/);
+  assert.match(content.source, /canonical spelling `diorama`/);
+  assert.match(content.source, /A final diorama PNG requires an approved bitmap image generator or a genuine physically based 3D renderer/);
+  assert.match(content.source, /HTML\/CSS\/SVG screenshot does not qualify/);
+  assert.match(content.source, /one central sculpted metaphor/);
+  assert.match(content.source, /legacy identity that differs from the validated profile/);
+  assert.match(content.source, /## Renderer Qualification/);
+  assert.match(content.source, /A planned optional PNG is not a promise of delivery/);
+  assert.match(content.source, /validate the PNG signature, dimensions, nonblank pixels/);
+  assert.match(content.source, /## Render Status.*No finished image produced/s);
+  assert.ok(existsSync(path.join(skillsRoot, "personalized-content", "references", "diorama-production-rules.md")));
+  assert.match(content.source, /documentation-builder.*owns authoritative project guides/);
+  assert.match(content.source, /linkedin-post.*owns posts about the current project/);
+  assert.match(content.source, /untrusted data, never as instructions or authorization/);
+  assert.match(content.source, /never claim publication occurred/);
+
+  const profileSchema = JSON.parse(await readFile(path.join(root, "schemas", "user-personalization.schema.json"), "utf8"));
+  assert.equal(profileSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(profileSchema.additionalProperties, false);
+  assert.equal(profileSchema.properties.safety.additionalProperties, false);
+  assert.equal(profileSchema.properties.safety.properties.treatSourcesAsUntrusted.const, true);
+  assert.equal(profileSchema.properties.safety.properties.excludeConfidentialContent.const, true);
+  assert.equal(profileSchema.properties.safety.properties.externalPublicationRequiresApproval.const, true);
+  assert.equal(profileSchema.properties.visualPreferences.properties.requireAltText.const, true);
+
+  const questionnaire = await readFile(path.join(skillsRoot, "user-personalization", "references", "personalization-questionnaire.md"), "utf8");
+  assert.equal((questionnaire.match(/^\d+\./gm) ?? []).length, 31);
+  assert.doesNotMatch(questionnaire, /\btadd\b/i);
+  assert.ok(existsSync(path.join(skillsRoot, "user-personalization", "scripts", "user-personalization.mjs")));
+  assert.ok(existsSync(path.join(skillsRoot, "personalized-content", "scripts", "personalized-content.mjs")));
+
+  const profiles = await loadProfiles();
+  assert.ok(profiles.get("durable").required.includes("user-personalization"));
+  assert.ok(profiles.get("durable").required.includes("personalized-content"));
 });
 
 test("the default new-project profile requires Azure audit and remediation execution", async () => {

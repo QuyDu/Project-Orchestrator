@@ -1,13 +1,13 @@
 # Project Orchestrator
 
-Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 45 governed skills — installed consistently, verified after every run, and safe to rerun.
+Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 47 governed skills — installed consistently, verified after every run, and safe to rerun.
 
 | Item | Value |
 | --- | --- |
 | Runtime version | `1.1.2` |
 | Source version date | September 12, 2026 |
 | Framework version | `9.0.0` |
-| Skill catalog | 45 governed skills |
+| Skill catalog | 47 governed skills |
 | Supported Node.js | 22, 24, 26 |
 | Dependencies | None |
 | Distribution | Authorized internal use only |
@@ -39,7 +39,7 @@ It has two halves.
 
 **A command-line installer** (`pso.mjs`) that creates a new project or adopts an existing one. It runs entirely on Node.js built-ins — no packages to install, no registry access — and every change it makes is planned, journaled, and verified.
 
-**A catalog of 45 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
+**A catalog of 47 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
 
 ### What makes it different
 
@@ -134,10 +134,13 @@ the governed workspace and empty `src/` and `tests/` boundaries for the user to 
 `/project-validate` to check the foundation and `/project-status` to identify authoritative blocked,
 stale, or pending work.
 
-Use `/linkedin-post` to analyze a project and prepare a reviewable draft for Microsoft employees
-and the technical community. Use `/linkedin-post --update` to compare against
-`reports/linkedin-post-history.md` and describe only verified changes. Drafts are saved to
-`reports/linkedin-post-draft.md`; publication always remains a user-approved external action.
+Use `/linkedin-post` to analyze a project and prepare an evidence-grounded, profile-aware short-form
+draft for Microsoft employees and the technical community. It enforces a focused why-care opening,
+readable bullets, a discussion prompt, a 3,000-character limit, three to five final hashtags, and an
+approved-media readiness check. Without approved media, it includes a media brief and returns `Not ready`.
+Use `/linkedin-post --update` to compare against `reports/linkedin-post-history.md` and describe only
+verified changes. Drafts are saved to `reports/linkedin-post-draft.md`; publication always remains a
+user-approved external action.
 
 To refresh a standalone project from a newer Skills Orchestrator checkout, preview the update first:
 
@@ -367,7 +370,7 @@ Clones into an isolated staging directory, provisions, verifies, and only then p
 | `.github/instructions/` | Scoped standards applied by glob — only the ones your stack needs |
 | `.github/prompts/` | Prompt-only commands such as `/create-adr`, `/project-blueprint`, `/review-architecture`, `/executive-summary`, and `/new-component`, plus skill help prompts; skill-owned names are not duplicated here |
 | `.github/agents/` | Azure Architect, Security Reviewer, Documentation Writer |
-| `.github/skills/` | The 45-skill catalog |
+| `.github/skills/` | The 47-skill catalog |
 | `.github/workflows/ci.yml` | Stack-aware pipeline, SHA-pinned actions (new projects only) |
 | `.github/workflows/copilot-setup-steps.yml` | Preinstalls dependencies for Copilot cloud agent and Copilot code review (new projects with a stack) |
 | `.vscode/tasks.json` | Build and test tasks for the stack — `Ctrl+Shift+B` and Test Explorer work immediately |
@@ -447,6 +450,8 @@ Open the project in VS Code, start Copilot Chat in **Agent** mode, and invoke a 
 /architecture-review      Well-Architected assessment of the defined architecture
 /deployment-review        Is this release candidate deployable, and how do we roll back
 /documentation-builder    Build the canonical project guide and supporting documentation
+/user-personalization     Build the local reusable voice, perspective, visual, and safety profile
+/personalized-content     Turn the current project into locally saved content, whiteboards, or dioramas
 /skill-create             Create a skill after duplicate, reuse, and wiring analysis
 /skill-update             Resolve and update one existing skill after explicit approval
 /project-status           Check lifecycle, Azure resource health, sync freshness, and deployment currency
@@ -456,6 +461,24 @@ Open the project in VS Code, start Copilot Chat in **Agent** mode, and invoke a 
 /change-review            Review this diff before commit
 /project-handoff          Record continuity before you stop
 ```
+
+### Local User Personalization
+
+`personalized-content` requires a valid `.skills-orchestrator/user-personalization.json`. When the file is missing or invalid, `user-personalization` asks a bounded, reusable questionnaire before content work continues. The profile stores only user-approved public-facing preferences and professional context, remains ignored by Git, and is never copied into reports or generated documentation.
+
+Every `/personalized-content` run performs a fresh Project Understanding scan and uses the current repository as its sole topic and source. Preflight binds the run to that repository digest and assigns a unique local destination under `artifacts/personalized-content/<run-id>/`; external source and output-path overrides are rejected.
+
+Visual runs default to a hand-drawn whiteboard. Use `--visual-style diorama` with `whiteboard`, `whiteboard-specification`, or `full-package` output to create an evidence-bound miniature scene instead:
+
+```text
+/personalized-content --output-type whiteboard --visual-style diorama
+```
+
+Diorama preflight automatically selects an architectural treatment for verified components, topology, platforms, services, or boundaries; otherwise it uses a conceptual treatment. The visual standard is a photographed handcrafted miniature exhibit: tactile cardboard, foam, clay, wood, paper, warm studio lighting, physical depth, real shadows, one central sculpted metaphor, supporting shadow-box panels, and fewer larger labels. Reference images guide those medium-level traits only; their text, characters, branding, signatures, and exact composition are never copied.
+
+A final `diorama.png` requires an approved bitmap image generator or a genuine physically based 3D renderer. HTML/CSS/SVG screenshots and flat faux-isometric compositions do not qualify. When no qualified renderer is available, the run produces only `diorama-specification.md` and `diorama-alt-text.md` and states that no finished image was produced. Every rendered visual uses only the validated User Personalization signature and current profile timezone date. The canonical spelling is `diorama`.
+
+The profile owner requires explicit approval before creation or replacement. Other skills may read the validated file but cannot modify it. Creating a repository-local run also requires approval, and personalized content remains a draft until reviewed; posting, sending, uploading, or other external publication is outside the skill and requires separate approval.
 
 `/audit-code` automatically runs the complete read-only analysis pipeline, and each stage validates the one before it:
 

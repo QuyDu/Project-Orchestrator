@@ -9,7 +9,7 @@ Project Orchestrator turns a repository into a governed GitHub Copilot workspace
 The product has two main parts:
 
 1. A registry-free Node.js command-line runtime that creates a governed project, adopts an existing repository, updates an installed project, and verifies the resulting framework.
-2. A catalog of 45 governed skills that GitHub Copilot can use for planning, implementation support, audit, remediation, security review, documentation, Azure discovery, continuity, and other bounded workflows.
+2. A catalog of 47 governed skills that GitHub Copilot can use for planning, implementation support, audit, remediation, security review, documentation, personalized communication, Azure discovery, continuity, and other bounded workflows.
 
 Its central value is not simply generating files. Its value is making AI-assisted work **repeatable, reviewable, recoverable, and evidence-based**:
 
@@ -25,7 +25,7 @@ Project Orchestrator is currently an **unsigned internal candidate** for authori
 
 ## The 30-Second Explanation
 
-Most teams can make Copilot useful in one repository. The harder problem is making it consistent, safe, maintainable, and auditable across many repositories. Project Orchestrator packages that operating model into a registry-free installer and 45 governed skills. It adapts to the target stack, preserves existing work, requires approval at consequential boundaries, records machine-readable evidence, and can roll back failed installation changes.
+Most teams can make Copilot useful in one repository. The harder problem is making it consistent, safe, maintainable, and auditable across many repositories. Project Orchestrator packages that operating model into a registry-free installer and 47 governed skills. It adapts to the target stack, preserves existing work, requires approval at consequential boundaries, records machine-readable evidence, and can roll back failed installation changes.
 
 ## Why This Project Exists
 
@@ -71,7 +71,7 @@ Project adoption uses canonical path checks, symbolic-link rejection, destinatio
 
 ### Reuse instead of reinvention
 
-The 45-skill catalog covers common engineering and governance workflows. The inventory and dependency system helps teams reuse an existing skill before creating another overlapping capability.
+The 47-skill catalog covers common engineering, governance, and personalized communication workflows. The inventory and dependency system helps teams reuse an existing skill before creating another overlapping capability.
 
 ### Evidence instead of optimistic claims
 
@@ -121,7 +121,7 @@ Project Orchestrator is not:
 | Runtime version | `1.1.2` |
 | Source version date | September 12, 2026 |
 | Framework version | `9.0.0` |
-| Governed skills | 45 |
+| Governed skills | 47 |
 | Core runtime dependencies | 0 third-party packages |
 | Supported Node.js majors | 22, 24, and 26 |
 | Default new-project profile | `durable` |
@@ -144,7 +144,7 @@ flowchart TD
 
     J[Repository context] --> B
     J --> C
-    K[45 skill contracts] --> C
+    K[47 skill contracts] --> C
     L[Schemas and profiles] --> D
     L --> G
     M[Transaction journal and backups] --> F
@@ -459,7 +459,7 @@ All framework skills are copied into a standalone project. The selected profile 
 
 Profiles are dependency-closed and validated for cycles.
 
-## The 45 Governed Skills
+## The 47 Governed Skills
 
 The inventory below groups the current skill catalog by the problem each skill primarily owns. Lifecycle labels vary; a passing contract audit does not mean every skill is production-certified.
 
@@ -538,7 +538,9 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `documentation-builder` | Produces evidence-grounded guides, READMEs, decision records, deployment guides, and runbooks. |
 | `project-knowledge-capture` | Preserves reusable decisions, lessons, patterns, anti-patterns, and architecture discoveries. |
 | `project-memory` | Maintains durable operational preferences while keeping current instructions and evidence authoritative. |
-| `linkedin-post` | Produces a reviewable project post draft; publication remains separately approved. |
+| `linkedin-post` | Produces an evidence-grounded, profile-aware short-form project post with LinkedIn structure, media-readiness, confidentiality, and public-context checks; publication remains separately approved. |
+| `user-personalization` | Builds and validates one local, Git-ignored profile of user-approved voice, perspective, visual, and safety preferences. |
+| `personalized-content` | Refreshes Project Understanding, uses the current repository as its sole source, and saves profile-aware content, accessible whiteboards, or evidence-bound architectural/conceptual dioramas under `artifacts/personalized-content/<run-id>/` without publishing them. Diorama PNGs require bitmap generation or genuine physically based 3D rendering and must resemble photographed handcrafted miniature exhibits; otherwise the skill returns specification and alt text only. |
 | `project-video` | Produces an evidence-grounded browser preview or approved narrated MP4 from a meaningful implemented project. |
 
 ### Azure operations

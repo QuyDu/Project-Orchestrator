@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-skills.dev/schemas/user-personalization/1.0.0",
+  "title": "User Personalization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updatedAt", "attribution", "perspective", "communication", "reasoning", "contentDefaults", "visualPreferences", "safety"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["publicLabel", "visualSignature"],
+      "properties": {
+        "publicLabel": { "$ref": "#/$defs/shortText" },
+        "visualSignature": { "$ref": "#/$defs/shortText" }
+      }
+    },
+    "perspective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["roles", "expertise", "interests", "audiences"],
+      "properties": {
+        "roles": { "$ref": "#/$defs/requiredList" },
+        "expertise": { "$ref": "#/$defs/list" },
+        "interests": { "$ref": "#/$defs/list" },
+        "audiences": { "$ref": "#/$defs/requiredList" }
+      }
+    },
+    "communication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["voiceTraits", "tone", "detailLevel", "paragraphStyle", "humor", "challengeStyle", "firstPerson", "preferredPatterns", "signatureLines", "preferredTerms", "avoidedTerms"],
+      "properties": {
+        "voiceTraits": { "$ref": "#/$defs/voiceTraits" },
+        "tone": { "$ref": "#/$defs/mediumText" },
+        "detailLevel": { "enum": ["concise", "balanced", "detailed"] },
+        "paragraphStyle": { "enum": ["short", "mixed", "full"] },
+        "humor": { "enum": ["none", "light", "moderate"] },
+        "challengeStyle": { "enum": ["gentle", "direct", "socratic"] },
+        "firstPerson": { "enum": ["avoid", "when-relevant", "frequent"] },
+        "preferredPatterns": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 8,
+          "items": { "enum": ["analogy", "contrast", "practical-skepticism", "reframing", "experiment-design", "tradeoff-analysis", "validation-checklist", "concrete-next-actions"] }
+        },
+        "signatureLines": { "$ref": "#/$defs/list" },
+        "preferredTerms": { "$ref": "#/$defs/list" },
+        "avoidedTerms": { "$ref": "#/$defs/list" }
+      }
+    },
+    "reasoning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coreValues", "aiStance", "evidenceStandards", "validationApproach", "incompleteEvidenceAction"],
+      "properties": {
+        "coreValues": { "$ref": "#/$defs/requiredList" },
+        "aiStance": { "$ref": "#/$defs/mediumText" },
+        "evidenceStandards": { "$ref": "#/$defs/mediumText" },
+        "validationApproach": { "$ref": "#/$defs/mediumText" },
+        "incompleteEvidenceAction": { "$ref": "#/$defs/mediumText" }
+      }
+    },
+    "contentDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outputTypes", "defaultAudience", "postWordRange", "hashtagCount", "timezone", "includeDiscussionQuestion"],
+      "properties": {
+        "outputTypes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["article", "explainer", "summary", "evaluation", "action-plan", "linkedin-draft", "teams-message", "whiteboard", "whiteboard-specification"] }
+        },
+        "defaultAudience": { "$ref": "#/$defs/mediumText" },
+        "postWordRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum"],
+          "properties": {
+            "minimum": { "type": "integer", "minimum": 50, "maximum": 2000 },
+            "maximum": { "type": "integer", "minimum": 50, "maximum": 2000 }
+          }
+        },
+        "hashtagCount": { "type": "integer", "minimum": 0, "maximum": 12 },
+        "timezone": { "type": "string", "pattern": "^(?:UTC|GMT|[A-Za-z_+-]+(?:/[A-Za-z0-9_+-]+)+)$", "maxLength": 100 },
+        "includeDiscussionQuestion": { "type": "boolean" }
+      }
+    },
+    "visualPreferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "aesthetic", "useDominantMetaphor", "maximumZones", "palette", "requireAltText"],
+      "properties": {
+        "format": { "enum": ["landscape", "portrait", "square"] },
+        "aesthetic": { "$ref": "#/$defs/mediumText" },
+        "useDominantMetaphor": { "type": "boolean" },
+        "maximumZones": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "palette": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["focus", "positive", "risk", "neutral"],
+          "properties": {
+            "focus": { "$ref": "#/$defs/shortText" },
+            "positive": { "$ref": "#/$defs/shortText" },
+            "risk": { "$ref": "#/$defs/shortText" },
+            "neutral": { "$ref": "#/$defs/shortText" }
+          }
+        },
+        "requireAltText": { "const": true }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["treatSourcesAsUntrusted", "excludeConfidentialContent", "externalPublicationRequiresApproval", "requireAttribution", "additionalBoundaries"],
+      "properties": {
+        "treatSourcesAsUntrusted": { "const": true },
+        "excludeConfidentialContent": { "const": true },
+        "externalPublicationRequiresApproval": { "const": true },
+        "requireAttribution": { "const": true },
+        "additionalBoundaries": { "$ref": "#/$defs/list" }
+      }
+    }
+  },
+  "$defs": {
+    "shortText": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "mediumText": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "list": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 24,
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+    },
+    "requiredList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "maxItems": 24,
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+    },
+    "voiceTraits": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 50 }
+    }
+  }
+}
