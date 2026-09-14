@@ -1,29 +1,34 @@
 # Change Review
 
-- Base: `7110f313f2a3b48b40a27e0a2dde28ddd0528e35`
+- Base: `39c1b62b2cc48f032f5acddc60800572b1523ce9`
 - Head: local working tree
 - Status: **passed**
 - Findings: **none**
 
 ## Boundary
 
-Resolve CodeQL alerts `12` and `13` with atomic file operations, add immutable-evidence collision and tamper coverage, and preserve generated inventory and security evidence.
-
-## Evidence
-
-- GitHub Advanced Security reported two high `js/file-system-race` alerts.
-- Agent Builder now inspects and hashes destination state through one opened file handle.
-- Audit evidence now attempts exclusive creation before verifying an existing immutable snapshot.
-- Regression coverage forces existing-snapshot and tamper rejection behavior.
+Review the reusable User Personalization, Personalized Content, and LinkedIn guidance changes together with their schema, tests, configuration, documentation, synchronized handoff, and generated evidence. Exclude local visual runs, the modified demo PowerPoint, and the ignored local profile.
 
 ## Validation
 
-- Focused alias reproduction: 3 passed, 0 failed.
-- Complete Agent Builder suite: 18 passed, 0 failed.
-- Combined affected suites: 28 passed, 0 failed.
-- `npm run check`: 134 passed, 1 expected platform-specific skip, 0 failed.
-- All 45 skills verified; 221 files security-scanned; 161 unsigned candidate files verified.
+- Handoff JSON/Markdown and current work state: synchronized.
+- Clean staged-snapshot checks: 14 passed, zero failed across the two new-skill suites and relevant contract/help/dependency/profile checks.
+- Dependency resolution, profile closure, and cycle checks: passed.
+- Generated LinkedIn help and forbidden legacy-identity guard: passed.
+- Security scan: 234 commit-scoped files, zero findings.
+- Framework verification: passed.
+- Project Understanding and canonical project guide: rebuilt and validated.
+- `git diff --check`: passed.
+- `npm run check`: blocked because standalone npm is unavailable.
+- Broader direct `Code.exe` tests are non-authoritative where fixtures recursively invoke `process.execPath`; the complete suite remains a laptop gate.
 
-## Remaining Gate
+## Residual Risk
 
-Replacement hosted matrix and CodeQL checks must pass before protected auto-merge. Release and production-assurance blockers are unchanged.
+- This is a transfer commit, not merge-ready evidence. Run `npm run check` and inspect hosted checks on the personal laptop before merge.
+- The current release candidate predates this source change.
+- Semantic LinkedIn quality still requires human review even though measurable contract rules are tested.
+- P4 production-assurance blockers remain unchanged.
+
+## Recommendation
+
+Commit and push the bounded framework-only change set to `origin/feat/agent-builder-latest`. Do not merge until the laptop and hosted validation gates pass.

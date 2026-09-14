@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "runtimeVersion": "1.1.1",
-  "generatedAt": "2026-09-11T19:47:09.614Z",
+  "generatedAt": "2026-09-14T19:36:28.813Z",
   "skills": [
     {
       "name": "agent-builder",
@@ -297,12 +297,13 @@
     {
       "name": "linkedin-post",
       "path": ".github/skills/linkedin-post/SKILL.md",
-      "description": "Analyze the current project and prepare a reviewable LinkedIn post draft for Microsoft employees and the technical community, including update posts based on project history.",
+      "description": "Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history.",
       "lifecycle": "draft",
       "confidence": "low",
       "dependencies": [
         "project-handoff",
-        "documentation-builder"
+        "documentation-builder",
+        "user-personalization"
       ],
       "reports": [
         "reports/linkedin-post-draft.md"
@@ -321,6 +322,20 @@
       "reports": [
         "reports/coordination-state.json",
         "reports/coordination-state.md"
+      ]
+    },
+    {
+      "name": "personalized-content",
+      "path": ".github/skills/personalized-content/SKILL.md",
+      "description": "Transform the current project into profile-aware evaluations, explainers, articles, action plans, social drafts, Teams messages, accessible whiteboards, and miniature dioramas saved locally. Use when personalized project communication or visuals are requested.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "user-personalization",
+        "project-understanding"
+      ],
+      "reports": [
+        "artifacts/personalized-content/<run-id>/"
       ]
     },
     {
@@ -598,6 +613,15 @@
         "reports/debugging-result.json",
         "reports/debugging-result.md"
       ]
+    },
+    {
+      "name": "user-personalization",
+      "path": ".github/skills/user-personalization/SKILL.md",
+      "description": "Build, validate, and maintain the local User Personalization file that supplies reusable voice, perspective, content, visual, and safety preferences. Use before any skill creates personalized output when the profile is missing or invalid.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [],
+      "reports": []
     },
     {
       "name": "workflow-planner",

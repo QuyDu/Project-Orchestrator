@@ -2,33 +2,51 @@
 
 ## Current Status
 
-End-to-end audit-run binding is complete. One UUID now binds immutable audit evidence, Gitleaks, findings, review, remediation planning, and execution; current schemas require detailed verification records and reject mismatched identities or digests. The P4 plan still exposes read-only workflow recovery as its only ready step, and P4 release assurance remains blocked.
+The feature branch now contains reusable User Personalization, current-project Personalized Content, and profile-aware LinkedIn post guidance. Supported local checks pass, but the managed workstation has no standalone npm, so the mandatory package and release-candidate gate remains blocked. P4 release assurance also remains blocked.
 
 ## Latest Completed Work
 
-- Added generated or caller-supplied UUID audit run identity.
-- Added immutable content-addressed `reports/audit-evidence/<sha256>.json` snapshots.
-- Bound Gitleaks 1.1, findings/review 2.2, remediation plans 2.1, and execution 3.1 to the same run.
-- Required detailed tool, command, scope, status, timestamp, digest, revision, and configuration provenance.
-- Added digest and run-ID rejection across every downstream boundary.
-- Resolved root privacy, explicit external approval, and six-scope policy wording.
+- Added `user-personalization` with a strict schema, transactional local profile management, questionnaire guidance, and focused tests.
+- Added `personalized-content` with fresh current-project source binding, unique local run directories, accessible whiteboard output, and whiteboard or diorama visual style selection.
+- Strengthened diorama production to require approved bitmap generation or genuine physically based 3D rendering; unsupported environments fail closed to a specification and alt text.
+- Updated `linkedin-post` to require validated profile grounding, one focused topic, a why-care opening, readable bullets, a discussion action, no more than 3,000 characters, three to five final hashtags, and media/public-context readiness.
+- Added a sanitized LinkedIn reference without private Microsoft program links.
+- Refreshed inventory, ownership, Project Understanding, project-guide, security, and public documentation evidence for 47 governed skills.
 
 ## Validation
 
-- Run-bound findings-to-execution fixtures: passed.
-- Focused audit pipeline: 35 passed, one platform-specific skip.
-- Dedicated Gitleaks suite: four passed, one symlink skip.
-- Generated-project run-binding guidance: passed.
-- Skill inventory: all 45 skills passed.
-- Project Understanding and canonical project guide: rebuilt and validated.
-- Final repository gate: 133 passed, one platform-specific skip, zero failed, 221 files security-scanned, and 161 unsigned candidate files verified.
+- Clean staged-snapshot checks: 14 passed, zero failed across the two new-skill suites and relevant contract/help/dependency/profile tests.
+- Skill dependency resolution, profile closure, and cycle checks: passed.
+- Generated LinkedIn help: includes profile, character, hashtag, media, and readiness requirements.
+- Security: passed with 234 commit-scoped files scanned and no findings.
+- Framework verification: passed.
+- Project Understanding: complete; canonical project guide rebuilt and validated.
+- Bounded framework-only change review: passed with no findings; `npm run check` remains a merge-blocking validation gap.
+- `npm run check`: blocked because standalone npm is unavailable on this workstation.
+- Broader direct `Code.exe` testing is not authoritative because recursive `process.execPath` calls resolve to the GUI executable; rerun the complete suite with standalone Node.js/npm.
+
+## Commit Boundary
+
+The authorized commit contains reusable skill contracts and references, scripts, schema, tests, configuration, documentation, synchronized handoff/review records, and generated evidence. It intentionally excludes:
+
+- `artifacts/personalized-content/`, including local whiteboard and diorama runs
+- `Demo/Project-Orchestrator-Demo.pptx`, which has a separate local binary modification
+- `.skills-orchestrator/user-personalization.json`, which is intentionally Git-ignored
 
 ## Blockers And Approvals
 
-P4 still lacks a controlled signer, distinct independent reviewer, restricted internal artifact destination, tested installation-health and revocation operations, second qualified source reviewer, and production verification. Azure Government publication remains fail-closed wherever current service, channel, authorization, or data-boundary availability is unknown.
+The current release candidate predates these source changes. On a machine with supported Node.js and npm, `npm run check` must rebuild and verify the package before merge. Existing P4 blockers remain: controlled signing, distinct independent review, restricted internal artifact handling, installation-health and revocation operations, second qualified source review, production verification, and unresolved Azure Government publication evidence.
 
-The previously authorized branch commit and push are complete and consumed. Any further commit or push requires new explicit approval. Pull request creation, merge, force push, signing, release, Foundry agent or endpoint changes, Bot Service creation, Microsoft 365 or Teams publication, Custom GPT creation or sharing, GPT Action configuration, deployment, MCP installation, and Azure mutation remain separately gated.
+The user authorized one normal commit and push to `origin/feat/agent-builder-latest` for this bounded framework-only change set. That authorization is consumed by this operation. Any later agent-driven commit, push, force push, pull request mutation, merge, release, deployment, publication, hosted-agent change, MCP installation, or Azure mutation requires separate approval.
+
+The Microsoft Copilot Studio VS Code extension is not installed on the managed workstation because the machine-level `AllowedExtensions` policy does not include `ms-copilotstudio.vscode-copilotstudio`.
 
 ## Resume Point
 
-Execute `STEP-001` in `reports/workflow-plan.json`: use `workflow-recovery` to reconstruct the stale P4 execution timeline and select a safe restart, resume, or replan route. This read-only step requires no external-action approval. Do not resume remediation from the old checkpoint directly.
+On the personal laptop:
+
+1. Pull `origin/feat/agent-builder-latest`.
+2. Confirm Node.js 22, 24, or 26 and a compatible npm installation.
+3. Run `npm run check` to rebuild and verify the current private package and release candidate.
+4. Inspect hosted checks and the final branch diff.
+5. Merge only when every required gate passes, while preserving unresolved P4 production blockers.

@@ -1,66 +1,113 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-11T15:56:12.013Z",
-  "project": { "name": "project-skills-orchestrator", "version": "1.1.1", "branch": "feat/agent-builder-latest", "commit": "39c1b62b2cc48f032f5acddc60800572b1523ce9" },
+  "generatedAt": "2026-09-14T19:20:00.000Z",
+  "project": {
+    "name": "project-skills-orchestrator",
+    "version": "1.1.1",
+    "branch": "feat/agent-builder-latest",
+    "commit": "39c1b62b2cc48f032f5acddc60800572b1523ce9"
+  },
   "status": "blocked",
-  "milestone": { "name": "P4 release assurance", "status": "blocked", "objective": "Produce current release evidence and establish whether version 1.1.1 can pass trusted internal production gates." },
+  "milestone": {
+    "name": "P4 release assurance",
+    "status": "blocked",
+    "objective": "Validate and merge the personalized-content, user-personalization, and LinkedIn guidance work without weakening existing production gates."
+  },
   "lastCompletedWork": {
-    "summary": "Bound the complete audit pipeline to one UUID auditRunId and immutable content-addressed evidence, including Gitleaks, schema 2.2 findings/review, schema 2.1 remediation plans, schema 3.1 execution, detailed verification records, and cross-artifact digest validation.",
-    "completedAt": "2026-09-11T15:50:01.252Z",
+    "summary": "Added reusable user personalization and current-project personalized-content skills, strengthened accessible whiteboard and handcrafted-diorama behavior, and aligned LinkedIn drafts with a profile-aware short-form best-practices baseline.",
+    "completedAt": "2026-09-14T19:20:00.000Z",
     "evidence": [
-      ".github/skills/audit-code/SKILL.md",
-      ".github/skills/audit-code/scripts/audit-evidence.mjs",
-      ".github/skills/audit-code/scripts/audit-validate.mjs",
-      ".github/skills/audit-review-findings/SKILL.md",
-      "schemas/code-audit-findings.schema.json",
-      "schemas/audit-findings-review.schema.json",
-      "tests/audit-assurance.test.mjs",
-      "tests/adoption-rerun.test.mjs",
-      "tests/gitleaks-scan.test.mjs",
+      ".github/skills/user-personalization/SKILL.md",
+      ".github/skills/user-personalization/scripts/user-personalization.mjs",
+      ".github/skills/personalized-content/SKILL.md",
+      ".github/skills/personalized-content/scripts/personalized-content.mjs",
+      ".github/skills/linkedin-post/SKILL.md",
+      ".github/skills/linkedin-post/references/linkedin-best-practices.md",
+      "schemas/user-personalization.schema.json",
+      "tests/user-personalization.test.mjs",
+      "tests/personalized-content.test.mjs",
       "tests/skill-contracts.test.mjs",
       "reports/project-understanding.json",
       "docs/PROJECT-GUIDE.md"
     ]
   },
   "decisions": [
-    { "decision": "Use caller-supplied or generated UUID audit run identity.", "rationale": "One opaque identifier binds all evidence without leaking project or workstation names." },
-    { "decision": "Persist content-addressed immutable audit evidence.", "rationale": "Findings can prove the exact collector output they consumed and reject tampering or unrelated evidence." },
-    { "decision": "Advance current schemas while retaining historical readability.", "rationale": "Run binding is mandatory for new assurance without rewriting accepted legacy artifacts." },
-    { "decision": "Keep P4 release assurance blocked.", "rationale": "Planning and local validation do not satisfy trusted signing, independent review, artifact health, revocation, or production-verification gates." }
+    {
+      "decision": "Keep reusable personalization in one validated local profile owned by user-personalization.",
+      "rationale": "A Git-ignored profile supplies approved identity, voice, perspective, visual, and safety preferences without embedding one person's data in shipped skill contracts."
+    },
+    {
+      "decision": "Bind personalized-content runs to a fresh understanding of the current repository and unique repository-local output directories.",
+      "rationale": "Fresh source digests and immutable run directories prevent stale or externally substituted project narratives."
+    },
+    {
+      "decision": "Require a qualified bitmap or physically based 3D renderer for finished diorama PNGs.",
+      "rationale": "Specification and alt-text fallback is more honest than presenting a flat browser composition as a handcrafted photographic diorama."
+    },
+    {
+      "decision": "Apply a sanitized LinkedIn short-form baseline on top of validated profile preferences.",
+      "rationale": "Posts now enforce one topic, a why-care opening, readable bullets, a discussion action, a 3,000-character ceiling, three to five final hashtags, and media/public-context readiness without shipping private program links."
+    },
+    {
+      "decision": "Keep generated visual runs and the locally modified demo PowerPoint out of this commit.",
+      "rationale": "The commit should contain reusable framework behavior and evidence; local derivative artifacts and an unrelated binary change remain available on the source workstation."
+    },
+    {
+      "decision": "Keep P4 release assurance blocked.",
+      "rationale": "Supported local checks passed, but this workstation has no standalone npm and cannot execute the mandatory package and release-candidate gate. Existing trusted-signing and independent-review blockers also remain."
+    }
   ],
   "validation": [
-    { "check": "Run-bound pipeline fixtures", "status": "passed", "evidence": "Findings, review, remediation plan, and execution accept one shared auditRunId and reject mismatched identities or digests." },
-    { "check": "Immutable audit evidence", "status": "passed", "evidence": "Collector snapshots are content-addressed, digest-verified, report-safe, and cleaned after tests." },
-    { "check": "Focused audit pipeline", "status": "passed", "evidence": "Thirty-five tests passed with one platform-specific skip; four dedicated Gitleaks tests passed with one symlink skip." },
-    { "check": "Generated-project help propagation", "status": "passed", "evidence": "All four audit pipeline skills expose current run-binding requirements in generated help." },
-    { "check": "Generated evidence", "status": "passed", "evidence": "All 45 skills passed inventory audit; Project Understanding and the canonical project guide rebuilt and validated." },
-    { "check": "Repository conformance", "status": "passed", "evidence": "Final npm run check passed 133 of 134 tests with one platform-specific skip, scanned 221 files, verified 161 unsigned candidate files, and verified all 45 skills." },
-    { "check": "Production release", "status": "blocked", "evidence": "Operational artifact health and revocation, trusted signature, distinct independent review, and production verification remain blocked." }
+    {
+      "check": "Focused skill and contract tests",
+      "status": "passed",
+      "evidence": "A clean staged snapshot passed six User Personalization and Personalized Content tests plus eight relevant contract, generated-help, identity, profile-closure, dependency, and acyclic-graph tests: 14 passed and zero failed."
+    },
+    {
+      "check": "Broader repository suite",
+      "status": "blocked",
+      "evidence": "The managed Code.exe runtime cannot reliably execute unrelated tests that recursively spawn process.execPath, and the source workstation intentionally retains a modified demo PowerPoint outside the staged boundary. Run the complete npm gate on the personal laptop."
+    },
+    {
+      "check": "Security scan",
+      "status": "passed",
+      "evidence": "reports/security-check.json records 234 commit-scoped files scanned, zero package dependencies, and no findings."
+    },
+    {
+      "check": "Framework and generated evidence",
+      "status": "passed",
+      "evidence": "All 47 skills passed inventory audit; generated help exposed the LinkedIn readiness rules; framework verification passed; Project Understanding completed and the project guide validated against it."
+    },
+    {
+      "check": "Bounded change review",
+      "status": "passed",
+      "evidence": "reports/change-review.json records no findings for the approved framework-only boundary and keeps npm run check as a merge-blocking validation gap."
+    },
+    {
+      "check": "Mandatory npm run check",
+      "status": "blocked",
+      "evidence": "The npm executable is unavailable on this managed workstation, so package creation, offline installation, and fresh release-candidate verification could not run."
+    }
   ],
   "worktree": {
     "clean": false,
     "unmergedPaths": 0,
-    "otherChangesPresent": false,
-    "attribution": "All current changes belong to the approved workflow-planner and four-skill run-bound audit pipeline updates, schemas, validators, tests, generated documentation and evidence, corrected P4 plan lineage, and synchronized continuity.",
+    "otherChangesPresent": true,
+    "attribution": "The approved commit contains reusable skills, schemas, tests, configuration, documentation, handoff, review, and generated evidence. Local visual artifacts and the modified demo PowerPoint are intentionally excluded.",
     "boundedPaths": [
-      ".github/skills/audit-code/SKILL.md",
-      ".github/skills/audit-code/scripts/audit-evidence.mjs",
-      ".github/skills/audit-code/scripts/audit-validate.mjs",
-      ".github/skills/audit-code/scripts/gitleaks-scan.mjs",
-      ".github/skills/audit-plan-remediation/SKILL.md",
-      ".github/skills/audit-remediation/SKILL.md",
-      ".github/skills/audit-review-findings/SKILL.md",
-      ".github/skills/workflow-planner/SKILL.md",
+      ".github/skills/linkedin-post/SKILL.md",
+      ".github/skills/linkedin-post/references/linkedin-best-practices.md",
+      ".github/skills/personalized-content/",
+      ".github/skills/user-personalization/",
+      "README.md",
+      "config/profiles.yaml",
       "docs/PROJECT-GUIDE.md",
       "docs/PROJECT-OVERVIEW.md",
-      "pso.mjs",
+      "package.json",
       "reports/artifact-ownership.json",
-      "reports/clarification-result.json",
-      "reports/clarification-result.md",
-      "reports/current-execution-state.json",
-      "reports/current-execution-state.md",
+      "reports/change-review.json",
+      "reports/change-review.md",
       "reports/current-work-state.json",
-      "reports/execution-log.jsonl",
       "reports/project-guide.json",
       "reports/project-handoff.json",
       "reports/project-handoff.md",
@@ -71,58 +118,47 @@
       "reports/skill-details.md",
       "reports/skill-inventory.json",
       "reports/skill-inventory.md",
-      "reports/workflow-plan.json",
-      "reports/workflow-plan.md",
-      "schemas/audit-evidence.schema.json",
-      "schemas/audit-findings-review.schema.json",
-      "schemas/audit-remediation-execution.schema.json",
-      "schemas/audit-remediation-plan.schema.json",
-      "schemas/code-audit-findings.schema.json",
-      "schemas/gitleaks-scan.schema.json",
-      "schemas/workflow-plan.schema.json",
-      "tests/adoption-rerun.test.mjs",
-      "tests/audit-assurance.test.mjs",
-      "tests/audit-execution.test.mjs",
-      "tests/gitleaks-scan.test.mjs",
-      "tests/security-fuzz.test.mjs",
-      "tests/skill-contracts.test.mjs"
+      "schemas/user-personalization.schema.json",
+      "tests/package-install.test.mjs",
+      "tests/personalized-content.test.mjs",
+      "tests/skill-contracts.test.mjs",
+      "tests/user-personalization.test.mjs"
+    ],
+    "excludedLocalPaths": [
+      "Demo/Project-Orchestrator-Demo.pptx",
+      "artifacts/personalized-content/"
     ]
   },
   "blockers": [
+    "The mandatory npm run check, package-install test, release build, and fresh release-candidate verification require a workstation with standalone Node.js and npm.",
     "AUD-0205 production release assurance remains unresolved.",
     "Trusted signing and distinct independent-review identities are absent.",
     "No restricted internal artifact destination, installation-health signal, or tested revocation operation exists.",
     "Required human source review awaits a second qualified collaborator.",
-    "Azure Government publication readiness remains blocked wherever current service, channel, authorization, or data-boundary availability is unknown.",
-    "Production verification remains blocked."
+    "Azure Government publication readiness remains blocked wherever current service, channel, authorization, or data-boundary availability is unknown."
   ],
   "pendingApprovals": [
-    "Trusted signing by a controlled identity and independent review by a distinct qualified reviewer remain required.",
-    "Any further commit or push requires new explicit approval.",
-    "Pull request creation, merge, release, Foundry agent creation or endpoint mutation, Bot Service creation, Microsoft 365 or Teams publication, Custom GPT creation or sharing, GPT Action configuration, deployment, and MCP installation each require separate approval."
+    "The user authorized one normal commit and push to origin/feat/agent-builder-latest for this bounded framework-only change set; that authorization is consumed by this handoff operation.",
+    "Any later commit, push, force push, pull request mutation, or merge performed by an agent requires new explicit approval.",
+    "Trusted signing, independent review, release, publication, deployment, hosted-agent changes, MCP installation, and Azure mutation remain separately gated."
   ],
   "limitations": [
-    "Legacy audit artifacts remain readable but only current run-bound schema versions can establish current assurance.",
-    "The 24-hour freshness policy is local policy and may need a shorter organization-specific threshold for high-risk audits.",
-    "Standards lastVerifiedAt remains null until an approved audit performs authoritative-source retrieval.",
-    "Supplemental scanner availability is reported but does not satisfy required pinned Gitleaks readiness or completion.",
-    "Tracked reports and untracked distributable files share the worktree findings bucket because one directory scan covers both current-file scopes.",
-    "Standards catalog entries are candidates only; every audit must resolve current lifecycle and version evidence from authoritative sources.",
-    "Schema 1.0 and 2.0 audit artifacts remain readable historical evidence but cannot establish current schema 2.1 assurance.",
-    "Conditional AI and agentic profiles require repository-specific applicability assessment before they affect assurance.",
-    "Legacy schema 1.0 workflow plans remain readable but do not provide schema 1.1 execution guarantees.",
-    "The focused suite does not exercise simultaneous lock contention between two live apply processes.",
-    "No live Foundry endpoint, Microsoft 365 or Teams channel, Bot Service resource, Custom GPT, or GPT Action was created or exercised.",
-    "No signing, release, publication, deployment, hosted-agent creation, MCP installation, or Azure mutation is authorized by this handoff.",
+    "The ignored .skills-orchestrator/user-personalization.json remains local and is not included in the commit.",
+    "No qualified image generator or physically based 3D renderer was available; the compliant final diorama run contains specification and alt text only.",
+    "Generated visual artifacts and the locally modified Demo/Project-Orchestrator-Demo.pptx remain uncommitted on the source workstation.",
+    "VS Code's bundled Node runtime is suitable for focused checks but not the complete suite because recursive process.execPath calls resolve to Code.exe; use standalone Node.js and npm for the final gate.",
+    "The Microsoft Copilot Studio VS Code extension was not installed because the managed AllowedExtensions policy omits ms-copilotstudio.vscode-copilotstudio.",
+    "The current release candidate predates these source changes and cannot establish release readiness.",
     "Overall P4 assurance remains insufficient-evidence."
   ],
   "nextAction": {
-    "skill": "workflow-recovery",
-    "status": "ready",
-    "action": "Execute STEP-001 of reports/workflow-plan.json to reconstruct the stale P4 execution timeline and select a safe restart, resume, or replan route.",
+    "skill": "framework-health-check",
+    "status": "ready-on-personal-laptop",
+    "action": "Pull origin/feat/agent-builder-latest on the personal laptop, verify a supported Node.js and npm toolchain, run npm run check, inspect hosted checks and the final branch diff, then merge only if every required gate passes.",
     "prerequisites": [
-      "Read reports/current-execution-state.json, reports/execution-log.jsonl, reports/audit-remediation-execution.json, and the immutable P4 plan snapshot.",
-      "Perform read-only recovery analysis; do not resume remediation or mutate external systems."
+      "Use Node.js 22, 24, or 26 with npm 11.11.0 or a repository-compatible exact npm version.",
+      "Do not treat the prior release candidate as current; npm run check must rebuild and verify it from this commit.",
+      "Preserve P4 production blockers after merge unless separate evidence resolves them."
     ]
   }
 }

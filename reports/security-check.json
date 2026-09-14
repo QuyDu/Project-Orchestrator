@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-11T19:44:36.861Z",
+  "generatedAt": "2026-09-14T19:36:27.527Z",
   "scanner": {
     "name": "skills-orchestrator-security-check",
     "version": "1.1.1"
   },
-  "sourceDigest": "782add64e58431edce6c0f1b3d8e44821366c9a4e1c3937505a408b02e811f90",
-  "filesScanned": 221,
+  "sourceDigest": "7e68ece5e6894ee25e4241e7dd31a7e70f3c9c2d0b540c92dd7cdada74c7b90e",
+  "filesScanned": 234,
   "dependencyCount": 0,
   "status": "passed",
   "findings": []

@@ -1,50 +1,59 @@
 {
   "schemaVersion": "1.0.0",
-  "updatedAt": "2026-09-11T15:56:12.013Z",
-  "project": { "name": "project-skills-orchestrator", "version": "1.1.1", "branch": "feat/agent-builder-latest", "commit": "39c1b62b2cc48f032f5acddc60800572b1523ce9" },
+  "updatedAt": "2026-09-14T19:20:00.000Z",
+  "project": {
+    "name": "project-skills-orchestrator",
+    "version": "1.1.1",
+    "branch": "feat/agent-builder-latest",
+    "commit": "39c1b62b2cc48f032f5acddc60800572b1523ce9"
+  },
   "status": "blocked",
-  "activeMilestone": { "name": "P4 release assurance", "status": "blocked" },
+  "activeMilestone": {
+    "name": "P4 release assurance",
+    "status": "blocked"
+  },
   "lastCompletedAction": {
-    "action": "Bind immutable audit evidence, findings, review, remediation plan, and execution to one auditRunId",
+    "action": "Add reusable personalization, current-project visual content, and LinkedIn best-practices capabilities",
     "status": "completed",
-    "completedAt": "2026-09-11T15:50:01.252Z",
+    "completedAt": "2026-09-14T19:20:00.000Z",
     "evidence": [
-      ".github/skills/audit-code/SKILL.md",
-      ".github/skills/audit-code/scripts/audit-evidence.mjs",
-      ".github/skills/audit-code/scripts/audit-validate.mjs",
-      ".github/skills/audit-review-findings/SKILL.md",
-      "schemas/code-audit-findings.schema.json",
-      "schemas/audit-findings-review.schema.json",
-      "tests/audit-assurance.test.mjs",
-      "tests/adoption-rerun.test.mjs",
-      "tests/gitleaks-scan.test.mjs",
+      ".github/skills/user-personalization/SKILL.md",
+      ".github/skills/personalized-content/SKILL.md",
+      ".github/skills/linkedin-post/SKILL.md",
+      "schemas/user-personalization.schema.json",
+      "tests/user-personalization.test.mjs",
+      "tests/personalized-content.test.mjs",
       "tests/skill-contracts.test.mjs",
       "reports/project-understanding.json",
       "docs/PROJECT-GUIDE.md"
     ]
   },
   "validationStatus": {
-    "repositoryCheck": "passed",
-    "testsPassed": 133,
+    "repositoryCheck": "blocked-environment",
+    "commitScopedTestsPassed": 14,
     "testsFailed": 0,
-    "testsSkipped": 1,
-    "skillsVerified": 45,
+    "skillsVerified": 47,
     "securityCheck": "passed",
-    "releaseCandidateVerification": "passed",
-    "note": "The final npm run check passed 133 of 134 tests with one platform-specific skip, verified all 45 skills, scanned 221 files without a security failure, and verified 161 checksum-covered candidate files. Audit-run binding and immutable provenance fixtures pass end to end. P4 remains blocked."
+    "releaseCandidateVerification": "blocked-environment",
+    "changeReview": "passed-with-validation-gap",
+    "note": "Fourteen commit-scoped staged tests, security scanning, generated help, dependency closure, Project Understanding, project-guide validation, and framework verification passed. Standalone npm is unavailable and Code.exe is not authoritative for recursive process tests, so npm run check and fresh package/release-candidate verification remain required on the personal laptop."
   },
   "blockers": [
-    "AUD-0205: production release assurance remains incomplete.",
+    "The mandatory npm run check and fresh package/release-candidate verification require a workstation with standalone Node.js and npm.",
+    "AUD-0205 production release assurance remains incomplete.",
     "Trusted signing and independent-review identities are not provisioned; production verification fails closed.",
     "No restricted internal artifact destination, installation-health signal, or tested revocation operation exists.",
-    "ARCF-0205 and SECF-0205: required human review awaits a second qualified collaborator.",
-    "Azure Government publication readiness remains blocked wherever current service, channel, authorization, or data-boundary availability is unknown.",
-    "Overall P4 assurance remains insufficient-evidence."
+    "ARCF-0205 and SECF-0205 human review awaits a second qualified collaborator.",
+    "Azure Government publication readiness remains blocked wherever service, channel, authorization, or data-boundary evidence is unknown."
   ],
   "pendingApprovals": [
-    "The previously authorized branch commit and push are complete and consumed; any further commit or push requires new explicit approval.",
-    "Trusted signing, independent review, revocation testing, pull request creation, merge, release, Foundry agent or endpoint changes, Bot Service creation, Microsoft 365 or Teams publication, Custom GPT creation or sharing, GPT Action configuration, deployment, and MCP installation each require separate approval."
+    "One normal commit and push to origin/feat/agent-builder-latest is authorized for the bounded framework-only change set and is consumed by this operation.",
+    "Any later commit, push, force push, pull request mutation, merge, release, deployment, publication, hosted-agent change, MCP installation, or Azure mutation requires separate approval."
   ],
-  "nextAction": { "skill": "workflow-recovery", "status": "ready", "action": "Execute STEP-001 of reports/workflow-plan.json to reconstruct the stale P4 execution timeline and select a safe restart, resume, or replan route without mutating external systems." },
+  "nextAction": {
+    "skill": "framework-health-check",
+    "status": "ready-on-personal-laptop",
+    "action": "Pull origin/feat/agent-builder-latest on the personal laptop, verify a supported Node.js and npm toolchain, run npm run check, inspect hosted checks and the final branch diff, then merge only if every required gate passes."
+  },
   "handoff": "reports/project-handoff.json"
 }

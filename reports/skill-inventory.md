@@ -1,6 +1,6 @@
 # Skill Inventory
 
-Generated: 2026-09-11T19:47:09.614Z
+Generated: 2026-09-14T19:36:28.813Z
 
 | Skill | Description |
 | --- | --- |
@@ -23,8 +23,9 @@ Generated: 2026-09-11T19:47:09.614Z
 | documentation-builder | Generate and maintain the authoritative project guide, README files, decision records, deployment guides, and operations runbooks from verified repository evidence. Use when documentation is missing, stale, or contradicts the code; do not use to narrate changes an agent just made. |
 | environment-update | Inventory installed development tools and present available updates, then update only existing tools selected by the user with complete findings and error reporting. |
 | framework-health-check | Validate framework structure, skill contracts, schemas, ownership, profiles, fixtures, configuration, and conformance evidence. Use to verify the installed orchestrator framework itself; use audit-code instead to assess application code. |
-| linkedin-post | Analyze the current project and prepare a reviewable LinkedIn post draft for Microsoft employees and the technical community, including update posts based on project history. |
+| linkedin-post | Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history. |
 | multi-agent-coordinator | Coordinate concurrent agents with leases, fencing tokens, ownership transfer, conflict detection, and shared-read or exclusive-write semantics. Use when more than one agent may write the same artifacts concurrently; do not use for single-agent sequential work. |
+| personalized-content | Transform the current project into profile-aware evaluations, explainers, articles, action plans, social drafts, Teams messages, accessible whiteboards, and miniature dioramas saved locally. Use when personalized project communication or visuals are requested. |
 | policy-engine | Evaluate centralized authorization, risk, compliance, escalation, and approval policies without executing the governed action. Use to decide whether an action is allowed, denied, or approval-gated; never use it to perform the action. |
 | prepare-commit | Prepare a minimal, validated change set and commit summary after bounded change review, without committing, pushing, deploying, or bypassing protections. Use when changes are ready for a pre-commit decision. |
 | project-handoff | Record verified project continuity, milestone status, key decisions, blockers, last completed work, and the next approved action. Use at the end of a work session or before transferring ownership so the next agent or person can resume; do not use as a change log. |
@@ -43,6 +44,7 @@ Generated: 2026-09-11T19:47:09.614Z
 | skill-registry | Manage governed skill package metadata, discovery, provenance, integrity, lifecycle promotion, deprecation, retirement, and revocation proposals. Use to promote, deprecate, retire, or verify the provenance of a skill package; use skill-create instead to author its content. |
 | skill-update | Identify and update an existing governed skill through candidate resolution, bounded change review, explicit proceed approval, dependency analysis, help regeneration, and project documentation refresh. Always use when a user asks to modify, revise, enhance, fix, or update an existing skill; use skill-create for new skills. |
 | systematic-debugging | Reproduce an observed software failure, gather diagnostic evidence, isolate its root cause, and verify the smallest safe fix. Use for failing behavior, crashes, incorrect output, flaky tests, or regressions; do not use for broad repository audits. |
+| user-personalization | Build, validate, and maintain the local User Personalization file that supplies reusable voice, perspective, content, visual, and safety preferences. Use before any skill creates personalized output when the profile is missing or invalid. |
 | workflow-planner | Convert user intent into an ordered, validated workflow plan with inputs, outputs, approvals, checkpoints, rollback points, and recovery routes. Use after clarification to turn a confirmed request into an executable sequence; do not use to execute the plan. |
 | workflow-recovery | Analyze interrupted or partially failed workflows and produce a safe recovery plan from events, checkpoints, artifacts, and handoffs. Use when a workflow was interrupted, crashed, or partially applied and must resume safely; do not use for normal planning. |
 | workflow-scheduler | Own admission, prioritization, fairness, budgets, deadlines, throttling, capacity, and starvation prevention for eligible workflows. Use when multiple eligible workflows compete for limited capacity or budget; do not use for a single sequential workflow. |

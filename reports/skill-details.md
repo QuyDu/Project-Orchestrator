@@ -1,6 +1,6 @@
 # Skill Details
 
-Generated: 2026-09-11T19:47:09.614Z
+Generated: 2026-09-14T19:36:28.813Z
 
 | Skill | Lifecycle | Confidence | Audit | Dependencies |
 | --- | --- | --- | --- | --- |
@@ -23,8 +23,9 @@ Generated: 2026-09-11T19:47:09.614Z
 | documentation-builder | tested | medium | passed | clarify-the-ask |
 | environment-update | draft | low | passed | development-environment-readiness, policy-engine |
 | framework-health-check | draft | low | passed | skill-inventory, skill-dependency-manager |
-| linkedin-post | draft | low | passed | project-handoff, documentation-builder |
+| linkedin-post | draft | low | passed | project-handoff, documentation-builder, user-personalization |
 | multi-agent-coordinator | draft | low | passed | workflow-state-manager, workflow-scheduler |
+| personalized-content | draft | low | passed | user-personalization, project-understanding |
 | policy-engine | draft | low | passed | None |
 | prepare-commit | draft | low | passed | change-review |
 | project-handoff | draft | low | passed | workflow-state-manager |
@@ -43,6 +44,7 @@ Generated: 2026-09-11T19:47:09.614Z
 | skill-registry | draft | low | passed | skill-inventory, skill-dependency-manager, policy-engine |
 | skill-update | draft | low | passed | skill-inventory, skill-dependency-manager, project-understanding, documentation-builder |
 | systematic-debugging | draft | low | passed | policy-engine, workflow-state-manager |
+| user-personalization | draft | low | passed | None |
 | workflow-planner | draft | low | passed | clarify-the-ask, skill-inventory, skill-dependency-manager |
 | workflow-recovery | draft | low | passed | workflow-state-manager, project-handoff |
 | workflow-scheduler | draft | low | passed | workflow-state-manager, policy-engine |
