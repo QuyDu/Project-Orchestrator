@@ -1,5 +1,27 @@
 # Demo Day Runbook
 
+## 60-minute presenter plan
+
+The PowerPoint speaker notes are the detailed presenter guide. Rehearse to these targets; they total 60 minutes and reserve 15 minutes for the live project workflow.
+
+| Slide | Topic | Target |
+| --- | --- | ---: |
+| 1 | Opening and the establish-orchestrate-prove story | 4 minutes |
+| 2 | Why repositories need an operating model | 4 minutes |
+| 3 | Evidence-grounded project video | 5 minutes |
+| 4 | Repository-local control-plane architecture | 5 minutes |
+| 5 | New, existing, and remote adoption | 4 minutes |
+| 6 | Routing, composition, and audit lineage | 5 minutes |
+| 7 | Least-privilege Agent Builder | 5 minutes |
+| 8 | Governed publication handoff | 4 minutes |
+| 9 | Autonomy with mandatory consent | 4 minutes |
+| 10 | Live project creation and build | 15 minutes |
+| 11 | Evidence, limitations, closing, and Q&A | 5 minutes |
+
+Each notes page expands the exact content visible on its slide through four layers: `WALK THE SLIDE` explains what to point to, `CORE STORY` provides the primary narrative, `PROJECT DEPTH` connects the visual to current architecture and implementation, and `EVIDENCE TO REFERENCE` identifies concrete files, reports, schemas, tests, or commands. Audience prompts, transitions, and optional material support pacing without replacing the slide's subject.
+
+Deliver the opening, visual walkthrough, and core story first. Use project-depth material selectively based on the room, and use the evidence references when someone asks how a claim is implemented or verified. This keeps the prepared route within 60 minutes while providing enough grounded detail to answer technical follow-ups. Slide 10 also contains stage narration, deployment stop conditions, and recovery paths. Treat a blocked consequential action as a successful demonstration of governance, not as a reason to rush or bypass the gate.
+
 ## Before the audience arrives
 
 1. Open `Demo/Project-Orchestrator-Demo.pptx` and confirm all 11 slides render correctly. This is an archived, internally synchronized version 1.1.1 deck; current source version and validation evidence are recorded in `README.md` and `reports/current-work-state.json`.
@@ -9,7 +31,7 @@
 5. Confirm Node.js and Visual Studio Code are available for the local project-creation flow. Use `/demo-create-project --Test` during rehearsal so the test workspace remains available for inspection.
 6. Before Act 3's deployment decision, confirm Azure CLI is already signed in to the intended Azure US Government subscription. Do not project credentials, device codes, tokens, keys, tenant identifiers, or subscription identifiers.
 7. Confirm the audience can see the slides, terminal, editor, and browser. Keep the generated-app browser tab ready to show the `?mode=test` view and the three `?at=` phase overrides.
-8. Keep the latest successful `npm run check` evidence visible and confirm all 45 skills were verified. The candidate remains unsigned and P4 release assurance remains blocked.
+8. Keep the latest successful `npm run check` evidence visible and confirm all 47 skills were verified. The candidate remains unsigned and P4 release assurance remains blocked.
 
 ## Act 1: introduce the governed foundation
 

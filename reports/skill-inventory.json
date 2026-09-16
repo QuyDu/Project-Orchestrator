@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "runtimeVersion": "1.1.2",
-  "generatedAt": "2026-09-12T16:40:36.517Z",
+  "generatedAt": "2026-09-16T08:50:46.489Z",
   "skills": [
     {
       "name": "agent-builder",
@@ -297,12 +297,13 @@
     {
       "name": "linkedin-post",
       "path": ".github/skills/linkedin-post/SKILL.md",
-      "description": "Analyze the current project and prepare a reviewable LinkedIn post draft for Microsoft employees and the technical community, including update posts based on project history.",
+      "description": "Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history.",
       "lifecycle": "draft",
       "confidence": "low",
       "dependencies": [
         "project-handoff",
-        "documentation-builder"
+        "documentation-builder",
+        "user-personalization"
       ],
       "reports": [
         "reports/linkedin-post-draft.md"
@@ -483,6 +484,22 @@
       ]
     },
     {
+      "name": "project-visual-storytelling",
+      "path": ".github/skills/project-visual-storytelling/SKILL.md",
+      "description": "Create repository-aware architecture diagrams, whiteboards, and miniature dioramas for the current project, with evidence-bound source artifacts, specifications, alt text, and optional validated PNGs saved locally. Use when a project needs a diagram or visual explanation.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "user-personalization",
+        "project-understanding",
+        "agent-builder",
+        "azure-discovery"
+      ],
+      "reports": [
+        "artifacts/project-visual-storytelling/<run-id>/"
+      ]
+    },
+    {
       "name": "regression-test-development",
       "path": ".github/skills/regression-test-development/SKILL.md",
       "description": "Create or strengthen focused automated tests that reproduce a bug or specify a requested behavior, then capture red-green validation evidence. Use when a change needs durable regression coverage; do not use only to execute an existing test suite.",
@@ -598,6 +615,15 @@
         "reports/debugging-result.json",
         "reports/debugging-result.md"
       ]
+    },
+    {
+      "name": "user-personalization",
+      "path": ".github/skills/user-personalization/SKILL.md",
+      "description": "Build, validate, and maintain the local User Personalization file that supplies reusable voice, perspective, content, visual, and safety preferences. Use before any skill creates personalized output when the profile is missing or invalid.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [],
+      "reports": []
     },
     {
       "name": "workflow-planner",

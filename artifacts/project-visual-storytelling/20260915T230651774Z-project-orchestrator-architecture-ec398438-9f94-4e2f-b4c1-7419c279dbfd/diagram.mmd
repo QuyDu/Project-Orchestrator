@@ -1,0 +1,27 @@
+flowchart LR
+  project["Project Orchestrator"]
+  n1-azure[".azure"]
+  project --> n1-azure
+  n2-github[".github"]
+  project --> n2-github
+  n3-vscode[".vscode"]
+  project --> n3-vscode
+  n4-demo["Demo"]
+  project --> n4-demo
+  n5-artifacts["artifacts"]
+  project --> n5-artifacts
+  n6-config["config"]
+  project --> n6-config
+  n7-docs["docs"]
+  project --> n7-docs
+  n8-release["release"]
+  project --> n8-release
+  n9-reports["reports"]
+  project --> n9-reports
+  n10-schemas["schemas"]
+  project --> n10-schemas
+  n11-scripts["scripts"]
+  project --> n11-scripts
+  n12-templates["templates"]
+  project --> n12-templates
+  %% type: architecture; state: current; evidence is recorded in evidence-map.md

@@ -157,6 +157,19 @@ test("rerun adoption synchronizes updates, wiring, and legacy skill IDs", async 
     const legacySkill = (await readFile(legacySkillPath, "utf8")).replaceAll("audit-review-findings", "review-audit-findings");
     await writeFile(legacySkillPath, legacySkill, "utf8");
 
+    const currentVisualStorytelling = path.join(project, ".github", "skills", "project-visual-storytelling");
+    const legacyPersonalizedContent = path.join(project, ".github", "skills", "personalized-content");
+    await rename(currentVisualStorytelling, legacyPersonalizedContent);
+    const legacyPersonalizedSkillPath = path.join(legacyPersonalizedContent, "SKILL.md");
+    const legacyPersonalizedSkill = (await readFile(legacyPersonalizedSkillPath, "utf8"))
+      .replaceAll("project-visual-storytelling", "personalized-content");
+    await writeFile(legacyPersonalizedSkillPath, legacyPersonalizedSkill, "utf8");
+    const currentVisualHelp = path.join(project, ".github", "prompts", "project-visual-storytelling-help.prompt.md");
+    const legacyVisualHelp = path.join(project, ".github", "prompts", "personalized-content-help.prompt.md");
+    await rename(currentVisualHelp, legacyVisualHelp);
+    await writeFile(legacyVisualHelp, (await readFile(legacyVisualHelp, "utf8"))
+      .replaceAll("project-visual-storytelling", "personalized-content"), "utf8");
+
     const schemaPath = path.join(project, "schemas", "code-audit-findings.schema.json");
     await writeFile(schemaPath, `${await readFile(schemaPath, "utf8")}\n`, "utf8");
     const profilesPath = path.join(project, "config", "profiles.yaml");
@@ -231,8 +244,8 @@ No approval is required for read-only work.
     assert.match(dryRun, /Project skill references to migrate: 1/);
     assert.match(dryRun, /Framework files to update: [1-9]/);
     assert.match(dryRun, /Wiring files to update: [1-9]/);
-    assert.match(dryRun, /Duplicate skills to replace: 1/);
-    assert.match(dryRun, /Duplicate prompt commands to remove: 1/);
+    assert.match(dryRun, /Duplicate skills to replace: 2/);
+    assert.match(dryRun, /Duplicate prompt commands to remove: 2/);
 
     runAdoption(project, "--apply");
 
@@ -244,6 +257,10 @@ No approval is required for read-only work.
     assert.doesNotMatch(migratedCustomSkill, /review-audit-findings/);
     assert.ok(existsSync(currentReview));
     assert.ok(!existsSync(legacyReview));
+    assert.ok(existsSync(currentVisualStorytelling));
+    assert.ok(!existsSync(legacyPersonalizedContent));
+    assert.ok(existsSync(currentVisualHelp));
+    assert.ok(!existsSync(legacyVisualHelp));
     assert.equal(await readFile(schemaPath, "utf8"), await readFile(path.join(root, "schemas", "code-audit-findings.schema.json"), "utf8"));
     assert.equal(await readFile(profilesPath, "utf8"), await readFile(path.join(root, "config", "profiles.yaml"), "utf8"));
     assert.ok(existsSync(path.join(project, ".github", "skills", "project-video", "scripts", "project-video.mjs")));

@@ -47,7 +47,7 @@ profiles:
       - project-memory
       - linkedin-post
       - user-personalization
-      - personalized-content
+      - project-visual-storytelling
       - azure-cleanup
   distributed:
     extends: durable

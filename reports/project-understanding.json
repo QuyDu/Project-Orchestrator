@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "status": "complete",
-  "generatedAt": "2026-09-14T19:36:28.316Z",
+  "generatedAt": "2026-09-16T00:55:37.469Z",
   "generator": "project-understanding",
   "project": {
     "name": "project-skills-orchestrator",
@@ -13,10 +13,10 @@
   },
   "scan": {
     "mode": "full-rebuild",
-    "repositoryDigestSha256": "1d8b2000bdc041c13ebb40daf146bb8262948508c3c12d2f6bbfbbc81dddcf5f",
-    "fileCount": 315,
-    "sourceFileCount": 20,
-    "testFileCount": 15,
+    "repositoryDigestSha256": "c46d700d55f9cf75b4d7470f5ddd08c216f240170234487af9251c510823b218",
+    "fileCount": 340,
+    "sourceFileCount": 21,
+    "testFileCount": 16,
     "excludedDirectories": [
       ".git",
       ".skills-orchestrator",
@@ -40,44 +40,54 @@
     ],
     "files": [
       {
+        "path": ".azure/environment.json",
+        "bytes": 667,
+        "sha256": "40a248bda9e856da6f7e0462e576d2e0b08d5943aa89ecad528dbfe8c021619f"
+      },
+      {
         "path": ".gitattributes",
-        "bytes": 503,
-        "sha256": "a1ac47ec3c8400dcb26f4f28ecf70e64dfdd34dbcb14b18b859605e26ab3b9b2"
+        "bytes": 527,
+        "sha256": "c63d80aee13e6990e327cc45b350697b1dd55d69e4db49535b0db92eb624d29d"
+      },
+      {
+        "path": ".github/agents/visual-storytelling-director.agent.md",
+        "bytes": 2442,
+        "sha256": "1124bd0940483c7bf6b2b508ffa6c2a58044400fc5b1cb2f84803e671226e231"
       },
       {
         "path": ".github/copilot-instructions.md",
-        "bytes": 4167,
-        "sha256": "0daa79a9e3fe5e1999973b4b2c4ad4fcde68a028d47c617ee4dbe87c1bfda4db"
+        "bytes": 4215,
+        "sha256": "5af1bfe699824ce7742da91c1f13d68ae7cff58c3c02b91e51a80a1fdd070500"
       },
       {
         "path": ".github/dependabot.yml",
-        "bytes": 308,
-        "sha256": "a05cb2d6b9cb1bc36fb78cc7be72cc7bb20b6533da8d00b97bbedbe5ce55f148"
+        "bytes": 321,
+        "sha256": "22aa5906dcdd7a7c4fbe797c9fef9d935fe2d721dadef9b681670ac53c3fb3ef"
       },
       {
         "path": ".github/prompts/azure-cleanup-help.prompt.md",
-        "bytes": 1218,
-        "sha256": "fcfeaebc57606dcc71e65c60a07e1f6a0092e25ca79eaa3559d8a326fda69158"
+        "bytes": 1242,
+        "sha256": "07ba1bbf4ef32754617a1a39cd4913b8bff2fdea1ec7c0ae2620516b803086d2"
       },
       {
         "path": ".github/prompts/demo-create-project.prompt.md",
-        "bytes": 5509,
-        "sha256": "d76a9e683a70a5edfc8d3847150e5059d2a2db97cbb78d87b7b078922c61e796"
+        "bytes": 6954,
+        "sha256": "f9ff7df9a1d40d79deff6aeb303c361148b4bdd3ecd24a230d0f2c48cd7bc890"
       },
       {
         "path": ".github/prompts/demo-web-app.prompt.md",
-        "bytes": 8795,
-        "sha256": "3946cf52e4cfefc924850d7be9b6202a386d1351b1c2ec85ce20b877d348e46b"
+        "bytes": 8914,
+        "sha256": "84589697433565e668fcac57c58844356e9795a78850557b394391057c9bfa1d"
       },
       {
         "path": ".github/prompts/environment-update-help.prompt.md",
-        "bytes": 1016,
-        "sha256": "2aaa3394a357b7ce78cca6147d6afbc385fb2a81fdd0797b7f830f4ec261277c"
+        "bytes": 1035,
+        "sha256": "5230f6db06f94db9ecd139daaee17f8fc371c66450d887e938dfa08ee54f3b1b"
       },
       {
         "path": ".github/prompts/project-blueprint.prompt.md",
-        "bytes": 1694,
-        "sha256": "1864ef4195fa6359f6ff2e92f8b2be42c1b290945736125240ab7608603c561e"
+        "bytes": 1724,
+        "sha256": "9fb4789962429a753d693b27f22d39ee51943fe25e6942ce7b942e7b8751db9e"
       },
       {
         "path": ".github/prompts/project-mermaid-architecture.prompt.md",
@@ -86,28 +96,28 @@
       },
       {
         "path": ".github/prompts/project-start.prompt.md",
-        "bytes": 1482,
-        "sha256": "d2b9a0b14969f4f7dd217538202cb071e56b071ba66bc0c242c8c1922864c310"
+        "bytes": 1507,
+        "sha256": "e6e721eca59c0ca02202b010df9845218ff8d238caf3553ff8a69610484f828b"
       },
       {
         "path": ".github/prompts/project-validate.prompt.md",
-        "bytes": 1493,
-        "sha256": "bbedc2db86cb06bf3eb8e8160b63824c35d96c9fccb8bd4be9660d586910db63"
+        "bytes": 1520,
+        "sha256": "d8c554e36c5cccff3d6da0387ac28107c0040717c885cf187263274c4ce2c5e6"
       },
       {
         "path": ".github/prompts/release-readiness.prompt.md",
-        "bytes": 1222,
-        "sha256": "8bc3bac51ba87e6c03832e6eb58d3aca16790e0764fda41b18005b52ab264567"
+        "bytes": 1242,
+        "sha256": "72e58c3071b09bc67e4d18370fe39bdfb4e627888a07d9e64cd077764108cbed"
       },
       {
         "path": ".github/prompts/skills-help.prompt.md",
-        "bytes": 2068,
-        "sha256": "c352771eda6d076a2380fa9a849cb62ac86d7f91bb3cffd0acab462d1c08fa99"
+        "bytes": 2112,
+        "sha256": "1407e49cb83aadd3efddcf41d64982b3f758d860a351a037dbe1acad2d1934ad"
       },
       {
         "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
-        "bytes": 45282,
-        "sha256": "94ac3a1babb5b66458d025bb91e579f8073989d0de98d201d18803f3c1da2277"
+        "bytes": 46076,
+        "sha256": "5bfc5566435cec40ed49a645ac642ff9cae003c2e65dae8b99288557bc582c98"
       },
       {
         "path": ".github/skills/agent-builder/scripts/azure-context.ps1",
@@ -116,13 +126,13 @@
       },
       {
         "path": ".github/skills/agent-builder/SKILL.md",
-        "bytes": 11942,
-        "sha256": "9453cfba1de99a5ff718b4e82dda27e43ee7fd36e6713c00ae3ea81b30a48c4f"
+        "bytes": 12066,
+        "sha256": "1e6e2164a40a9e41c3fffe49617f4be3cfb49246b4fbde28c7605f10e6460832"
       },
       {
         "path": ".github/skills/architecture-review/SKILL.md",
-        "bytes": 4635,
-        "sha256": "f5fa3233686be37fbc960bc4d2f89ec7271cf72acf762ffb2024136acb7ba1f9"
+        "bytes": 4720,
+        "sha256": "e989ed7f3b6d07f5b9a08d1c65cb4a0721cdc4d0f2a9bb45fc2e55cce2b41919"
       },
       {
         "path": ".github/skills/artifact-upgrade/SKILL.md",
@@ -136,33 +146,33 @@
       },
       {
         "path": ".github/skills/audit-code/config/gitleaks-allowlist.json",
-        "bytes": 604,
-        "sha256": "9101b45bcf7ce501b51cce35817603d8e5578ad3971cdad22327ed54618d1a37"
+        "bytes": 620,
+        "sha256": "a5e1b50dc5b973dc3b582376ea1dfd3d170a4378a7e4a0df962635962c831976"
       },
       {
         "path": ".github/skills/audit-code/config/gitleaks.toml",
-        "bytes": 177,
-        "sha256": "9341a89b016b9ece56bc426d281575d5c796081d07fbc8048b632617db914292"
+        "bytes": 184,
+        "sha256": "59e92fcf9ecc85815802f170d3cd9a8736edaf4760b6b63cc8d1ad0b3c849463"
       },
       {
         "path": ".github/skills/audit-code/scripts/audit-evidence.mjs",
-        "bytes": 14748,
-        "sha256": "ed9a3ff8b19f1a1a5cc2c5cba11bbaf161f340e6df07bb67012e0cdb4eacc6df"
+        "bytes": 15008,
+        "sha256": "a88e04029364b4ac4b9ab8a26767c8f551b3059ce972df06f8e29e995df85bf4"
       },
       {
         "path": ".github/skills/audit-code/scripts/audit-validate.mjs",
-        "bytes": 31343,
-        "sha256": "9e545943a96d61c76ed2cc554bd8ae57217d7881b93c5c184b9437f7f1360515"
+        "bytes": 31889,
+        "sha256": "fd341baf92709fe014056fae1d78056ac9daa385c84e75e88607d5b8b2e52131"
       },
       {
         "path": ".github/skills/audit-code/scripts/gitleaks-scan.mjs",
-        "bytes": 15425,
-        "sha256": "92200f620e2e789a264e8f50342d070de0d6afa12e0ec34bc9741d05acc3824b"
+        "bytes": 15727,
+        "sha256": "66346c029d1ca9b9b1f38d22c265e1729c470785e5d0cad9757dbf2cb444bb65"
       },
       {
         "path": ".github/skills/audit-code/scripts/safe-path.mjs",
-        "bytes": 1255,
-        "sha256": "4fa10e345ce70704e0787533002f418bcb062bca46ea1f576a56afce1a4c298e"
+        "bytes": 1282,
+        "sha256": "7882e91022e22fd333685feecd87be2767ca8425f8a9c0c14bc24d61c89af2e3"
       },
       {
         "path": ".github/skills/audit-code/SKILL.md",
@@ -176,8 +186,8 @@
       },
       {
         "path": ".github/skills/audit-remediation/SKILL.md",
-        "bytes": 10487,
-        "sha256": "4999db261bc3a9687d187cf8700d6b17011cfb5a2ff99dabf8567c45f9307a6e"
+        "bytes": 10589,
+        "sha256": "f2d26a422960d39d25323d0c2cfc8395c5895f08fc1f135e8b89215385a94414"
       },
       {
         "path": ".github/skills/audit-review-findings/SKILL.md",
@@ -186,8 +196,8 @@
       },
       {
         "path": ".github/skills/azure-cleanup/SKILL.md",
-        "bytes": 4239,
-        "sha256": "2beeba5deaa0f796cdec71a65fa22f42646493457247239125b7d802f7972d24"
+        "bytes": 4327,
+        "sha256": "5f14d4abd25c254b9bec2ec5b8ac50d5c4be5f540e9ced2eff80fef045276720"
       },
       {
         "path": ".github/skills/azure-discovery/scripts/azure-discovery.ps1",
@@ -206,48 +216,48 @@
       },
       {
         "path": ".github/skills/change-review/SKILL.md",
-        "bytes": 3365,
-        "sha256": "11d6ba4beb5502e830aa799ec4331a06bb2a4172b510927bf283ea69780f8511"
+        "bytes": 3441,
+        "sha256": "f286d235916b1ee83d9e33c8dbb110685edc982edd544f3ee153d8456f9d8c0e"
       },
       {
         "path": ".github/skills/ci-failure-triage/SKILL.md",
-        "bytes": 3671,
-        "sha256": "874abd0c16a84e80ebca9c0abd7db3511e55a39520047f4fdd331d38b508b4f9"
+        "bytes": 3750,
+        "sha256": "f24382bbcb7d4fc68e5728aa1d3085129ea3963f818daece80d539468a726f93"
       },
       {
         "path": ".github/skills/clarify-the-ask/SKILL.md",
-        "bytes": 6373,
-        "sha256": "3748e6b9f4e0877a1edbee0a8a01fd4917f693045a7576f1b2d881bc966357ff"
+        "bytes": 6461,
+        "sha256": "d9329a1157b3bcc18d12a5ff0565c55df0dc71f1180e760bd3c05a60601e3c4a"
       },
       {
         "path": ".github/skills/dependency-maintenance/SKILL.md",
-        "bytes": 3967,
-        "sha256": "539a8fc76cffaf0d18645b1c3710b4bddb698e0a37ce16be4a9a6dc68eecf817"
+        "bytes": 4045,
+        "sha256": "3f011cc2a872c4f4c688d5452b16f00c3c1f254342d53418f9c98ef10b30cd3a"
       },
       {
         "path": ".github/skills/deployment-review/SKILL.md",
-        "bytes": 4760,
-        "sha256": "e137e5255837b78af18eb8843073b72faa9c735dcc63265fd5f3a5ba4c65beb3"
+        "bytes": 4847,
+        "sha256": "26c74a856b0eb1bea94ad12e79509b64f55196b13bded3811fb06f7a1f40d86d"
       },
       {
         "path": ".github/skills/development-environment-readiness/SKILL.md",
-        "bytes": 6641,
-        "sha256": "c1c9d3b467057f94f4f483ab850a596b408bd631c7635cce8832ab4ae3c29fa8"
+        "bytes": 6729,
+        "sha256": "f382eb7a63d5d0c2d346791b9a122ebf14c5963eb078c6f80a616a305e6e9871"
       },
       {
         "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
-        "bytes": 8740,
-        "sha256": "d90ff396fa2719224e41192ee8a78f02000b9c40a5f84684d17c31def61abf99"
+        "bytes": 8922,
+        "sha256": "ead903a5f451e31ef696997c396b416b01083217d728daa1a97b8f97586df048"
       },
       {
         "path": ".github/skills/documentation-builder/SKILL.md",
-        "bytes": 5298,
-        "sha256": "ecbdd449d7500bb5b5837640764b29368787eb9c0b1df146627116569acf69bf"
+        "bytes": 5388,
+        "sha256": "d8dcdff9a580995f8ce1a328ad4b9783f74fca9f0cf9079c5404d5b36ad9add4"
       },
       {
         "path": ".github/skills/environment-update/SKILL.md",
-        "bytes": 4064,
-        "sha256": "8fef85337e769a6e77e98315efc5f538a6b13e038001ba34b60a8939d6cf72ab"
+        "bytes": 4149,
+        "sha256": "1ab2c8e20277f103e8f38a9748cf7214462a4bf6d509ce455104d2f352f5e6be"
       },
       {
         "path": ".github/skills/framework-health-check/SKILL.md",
@@ -268,41 +278,6 @@
         "path": ".github/skills/multi-agent-coordinator/SKILL.md",
         "bytes": 2982,
         "sha256": "bf43fc45705d656fa28804d43f702eee48453f9f901ae11dabcd5bde142bd620"
-      },
-      {
-        "path": ".github/skills/personalized-content/references/content-package-rules.md",
-        "bytes": 2893,
-        "sha256": "86e092071795ec888a834ad0312c62070801060e26f0b08e148bba2be52196af"
-      },
-      {
-        "path": ".github/skills/personalized-content/references/diorama-production-rules.md",
-        "bytes": 12051,
-        "sha256": "2dcf047b2b29256e6abac9cc8fc74b259df282ad18aab1c627d44baca839cbb9"
-      },
-      {
-        "path": ".github/skills/personalized-content/references/source-evaluation-playbook.md",
-        "bytes": 2695,
-        "sha256": "b06831672ebce1c2ef31200618b58a942b3f83d21746bea2c3b76fc3b97cf6fe"
-      },
-      {
-        "path": ".github/skills/personalized-content/references/translation-patterns.md",
-        "bytes": 2385,
-        "sha256": "6ad5ed62366a174fd8d5e6e27778cebb1b9c677da34aee2db3d1751b93636aab"
-      },
-      {
-        "path": ".github/skills/personalized-content/references/whiteboard-production-rules.md",
-        "bytes": 2526,
-        "sha256": "6a64f7e7a6e5a165d6a1f5881d1a27087e4205ab041ea96b689f2eb3b7365616"
-      },
-      {
-        "path": ".github/skills/personalized-content/scripts/personalized-content.mjs",
-        "bytes": 11928,
-        "sha256": "a3b184dfb483d268fd969cd5d3171263ebdd392fd4d1296093966e733964a319"
-      },
-      {
-        "path": ".github/skills/personalized-content/SKILL.md",
-        "bytes": 14486,
-        "sha256": "9c102ccb783ccd702c8f8a69e124ccf48b029ef8145636644686bccea0a3dde9"
       },
       {
         "path": ".github/skills/policy-engine/SKILL.md",
@@ -331,8 +306,8 @@
       },
       {
         "path": ".github/skills/project-setup/SKILL.md",
-        "bytes": 5803,
-        "sha256": "559fb1e119cbd72e81b084220318b017174724dee780e7de06de7ea0a28449c9"
+        "bytes": 5893,
+        "sha256": "d12defdebd0679eb3d803f82ab9bdae1d315c68307d096627c5a488fa3000210"
       },
       {
         "path": ".github/skills/project-skills-orchestrator/SKILL.md",
@@ -341,23 +316,23 @@
       },
       {
         "path": ".github/skills/project-status/scripts/project-status.mjs",
-        "bytes": 14668,
-        "sha256": "a370926620011cf7203a808d8d6fe0bd7180c8a1fc5f92a5a7182d3a7ec251b5"
+        "bytes": 14877,
+        "sha256": "fb980262b5d8781a76be3ad766f891a02b076ec76dd763ecf4c977636e7f2117"
       },
       {
         "path": ".github/skills/project-status/SKILL.md",
-        "bytes": 3330,
-        "sha256": "b83ae719ae7c53098bc0b7a72956caeebf4119286eec7dc3562bb75b7b61d1ed"
+        "bytes": 3401,
+        "sha256": "360c4196f639856ce87638d4270b63e17706df653cca1f0956d3a569be7ee5d9"
       },
       {
         "path": ".github/skills/project-understanding/scripts/project-understanding.mjs",
-        "bytes": 19057,
-        "sha256": "3a0f8349115bb56119311089ab4d765096477c95b0f23ca41bcee1cc217a455a"
+        "bytes": 19321,
+        "sha256": "1bdcc293b4a40821d7522f6dd214854fad91d979d5cae1200ce62e74ce511eeb"
       },
       {
         "path": ".github/skills/project-understanding/SKILL.md",
-        "bytes": 5690,
-        "sha256": "0275ee343291ae1d6d1aea4e255b305be46244a9ae6077bc5fd10ca20fbee7bb"
+        "bytes": 5774,
+        "sha256": "57cda61242718cf485d5e75ea404f2c9a233ad83060e84879e338564c50d2d3c"
       },
       {
         "path": ".github/skills/project-video/scripts/project-video.mjs",
@@ -370,14 +345,54 @@
         "sha256": "355d71b922dc70a478a93f253f6c87162ad87856da40698411f48cb2e812e941"
       },
       {
+        "path": ".github/skills/project-visual-storytelling/references/diorama-production-rules.md",
+        "bytes": 13073,
+        "sha256": "a923c32c36acde49fa2637ea75b1827485d0bbbd90008e977879646f0eb807cc"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/references/renderer-contract.md",
+        "bytes": 4325,
+        "sha256": "f97b35f1c1ef3052878560d95666480f333d692a546120dad85414c39b72fb68"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/references/source-evaluation-playbook.md",
+        "bytes": 2695,
+        "sha256": "b06831672ebce1c2ef31200618b58a942b3f83d21746bea2c3b76fc3b97cf6fe"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/references/whiteboard-production-rules.md",
+        "bytes": 3506,
+        "sha256": "f2df6a321e092633654f70aa3e68bf8cbaf21a526b0d8710bdf9217332e4a55b"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/scripts/blender-render.py",
+        "bytes": 12263,
+        "sha256": "241a40df0c8c4b4479593a4d426d4bc54558eaec837e9940bd6e65335674eabc"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
+        "bytes": 6958,
+        "sha256": "845dd50c0aeb394a603d0d0f4c376cf760a43657e55c1bb0a8de4e731db09d8b"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+        "bytes": 32189,
+        "sha256": "dc56cb747ac88b3b1d245ccbf7ab3c9846f716d2db0ccf21efe9c0f984cd9b3d"
+      },
+      {
+        "path": ".github/skills/project-visual-storytelling/SKILL.md",
+        "bytes": 21837,
+        "sha256": "9063fa8aeeffc208585a805c4f819103aac29719c1955a7a124e412b2744f79d"
+      },
+      {
         "path": ".github/skills/regression-test-development/SKILL.md",
-        "bytes": 3538,
-        "sha256": "8e5b71a8e19459b7d926ed0c4af2381c77585f8449862916e833d4b62c80593d"
+        "bytes": 3615,
+        "sha256": "38a57dc009eb527aecf3054a1cbe24c7f83eeba1214e56f6359092a949689239"
       },
       {
         "path": ".github/skills/security-review/SKILL.md",
-        "bytes": 5130,
-        "sha256": "ac83beafc8da209cdd057eb8de895db6b617ca8decd92f8881eb998f508263ee"
+        "bytes": 5218,
+        "sha256": "3e41314595179d172acc0de36702d9edef457f02f77e325b39b8d955e85bb8c0"
       },
       {
         "path": ".github/skills/skill-create/SKILL.md",
@@ -401,13 +416,13 @@
       },
       {
         "path": ".github/skills/skill-update/SKILL.md",
-        "bytes": 6893,
-        "sha256": "2167fa8f838e3ddcdc4618d729551bec0732fedffbd5aaaa15c31d51cedc9a08"
+        "bytes": 6985,
+        "sha256": "e5fa34274e6c3a65a98d23e18b017a22c584da982393bf3ca5bd1a5a82cbada1"
       },
       {
         "path": ".github/skills/systematic-debugging/SKILL.md",
-        "bytes": 3715,
-        "sha256": "ad7d9f5d939ef3c472d85f9464f228812207c5548baede79761720480ada5eff"
+        "bytes": 3792,
+        "sha256": "66d0cbe5b4f5fd6de5c8c01464741778d1f38265df17e139565ff0010f314073"
       },
       {
         "path": ".github/skills/user-personalization/references/personalization-questionnaire.md",
@@ -421,8 +436,8 @@
       },
       {
         "path": ".github/skills/user-personalization/SKILL.md",
-        "bytes": 6293,
-        "sha256": "fa47e47d7a5aad837e8a955a116863fd7f9fdf7389542040b10a6b6e84f509a4"
+        "bytes": 6299,
+        "sha256": "faed9b159fdf0dd4a10b96049b234ff430ab50925ac460d4668c15cba954f395"
       },
       {
         "path": ".github/skills/workflow-planner/SKILL.md",
@@ -456,28 +471,28 @@
       },
       {
         "path": ".github/workflows/codeql.yml",
-        "bytes": 1310,
-        "sha256": "63c207e4c00b3229450a55514a5c8bb1bb01f27249eb9ecda4267fa18171a565"
+        "bytes": 1357,
+        "sha256": "829d97f2dfbadbfe93b8741242ff4ad75484317bbbcc9c5d174c198bebb7e5a1"
       },
       {
         "path": ".github/workflows/security-validation.yml",
-        "bytes": 4115,
-        "sha256": "6de92a169ca5f2af8f2409c535380fe3650247bb78ad528de84cbeb60acd2ffa"
+        "bytes": 4226,
+        "sha256": "24c397fd54bc737ec2db09048a156572d8180ea405ba0b8ba35faf2c36717a7d"
       },
       {
         "path": ".gitignore",
-        "bytes": 107,
-        "sha256": "94b7da64c42cb3b7db2fcf470839715ea0725400a6b13c58cc3d1414dc01b5c8"
+        "bytes": 115,
+        "sha256": "a5e5bfb5fb00966be5d6dafc70cfc6c47f3ac7c5502ce3ba7ef8f3938d4d8533"
       },
       {
         "path": ".gitleaks.toml",
-        "bytes": 177,
-        "sha256": "9341a89b016b9ece56bc426d281575d5c796081d07fbc8048b632617db914292"
+        "bytes": 184,
+        "sha256": "59e92fcf9ecc85815802f170d3cd9a8736edaf4760b6b63cc8d1ad0b3c849463"
       },
       {
         "path": ".npmrc",
-        "bytes": 94,
-        "sha256": "06bf793e6b48f070b6ac5f79532515852ac760037a56d5cbcf60b79c2c6814f7"
+        "bytes": 99,
+        "sha256": "1588cea02dd1414370563972cf96981c73eaededb4acef2ad7d921f2954cf575"
       },
       {
         "path": ".vscode/extensions.json",
@@ -495,24 +510,84 @@
         "sha256": "41307edbbcecab0141ee0f2f92f9eb288f936e23a68d1bcfa5425438eca7472b"
       },
       {
+        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-context.json",
+        "bytes": 1639,
+        "sha256": "69289fcc7fbf4aadb136abdbe2ef786f6ed1befc3cba6d753ed4c279388cc345"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-plan.json",
+        "bytes": 2555,
+        "sha256": "efe69d59e294137fc507b71f9cd3236f516f9bf2621b926c707bf2a1e130584f"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/renderer-qualification.json",
+        "bytes": 662,
+        "sha256": "f82c2ef44989566d664ffda3370ec59acbba33ca6f2e19cdd59757452f980f5a"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/whiteboard-alt-text.md",
+        "bytes": 791,
+        "sha256": "fa0ff8a911758a8f8f306d12bb959b97d7a7f7226f064d4e400b79fd1cd8c70a"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/whiteboard-specification.md",
+        "bytes": 4038,
+        "sha256": "f85563cab954583d9c404a3f58884746d868e0886afc0eee896d9c2b4f74dc14"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/whiteboard.png",
+        "bytes": 1092620,
+        "sha256": "1610e96a000b5b8567a28c57c45adc4bccd52e749e9ae6866142d81b3056a532"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/alt-text.md",
+        "bytes": 114,
+        "sha256": "5fc85eaa5fe8219c9755005edbe9287e9529bec0d956bc50ba13f7359a1c8c34"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/diagram.mmd",
+        "bytes": 704,
+        "sha256": "b7915cf6b78f08f6a6ff4e889ee3f2d3bb2a93f37b1f2f7a2ca7a11a4b909d49"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/evidence-map.md",
+        "bytes": 900,
+        "sha256": "097689c67e0c80aac655131029d77ff5e4f5e894e00df35a2c7b9c96da984e36"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/request.json",
+        "bytes": 817,
+        "sha256": "c3d5a941b8ca53bf3ac2f1be031a90de3f62322fa3d5d3e2fdf4aac3939e57d0"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/result.json",
+        "bytes": 1566,
+        "sha256": "9866a17c63470157020ff00568bb1094d70e617d6bb9f4a252334b21fc42afe3"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/visual-specification.md",
+        "bytes": 559,
+        "sha256": "ea576d997f62c605f501777e377fe92accc49007e156446b4df6dbdd10bde286"
+      },
+      {
         "path": "config/gitleaks-allowlist.json",
-        "bytes": 604,
-        "sha256": "9101b45bcf7ce501b51cce35817603d8e5578ad3971cdad22327ed54618d1a37"
+        "bytes": 620,
+        "sha256": "a5e1b50dc5b973dc3b582376ea1dfd3d170a4378a7e4a0df962635962c831976"
       },
       {
         "path": "config/orchestrator.yaml",
         "bytes": 456,
-        "sha256": "7d95f85e165bbe2e4842c05216b5d13e01d11e54d81771addf8f10a8b0a2e6dd"
+        "sha256": "81511b8dcc3be0094a048e2d573023ab096966e064cf3649e25d2ab4debd27b9"
       },
       {
         "path": "config/profiles.yaml",
-        "bytes": 1543,
-        "sha256": "d65f949300f2dbaf9070b46f02846eda95c47c1ad318426d02d89fa8ee720387"
+        "bytes": 1550,
+        "sha256": "c46d5519b44b6a6864a99b0eb3f4b18a4bc79be561973829ced501e67c5b7f6b"
       },
       {
         "path": "config/skills-orchestrator.json",
-        "bytes": 550,
-        "sha256": "cacdd665f2ab67a22416767d540ab1ab1077dbae3572fbb5841dfb169eb85ae6"
+        "bytes": 582,
+        "sha256": "3b3c42ae287b63c7ab372ee7a751ba79d326756edaa148ec56b1dd36be232fc3"
       },
       {
         "path": "Demo/audio/narration/scene-01.mp3",
@@ -576,13 +651,13 @@
       },
       {
         "path": "Demo/DEMO-DAY.md",
-        "bytes": 8038,
-        "sha256": "35a91989f485c75f7aec3a90777e183af31cb7a5ac624c16a675d21ba2069cf1"
+        "bytes": 10006,
+        "sha256": "978a26c17b9ce1ccd0d88e64b65d3cc1359cab7094cdbe63a551b842e8393e4e"
       },
       {
         "path": "Demo/Project-Orchestrator-Demo.pptx",
-        "bytes": 63095,
-        "sha256": "e93db2f36d093f13daea0e0ebb67577e50cd12005b5b6868f074bfef189031be"
+        "bytes": 100704,
+        "sha256": "04b23df49d212d452c3dcbfa84a00a6a6d9c5bce98a0b9069f239a54434692ff"
       },
       {
         "path": "Demo/project-skills-orchestrator-animation.html",
@@ -591,8 +666,13 @@
       },
       {
         "path": "DISCLAIMER.md",
-        "bytes": 3053,
-        "sha256": "f229c8b6f9b658b1a98d3d771c33cc50b9487b39d6c27799fae7ea10e02b342c"
+        "bytes": 3088,
+        "sha256": "5553a1daf8864d499b36160340c9669230b9a8641eb0711ed59d756498c41a52"
+      },
+      {
+        "path": "docs/COPILOT-ECOSYSTEM-IMPROVEMENT-RESEARCH.md",
+        "bytes": 67510,
+        "sha256": "f329e953d74d79c9fcf6de073bc8b551bc281768a70a70acc32b17e2cad3a1d9"
       },
       {
         "path": "docs/INTERNAL-RELEASE.md",
@@ -606,13 +686,13 @@
       },
       {
         "path": "docs/PROJECT-OVERVIEW.md",
-        "bytes": 50224,
-        "sha256": "78a4970f3af58dea5ee3ff7a2a11f7067d2703e2e1dbb4c8caecfb72af38c8fc"
+        "bytes": 50644,
+        "sha256": "e5538303dd4d1c2f87e85ce3e01eb377b90f5b56bcb640a5fc021dd21a8b4d1e"
       },
       {
         "path": "docs/SKILL-ECOSYSTEM-AUDIT.md",
-        "bytes": 6255,
-        "sha256": "9883ebd3dc43bc89c397905faa661107cb75c52c918c4eb7711c97caa42c8ba4"
+        "bytes": 6325,
+        "sha256": "72b4f0e52b035e43868994bb7d55f060b74ceab236bca10618fc325eb536bf88"
       },
       {
         "path": "docs/THREAT-MODEL.md",
@@ -621,33 +701,33 @@
       },
       {
         "path": "LICENSE",
-        "bytes": 1386,
-        "sha256": "7bd859b520d962a7bb7525713393b08beda0731c603f733b1d0afdcbf72e2479"
+        "bytes": 1396,
+        "sha256": "4aab1260417e02b469bbccc6e80dd3ccc5ea226929db8155febfad6cbe7ceef1"
       },
       {
         "path": "package-lock.json",
-        "bytes": 389,
-        "sha256": "75fc31dbe39830dffc94d8ef167011fbd2ff61252c8e16aa1cf5c0296c7460b1"
+        "bytes": 408,
+        "sha256": "e32330026a2157500615f3bc67cb1b0286e907659ec2e531cbaa199872dade7d"
       },
       {
         "path": "package.json",
-        "bytes": 2478,
-        "sha256": "6738a43f09782ec1b8a3b1459acc64c19d8697bd0c3b2d94b4e46917b7a66c6f"
+        "bytes": 2492,
+        "sha256": "ea9c6513a181ecdc0fe7b0e3683c307731ff14755d7e31cff6701eb3ef8869a4"
       },
       {
         "path": "pso.mjs",
-        "bytes": 152450,
-        "sha256": "f5b0815f295e0915f9cf0bdf36b663140aa206b5c944c38f3406da37796adf63"
+        "bytes": 153350,
+        "sha256": "93fd52a67b3cd48516e8791085cd199b904fc55ed1ec60eb354f984f207153b5"
       },
       {
         "path": "pso.ps1",
-        "bytes": 324,
-        "sha256": "c4cb54c9c633074e25f72fd6c5b4b7a3790c31d77eb23eedefba591396440c2f"
+        "bytes": 314,
+        "sha256": "90d4c00feda8bf35e095affe8f3b801a0fa19ba42b321471b7b89f45a849f381"
       },
       {
         "path": "README.md",
-        "bytes": 40121,
-        "sha256": "8213fe0a9f646ff7066f008ef30bd356d3919744329c8e192ae0c41c36a64a55"
+        "bytes": 43455,
+        "sha256": "33a39fbb3819d10956d7de711e5c935d27cae0644757125e33fd28328575b632"
       },
       {
         "path": "release/release-manifest.json",
@@ -665,6 +745,26 @@
         "sha256": "f8aa40b6817c0e811bfd2aee7f3b5843fbfae9abb12b28f2a02b30eb717c5d09"
       },
       {
+        "path": "reports/agent-blueprints/visual-storytelling-director.json",
+        "bytes": 2378,
+        "sha256": "eae09aa495bfb4c1785d6dd5421f75038ced6bdc6c03118902021a35bcc1e200"
+      },
+      {
+        "path": "reports/agent-builder-plan.json",
+        "bytes": 3271,
+        "sha256": "ce7dda08bcfa743101d6a80012aecf7367927c4f8bd61875d99b506c14d2beac"
+      },
+      {
+        "path": "reports/agent-builder-plan.md",
+        "bytes": 3086,
+        "sha256": "a485cae8519aaace0ec31418fa360660ef3cb8135552534e684a5841de6b4177"
+      },
+      {
+        "path": "reports/agent-builder-result.json",
+        "bytes": 433,
+        "sha256": "59d544718083c834bc15a29590ef064f472ad87db4e90ac8d2cf5194b4e4ffd4"
+      },
+      {
         "path": "reports/architecture-review.json",
         "bytes": 4577,
         "sha256": "e25c32166417dce61eaea2c21fb9d7a800ff2e4c515a38f6913d4776de3ce333"
@@ -676,8 +776,8 @@
       },
       {
         "path": "reports/artifact-ownership.json",
-        "bytes": 11203,
-        "sha256": "250cd5f11fef83c2dc089a8b7a8303919510319ce21c6ab8d4359a40d1eea49d"
+        "bytes": 11217,
+        "sha256": "1008cfeafb441a6638652af8aade64396ff619099206755b7c07321ef200eedb"
       },
       {
         "path": "reports/audit-evidence/2768cb96c6cf4e49d7137527757581496234b1d00b09805d75b05e3b9edcb444.json",
@@ -701,23 +801,23 @@
       },
       {
         "path": "reports/audit-remediation-plan.md",
-        "bytes": 4552,
-        "sha256": "7dc2cad18a421780bf9fcb2f9bebb537df973aa6320f7ed958f56ea25e793c2e"
+        "bytes": 4676,
+        "sha256": "2f8b9292c63ec82d3e8030fb9ad48202d2f939419173c1be6517e27948354e25"
       },
       {
         "path": "reports/audit-remediation-plans/040dad9a30d0f52ebda13c232d1885abbd9ee27b6dcbbeeab3174b1c60de65e7.json",
-        "bytes": 2690,
-        "sha256": "15ffc77f6b1ea912a963ae71a0dca1c36bab1f260340809c5e5028a9407d90f1"
+        "bytes": 2720,
+        "sha256": "040dad9a30d0f52ebda13c232d1885abbd9ee27b6dcbbeeab3174b1c60de65e7"
       },
       {
         "path": "reports/audit-remediation-plans/3b056e49f5cede0cc2081d544aaedae3d3cc8788ffe408f9591998facb7c0d0d.json",
-        "bytes": 6471,
-        "sha256": "e9c95432af7c5146628e6c76e74fa2bbbdd5ccbfcd386a971b33dc9ee2cafb4f"
+        "bytes": 6523,
+        "sha256": "3b056e49f5cede0cc2081d544aaedae3d3cc8788ffe408f9591998facb7c0d0d"
       },
       {
         "path": "reports/audit-remediation-plans/8eab33fda5129f0fd99f1f008f57f625e2d00e9271bc1f1c802e598d07a3dcc2.json",
-        "bytes": 4502,
-        "sha256": "67dc977b4cc196660172f626344e1dab88e941683ed4965ce943e1dc56727aa9"
+        "bytes": 4543,
+        "sha256": "8eab33fda5129f0fd99f1f008f57f625e2d00e9271bc1f1c802e598d07a3dcc2"
       },
       {
         "path": "reports/audit-remediation-plans/d2cf2e59ca1b23eec747938169fac90836c9b5522490ed608a31ed63b7105a06.json",
@@ -726,48 +826,48 @@
       },
       {
         "path": "reports/azure-discovery.json",
-        "bytes": 804,
-        "sha256": "94d103a1c22e8589154501c4e26067740f87ca77356f74e2637bc88af9f22d89"
+        "bytes": 837,
+        "sha256": "4dbffd8b5c0f314146e8e3222dadd2beba72f66cbcc732422ddf6a49067d8f15"
       },
       {
         "path": "reports/azure-discovery.md",
-        "bytes": 663,
-        "sha256": "2a1e342e1a7a9f013abce2dda8842d97c8b45d3c53f5a9c4c1c2a00ac3fb02cc"
+        "bytes": 681,
+        "sha256": "d2e1ed7fb5f2714b3b6b4a5bdfcc7688e3004d8a6d2905253dff33bddfb04e3b"
       },
       {
         "path": "reports/change-review.json",
-        "bytes": 3823,
-        "sha256": "bfb67b158b6ee357ba5b74aa1c2a5e09d77cc66017d43e108f84521566582c2d"
+        "bytes": 2301,
+        "sha256": "b2921eaa64d3827699b77155c98d06b68e5e8a8a3ae887a4c4926fe597a862f2"
       },
       {
         "path": "reports/change-review.md",
-        "bytes": 1770,
-        "sha256": "2bc82ad299a54dc3563885662221f835591e16233c5993ca444fe6a2d1365a13"
+        "bytes": 1400,
+        "sha256": "b1c6613033eaccd3d0354f85a90284e1326cbf75a42f916c05b455c895da7b7d"
       },
       {
         "path": "reports/ci-triage-result.json",
-        "bytes": 3168,
-        "sha256": "89174577faed0eeed22ecf3bd0a5e9481b37a5260f50b05035be0d2dcbab9345"
+        "bytes": 3225,
+        "sha256": "5d9114688f3b6d5d2672d7c8866bbc5db8e73c232c3608bdeeff6307c8a6e17f"
       },
       {
         "path": "reports/ci-triage-result.md",
-        "bytes": 1981,
-        "sha256": "7fb323d6a9da5008305f1725e8c1b5d319cd04d9e52b18343f6c9b21579d6a52"
+        "bytes": 2023,
+        "sha256": "d6ff4a89b262b0b7cf08f95dfa4a5133eb958b83d1190ad24277ee0bbdbcedb0"
       },
       {
         "path": "reports/clarification-result.json",
-        "bytes": 3016,
-        "sha256": "c68ce0c4e5f99984037b5b41165a82fbdfbb1a66ca426bc75cc8beaff16a6273"
+        "bytes": 3053,
+        "sha256": "8d4796e12b760eca8da177eb382a841cdc32d6fcdeeb925ef04adaefe3bd01cc"
       },
       {
         "path": "reports/clarification-result.md",
-        "bytes": 735,
-        "sha256": "7904cb827989219529d3f501b6e38709995fab19f1ba26efa2a31eafc598f149"
+        "bytes": 743,
+        "sha256": "bdfb118c8d1cb37cd6e6c4a80f81abf304d01350dfaef99dcc498a566aa1e010"
       },
       {
         "path": "reports/code-audit-findings.json",
-        "bytes": 19679,
-        "sha256": "49acad170e9ed10cc6198b80936a285ef64d150d0539b5e703ebcbff25519876"
+        "bytes": 19743,
+        "sha256": "65a150887f4d9cf04abcbdf2679a494c5e292ff7feb6a6b65e39fd1000edcb2c"
       },
       {
         "path": "reports/code-audit-review.json",
@@ -776,8 +876,8 @@
       },
       {
         "path": "reports/code-audit-review.md",
-        "bytes": 2486,
-        "sha256": "a872ed1b757a6723b9c77d596253d5700c6580be72c6c8e3d762ab83b6d62bb1"
+        "bytes": 2532,
+        "sha256": "fad0a7cd7e04a3629d184f328718d9760b9699925bcfd30e0b237fdf665b7d4c"
       },
       {
         "path": "reports/cross-platform-ci-evidence.json",
@@ -796,8 +896,8 @@
       },
       {
         "path": "reports/current-work-state.json",
-        "bytes": 3171,
-        "sha256": "075febcd94509ebf18bc4393304803b14883786e8b783587267e5e699c71b5ed"
+        "bytes": 2266,
+        "sha256": "4e8440a2dc6d8e9f140e99341a96f13dbbef4a1d6f0ea75055872e7434adc338"
       },
       {
         "path": "reports/deployment-review.json",
@@ -811,13 +911,13 @@
       },
       {
         "path": "reports/documentation-plan.json",
-        "bytes": 2983,
-        "sha256": "645fbb397cf4f28d9f3171d158035e4d02abe5cbf291ea8fa8db67894fd0c784"
+        "bytes": 3043,
+        "sha256": "d7531ff6ff2128b608dbda3d7e63ed983f3f04ddd663d73e13d30f90aa61c73b"
       },
       {
         "path": "reports/documentation-plan.md",
-        "bytes": 1392,
-        "sha256": "be33d951d52791d2b51781ff58d1202e9efffa76c700df8381a004dc0976d7ce"
+        "bytes": 1413,
+        "sha256": "78314be576f4e775cfc5d5e7eee18266c8b33c031805e37f25818862d3880ed0"
       },
       {
         "path": "reports/execution-log.jsonl",
@@ -831,28 +931,28 @@
       },
       {
         "path": "reports/policy-decision-log.jsonl",
-        "bytes": 1897,
-        "sha256": "58e90545680bf7b83029345e33819875da88e65971e44afcc7683142a13d49ca"
+        "bytes": 1901,
+        "sha256": "ed992ac8f10655b58df1dbd6029edcea8764b16d08b2d07cbdc64728b2b8228f"
       },
       {
         "path": "reports/policy-evaluation.json",
-        "bytes": 1935,
-        "sha256": "4bf312729a45191d6c21a5bc972bfd14026e753ec31c98680f9d56cdb22f056c"
+        "bytes": 1964,
+        "sha256": "a3c4c9f48dfe13a7a1522ba280580ce8da619737dc8dfcb58db7ed32c23efe46"
       },
       {
         "path": "reports/policy-evaluation.md",
-        "bytes": 775,
-        "sha256": "197a3d33ea80fa2dc3e5ac1c4083e6f42dd290a9a0c1036651c480c10d2fa0f4"
+        "bytes": 781,
+        "sha256": "a7ce5926061434fb9dd395fe89b41eef7671660ade9325c3412a65eebba7bf1d"
       },
       {
         "path": "reports/project-handoff.json",
-        "bytes": 9587,
-        "sha256": "4be56b03fb5a3f7d6c949d60dbb81904628e4b330ff06e9b0403a00b04fd5d69"
+        "bytes": 9845,
+        "sha256": "39048b20d013ce06265736b4f164548cb0af262ce0301b1364bc334be4d7a9e8"
       },
       {
         "path": "reports/project-handoff.md",
-        "bytes": 4226,
-        "sha256": "e529416da0a64cb61377b3bd331d6df053cc5da150d73e494c77651937e5bc0e"
+        "bytes": 3551,
+        "sha256": "e1f1a29bc7ae07f6340e8a68750b049a105283ed3209c4d2da2ffec540417340"
       },
       {
         "path": "reports/project-video/audio/narration-manifest.json",
@@ -926,8 +1026,8 @@
       },
       {
         "path": "reports/project-video/project-video-plan.md",
-        "bytes": 1443,
-        "sha256": "fa69df7d0ff82578d8fbfacb5f187afaf989862df9ab3da6f226363b221e643b"
+        "bytes": 1480,
+        "sha256": "bb0369b9d01d176a715865c0a524ca2446f1484bb86dc99ea46f4c3098a35c56"
       },
       {
         "path": "reports/project-video/script.md",
@@ -1011,13 +1111,13 @@
       },
       {
         "path": "reports/release-readiness.json",
-        "bytes": 2348,
-        "sha256": "605a952e61a3d18bd407b26243d88e95c5ff826043e377653b56b018f49fb49e"
+        "bytes": 2366,
+        "sha256": "b0979b8e5f26f6101b695bdf3387fea19ca92daede5b5db9675765e4a528dac5"
       },
       {
         "path": "reports/security-check.json",
         "bytes": 342,
-        "sha256": "808c975a259dfbbd815efce7b574d0df4bc7489f979da8a19a5e99d38e0fbccc"
+        "sha256": "55b4be13b39f947a7af4df4256e3d102de262d92b7a8cc12ef3477ab4f1ccdbb"
       },
       {
         "path": "reports/security-review.json",
@@ -1031,23 +1131,23 @@
       },
       {
         "path": "reports/skill-details.json",
-        "bytes": 41505,
-        "sha256": "8d0cacd056b089cf1cae0b829f97c1e2048d45763ae33fa59bb85c65d180d24c"
+        "bytes": 41590,
+        "sha256": "7ef938ec2702b7c6d4048292b5ba9c41a7e21eefe7280a3c120d4c30db7e8331"
       },
       {
         "path": "reports/skill-details.md",
-        "bytes": 4301,
-        "sha256": "2f109c66cbbadae928aedc49e90f7b95ad6ee7b14928441e3973161d596642a0"
+        "bytes": 4340,
+        "sha256": "308e10ef72a076f87b28c500680b3767179496b878c94913494f14ec689be7ab"
       },
       {
         "path": "reports/skill-inventory.json",
-        "bytes": 31635,
-        "sha256": "e5ca672e48510d26b6e7d2d71fdf777cbe74d68e2b1db70843944409ffe9335e"
+        "bytes": 31720,
+        "sha256": "7a3b2e8019293dd2c0f1e3327906be05ad32a874f91b07e06acbfe857b4b6b35"
       },
       {
         "path": "reports/skill-inventory.md",
-        "bytes": 13736,
-        "sha256": "e1c0fafadf0b6bb217c1cb0abef5cb46f3e764e4fb5fe73312d104e3d0779614"
+        "bytes": 13755,
+        "sha256": "63d9e17501cec7690e6afdd11950d2a20b4c72f25b3f5169e663f1184eba1b09"
       },
       {
         "path": "reports/workflow-completion.json",
@@ -1061,58 +1161,58 @@
       },
       {
         "path": "reports/workflow-plan.json",
-        "bytes": 22569,
-        "sha256": "0333aded91633f5518d90f42bad58555fe5169c6e350bcab2e2d883e6f021f50"
+        "bytes": 23100,
+        "sha256": "c0fe2ba6abd5ef8670a9184cee631c4e7b31b6b8ed3402f7c5d1f1d9de3cfb6d"
       },
       {
         "path": "reports/workflow-plan.md",
-        "bytes": 10115,
-        "sha256": "b6a200ff617fe0cd13fefd3eb4fbe1b9e4c1fa9dc616ea3a50836d9c1a68be9d"
+        "bytes": 10258,
+        "sha256": "e2ad4328f0192672046d26ad9976a361c4ec9a27936f7e70cccf33d5a9948f8f"
       },
       {
         "path": "schemas/adoption-transaction.schema.json",
-        "bytes": 2014,
-        "sha256": "4d37725f4b1e98a7f3499eca788f992299eed23b602749415988791bb96dd6cc"
+        "bytes": 2060,
+        "sha256": "020a9dfb7a7f6e191eab911e8a8cf7221188dc3da4bf4a6c379865ea0064472a"
       },
       {
         "path": "schemas/agent-blueprint.schema.json",
-        "bytes": 7853,
-        "sha256": "298b1b59d21607b6eddde67c603f5923b8c0b939886784def64dbd9e5dacbc1e"
+        "bytes": 8045,
+        "sha256": "4b08047f0e20399f6f23976d673c4fb89904ad32918046688d006b2e92f1c5c9"
       },
       {
         "path": "schemas/agent-builder-plan.schema.json",
-        "bytes": 2873,
-        "sha256": "c54129fdd0284c4de2b1d2ded58dea8271c0d182d0e54e11ca6f55c2c0d6da17"
+        "bytes": 2937,
+        "sha256": "55e0d91e2450c1ae8dbf7f6e9b3ca67e88739b6ea47ecfeaf415342faf5f2e6d"
       },
       {
         "path": "schemas/agent-builder-result.schema.json",
-        "bytes": 973,
-        "sha256": "ded4913d23e7f73724b8d5db6bda0b86e6ee6e86a81e92c36ac5b5ee68f7c290"
+        "bytes": 991,
+        "sha256": "7df52bac9f61b8007219aec1e878861564e92dfe059adc5d3c0da0226624d778"
       },
       {
         "path": "schemas/architecture-review.schema.json",
-        "bytes": 3052,
-        "sha256": "01782d532222319cdff0b1e3da0496148d5993e25ba5325f806384cc5387db36"
+        "bytes": 3115,
+        "sha256": "f5e3cf00c1c02ecca9205536524055d8ddc865e2284b9fad52845d9d45943bcc"
       },
       {
         "path": "schemas/audit-evidence.schema.json",
-        "bytes": 2269,
-        "sha256": "a4281d6cd7ba22d14e4b12a9b418bc8f2806e903f7342fae857c18544437f6f4"
+        "bytes": 2286,
+        "sha256": "4e6e71f0fb422f3862de80cd3ffc9940ad49b48422ee4a74998af0570498f972"
       },
       {
         "path": "schemas/audit-findings-review.schema.json",
-        "bytes": 4388,
-        "sha256": "2a08f1ed5ee1eeba3a4b650907b841f96e7216d5615f71edb7cab9707d98c792"
+        "bytes": 4453,
+        "sha256": "559eda4c632361d5dd57349c602d00ea0dbfcfe0f3997d5540fd440d3f0d89ae"
       },
       {
         "path": "schemas/audit-remediation-execution.schema.json",
-        "bytes": 6886,
-        "sha256": "e974997b7df7727ac2218dc925329ad3c50b4ae4de44a508b74059173c82346c"
+        "bytes": 7030,
+        "sha256": "73c10292dca1d5c89f36433309866563e92b8f68e5e6161a3713458de304e6ea"
       },
       {
         "path": "schemas/audit-remediation-plan.schema.json",
-        "bytes": 4325,
-        "sha256": "0bc556a09d7468ddc1e40b9f86a58cb7c4d11bf7381dd97548482a5729f4175d"
+        "bytes": 4394,
+        "sha256": "cb92b615b0fd8d871700085b5243b3f56540f449815bcc1cc49570e4468400a1"
       },
       {
         "path": "schemas/azure-discovery.schema.json",
@@ -1121,23 +1221,23 @@
       },
       {
         "path": "schemas/azure-environment.schema.json",
-        "bytes": 3744,
-        "sha256": "7e4bb2820bf425ad0f407bef97ba48893b695519633570a1df3c10d573a9f66d"
+        "bytes": 3847,
+        "sha256": "a2063e454318881952fd7a1f90830bd3ac44416c40969a04dcedde382ed9d3f0"
       },
       {
         "path": "schemas/clarification-result.schema.json",
-        "bytes": 2658,
-        "sha256": "784a99009077d60a963da774b25fe5be81063d6be7b6f579775902bc97c0154a"
+        "bytes": 2719,
+        "sha256": "91aec6fc3ef14585a09853308ee74d7fa19a6a471848571738fba5d05222e3ad"
       },
       {
         "path": "schemas/code-audit-findings.schema.json",
-        "bytes": 18902,
-        "sha256": "78ed9dfc397387410d1f35eec4f569aa2f67a1629bf40943699e918f0bca6f46"
+        "bytes": 19270,
+        "sha256": "d5c20911563c41625e77a9dce834bc61518499b67101d56282b0fc0a9b3e053e"
       },
       {
         "path": "schemas/cross-platform-ci-evidence.schema.json",
-        "bytes": 1122,
-        "sha256": "38b58700b2b874de31f0ff2b6dae16b0a965b71c41b4e329dd8e15231992cc3b"
+        "bytes": 1153,
+        "sha256": "fb0aaae37f1ff5ee9efac17a7ae846c90dfd2b974eb02fe482392734dc74d0cc"
       },
       {
         "path": "schemas/current-execution-state.schema.json",
@@ -1146,63 +1246,63 @@
       },
       {
         "path": "schemas/deployment-review.schema.json",
-        "bytes": 3135,
-        "sha256": "45e75cb0f40275237a6f650dcbd50478966369705816a600e2ff0490218f044e"
+        "bytes": 3220,
+        "sha256": "f14b58d70fbd2bb1cf92c74ba22a9fc737183ec3ae8dcb0b3ae38cc38302510f"
       },
       {
         "path": "schemas/development-environment-readiness.schema.json",
-        "bytes": 3798,
-        "sha256": "e38a1853658c64ee9ba08749b1bde9a5065567f8a89d42c0377fe72f5d2074fe"
+        "bytes": 3882,
+        "sha256": "cf20ba595eb30a6ed267fd8404efacd8694c552d8194dcacbca4f0284c5c3bec"
       },
       {
         "path": "schemas/documentation-plan.schema.json",
-        "bytes": 2149,
-        "sha256": "7c225007b5cbd0ba9b90a5feba6123e467432b20f2f7c010722dc44533e61584"
+        "bytes": 2199,
+        "sha256": "27205c9c983a173f06b3c94dbe6b61579962b66e9d22a75a23c4cbebdbc9437e"
       },
       {
         "path": "schemas/gitleaks-allowlist.schema.json",
-        "bytes": 1440,
-        "sha256": "79f1cf04c6199c6da9d924e4da43ab218451f37643dcf4826f6b70e1d1d49482"
+        "bytes": 1469,
+        "sha256": "314d7fb814cfe2b21210b59195f130b2704858de3e1e9c78e6cb058afc3685d0"
       },
       {
         "path": "schemas/gitleaks-scan.schema.json",
-        "bytes": 3870,
-        "sha256": "379136fe10a3b30e93b182f5571cd94f11f515db219a7660874d8cd7efa25408"
+        "bytes": 3975,
+        "sha256": "00d75f796b9089f4dcfa19b253888c7b9b4bae7efcf1895a968c71e5f268d3ab"
       },
       {
         "path": "schemas/independent-review.schema.json",
-        "bytes": 1396,
-        "sha256": "14e5286a146058b66e37cabf3ef66cb44e841e12b5ab2f20be52e01b11d13535"
+        "bytes": 1427,
+        "sha256": "2b914ca373432f79c4048aaa67d97329d7f48e459026f83c31aec5730e373d7a"
       },
       {
         "path": "schemas/project-blueprint.schema.json",
-        "bytes": 2928,
-        "sha256": "6ac31e9fe7a2854ea049eeafee33d7e72b417bc0117730e5a3af5797646f9a7e"
+        "bytes": 2985,
+        "sha256": "eb93af3a0182dcdeeff5c819e5dd05c644a9c9a84bade28a0d0a1c2c3e5499fb"
       },
       {
         "path": "schemas/project-guide.schema.json",
-        "bytes": 1705,
-        "sha256": "4970450da06a0d99a05eb69ebdb7b5bf94d637d27134c538f57a2d0d8c8d8549"
+        "bytes": 1749,
+        "sha256": "64b8c132885436d9a9baa08a21da092fcf3454614631f63145c00c296c7b57bd"
       },
       {
         "path": "schemas/project-installation-verification.schema.json",
-        "bytes": 1930,
-        "sha256": "6194387f2bf3b024462ae752bb1723d7fa81455c786baaaaed8339af6e49c931"
+        "bytes": 1966,
+        "sha256": "85845e52682d4746861e8ffd8f5db2d98d9e6ea32fcb62daa87ffa0878553f45"
       },
       {
         "path": "schemas/project-setup-plan.schema.json",
-        "bytes": 3064,
-        "sha256": "f96dd153dd97ef78800da6f3faedab3fd5746d81a097724df7a8c266a2952bfb"
+        "bytes": 3142,
+        "sha256": "f129f7dc320f0a739c1fb7f2e60e7e1346fc3e1f24adb34f6a2b7ce0334302d4"
       },
       {
         "path": "schemas/project-status.schema.json",
-        "bytes": 3014,
-        "sha256": "538139057f13400eb8eb8e244a6dc6e1ded139a8b6e56b157cf641a2287a5a47"
+        "bytes": 3071,
+        "sha256": "2c0f1c974641e86d3221d36de6a030b59c38ce37413f8b1af1e19a606e93932b"
       },
       {
         "path": "schemas/project-understanding.schema.json",
-        "bytes": 4937,
-        "sha256": "d83772adf7c8b8975e8e6dde118490a56934c2fd1c72512ec7512086240573c6"
+        "bytes": 5040,
+        "sha256": "1f5d48f4075ea04642b713bb76fef47dbe06bef6c7994a1da890cc24044a5c05"
       },
       {
         "path": "schemas/project-video-browser-preview-manifest.schema.json",
@@ -1240,6 +1340,21 @@
         "sha256": "f5ccaeae0f80fa1ca91d5f50a65fd8318f921d266702806704acc75dd7f852b3"
       },
       {
+        "path": "schemas/project-visual-request.schema.json",
+        "bytes": 2444,
+        "sha256": "4ebbdf4ded9996e162fec2eb1fb4adefa2382e3e0a73770eff4c762e87b87628"
+      },
+      {
+        "path": "schemas/project-visual-result.schema.json",
+        "bytes": 2116,
+        "sha256": "9ecb4cf7f1e51b3f1010c8e82c3b83058de0b4e91fd7e01519972d263395d169"
+      },
+      {
+        "path": "schemas/project-visual-scene.schema.json",
+        "bytes": 4277,
+        "sha256": "6c9e3b6d2b75259d2390b2e37b48783168b43afa4a9672026cddf05fbcaed507"
+      },
+      {
         "path": "schemas/release-manifest.schema.json",
         "bytes": 2057,
         "sha256": "6d706ef277e880bbe5d0e26c2d4e4bcce11fe603e391954a11735e470fab085b"
@@ -1251,33 +1366,33 @@
       },
       {
         "path": "schemas/release-readiness.schema.json",
-        "bytes": 1215,
-        "sha256": "f926ad975eabc5bb6d0116254be81d8153d714b3566b23cf4a10460ee1ae42dd"
+        "bytes": 1246,
+        "sha256": "e8e68970b02eb60e7a529123140e12192b60d967bea8bfe7b55f991714ffaff2"
       },
       {
         "path": "schemas/release-signature.schema.json",
-        "bytes": 721,
-        "sha256": "048c60c3951834789e0d917e4b3f74ec7beade25c4aa1764c2389826c9e9bbf2"
+        "bytes": 737,
+        "sha256": "6c675a7663e65c491458c8df9d69a90d2bb965e3d832990cbe23320289cbfeeb"
       },
       {
         "path": "schemas/resolved-configuration.schema.json",
-        "bytes": 2387,
-        "sha256": "4dd3e9dd623eee7bf5bd362be9159f5c49ddbdd4db8f4eb2ac7273f423b78637"
+        "bytes": 2454,
+        "sha256": "456b6a834b77e2fd52964103014493afc569725be6b0c41a50eec8f622548ca0"
       },
       {
         "path": "schemas/security-check.schema.json",
-        "bytes": 1329,
-        "sha256": "8f1cccf648101b0a8827fd42d956f3816f2abe5f633a603175455d49d2ee6f87"
+        "bytes": 1364,
+        "sha256": "00568532b2b490d3e34dca47d226eb4b353575f342cfd01053f2926e6db251ec"
       },
       {
         "path": "schemas/security-review.schema.json",
-        "bytes": 3155,
-        "sha256": "23411ddcefe303ce423bcb87857eb778400195649cb6a2fa9e33bd0ad7f6d364"
+        "bytes": 3229,
+        "sha256": "3e6c89cddd97d15f5648fff4288109c63c0ac67675f2fa90931020aab636836d"
       },
       {
         "path": "schemas/skill-details.schema.json",
-        "bytes": 1589,
-        "sha256": "56ae226a69f2180baf3f37cff3a0cccb571046c176aace2139aae0265dfea600"
+        "bytes": 1627,
+        "sha256": "a052062d4ad0f801fe38692ca16c1ad5a8665062c4d32d6f0d8e84a9e5b56d6f"
       },
       {
         "path": "schemas/skill-inventory.schema.json",
@@ -1301,8 +1416,8 @@
       },
       {
         "path": "scripts/adoption-evidence.mjs",
-        "bytes": 7756,
-        "sha256": "cd3b6916c7bef61b948fb1b8db16e89b89c98ec6d35c754e477e2570768b2ebd"
+        "bytes": 7962,
+        "sha256": "e31f0326e462b04086c6bd3f6f162250c5bca61f197a387e07229309320d4123"
       },
       {
         "path": "scripts/build-release.mjs",
@@ -1311,8 +1426,8 @@
       },
       {
         "path": "scripts/ci-evidence.mjs",
-        "bytes": 2651,
-        "sha256": "655e9f61cf66c6b7097d373ab9c2cbca8b92674a737a14dc5775fdb643698df3"
+        "bytes": 2700,
+        "sha256": "f613c9b2e31f8e9bcb4c2864def1a42b2dc184e58bcbb0827f5fc7620246af14"
       },
       {
         "path": "scripts/generate-demo-narration.ps1",
@@ -1321,8 +1436,8 @@
       },
       {
         "path": "scripts/release-lock.mjs",
-        "bytes": 977,
-        "sha256": "745eb6022c2baefa4dc8ef8d5accc5f6120208007c0f53aefa975d00eaa5b9dd"
+        "bytes": 1004,
+        "sha256": "ffe72be3c4ee6e7567ecf0c1eb5d2552ff1a6e2b3e3bf0ba99da7f618d6d6227"
       },
       {
         "path": "scripts/release-metadata.mjs",
@@ -1336,13 +1451,13 @@
       },
       {
         "path": "scripts/release-worktree.mjs",
-        "bytes": 316,
-        "sha256": "011d965d80c340cf8850e7fcb45788013cffa1260842f3a85064bd6634338897"
+        "bytes": 328,
+        "sha256": "ec8daa61614771d7e22da497c4b5d142c7cc167074089a4e6cf1aea92b87627a"
       },
       {
         "path": "scripts/safe-path.mjs",
-        "bytes": 1256,
-        "sha256": "1d3e6395fa685a5c51498bc346ab6dcb153bebfa11f8c8b180bfd9e61d565d72"
+        "bytes": 1284,
+        "sha256": "a29f4e4ac59ce8bc71070ee8f5afd57b04fe942c2b0b61b605587fea8d302825"
       },
       {
         "path": "scripts/security-check.mjs",
@@ -1351,48 +1466,53 @@
       },
       {
         "path": "scripts/trust.mjs",
-        "bytes": 1144,
-        "sha256": "0c7d789dd09ac581862a616b454e4f0e9d72df643cb0e0c222b26ebe49bf58b9"
+        "bytes": 1173,
+        "sha256": "7dc2c86e41fc3359e25afdfc9b09ebb913a4d2b22d8726a9089fe2a699ad6a19"
+      },
+      {
+        "path": "scripts/update-demo-speaker-notes.ps1",
+        "bytes": 43374,
+        "sha256": "87c022953debea8762144883b454baee08423445011031c604090c38465b781e"
       },
       {
         "path": "scripts/verify-release.mjs",
-        "bytes": 6244,
-        "sha256": "2352580a9c262e6dbcbff23a30c372c340f0ac1b68fbee0672f5e0506fd4192f"
+        "bytes": 6343,
+        "sha256": "e6c0b921e899988a0df58b1e8a909f1771d2d0a78cc3dfb4a39d6494e4f46729"
       },
       {
         "path": "SECURITY.md",
-        "bytes": 9346,
-        "sha256": "d953b9a6ed3c013bb431a95d3b8ab4f7cf3f876472cf0decca037e1d9be3d372"
+        "bytes": 9660,
+        "sha256": "748b89ac26f580f25e47c460d625a0dc1aa48d5139e6038a6d1d55b540962c5a"
       },
       {
         "path": "STANDALONE-WINDOWS.md",
         "bytes": 5690,
-        "sha256": "0416e00c1c175781c7737c39c082086313efcb70a1a530198e07e6364f510a54"
+        "sha256": "6722353d611b3a30c545b7a1fbf97604cf89d7a2f04e2f8f0b6dcb0faff6efd8"
       },
       {
         "path": "templates/project/.editorconfig",
-        "bytes": 323,
-        "sha256": "e9d5c5861bc46b93f1fc16b3974bf7166078c3690f0b2b308c01d49be3a1ffa1"
+        "bytes": 347,
+        "sha256": "80322023a38f14fc1af6ab84342666feac8d0574712eb252d2f6ebe9ed2cda33"
       },
       {
         "path": "templates/project/.gitattributes",
-        "bytes": 690,
-        "sha256": "b9a1520a2b2f65cbe6c4e35807c6cbf80991d4e93e35dbc5e7e857f2a06df9fb"
+        "bytes": 724,
+        "sha256": "d9f889811b2dbabb654208c3e9074f26cfd55071e7d2cf45ea402dfdfd068d5a"
       },
       {
         "path": "templates/project/.github/agents/azure-architect.agent.md",
-        "bytes": 1931,
-        "sha256": "a0d90396e6faf4364abb0ce94f5d1da57201b739d2837a48ee908cde40dbcff0"
+        "bytes": 1965,
+        "sha256": "1849b3469e9f0328a9c261254124b5840b5548a57add34e926b99d2f41bf2c9c"
       },
       {
         "path": "templates/project/.github/agents/documentation-writer.agent.md",
-        "bytes": 1647,
-        "sha256": "4b81ac4a1d0522a9a321c859bd605f5fa69a75dc95479914472ce2de0bae2c03"
+        "bytes": 1679,
+        "sha256": "6040751f49b9462a1b90a6a56fbcacc0d650f2ddccb67c0cd5307010256ab56c"
       },
       {
         "path": "templates/project/.github/agents/security-reviewer.agent.md",
-        "bytes": 1937,
-        "sha256": "29b2f4a708d68e4e6f867c16557ad6e787c88f87540df822eda4661da44870a6"
+        "bytes": 1973,
+        "sha256": "afd63b41947a0039dd41fdff68a49d69943dfd071cb7295a54fee77eec3a5886"
       },
       {
         "path": "templates/project/.github/copilot-instructions.md",
@@ -1401,83 +1521,83 @@
       },
       {
         "path": "templates/project/.github/instructions/azure-deployment.instructions.md",
-        "bytes": 2660,
-        "sha256": "af82056b4ead38dd0c25bb3382de5f401ced7168f6fe17ff28c0fd6b9c5af06c"
+        "bytes": 2696,
+        "sha256": "1f2331c5e284d45bd48a003efa263f9c88fdac86234694ffa75f99de71645a6d"
       },
       {
         "path": "templates/project/.github/instructions/bicep.instructions.md",
-        "bytes": 1513,
-        "sha256": "a72bcf020b43747d5819bfb386dd9c4d328ac3431eb4b20e33b3b77ae97ac832"
+        "bytes": 1534,
+        "sha256": "ac9cdb4e6bbb5390996dc28fc5f9e1cbddc8d8780b4abb2eea1003d69f84dfbd"
       },
       {
         "path": "templates/project/.github/instructions/clarification.instructions.md",
-        "bytes": 2384,
-        "sha256": "91a518d554e0d9deaeea1647b95afc3948d6fd586e87955876ffab6a8e711b57"
+        "bytes": 2424,
+        "sha256": "b70630299524a373bbb8163d2c199ef7b220511ce3290e104c055263a45210ba"
       },
       {
         "path": "templates/project/.github/instructions/csharp.instructions.md",
-        "bytes": 1035,
-        "sha256": "1cc7aecd3f0c0aec9af2afe0a2400e78c2a62096d69744056c4a9b58a9d1a0d5"
+        "bytes": 1053,
+        "sha256": "5254190b90487761e2e1646e83036c7200916662a351287ac72a8d56b5de8be9"
       },
       {
         "path": "templates/project/.github/instructions/markdown.instructions.md",
-        "bytes": 764,
-        "sha256": "d0ffbcb23642a15c04bf93ae573e5662110b5e6dd618c764196493072559dc34"
+        "bytes": 779,
+        "sha256": "cfc674b1c84a7d849670b4f1674e525174a88884b002e27dee483f7789abcb51"
       },
       {
         "path": "templates/project/.github/instructions/powershell.instructions.md",
-        "bytes": 1186,
-        "sha256": "3c8e37a5866eb71920e2ff4ca16085d66b91f4d40825b2a665296044ce6d9354"
+        "bytes": 1206,
+        "sha256": "ca5fe9c9b58d36669253cc858848bec49d6fa982a9ff4444dc8bf499257b7d02"
       },
       {
         "path": "templates/project/.github/instructions/security.instructions.md",
-        "bytes": 1969,
-        "sha256": "63ac14961ea1dc20b926b1b54f141a0d315baaf4f5ccf9c6f748bbf1e2cbb812"
+        "bytes": 2012,
+        "sha256": "55889c2221de50d8e415404a92aec3d63b2ff19f364fc711dbec0e5cf5213864"
       },
       {
         "path": "templates/project/.github/instructions/tests.instructions.md",
-        "bytes": 967,
-        "sha256": "a484159ec0cdd9d177783d42cdc42443e6694a95ebff0ea6dff7012a9a176727"
+        "bytes": 984,
+        "sha256": "a249f9f153516a66c317e880ce3c5f7f03c27be2ce91ee24049b3ec6b478e853"
       },
       {
         "path": "templates/project/.github/instructions/typescript.instructions.md",
-        "bytes": 1043,
-        "sha256": "115a95031281f29f4c358c30bf13eaab24affa232304f08acce5fd372fbbd93b"
+        "bytes": 1061,
+        "sha256": "c804500b38ee9116f9af9173020e50a11063abc85e9cd86c674854e9659286fe"
       },
       {
         "path": "templates/project/.github/prompts/create-adr.prompt.md",
-        "bytes": 972,
-        "sha256": "792bbf7057580a92379ab5acbaa87d68a6bd8386e4b156fdae7f361372e5b0af"
+        "bytes": 990,
+        "sha256": "8b9c61b76aecf0d740123fb1fd2f54cc60ef1dafe1a44aa35ed41a4108cca5bb"
       },
       {
         "path": "templates/project/.github/prompts/executive-summary.prompt.md",
-        "bytes": 996,
-        "sha256": "32b69cc68029da24e5e5833f894000ab058ea7c762de7743f56b3933b2829657"
+        "bytes": 1021,
+        "sha256": "828b1a05c18a520f1e12aba2f682cf6893f997ee2659815a4d6ccdec00d3eb5e"
       },
       {
         "path": "templates/project/.github/prompts/new-component.prompt.md",
-        "bytes": 1056,
-        "sha256": "ee51b47daa9313e200e065100f031ee065aa814d98fe45fc3cf7698fe7491b3f"
+        "bytes": 1073,
+        "sha256": "766c2669672908bd991c5a4288954d93b6866e09c7dd1571e692892ebf925082"
       },
       {
         "path": "templates/project/.github/prompts/project-blueprint.prompt.md",
-        "bytes": 1693,
-        "sha256": "e9f2a70d9c62332ae1bbc28ba10bc5aed97990f39098da41ebdfdbc6e49a4385"
+        "bytes": 1722,
+        "sha256": "15e518a526e27d8e541be201e2311d6db1abc7e633ace95e953cfafe308eda39"
       },
       {
         "path": "templates/project/.github/prompts/project-start.prompt.md",
-        "bytes": 1978,
-        "sha256": "5fae8549b708eb21d8e97cc27ac00f188c478ff36a525c82d6f3299dcd52d14a"
+        "bytes": 2006,
+        "sha256": "53a238c19ea0645a6b1b3b7799855ec17ca0b31ceb179870de4e6e7f15e713b8"
       },
       {
         "path": "templates/project/.github/prompts/project-validate.prompt.md",
-        "bytes": 1493,
-        "sha256": "bbedc2db86cb06bf3eb8e8160b63824c35d96c9fccb8bd4be9660d586910db63"
+        "bytes": 1520,
+        "sha256": "d8c554e36c5cccff3d6da0387ac28107c0040717c885cf187263274c4ce2c5e6"
       },
       {
         "path": "templates/project/.github/prompts/review-architecture.prompt.md",
-        "bytes": 985,
-        "sha256": "8ef25bcc8c332efdd9556ea85cd317d0f099aef17d60163a0ebeccec4dd4ddf5"
+        "bytes": 1001,
+        "sha256": "caffb17d5499a3e13240c16844e3365a13fa1fb23e8597dad98f90d2630d814e"
       },
       {
         "path": "templates/project/.github/prompts/skills-help.prompt.md",
@@ -1486,18 +1606,18 @@
       },
       {
         "path": "templates/project/.vscode/mcp.json",
-        "bytes": 1514,
-        "sha256": "9c13f813a20063542a54f6c04e506de7ab516aa5629e01aca3c6889481867c26"
+        "bytes": 1555,
+        "sha256": "5669250c1edc64ebc19e128d0e11f56b5d3df481a33356be60da21a38b471605"
       },
       {
         "path": "templates/project/docs/adr/0000-template.md",
-        "bytes": 1072,
-        "sha256": "50d2439097553f39a8be92a73ae8bc745caa5d3d2c363bbe12da677eeedca4ff"
+        "bytes": 1118,
+        "sha256": "d9de9d8ef4a7e3abb8ea2f0d3e17e3b24fed6e42cfa7f590c1248d234a486168"
       },
       {
         "path": "templates/project/docs/README.md",
-        "bytes": 749,
-        "sha256": "e668adc9d68436665c5071180521e0611b89265f795840086310add62ef19e04"
+        "bytes": 761,
+        "sha256": "8225850b7c26469a9924226d82d52b6dcd4283670790d32d5c1bf19af2a4b34d"
       },
       {
         "path": "templates/project/infra/azure-environment.ps1",
@@ -1526,8 +1646,8 @@
       },
       {
         "path": "templates/project/infra/main.bicep",
-        "bytes": 8564,
-        "sha256": "a41773c53125cfa9ffb66468fb6721c94226ac5aa479b8a3011afa753ba1785d"
+        "bytes": 8819,
+        "sha256": "c3f537dcf9b593c2972836a31ad603fbf6a2671269eb5f55214a728fedfd10c4"
       },
       {
         "path": "templates/project/infra/README.md",
@@ -1541,43 +1661,43 @@
       },
       {
         "path": "tests/adoption-rerun.test.mjs",
-        "bytes": 82169,
-        "sha256": "87792b49718c6cebfef66f9ea51d0ad129655deef96d9418ed0c29186b9e28a5"
+        "bytes": 83440,
+        "sha256": "6e17a60820d289754e15f85527e9a60286b27d84cabef91c731f4c1212c25a40"
       },
       {
         "path": "tests/agent-builder.test.mjs",
-        "bytes": 33522,
-        "sha256": "33f1864b28360e8a69421d86b7d8a7d72dee278b1dae5e55a4dc0843775f237c"
+        "bytes": 34209,
+        "sha256": "de46a5fb3dd9d1842311a8a0c9f0781212a4d0ba2538036be1283f3e93467bd3"
       },
       {
         "path": "tests/audit-assurance.test.mjs",
-        "bytes": 21292,
-        "sha256": "d5dfb15a0ca8496abbb6fe370d7eca05da3d3236a674366e09b4827a3b8a5278"
+        "bytes": 21711,
+        "sha256": "26f2bc034db71c98e1b6dc4c0b2eb5f10fabd47dc804d01caded2fc9c88dcc7e"
       },
       {
         "path": "tests/audit-execution.test.mjs",
-        "bytes": 11951,
-        "sha256": "7d1702d35f647eaaec07826ff7e4c6199052b868f99f4c6f4af6677d7ceeb79d"
+        "bytes": 12207,
+        "sha256": "d2f44a46fdbd4a340f7076a3cd9464427aec6307e3471ba5e3ac8d43f6eeefaf"
       },
       {
         "path": "tests/documentation-builder.test.mjs",
-        "bytes": 3213,
-        "sha256": "e5dfc16f1e58d9a225bfb4001a43de5184631f3ef75a956934278f2d5dc8f40f"
+        "bytes": 3264,
+        "sha256": "0d898e5008f3470fdd14a9724b8ccf221da8f5667841de913551c8aeeef7b6ed"
+      },
+      {
+        "path": "tests/fixtures/project-visual-storytelling/whiteboard-render-plan.json",
+        "bytes": 1033,
+        "sha256": "cf2473cf0f2a441de18321db627acd1197f3c949fab01bf5ca78bb4edfe4c161"
       },
       {
         "path": "tests/gitleaks-scan.test.mjs",
-        "bytes": 8143,
-        "sha256": "8be34bc9ee3f619d6514d23314728e34273ea5fd75a25896f3a26e3aefd57a1c"
+        "bytes": 8309,
+        "sha256": "5526751da713c66649dac6509701976ec49cb23728edb55df0dbb2af701cb244"
       },
       {
         "path": "tests/package-install.test.mjs",
-        "bytes": 6853,
-        "sha256": "0d32d558c24e2b14dcb4a5f7456348654e2de1f13372fbf61778a4154f9c0dae"
-      },
-      {
-        "path": "tests/personalized-content.test.mjs",
-        "bytes": 12262,
-        "sha256": "cb4c136961406122e00f24b0a79450be0a1284d858eb3865a7fee6c429d3e918"
+        "bytes": 8849,
+        "sha256": "ed397d4fb361d59e3b15d2abbe7e2c889cae1a348d814c663aa2a5b0d4955057"
       },
       {
         "path": "tests/production-gates.test.mjs",
@@ -1586,13 +1706,13 @@
       },
       {
         "path": "tests/project-status.test.mjs",
-        "bytes": 6349,
-        "sha256": "ce5e4c254c21f93e968acd0e36b539bcfc5a6a9b4547a765ec479cac2eaebcb9"
+        "bytes": 6452,
+        "sha256": "845fae45083add00d0f74f43ef5ba926a4645f0fc70c71885f29fc56504b97f6"
       },
       {
         "path": "tests/project-understanding.test.mjs",
-        "bytes": 6041,
-        "sha256": "5796c714df1fdea5146297d36fcc50cbc747bd6c320bf782ee6e4564ea1c47d7"
+        "bytes": 6134,
+        "sha256": "8b5584230e975b71c6a4884e801dd9b2b60f2d677848e2b8163babd39effe4a2"
       },
       {
         "path": "tests/project-video.test.mjs",
@@ -1600,14 +1720,19 @@
         "sha256": "5c0a21da159c138eb37bcda28e9866f7234c6f3d8d7ab11b0910c671ee64321c"
       },
       {
+        "path": "tests/project-visual-storytelling.test.mjs",
+        "bytes": 19929,
+        "sha256": "ad899e67ad3ef3c22934b6532245d4cf26f7190204172c007725ebc15189cbea"
+      },
+      {
         "path": "tests/security-fuzz.test.mjs",
-        "bytes": 11571,
-        "sha256": "978537ab1938491cbfb8b97af3e402105f5be0ad490b8e2573db4bbe8a712950"
+        "bytes": 11777,
+        "sha256": "a1dcad87d3d9351b395117cd83607bdb7653ac8a38ad1ddcde7cd2ddff72bfa2"
       },
       {
         "path": "tests/skill-contracts.test.mjs",
-        "bytes": 83027,
-        "sha256": "0a95419e2d8036a1559859b49db5505e52bf29747d2fe451fb463b20495dd030"
+        "bytes": 87161,
+        "sha256": "23349e0c0ab0273628c6d2ad0e553d3d0ce4de742c9aa225a710b97f40747717"
       },
       {
         "path": "tests/user-personalization.test.mjs",
@@ -1618,10 +1743,18 @@
   },
   "architecture": [
     {
-      "name": ".github",
-      "description": "Top-level project boundary containing 84 scanned files.",
+      "name": ".azure",
+      "description": "Top-level project boundary containing 1 scanned files.",
       "evidence": [
-        ".github/copilot-instructions.md"
+        ".azure/environment.json"
+      ],
+      "status": "verified"
+    },
+    {
+      "name": ".github",
+      "description": "Top-level project boundary containing 86 scanned files.",
+      "evidence": [
+        ".github/agents/visual-storytelling-director.agent.md"
       ],
       "status": "verified"
     },
@@ -1642,6 +1775,14 @@
       "status": "verified"
     },
     {
+      "name": "artifacts",
+      "description": "Top-level project boundary containing 12 scanned files.",
+      "evidence": [
+        "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-context.json"
+      ],
+      "status": "verified"
+    },
+    {
       "name": "config",
       "description": "Top-level project boundary containing 4 scanned files.",
       "evidence": [
@@ -1651,9 +1792,9 @@
     },
     {
       "name": "docs",
-      "description": "Top-level project boundary containing 5 scanned files.",
+      "description": "Top-level project boundary containing 6 scanned files.",
       "evidence": [
-        "docs/INTERNAL-RELEASE.md"
+        "docs/COPILOT-ECOSYSTEM-IMPROVEMENT-RESEARCH.md"
       ],
       "status": "verified"
     },
@@ -1667,7 +1808,7 @@
     },
     {
       "name": "reports",
-      "description": "Top-level project boundary containing 83 scanned files.",
+      "description": "Top-level project boundary containing 87 scanned files.",
       "evidence": [
         "reports/adoption-rerun-evidence.json"
       ],
@@ -1675,7 +1816,7 @@
     },
     {
       "name": "schemas",
-      "description": "Top-level project boundary containing 46 scanned files.",
+      "description": "Top-level project boundary containing 49 scanned files.",
       "evidence": [
         "schemas/adoption-transaction.schema.json"
       ],
@@ -1683,7 +1824,7 @@
     },
     {
       "name": "scripts",
-      "description": "Top-level project boundary containing 12 scanned files.",
+      "description": "Top-level project boundary containing 13 scanned files.",
       "evidence": [
         "scripts/adoption-evidence.mjs"
       ],
@@ -1699,7 +1840,7 @@
     },
     {
       "name": "tests",
-      "description": "Top-level project boundary containing 15 scanned files.",
+      "description": "Top-level project boundary containing 16 scanned files.",
       "evidence": [
         "tests/adoption-rerun.test.mjs"
       ],
@@ -1709,23 +1850,23 @@
   "technology": [
     {
       "name": ".md",
-      "description": "121 scanned files use this extension.",
+      "description": "128 scanned files use this extension.",
       "evidence": [
-        ".github/copilot-instructions.md"
+        ".github/agents/visual-storytelling-director.agent.md"
       ],
       "status": "verified"
     },
     {
       "name": ".json",
-      "description": "97 scanned files use this extension.",
+      "description": "110 scanned files use this extension.",
       "evidence": [
-        ".github/skills/audit-code/config/gitleaks-allowlist.json"
+        ".azure/environment.json"
       ],
       "status": "verified"
     },
     {
       "name": ".mjs",
-      "description": "38 scanned files use this extension.",
+      "description": "39 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/agent-builder.mjs"
       ],
@@ -1741,7 +1882,7 @@
     },
     {
       "name": ".ps1",
-      "description": "10 scanned files use this extension.",
+      "description": "11 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/azure-context.ps1"
       ],
@@ -1796,10 +1937,10 @@
       "status": "verified"
     },
     {
-      "name": ".pptx",
+      "name": ".py",
       "description": "1 scanned files use this extension.",
       "evidence": [
-        "Demo/Project-Orchestrator-Demo.pptx"
+        ".github/skills/project-visual-storytelling/scripts/blender-render.py"
       ],
       "status": "verified"
     }
@@ -1807,7 +1948,7 @@
   "usage": [
     {
       "name": "npm run check",
-      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/personalized-content.test.mjs && node pso.mjs verify",
+      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ],
@@ -1887,7 +2028,7 @@
     },
     {
       "name": "npm run test",
-      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/personalized-content.test.mjs",
+      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs",
       "evidence": [
         "package.json"
       ],
@@ -1955,7 +2096,7 @@
   "workflows": [
     {
       "name": "npm run check",
-      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/personalized-content.test.mjs && node pso.mjs verify",
+      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ],
@@ -2035,7 +2176,7 @@
     },
     {
       "name": "npm run test",
-      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/personalized-content.test.mjs",
+      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs",
       "evidence": [
         "package.json"
       ],
@@ -2250,15 +2391,6 @@
         "invocation": "/multi-agent-coordinator"
       },
       {
-        "name": "personalized-content",
-        "description": "Transform the current project into profile-aware evaluations, explainers, articles, action plans, social drafts, Teams messages, accessible whiteboards, and miniature dioramas saved locally. Use when personalized project communication or visuals are requested.",
-        "evidence": [
-          ".github/skills/personalized-content/SKILL.md"
-        ],
-        "status": "verified",
-        "invocation": "/personalized-content"
-      },
-      {
         "name": "policy-engine",
         "description": "Evaluate centralized authorization, risk, compliance, escalation, and approval policies without executing the governed action. Use to decide whether an action is allowed, denied, or approval-gated; never use it to perform the action.",
         "evidence": [
@@ -2347,6 +2479,15 @@
         ],
         "status": "verified",
         "invocation": "/project-video"
+      },
+      {
+        "name": "project-visual-storytelling",
+        "description": "Create repository-aware architecture diagrams, whiteboards, and miniature dioramas for the current project, with evidence-bound source artifacts, specifications, alt text, and optional validated PNGs saved locally. Use when a project needs a diagram or visual explanation.",
+        "evidence": [
+          ".github/skills/project-visual-storytelling/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/project-visual-storytelling"
       },
       {
         "name": "regression-test-development",
@@ -2576,7 +2717,16 @@
         "invocation": "/skills-help"
       }
     ],
-    "agents": [],
+    "agents": [
+      {
+        "name": "\"Visual Storytelling Director\"",
+        "description": "\"Use when a project needs an evidence-grounded architecture diagram, photorealistic whiteboard, or miniature diorama: request-bound plans, critiques, and controlled local render candidates.\"",
+        "evidence": [
+          ".github/agents/visual-storytelling-director.agent.md"
+        ],
+        "status": "verified"
+      }
+    ],
     "schemas": [
       {
         "name": "adoption-transaction.schema.json",
@@ -2851,6 +3001,30 @@
         "status": "verified"
       },
       {
+        "name": "project-visual-request.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/project-visual-request.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
+        "name": "project-visual-result.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/project-visual-result.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
+        "name": "project-visual-scene.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/project-visual-scene.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
         "name": "release-manifest.schema.json",
         "description": "Machine-readable contract for a governed project artifact.",
         "evidence": [
@@ -2951,7 +3125,7 @@
   "validation": [
     {
       "name": "npm run check",
-      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/personalized-content.test.mjs && node pso.mjs verify",
+      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ],
@@ -2999,7 +3173,7 @@
     },
     {
       "name": "npm run test",
-      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/personalized-content.test.mjs",
+      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs",
       "evidence": [
         "package.json"
       ],
@@ -3024,5 +3198,5 @@
   ],
   "limitations": [],
   "markdown": "reports/project-understanding.md",
-  "markdownSha256": "78672534da9fab162ab8041cac88bd964b949fb159410873019e469f48a23593"
+  "markdownSha256": "613b6f6fd23027a18647fa745afdf1a3a1eb582dd5fd2f243a3749b7d0113dac"
 }

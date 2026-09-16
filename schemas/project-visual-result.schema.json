@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.local/schemas/project-visual-result.schema.json",
+  "title": "Project Visual Storytelling Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "status", "source", "renderer", "artifacts", "warnings", "limitations"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": { "type": "string", "pattern": "^[A-Za-z0-9-]{20,180}$" },
+    "status": { "enum": ["complete", "partial", "blocked", "failed"] },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryDigestSha256", "projectUnderstandingDigestSha256"],
+      "properties": {
+        "repositoryDigestSha256": { "$ref": "#/$defs/sha256" },
+        "projectUnderstandingDigestSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "renderer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "name"],
+      "properties": {
+        "class": { "enum": ["deterministic-source", "deterministic-vector", "bitmap-generation", "physically-based-3d", "none"] },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "mediaType", "sha256", "validated"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+" },
+          "mediaType": { "type": "string", "minLength": 3, "maxLength": 100 },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "validated": { "type": "boolean" }
+        }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 1000 } },
+    "limitations": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 1000 } }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

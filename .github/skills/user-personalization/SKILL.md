@@ -46,7 +46,7 @@ Own the reusable User Personalization profile at `.skills-orchestrator/user-pers
 3. Read `references/personalization-questionnaire.md` and ask unanswered questions in bounded batches permitted by the host's clarification policy. Allow `skip` for every optional question and never infer an answer from browsing, account data, or unrelated repository content.
 4. Use an attribution label or pseudonym supplied by the user wherever reusable source material previously contained a person's name. Do not embed a real person's identity in this skill package.
 5. Map the answers to schema fields, set `schemaVersion` to `1.0.0`, set `updatedAt` to the current ISO 8601 date-time, apply documented defaults only where the questionnaire permits them, and show a concise profile summary without exposing unnecessary detail.
-6. Require explicit approval before the first write or any replacement. A request to generate personalized content does not itself approve profile persistence.
+6. Require explicit approval before the first write or any replacement. A request to create project visual storytelling does not itself approve profile persistence.
 7. Create a candidate JSON file inside `.skills-orchestrator/`, run `validate --project . --input <candidate>`, and correct every reported defect without weakening validation.
 8. Run `apply --project . --input <candidate> --approve`. The helper rejects unknown fields, secret-like content, unsafe paths, symbolic links, concurrent writes, and invalid profile values.
 9. Run `status --project .` again and resume the dependent workflow only when it reports `valid`.
@@ -74,7 +74,7 @@ Own the reusable User Personalization profile at `.skills-orchestrator/user-pers
 ## Approval Gates
 
 - Require explicit approval before creating or replacing `.skills-orchestrator/user-personalization.json`.
-- Require separate approval before any dependent skill publishes, sends, uploads, or externally shares personalized content.
+- Require separate approval before any dependent skill publishes, sends, uploads, or externally shares a personalized visual.
 - Updating preferences never authorizes external publication or disclosure.
 
 ## Composition and Dependencies

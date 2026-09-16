@@ -31,6 +31,10 @@ Map actual content to the profile's focus, positive, risk, and neutral colors be
 ## Generation And Fallback
 
 - Generate or edit an image only when a capable tool is available.
+- For local production, use the packaged Blender/Cycles adapter under `renderer-contract.md`. Model a physical framed board, raised paper or card elements, deterministic text geometry, procedural surface variation, perspective camera, and studio lighting with cast and contact shadows.
+- A discovery-confirmed Azure Government MAI-Image deployment may create the photorealistic raster candidate after explicit approval. Prompt it to reserve blank text areas and not generate names, signatures, dates, logos, or watermarks. Never deliver that candidate until deterministic labels and attribution are applied and verified.
+- Put every title, label, signature, and date in the validated render plan. Do not ask an image model to reproduce required text when deterministic text geometry is available.
+- Treat automated renderer verification as `requires-review`; inspect the board at full size for text fidelity, clipping, overlap, reflections, physical depth, and evidence coverage.
 - Retry one failed generation with a simplified prompt that preserves the message, attribution, accessibility, layout, and signature area.
 - If generation or exact text correction still fails, return the written content, complete whiteboard specification, and alt text. State clearly that no finished image was produced.
 - Never represent an image specification, placeholder, or inaccessible render as a completed image.

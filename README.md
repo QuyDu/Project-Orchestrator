@@ -451,7 +451,7 @@ Open the project in VS Code, start Copilot Chat in **Agent** mode, and invoke a 
 /deployment-review        Is this release candidate deployable, and how do we roll back
 /documentation-builder    Build the canonical project guide and supporting documentation
 /user-personalization     Build the local reusable voice, perspective, visual, and safety profile
-/personalized-content     Turn the current project into locally saved content, whiteboards, or dioramas
+/project-visual-storytelling  Create repository-aware diagrams, whiteboards, or dioramas
 /skill-create             Create a skill after duplicate, reuse, and wiring analysis
 /skill-update             Resolve and update one existing skill after explicit approval
 /project-status           Check lifecycle, Azure resource health, sync freshness, and deployment currency
@@ -464,21 +464,33 @@ Open the project in VS Code, start Copilot Chat in **Agent** mode, and invoke a 
 
 ### Local User Personalization
 
-`personalized-content` requires a valid `.skills-orchestrator/user-personalization.json`. When the file is missing or invalid, `user-personalization` asks a bounded, reusable questionnaire before content work continues. The profile stores only user-approved public-facing preferences and professional context, remains ignored by Git, and is never copied into reports or generated documentation.
+`project-visual-storytelling` creates technical diagrams without personalization. Profile-aware whiteboards and dioramas require a valid `.skills-orchestrator/user-personalization.json`; when it is missing or invalid, `user-personalization` asks a bounded, reusable questionnaire before visual work continues. The profile stores only user-approved public-facing preferences and professional context, remains ignored by Git, and is never copied into reports or generated documentation.
 
-Every `/personalized-content` run performs a fresh Project Understanding scan and uses the current repository as its sole topic and source. Preflight binds the run to that repository digest and assigns a unique local destination under `artifacts/personalized-content/<run-id>/`; external source and output-path overrides are rejected.
+Every `/project-visual-storytelling` run performs a fresh Project Understanding scan and uses the current repository as its sole topic and source. Preflight binds the run to that repository digest and assigns a unique local destination under `artifacts/project-visual-storytelling/<run-id>/`; external source and output-path overrides are rejected.
 
-Visual runs default to a hand-drawn whiteboard. Use `--visual-style diorama` with `whiteboard`, `whiteboard-specification`, or `full-package` output to create an evidence-bound miniature scene instead:
+For architecture, component, deployment, data-flow, sequence, process, agent-topology, or executive views, use the unified technical command. It writes editable Mermaid source, a specification, evidence map, alt text, request, and an honest `partial` result until a local SVG or PNG renderer is qualified:
 
 ```text
-/personalized-content --output-type whiteboard --visual-style diorama
+/project-visual-storytelling diagram --type architecture --format mmd,spec
+```
+
+The skill validates the local Visual Storytelling Director agent before agent-assisted rendering. When it is absent or incompatible, the skill asks before creating or updating it. If deployment is approved, the user selects Azure Foundry or Copilot Studio. Azure Foundry uses the saved Azure environment and a fresh `azure-discovery` report, starts the saved Azure CLI login only when needed, and uses the project naming standard: `rg-<normalized-project-name>` plus derived resource names and required tags. Copilot Studio deployment is prepared as a platform handoff. Both options require a separate final approval after names, region, permissions, and cost-affecting choices are shown.
+
+Choose the visual directly with `--output-type`. Use `whiteboard` or `diorama` when a rendered PNG may be produced, and use the corresponding `-specification` mode when only specification and alt text are required:
+
+```text
+/project-visual-storytelling --output-type diorama
 ```
 
 Diorama preflight automatically selects an architectural treatment for verified components, topology, platforms, services, or boundaries; otherwise it uses a conceptual treatment. The visual standard is a photographed handcrafted miniature exhibit: tactile cardboard, foam, clay, wood, paper, warm studio lighting, physical depth, real shadows, one central sculpted metaphor, supporting shadow-box panels, and fewer larger labels. Reference images guide those medium-level traits only; their text, characters, branding, signatures, and exact composition are never copied.
 
 A final `diorama.png` requires an approved bitmap image generator or a genuine physically based 3D renderer. HTML/CSS/SVG screenshots and flat faux-isometric compositions do not qualify. When no qualified renderer is available, the run produces only `diorama-specification.md` and `diorama-alt-text.md` and states that no finished image was produced. Every rendered visual uses only the validated User Personalization signature and current profile timezone date. The canonical spelling is `diorama`.
 
-The profile owner requires explicit approval before creation or replacement. Other skills may read the validated file but cannot modify it. Creating a repository-local run also requires approval, and personalized content remains a draft until reviewed; posting, sending, uploading, or other external publication is outside the skill and requires separate approval.
+For local rendering, install Blender separately and make `blender` available on `PATH` or set the operator-controlled `BLENDER_EXECUTABLE` environment variable. The skill never installs Blender. Use `doctor --project .` to inspect availability, create a schema-valid `render-plan.json` in the preflight-assigned run directory, then run `render --project . --run-id <assigned-run-id>` and `verify --project . --run-id <assigned-run-id>`. The packaged adapter creates procedural whiteboard or diorama geometry with Blender Cycles and no downloaded assets. Automated verification returns `requires-review`; the PNG remains a draft until its physical fidelity, shadows, exact text, signature, and evidence mappings are inspected at full size.
+
+The render plan may select `auto`, `mai-image`, or `blender-cycles`. `auto` prefers Microsoft MAI-Image only when `doctor` finds an allowlisted Azure Government endpoint, a configured deployment and supported model, and fresh Azure Government discovery evidence for that model and region. The current render command must also include `--external-processing-approved true`; configuration and prior approvals never authorize prompt submission. Authentication uses Microsoft Entra through Azure CLI and API keys are unsupported. MAI writes only `<visual>-mai-candidate.png`, with web grounding disabled and no reference pixels. It cannot become the final labeled visual until deterministic text, signature, date, and evidence checks pass. Current Azure Government discovery does not confirm MAI-Image, so `auto` falls back to Blender today.
+
+The profile owner requires explicit approval before creation or replacement. Other skills may read the validated file but cannot modify it. Creating a repository-local run also requires approval, and visual output remains a draft until reviewed; posting, sending, uploading, or other external publication is outside the skill and requires separate approval. Existing installations using `personalized-content` migrate to `project-visual-storytelling` during framework update.
 
 `/audit-code` automatically runs the complete read-only analysis pipeline, and each stage validates the one before it:
 

@@ -1,6 +1,6 @@
 # Skill Details
 
-Generated: 2026-09-12T16:40:36.517Z
+Generated: 2026-09-16T08:50:46.489Z
 
 | Skill | Lifecycle | Confidence | Audit | Dependencies |
 | --- | --- | --- | --- | --- |
@@ -23,7 +23,7 @@ Generated: 2026-09-12T16:40:36.517Z
 | documentation-builder | tested | medium | passed | clarify-the-ask |
 | environment-update | draft | low | passed | development-environment-readiness, policy-engine |
 | framework-health-check | draft | low | passed | skill-inventory, skill-dependency-manager |
-| linkedin-post | draft | low | passed | project-handoff, documentation-builder |
+| linkedin-post | draft | low | passed | project-handoff, documentation-builder, user-personalization |
 | multi-agent-coordinator | draft | low | passed | workflow-state-manager, workflow-scheduler |
 | policy-engine | draft | low | passed | None |
 | prepare-commit | draft | low | passed | change-review |
@@ -35,6 +35,7 @@ Generated: 2026-09-12T16:40:36.517Z
 | project-status | tested | medium | passed | project-handoff, workflow-telemetry, audit-azure-environment |
 | project-understanding | draft | low | passed | clarify-the-ask |
 | project-video | draft | low | passed | clarify-the-ask, project-understanding, documentation-builder, azure-discovery |
+| project-visual-storytelling | draft | low | passed | user-personalization, project-understanding, agent-builder, azure-discovery |
 | regression-test-development | draft | low | passed | policy-engine, workflow-state-manager |
 | security-review | draft | low | passed | audit-code |
 | skill-create | draft | low | passed | skill-inventory, skill-dependency-manager, project-understanding, documentation-builder |
@@ -43,6 +44,7 @@ Generated: 2026-09-12T16:40:36.517Z
 | skill-registry | draft | low | passed | skill-inventory, skill-dependency-manager, policy-engine |
 | skill-update | draft | low | passed | skill-inventory, skill-dependency-manager, project-understanding, documentation-builder |
 | systematic-debugging | draft | low | passed | policy-engine, workflow-state-manager |
+| user-personalization | draft | low | passed | None |
 | workflow-planner | draft | low | passed | clarify-the-ask, skill-inventory, skill-dependency-manager |
 | workflow-recovery | draft | low | passed | workflow-state-manager, project-handoff |
 | workflow-scheduler | draft | low | passed | workflow-state-manager, policy-engine |

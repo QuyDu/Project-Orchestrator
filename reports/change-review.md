@@ -1,27 +1,27 @@
 # Change Review
 
-- Base: `99b9ce663b7be69476655d4c40d77e09ff11c442`
-- Head: local working tree on `release/1.1.2`
-- Generated: 2026-09-12
+- Base: `7bf8456d55c301adac2175e6a08fb47b5fb45823`
+- Head: `7ac982c3332f877bcb9f7d1bcee1c7ea0ba0d0ed` plus the complete local working tree on `release/1.1.2`
+- Generated: 2026-09-16
 - Status: **passed**
 - Findings: **none**
 
 ## Boundary
 
-Source version `1.1.2` dated September 12, 2026, including the fresh demo workspace identity, current version and repository documentation, Security supported-source metadata, `LIVE-CHAT-001` planning continuity, and deterministic generated evidence.
+Replace `personalized-content` with the backward-compatible `project-visual-storytelling` capability; add its governed agent, schemas, runtime, tests, documentation, demo material, research, and visual evidence; and synchronize the 47-skill package.
 
 ## Validation
 
-- Bounded review found no correctness defect, broken link, current-version mismatch, contract violation, misleading formal-release claim, unsafe workspace behavior, or missing critical test.
-- Focused version and documentation suites: 63 passed, 0 failed.
-- Full repository gate: 134 passed, 1 expected platform-specific skip, 0 failed.
-- All 45 skills, security checks, and unsigned candidate verification passed.
-- `git diff --check` passed.
+- Thorough bounded review found no remaining correctness, security, secret-exposure, path-safety, compatibility, packaging, or contract defect.
+- `npm run check`: 143 passed, 1 expected platform-specific skip, 0 failed; 258 files security-scanned; 178 release files checksum-verified.
+- All 47 skills passed inventory, audit, dependency, ownership, and registry-free distribution verification.
+- The saved 11-slide deck contains both corrected 47-skill speaker-note phrases, no 45-skill variant, and unchanged visible slide text.
+- Cached and unstaged `git diff --check` passed; no conflict, pending symlink, or file of 10 MiB or larger was found.
 
 ## Historical Evidence
 
-Historical audit, release-readiness, and synchronized demo media retain their original versions and dates. The demo runbook labels version 1.1.1 media as archived rather than presenting it as current 1.1.2 evidence.
+Historical reports retain their original version, date, and skill-count evidence. Dated visual-storytelling runs and the synchronized PowerPoint are intentionally included in the approved package.
 
 ## Remaining Gates
 
-The formal release remains blocked by trusted signing, independent review, and operational readiness. `LIVE-CHAT-001` remains planning-only. Hosted checks must pass before protected merge; no GitHub Release or package is authorized.
+The formal release remains blocked by trusted signing, independent review, and operational readiness. Hosted checks must pass before protected merge; no merge, GitHub Release, package publication, or deployment is authorized.

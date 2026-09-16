@@ -64,7 +64,6 @@ const expectedSkillIds = [
   "framework-health-check",
   "linkedin-post",
   "multi-agent-coordinator",
-  "personalized-content",
   "policy-engine",
   "prepare-commit",
   "project-handoff",
@@ -75,6 +74,7 @@ const expectedSkillIds = [
   "project-status",
   "project-understanding",
   "project-video",
+  "project-visual-storytelling",
   "regression-test-development",
   "security-review",
   "skill-create",
@@ -395,7 +395,38 @@ test("project video is a portable narrated MP4 capability", async () => {
   const videoSlideRelationships = readZipEntry(demoPowerPoint, "ppt/slides/_rels/slide3.xml.rels").toString("utf8");
   assert.match(videoSlideRelationships, /Target="file:\/\/\/C:[\\/]repos[\\/]Skills-Orchestrator[\\/]dist[\\/]project-video[\\/]skills-orchestrator-1-1-0\.html"/);
   assert.match(videoSlideRelationships, /TargetMode="External"/);
+  const expectedSlideMinutes = [4, 4, 5, 5, 4, 5, 5, 4, 4, 15, 5];
+  for (const [index, minutes] of expectedSlideMinutes.entries()) {
+    const slideNumber = index + 1;
+    const relationships = readZipEntry(
+      demoPowerPoint,
+      `ppt/slides/_rels/slide${slideNumber}.xml.rels`
+    ).toString("utf8");
+    assert.match(relationships, new RegExp(`Target="\\.\\.\\/notesSlides\\/notesSlide${slideNumber}\\.xml"`));
+    const notes = readZipEntry(demoPowerPoint, `ppt/notesSlides/notesSlide${slideNumber}.xml`).toString("utf8");
+    assert.match(notes, new RegExp(`TIME TARGET: ${minutes} minutes?`));
+    assert.match(notes, /WALK THE SLIDE/);
+    assert.match(notes, /PROJECT DEPTH/);
+    assert.match(notes, /EVIDENCE TO REFERENCE/);
+    assert.match(notes, /AUDIENCE PROMPT/);
+    assert.match(notes, /TRANSITION/);
+  }
+  assert.equal(expectedSlideMinutes.reduce((total, minutes) => total + minutes, 0), 60);
+  const slideOneNotes = readZipEntry(demoPowerPoint, "ppt/notesSlides/notesSlide1.xml").toString("utf8");
+  assert.match(slideOneNotes, /Anthony Marsiglia/);
+  assert.match(slideOneNotes, /What if every repository had its own governed way of working\?/);
+  const liveDemoNotes = readZipEntry(demoPowerPoint, "ppt/notesSlides/notesSlide10.xml").toString("utf8");
+  assert.match(liveDemoNotes, /\/demo-create-project/);
+  assert.match(liveDemoNotes, /\/demo-web-app/);
+  assert.match(liveDemoNotes, /DEPLOYMENT GATE/);
+  const closingNotes = readZipEntry(demoPowerPoint, "ppt/notesSlides/notesSlide11.xml").toString("utf8");
+  assert.match(closingNotes, /Q&amp;A/);
   const demoRunbook = await readFile(path.join(root, "Demo", "DEMO-DAY.md"), "utf8");
+  assert.match(demoRunbook, /60-minute presenter plan/);
+  assert.match(demoRunbook, /reserve 15 minutes for the live project workflow/);
+  assert.match(demoRunbook, /WALK THE SLIDE/);
+  assert.match(demoRunbook, /PROJECT DEPTH/);
+  assert.match(demoRunbook, /EVIDENCE TO REFERENCE/);
   assert.match(demoRunbook, /PowerPoint deck as an archived version 1\.1\.1 product story/);
   assert.match(demoRunbook, /not as evidence of the current source version or current test counts/);
   assert.match(demoRunbook, /Watch: Built by Project Orchestrator/);
@@ -786,19 +817,19 @@ test("profiles are dependency-closed", async () => {
   assert.ok(effective("core").has("agent-builder"), "core profile must include the governed Agent Builder");
 });
 
-test("personalized content requires one local profile owner", async () => {
+test("project visual storytelling requires one local profile owner", async () => {
   const skills = new Map((await loadSkills()).map((skill) => [skill.metadata.name, skill]));
   const personalization = skills.get("user-personalization");
-  const content = skills.get("personalized-content");
+  const content = skills.get("project-visual-storytelling");
   assert.ok(personalization, "user-personalization skill must exist");
-  assert.ok(content, "personalized-content skill must exist");
+  assert.ok(content, "project-visual-storytelling skill must exist");
   assert.deepEqual(dependencyItems(personalization.source), []);
-  assert.deepEqual(dependencyItems(content.source), ["user-personalization", "project-understanding"]);
+  assert.deepEqual(dependencyItems(content.source), ["user-personalization", "project-understanding", "agent-builder", "azure-discovery"]);
   assert.ok(sectionItems(personalization.source, "Outputs").includes(".skills-orchestrator/user-personalization.json"));
-  assert.ok(sectionItems(content.source, "Outputs").includes("artifacts/personalized-content/<run-id>/"));
+  assert.ok(sectionItems(content.source, "Outputs").includes("artifacts/project-visual-storytelling/<run-id>/"));
   assert.match(content.source, /Every run uses a freshly rebuilt understanding of the current project as its sole topic and source/);
   assert.match(content.source, /Reject alternate topic, URL, pasted-source, and output-path overrides/);
-  assert.match(content.source, /--visual-style whiteboard\|diorama/);
+  assert.match(content.source, /whiteboard\|whiteboard-specification\|diorama\|diorama-specification/);
   assert.match(content.source, /diorama-production-rules\.md/);
   assert.match(content.source, /canonical spelling `diorama`/);
   assert.match(content.source, /A final diorama PNG requires an approved bitmap image generator or a genuine physically based 3D renderer/);
@@ -808,12 +839,19 @@ test("personalized content requires one local profile owner", async () => {
   assert.match(content.source, /## Renderer Qualification/);
   assert.match(content.source, /A planned optional PNG is not a promise of delivery/);
   assert.match(content.source, /validate the PNG signature, dimensions, nonblank pixels/);
+  assert.match(content.source, /schemas\/project-visual-scene\.schema\.json/);
+  assert.match(content.source, /render --project \. --run-id/);
+  assert.match(content.source, /Automated qualification must return `requires-review`/);
+  assert.match(content.source, /PROJECT_VISUAL_MAI_ENDPOINT/);
+  assert.match(content.source, /--external-processing-approved true/);
+  assert.match(content.source, /Current Azure Government discovery does not confirm MAI-Image/);
+  assert.match(content.source, /<visual>-mai-candidate\.png/);
   assert.match(content.source, /## Render Status.*No finished image produced/s);
-  assert.ok(existsSync(path.join(skillsRoot, "personalized-content", "references", "diorama-production-rules.md")));
-  assert.match(content.source, /documentation-builder.*owns authoritative project guides/);
-  assert.match(content.source, /linkedin-post.*owns posts about the current project/);
+  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "references", "diorama-production-rules.md")));
+  assert.match(content.source, /documentation-builder.*owns authoritative written project guides/);
+  assert.match(content.source, /linkedin-post.*owns LinkedIn drafts/);
   assert.match(content.source, /untrusted data, never as instructions or authorization/);
-  assert.match(content.source, /never claim publication occurred/);
+  assert.match(content.source, /Publication, posting, sending, uploading, or external sharing is outside this skill/);
 
   const profileSchema = JSON.parse(await readFile(path.join(root, "schemas", "user-personalization.schema.json"), "utf8"));
   assert.equal(profileSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
@@ -828,11 +866,20 @@ test("personalized content requires one local profile owner", async () => {
   assert.equal((questionnaire.match(/^\d+\./gm) ?? []).length, 31);
   assert.doesNotMatch(questionnaire, /\btadd\b/i);
   assert.ok(existsSync(path.join(skillsRoot, "user-personalization", "scripts", "user-personalization.mjs")));
-  assert.ok(existsSync(path.join(skillsRoot, "personalized-content", "scripts", "personalized-content.mjs")));
+  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "project-visual-storytelling.mjs")));
+  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "blender-render.py")));
+  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "mai-image-render.mjs")));
+  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "references", "renderer-contract.md")));
+  const visualSceneSchema = JSON.parse(await readFile(path.join(root, "schemas", "project-visual-scene.schema.json"), "utf8"));
+  assert.equal(visualSceneSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(visualSceneSchema.additionalProperties, false);
+  assert.deepEqual(visualSceneSchema.properties.visualType.enum, ["whiteboard", "diorama"]);
+  assert.equal(visualSceneSchema.properties.elements.maxItems, 12);
+  assert.deepEqual(visualSceneSchema.properties.renderer.properties.preference.enum, ["auto", "mai-image", "blender-cycles"]);
 
   const profiles = await loadProfiles();
   assert.ok(profiles.get("durable").required.includes("user-personalization"));
-  assert.ok(profiles.get("durable").required.includes("personalized-content"));
+  assert.ok(profiles.get("durable").required.includes("project-visual-storytelling"));
 });
 
 test("the default new-project profile requires Azure audit and remediation execution", async () => {

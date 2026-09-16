@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0.0",
+  "visualType": "whiteboard",
+  "source": {
+    "repositoryDigestSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "canvas": {
+    "width": 1280,
+    "height": 720,
+    "samples": 32
+  },
+  "renderer": {
+    "preference": "auto",
+    "prompt": "A photorealistic physical workshop whiteboard with tactile paper notes, realistic marker lines, studio lighting, and a blank reserved attribution area. Do not render words, names, signatures, dates, logos, or watermarks."
+  },
+  "title": "Current Project Alpha",
+  "signature": "AI-assisted for Platform Guide",
+  "creationDate": "2026-09-14",
+  "palette": {
+    "focus": "#6B4EFF",
+    "positive": "#176B3A",
+    "risk": "#B42318",
+    "neutral": "#171717"
+  },
+  "elements": [
+    {
+      "id": "project",
+      "label": "Project",
+      "evidencePath": "README.md",
+      "semanticRole": "focus",
+      "shape": "panel",
+      "position": [0, 0, 1],
+      "size": [2, 0.2, 1]
+    }
+  ]
+}

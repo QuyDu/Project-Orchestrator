@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd",
+  "source": {
+    "kind": "current-project",
+    "repositoryDigestSha256": "8467ee1a3d9393426ae77bafbf4cad499f33d7c18593a8a3b62530bf7bfccd2f",
+    "projectUnderstandingDigestSha256": "fb726011a8f0b29f5c208b2eaa0e058b2be4dfc5fba1e3f602895a32cccc7832"
+  },
+  "visual": {
+    "type": "architecture",
+    "audience": "technical",
+    "state": "current",
+    "detail": "medium",
+    "formats": [
+      "mmd",
+      "spec"
+    ]
+  },
+  "destination": {
+    "directory": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd"
+  },
+  "rendering": {
+    "allowedClasses": [
+      "deterministic-source"
+    ]
+  }
+}

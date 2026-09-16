@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "runtimeVersion": "1.1.2",
-  "generatedAt": "2026-09-12T16:40:36.517Z",
+  "generatedAt": "2026-09-16T08:50:46.489Z",
   "skills": [
     {
       "name": "agent-builder",
@@ -23,7 +23,7 @@
       "sha256": "713e921c92951f9c99f992355a85ce70b77467cb99806dffdf845847ea618694",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.434Z",
+        "checkedAt": "2026-09-16T08:50:46.388Z",
         "findings": []
       }
     },
@@ -43,7 +43,7 @@
       "sha256": "bdd150ac368c88621510d19970125460f8ed660f61c23a3423e1cf78e3e4ccb0",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.435Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -64,7 +64,7 @@
       "sha256": "99c9c770951f5b31c003bb702f4399c966027b087faee7c95109f2a38b87763a",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.435Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -81,7 +81,7 @@
       "sha256": "f17456b4bd5279243a2ba1de17921b67a96dff430e4bdac09582f2ac97795a3d",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -100,7 +100,7 @@
       "sha256": "99021c2ff23e89445fae390bd644ea71941d64780fdfa18a4d1791ad7850f2c7",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -121,7 +121,7 @@
       "sha256": "ece3c290d92fd7b404528266834bd61fd4c955e90be93b26dde1699f8421895d",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -149,7 +149,7 @@
       "sha256": "0ebd2f5b53deb2233adf2c3d9f02228d54f35aa84cda698fa509fc964601171e",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -172,7 +172,7 @@
       "sha256": "04345dd71c06014afb648983e2dedea50baec00a936e7c77de8173e4312f321b",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -194,7 +194,7 @@
       "sha256": "1784cb21df5dda627e830ea8a54aed812dde03503d7df0a7474107006b1e05f8",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.389Z",
         "findings": []
       }
     },
@@ -214,7 +214,7 @@
       "sha256": "dceff0b3ef63deff1a4a24f95898c3f500325882a45075c11c92f3e1a56a2296",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -234,7 +234,7 @@
       "sha256": "32f726293f8638b915eccee74c923767628f3d97a8c9ebbc3932bda2c2e2b5ff",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -257,7 +257,7 @@
       "sha256": "ae62fe5115cc04c74e0520576ce54cd5946fe53e6f0aa4f1079b2983b3aea3b4",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -275,7 +275,7 @@
       "sha256": "7d9ad447d7b9e7de245a2d7fd7bc8b1c5ddc6bd055cda5515db0d549fb6ec249",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -297,7 +297,7 @@
       "sha256": "6e006a8a29a26d15a384156536e919e07da81d21cd3b2e2cf61cb2486c180db9",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -318,7 +318,7 @@
       "sha256": "b07dcfab942ea18a1872e5d13c38c8a8d8998505f9a3be3f658d2fcd4ddd05c1",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -339,7 +339,7 @@
       "sha256": "2721b575cba90f2eb08bee2d4e10fd4e539f5d9f7c2ec3bb91cbf0b12881cd2b",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -360,7 +360,7 @@
       "sha256": "97fc1c516e2424518f1931e3db720f56d91efe3ff1f9aa6ca60af2bce3311b0c",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -381,7 +381,7 @@
       "sha256": "1a4479c50d837a61b20b029191ba8a688bb68f71ff314cbd8420cbd2c31a4b5d",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -404,27 +404,28 @@
       "sha256": "257436c61557d848dce37fcab6d44973966e064a1705eabc90986b711121e7ba",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.436Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
     {
       "name": "linkedin-post",
       "path": ".github/skills/linkedin-post/SKILL.md",
-      "description": "Analyze the current project and prepare a reviewable LinkedIn post draft for Microsoft employees and the technical community, including update posts based on project history.",
+      "description": "Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history.",
       "lifecycle": "draft",
       "confidence": "low",
       "dependencies": [
         "project-handoff",
-        "documentation-builder"
+        "documentation-builder",
+        "user-personalization"
       ],
       "reports": [
         "reports/linkedin-post-draft.md"
       ],
-      "sha256": "456da3f9fe6727ceae304576dfc5de1b62538f81255e27d347ec5d1f86d2ca6a",
+      "sha256": "5e75f267370f687ef50958d39b881311599d9ad460a1962e0dd76596b34b46c7",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.390Z",
         "findings": []
       }
     },
@@ -445,7 +446,7 @@
       "sha256": "71c1e57bf64668933811e88ca7b7fb10d9a41589a1f49130c82fe9c7cfbfe9bf",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -464,7 +465,7 @@
       "sha256": "e67c4733dfa5d9a7c3d4e37a50a8730b9886bc3595a722bdf79ac4ca408bd8f0",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -481,7 +482,7 @@
       "sha256": "ec375be0c595a8c77aa11fb4eb59e9e7538956361ae32e8a8a8ff9cd75fa9529",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -502,7 +503,7 @@
       "sha256": "de01efd03d9231ef8ce1849899872a631ca4556e608d9f150c9a72a8c6fd15c2",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -522,7 +523,7 @@
       "sha256": "efa84c03ba161432eb631305ba9309bec547f94522866ce414ba404910d98e3b",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -542,7 +543,7 @@
       "sha256": "a4e9b9afb4d831d24055733809b2477272d3c62e6cfcd1c1093c792cf55618f6",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -563,7 +564,7 @@
       "sha256": "04eef8f4fb7634e1b5f476b101db3da414b91ad552a38ee7bad0573e120c2f5a",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -588,7 +589,7 @@
       "sha256": "271d3905f3a7967c912a47b7cdb79659ed5e80452e3ec5414218515a3df37121",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -610,7 +611,7 @@
       "sha256": "bfe0c8c9f871dee2f5d95c3c47ef11413b43e9e01fa0f81e002121895744e8cb",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -630,7 +631,7 @@
       "sha256": "d62d5ce278443619f2b2289f1d6454ddc609dfc70eada66a9bc68b8e842f573d",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -664,7 +665,29 @@
       "sha256": "da661bed5f3152e1fa57fbd67f122c920b138df1a33a6fec6e0a4f6c12597312",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
+        "findings": []
+      }
+    },
+    {
+      "name": "project-visual-storytelling",
+      "path": ".github/skills/project-visual-storytelling/SKILL.md",
+      "description": "Create repository-aware architecture diagrams, whiteboards, and miniature dioramas for the current project, with evidence-bound source artifacts, specifications, alt text, and optional validated PNGs saved locally. Use when a project needs a diagram or visual explanation.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "user-personalization",
+        "project-understanding",
+        "agent-builder",
+        "azure-discovery"
+      ],
+      "reports": [
+        "artifacts/project-visual-storytelling/<run-id>/"
+      ],
+      "sha256": "7b7d791f9d6140d5ee0a86e124e55cffff20f9cb9e3751d76ac8aafe4ea366d3",
+      "audit": {
+        "status": "passed",
+        "checkedAt": "2026-09-16T08:50:46.391Z",
         "findings": []
       }
     },
@@ -685,7 +708,7 @@
       "sha256": "f4132ffa69498aa8f484f9a8a2e6d958af3fc64aed917714069103c0e53a53e2",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.392Z",
         "findings": []
       }
     },
@@ -705,7 +728,7 @@
       "sha256": "bc3a454c280082f1d921e1cd49d76bdad71dea2f1781168fdbb17659771b20ef",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.392Z",
         "findings": []
       }
     },
@@ -725,7 +748,7 @@
       "sha256": "34ca680e2e1d1e88588535160ada27c37bc37c32470ef084027836ce306e561c",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.392Z",
         "findings": []
       }
     },
@@ -745,7 +768,7 @@
       "sha256": "981cf18a7c1b14a8aee5685d86e537f39e972bcc51118aede0c26499d229b940",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.392Z",
         "findings": []
       }
     },
@@ -766,7 +789,7 @@
       "sha256": "238fedfe912f9b560725d98cb81554cf84784a5e180891de7445c9d602b0a3cf",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.392Z",
         "findings": []
       }
     },
@@ -788,7 +811,7 @@
       "sha256": "40079e53e45675c8c95ff009991495240fec6189a6d4ed0a494691aae6b1a036",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.437Z",
+        "checkedAt": "2026-09-16T08:50:46.392Z",
         "findings": []
       }
     },
@@ -808,7 +831,7 @@
       "sha256": "d1eaab600af0388f46bc8ea6934609cc337d121e4005345a913e8e8a14056def",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -829,7 +852,22 @@
       "sha256": "cb49c7ccdfb54f2e70f69b321e9e2c8fd04492007b4450830e0e9206c51b35a3",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
+        "findings": []
+      }
+    },
+    {
+      "name": "user-personalization",
+      "path": ".github/skills/user-personalization/SKILL.md",
+      "description": "Build, validate, and maintain the local User Personalization file that supplies reusable voice, perspective, content, visual, and safety preferences. Use before any skill creates personalized output when the profile is missing or invalid.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [],
+      "reports": [],
+      "sha256": "b97e78d505c9fdd4082ae2d607c6a55d46f20c598471312f4c29e4a306384966",
+      "audit": {
+        "status": "passed",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -851,7 +889,7 @@
       "sha256": "2b76de8d4b28d19b33aee3d22e5dd16172e7cfd394fd7e611cb22567f50ab99a",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -872,7 +910,7 @@
       "sha256": "f100d8d1f57dfa22b636ab91ac4dbb1c4f96234b10f1a606fe33bec106b84eac",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -893,7 +931,7 @@
       "sha256": "3a0150a9626a3a20b7c37cfc6c747c2d68ba9f00aefddcda41d7d0cb6debd2df",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -914,7 +952,7 @@
       "sha256": "bb810bf20c31647f84aaf4696c24341283450241539476a70865d9c26975a9ba",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -935,7 +973,7 @@
       "sha256": "874140557a2819a47278dbb0a2f0a3566733508292bbcf59fd527d8deba3f71f",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     },
@@ -955,7 +993,7 @@
       "sha256": "5192fe15aef3dc9bfa05a3c8096dfa88840c0a6c343b4d2a3fe71ec051953636",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-12T16:40:36.438Z",
+        "checkedAt": "2026-09-16T08:50:46.393Z",
         "findings": []
       }
     }

@@ -106,6 +106,7 @@ const ADOPTION_REPORT_PATHS = [
 ];
 const LEGACY_SKILL_IDS = new Map([
   ["create-skill", "skill-create"],
+  ["personalized-content", "project-visual-storytelling"],
   ["plan-audit-remediation", "audit-plan-remediation"],
   ["review-audit-findings", "audit-review-findings"]
 ]);
@@ -1758,6 +1759,29 @@ async function buildAdoptionPlan(projectRoot, profileOverride, projectNameOverri
     if (!existsSync(destination)) actions.push({ action: "create", kind: "help", path: helpPath, content });
     else if (await readFile(destination, "utf8") === content) actions.push({ action: "already-current", kind: "help", path: helpPath });
     else actions.push({ action: "update-wiring-file", kind: "help", path: helpPath, content, reason: "Regenerate help from the current skill contract" });
+  }
+
+  for (const [legacyName, replacement] of LEGACY_SKILL_IDS) {
+    const helpPath = `.github/prompts/${legacyName}-help.prompt.md`;
+    const destination = path.join(root, helpPath);
+    if (!existsSync(destination)) continue;
+    const source = await readFile(destination, "utf8");
+    if (source.includes(`.github/skills/${legacyName}/SKILL.md`)) {
+      actions.push({
+        action: "remove-duplicate-command",
+        kind: "help",
+        path: helpPath,
+        canonicalPath: `.github/prompts/${replacement}-help.prompt.md`,
+        reason: `Remove legacy ${legacyName} help after migration to ${replacement}`
+      });
+    } else {
+      actions.push({
+        action: "conflict",
+        kind: "help",
+        path: helpPath,
+        reason: `Legacy help path ${helpPath} is not recognized as framework-owned`
+      });
+    }
   }
 
   for (const skillName of DEPRECATED_DUPLICATE_PROMPTS) {

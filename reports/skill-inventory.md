@@ -1,6 +1,6 @@
 # Skill Inventory
 
-Generated: 2026-09-12T16:40:36.517Z
+Generated: 2026-09-16T08:50:46.489Z
 
 | Skill | Description |
 | --- | --- |
@@ -23,7 +23,7 @@ Generated: 2026-09-12T16:40:36.517Z
 | documentation-builder | Generate and maintain the authoritative project guide, README files, decision records, deployment guides, and operations runbooks from verified repository evidence. Use when documentation is missing, stale, or contradicts the code; do not use to narrate changes an agent just made. |
 | environment-update | Inventory installed development tools and present available updates, then update only existing tools selected by the user with complete findings and error reporting. |
 | framework-health-check | Validate framework structure, skill contracts, schemas, ownership, profiles, fixtures, configuration, and conformance evidence. Use to verify the installed orchestrator framework itself; use audit-code instead to assess application code. |
-| linkedin-post | Analyze the current project and prepare a reviewable LinkedIn post draft for Microsoft employees and the technical community, including update posts based on project history. |
+| linkedin-post | Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history. |
 | multi-agent-coordinator | Coordinate concurrent agents with leases, fencing tokens, ownership transfer, conflict detection, and shared-read or exclusive-write semantics. Use when more than one agent may write the same artifacts concurrently; do not use for single-agent sequential work. |
 | policy-engine | Evaluate centralized authorization, risk, compliance, escalation, and approval policies without executing the governed action. Use to decide whether an action is allowed, denied, or approval-gated; never use it to perform the action. |
 | prepare-commit | Prepare a minimal, validated change set and commit summary after bounded change review, without committing, pushing, deploying, or bypassing protections. Use when changes are ready for a pre-commit decision. |
@@ -35,6 +35,7 @@ Generated: 2026-09-12T16:40:36.517Z
 | project-status | Report the current project lifecycle, deployed Azure resource health, sync freshness and errors, and deployment currency from local and read-only cloud evidence. Use when a user asks whether a project, deployment, or data sync is current, healthy, stale, or blocked. |
 | project-understanding | Perform a complete evidence-grounded scan of the current repository and rebuild authoritative project understanding covering purpose, architecture, setup, usage, features, skills, prompts, workflows, validation, and limitations. Use before project-video or whenever the project guide must reflect current code. |
 | project-video | Analyze a new or existing project with meaningful verified content and produce an evidence-grounded browser preview or narrated MP4 entirely from VS Code using optional Azure OpenAI, Speech, Speech Avatar, local Piper, and FFmpeg stages. Do not use for empty baselines, generic documentation, live recording, or publication. |
+| project-visual-storytelling | Create repository-aware architecture diagrams, whiteboards, and miniature dioramas for the current project, with evidence-bound source artifacts, specifications, alt text, and optional validated PNGs saved locally. Use when a project needs a diagram or visual explanation. |
 | regression-test-development | Create or strengthen focused automated tests that reproduce a bug or specify a requested behavior, then capture red-green validation evidence. Use when a change needs durable regression coverage; do not use only to execute an existing test suite. |
 | security-review | Review code, configuration, and infrastructure for exploitable weaknesses, secret exposure, identity and authorization defects, and OWASP Top 10 categories with severity-ranked evidence. Use before merging or releasing security-relevant change; use audit-code instead for whole-repository quality assessment. |
 | skill-create | Create concise, composable skill packages with valid metadata, bounded tools, ownership, validation, dependencies, help, and documentation. Always use when a user asks, directly or indirectly, to create, add, define, author, build, or make a new skill; use skill-update for an existing skill. |
@@ -43,6 +44,7 @@ Generated: 2026-09-12T16:40:36.517Z
 | skill-registry | Manage governed skill package metadata, discovery, provenance, integrity, lifecycle promotion, deprecation, retirement, and revocation proposals. Use to promote, deprecate, retire, or verify the provenance of a skill package; use skill-create instead to author its content. |
 | skill-update | Identify and update an existing governed skill through candidate resolution, bounded change review, explicit proceed approval, dependency analysis, help regeneration, and project documentation refresh. Always use when a user asks to modify, revise, enhance, fix, or update an existing skill; use skill-create for new skills. |
 | systematic-debugging | Reproduce an observed software failure, gather diagnostic evidence, isolate its root cause, and verify the smallest safe fix. Use for failing behavior, crashes, incorrect output, flaky tests, or regressions; do not use for broad repository audits. |
+| user-personalization | Build, validate, and maintain the local User Personalization file that supplies reusable voice, perspective, content, visual, and safety preferences. Use before any skill creates personalized output when the profile is missing or invalid. |
 | workflow-planner | Convert user intent into an ordered, validated workflow plan with inputs, outputs, approvals, checkpoints, rollback points, and recovery routes. Use after clarification to turn a confirmed request into an executable sequence; do not use to execute the plan. |
 | workflow-recovery | Analyze interrupted or partially failed workflows and produce a safe recovery plan from events, checkpoints, artifacts, and handoffs. Use when a workflow was interrupted, crashed, or partially applied and must resume safely; do not use for normal planning. |
 | workflow-scheduler | Own admission, prioritization, fairness, budgets, deadlines, throttling, capacity, and starvation prevention for eligible workflows. Use when multiple eligible workflows compete for limited capacity or budget; do not use for a single sequential workflow. |

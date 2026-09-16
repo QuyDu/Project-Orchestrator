@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0.0",
+  "visualType": "whiteboard",
+  "source": {
+    "repositoryDigestSha256": "ea90687a84a0416b0876abda1fd7b87b1089bb1a03e894761c9967b337c70ba8"
+  },
+  "canvas": {
+    "width": 1200,
+    "height": 800,
+    "samples": 32
+  },
+  "renderer": {
+    "preference": "auto",
+    "prompt": "A photorealistic physical workshop whiteboard photographed in a quiet professional studio, landscape orientation, framed enamel surface, one continuous assembly-line route crossing five tactile raised paper stations, subtle repository and governance motifs, realistic paper fibers, marker strokes, magnets, warm key light, soft fill light, controlled reflections, cast shadows, and contact shadows. Use purple for the active route, dark green for verified outcomes, red only for approval gates, and charcoal black for neutral structure. Reserve clean blank areas for five deterministic labels, a title, and a lower attribution plaque. Do not render words, letters, numbers, names, signatures, dates, logos, brands, or watermarks."
+  },
+  "title": "Project Orchestrator",
+  "signature": "AI-assisted for Project Orchestrator",
+  "creationDate": "2026-09-15",
+  "palette": {
+    "focus": "#6B4EFF",
+    "positive": "#176B3A",
+    "risk": "#B42318",
+    "neutral": "#171717"
+  },
+  "elements": [
+    {
+      "id": "request",
+      "label": "Request",
+      "evidencePath": "docs/PROJECT-ARCHITECTURE.md",
+      "semanticRole": "neutral",
+      "shape": "panel",
+      "position": [-4, 0, 1.2],
+      "size": [1.75, 0.2, 1.25]
+    },
+    {
+      "id": "understand",
+      "label": "Understand",
+      "evidencePath": "reports/project-understanding.md",
+      "semanticRole": "focus",
+      "shape": "panel",
+      "position": [-2, 0, 1.2],
+      "size": [1.75, 0.2, 1.25]
+    },
+    {
+      "id": "govern",
+      "label": "Govern",
+      "evidencePath": ".github/skills/project-skills-orchestrator/SKILL.md",
+      "semanticRole": "risk",
+      "shape": "panel",
+      "position": [0, 0, 1.2],
+      "size": [1.75, 0.2, 1.25]
+    },
+    {
+      "id": "validate",
+      "label": "Validate",
+      "evidencePath": "package.json",
+      "semanticRole": "positive",
+      "shape": "panel",
+      "position": [2, 0, 1.2],
+      "size": [1.75, 0.2, 1.25]
+    },
+    {
+      "id": "evidence",
+      "label": "Evidence",
+      "evidencePath": "README.md",
+      "semanticRole": "positive",
+      "shape": "panel",
+      "position": [4, 0, 1.2],
+      "size": [1.75, 0.2, 1.25]
+    }
+  ]
+}

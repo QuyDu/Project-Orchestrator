@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.local/schemas/project-visual-scene.schema.json",
+  "title": "Project Visual Storytelling Render Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "visualType", "source", "canvas", "renderer", "title", "signature", "creationDate", "palette", "elements"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "visualType": { "enum": ["whiteboard", "diorama"] },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryDigestSha256"],
+      "properties": {
+        "repositoryDigestSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "samples"],
+      "properties": {
+        "width": { "enum": [1200, 1280, 1920] },
+        "height": { "enum": [720, 800, 1080] },
+        "samples": { "enum": [32, 64, 128] }
+      },
+      "allOf": [
+        { "if": { "properties": { "width": { "const": 1200 } } }, "then": { "properties": { "height": { "const": 800 } } } },
+        { "if": { "properties": { "width": { "const": 1280 } } }, "then": { "properties": { "height": { "const": 720 } } } },
+        { "if": { "properties": { "width": { "const": 1920 } } }, "then": { "properties": { "height": { "const": 1080 } } } }
+      ]
+    },
+    "renderer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preference", "prompt"],
+      "properties": {
+        "preference": { "enum": ["auto", "mai-image", "blender-cycles"] },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 4000, "pattern": "^[^\\u0000-\\u001F\\u007F]+$" }
+      }
+    },
+    "title": { "$ref": "#/$defs/shortText" },
+    "signature": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "creationDate": { "type": "string", "format": "date" },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["focus", "positive", "risk", "neutral"],
+      "properties": {
+        "focus": { "$ref": "#/$defs/color" },
+        "positive": { "$ref": "#/$defs/color" },
+        "risk": { "$ref": "#/$defs/color" },
+        "neutral": { "$ref": "#/$defs/color" }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "evidencePath", "semanticRole", "shape", "position", "size"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$" },
+          "label": { "$ref": "#/$defs/shortText" },
+          "evidencePath": { "$ref": "#/$defs/relativePath" },
+          "semanticRole": { "enum": ["focus", "positive", "risk", "neutral"] },
+          "shape": { "enum": ["box", "cylinder", "sphere", "panel", "path", "figure"] },
+          "position": { "$ref": "#/$defs/position" },
+          "size": { "$ref": "#/$defs/size" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "shortText": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[^\\u0000-\\u001F\\u007F]+$" },
+    "relativePath": { "type": "string", "minLength": 1, "maxLength": 300, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\\\]+$" },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": -10, "maximum": 10 },
+        { "type": "number", "minimum": -10, "maximum": 10 },
+        { "type": "number", "minimum": -10, "maximum": 10 }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "size": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": 0.05, "maximum": 10 },
+        { "type": "number", "minimum": 0.05, "maximum": 10 },
+        { "type": "number", "minimum": 0.05, "maximum": 10 }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    }
+  }
+}

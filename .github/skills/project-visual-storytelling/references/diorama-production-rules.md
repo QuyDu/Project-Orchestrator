@@ -37,6 +37,10 @@ A finished `diorama.png` may be produced only by one of these renderer classes:
 
 The specification must record the renderer class and relevant local or approved external-processing boundary. HTML, CSS, SVG, presentation shapes, 2D canvas compositing, or browser screenshots that merely fake depth are prohibited as final diorama output. They may be used privately to reason about layout, but must never be delivered, renamed, or described as `diorama.png`.
 
+The packaged local adapter qualifies as `physically-based-3d` only when `doctor` confirms Blender, the render uses Cycles, and `verify` confirms the bound render plan, modeled geometry, procedural PBR materials, multiple lights, perspective camera, cast/contact shadows, intended dimensions, and meaningful pixel variation. Automated verification returns `requires-review`; a person must still inspect physical fidelity and exact text before delivery.
+
+The packaged MAI-Image adapter may produce a `bitmap-generation` candidate only after fresh discovery confirms the model in Azure Government and the current invocation explicitly approves external processing. Record the Microsoft model, Government endpoint host, Entra authentication, disabled web grounding, absence of reference pixels, prompt digest, and plan digest. Name the output `diorama-mai-candidate.png`; it is not `diorama.png` and cannot be delivered until exact labels, signature, date, and evidence coverage are deterministically corrected and verified.
+
 Any private prototype must remain outside the final run directory and be deleted before final validation.
 
 If neither approved renderer class is available, stop image production and deliver only `diorama-specification.md` and `diorama-alt-text.md`. The specification must contain this prominent status:

@@ -540,7 +540,7 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `project-memory` | Maintains durable operational preferences while keeping current instructions and evidence authoritative. |
 | `linkedin-post` | Produces an evidence-grounded, profile-aware short-form project post with LinkedIn structure, media-readiness, confidentiality, and public-context checks; publication remains separately approved. |
 | `user-personalization` | Builds and validates one local, Git-ignored profile of user-approved voice, perspective, visual, and safety preferences. |
-| `personalized-content` | Refreshes Project Understanding, uses the current repository as its sole source, and saves profile-aware content, accessible whiteboards, or evidence-bound architectural/conceptual dioramas under `artifacts/personalized-content/<run-id>/` without publishing them. Diorama PNGs require bitmap generation or genuine physically based 3D rendering and must resemble photographed handcrafted miniature exhibits; otherwise the skill returns specification and alt text only. |
+| `project-visual-storytelling` | Refreshes Project Understanding and uses the current repository as its sole source for technical Mermaid diagrams, profile-aware whiteboards, and architectural/conceptual dioramas under `artifacts/project-visual-storytelling/<run-id>/`. Technical runs produce request-bound Mermaid, specification, evidence-map, and partial-result artifacts without requiring a profile. Agent-assisted rendering validates the local Visual Storytelling Director; Azure Foundry selection requires fresh Azure Government discovery and saved-context login, while Copilot Studio is a separately approved handoff. Its hybrid image policy can use a discovery-confirmed Azure Government MAI-Image deployment only after explicit external-processing approval; otherwise it uses Blender/Cycles. Automated PNG qualification remains `requires-review`, and unavailable renderers fall back to specification and alt text. |
 | `project-video` | Produces an evidence-grounded browser preview or approved narrated MP4 from a meaningful implemented project. |
 
 ### Azure operations
@@ -697,14 +697,14 @@ Reports are useful because they can be validated, compared, consumed by automati
 
 The most recent full gate associated with the current implementation snapshot reported:
 
-- 125 tests discovered;
-- 124 tests passed;
+- 142 tests discovered;
+- 141 tests passed;
 - 0 tests failed;
 - 1 platform-specific test skipped because the temporary directory had no filesystem alias;
-- 45 skills inventoried and audited;
-- 45 skill audits passed;
-- 220 files security-scanned with no findings and zero package dependencies;
-- 160 release-candidate files verified by checksum;
+- 47 skills inventoried and audited;
+- 47 skill audits passed;
+- 236 files security-scanned with no findings and zero package dependencies;
+- 172 release-candidate files verified by checksum;
 - distribution verification passed for skills, schemas, profiles, dependencies, ownership, and the audit pipeline.
 
 Run the current gate rather than relying indefinitely on these historical counts:
@@ -883,7 +883,7 @@ Use current source, configuration, and machine-readable reports before relying o
 - [Runtime](../pso.mjs): implemented command behavior and safety controls.
 - [Profiles](../config/profiles.yaml): conformance profile definitions.
 - [Orchestrator configuration](../config/orchestrator.yaml): framework runtime and policy configuration.
-- [Current skill inventory](../reports/skill-inventory.json): the 45-skill catalog and dependencies.
+- [Current skill inventory](../reports/skill-inventory.json): the 47-skill catalog and dependencies.
 - [Artifact ownership](../reports/artifact-ownership.json): report producer ownership.
 - [Security policy](../SECURITY.md): operating requirements and release gates.
 - [Threat model](THREAT-MODEL.md): threats, controls, residual risks, and invariants.
