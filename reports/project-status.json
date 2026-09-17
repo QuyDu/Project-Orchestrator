@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-16T18:27:51.985Z",
+  "project": "project-skills-orchestrator",
+  "local": {
+    "head": "3bf65fec707199dc6b2687c6fa345498b2507816"
+  },
+  "azure": {
+    "status": "unknown",
+    "cloud": "AzureUSGovernment",
+    "subscriptionId": "1cce2d13-640d-47b6-b426-d20914ba45eb",
+    "resourceGroup": "rg-project-skills-orchestrator",
+    "resources": []
+  },
+  "syncs": [],
+  "deployment": {
+    "status": "unknown",
+    "localHead": "3bf65fec707199dc6b2687c6fa345498b2507816",
+    "ciArtifact": null,
+    "deployedMarker": null
+  },
+  "limitations": [
+    "Azure profile is missing a discovered endpoint catalog or subscription ID; run azure-discovery.",
+    "No sync status, heartbeat, or telemetry report was found.",
+    "No deployed build/version marker was found; deployment currency is unknown."
+  ]
+}

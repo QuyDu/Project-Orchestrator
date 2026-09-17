@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "rendered",
+  "qualifiedAt": "2026-09-17T03:27:42.3487464Z",
+  "rendererClass": "bitmap-generation",
+  "provider": "blender-cycles-local-path-tracing",
+  "rendererVersion": "Blender 4.5.14 LTS",
+  "distribution": {
+    "source": "Microsoft Store",
+    "packageId": "9PM7J9D3G6JQ",
+    "installedVersion": "4.5.14.0"
+  },
+  "processingBoundary": "local-machine-offline",
+  "externalProcessing": false,
+  "authentication": "not-applicable",
+  "referencePixelsSupplied": false,
+  "webGrounding": false,
+  "sourceRepositoryDigestSha256": "81907583cf1efddd5475b0c66eae12c8345415510713700b7bebfdb4da80b296",
+  "projectUnderstandingDigestSha256": "831b7845cd2c6e8e4259217b40920deb2db733b3cf5f5a8ee8b4675d11f261d6",
+  "profileSha256": "b39e1de295e20e177594536779bd62b2df95862c228ced2e6f3dfee9c5465c5e",
+  "renderPlanSha256": "ab057cc364c921b044ab948c1f6199e286303b6a16608c02fa8b3c4dd69bf338",
+  "promptSha256": "1dd8b891166a97ac5b3178b8f104a4178c17a4813c3f77730a48554f790d4713",
+  "sceneScriptSha256": "7d092a89085b6809a4a380fcfefb5593938258f51fe657483798370369d5fa72",
+  "sceneScriptRetention": "Disposable renderer source and .blend scenes remain outside the run and are deleted after artifact validation.",
+  "hardware": {
+    "backend": "OPTIX",
+    "device": "NVIDIA RTX A2000 Laptop GPU",
+    "cpuFallbackAvailable": true
+  },
+  "settings": {
+    "engine": "CYCLES",
+    "width": 1920,
+    "height": 1080,
+    "format": "PNG",
+    "colorDepth": 8,
+    "samples": 128,
+    "adaptiveSampling": true,
+    "adaptiveThreshold": 0.012,
+    "denoising": true,
+    "maximumBounces": 8,
+    "colorManagement": "AgX - Medium High Contrast"
+  },
+  "candidates": [
+    {
+      "id": "A",
+      "artifact": "diorama-cycles-candidate-a.png",
+      "artifactSha256": "176b09e6b55f4350690e6c20689e593429441801dfbf6e487ea2fcff1b945a77",
+      "artifactBytes": 2900408,
+      "renderDurationSeconds": 43.671,
+      "cameraTreatment": "warm right-front three-quarter macro product view",
+      "pixelVariation": {
+        "samplingStride": 8,
+        "sampledPixels": 32400,
+        "nonDarkSamples": 31957,
+        "colorBuckets": 282,
+        "luminanceSumMinimum": 0,
+        "luminanceSumMaximum": 626
+      },
+      "visualReview": "passed with greater overlap among the routing wheel, approval gate, and workspace"
+    },
+    {
+      "id": "B",
+      "artifact": "diorama-cycles-candidate-b.png",
+      "artifactSha256": "9c3fae5b25bcedbc36cbfc9ec1c245917900c40c301c26271ad30477a0b5d59c",
+      "artifactBytes": 2955065,
+      "renderDurationSeconds": 44.93,
+      "cameraTreatment": "wider elevated left-front macro architectural view",
+      "pixelVariation": {
+        "samplingStride": 8,
+        "sampledPixels": 32400,
+        "nonDarkSamples": 32117,
+        "colorBuckets": 270,
+        "luminanceSumMinimum": 0,
+        "luminanceSumMaximum": 616
+      },
+      "visualReview": "passed with complete exhibit framing, clear route continuity, readable provenance, and reduced object overlap"
+    }
+  ],
+  "selection": {
+    "selectedCandidate": "B",
+    "artifact": "diorama-cycles-candidate-b.png",
+    "rationale": "Candidate B most clearly preserves the bounded physical exhibit, central focal metaphor, foreground-to-background separation, stitched workflow path, and evidence-bearing labels."
+  },
+  "predecessor": {
+    "runId": "20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0",
+    "artifact": "diorama-threejs-candidate.png",
+    "artifactSha256": "4122cfb080af421e1b860970d7cb52c088ab0a66e959de80c62fdbbfef7e8bd0",
+    "disposition": "user-rejected for insufficient photographic and handcrafted fidelity; preserved unchanged as historical evidence"
+  },
+  "validation": {
+    "pngSignature": "passed-both-candidates",
+    "plannedDimensions": "passed-both-candidates",
+    "nonblankPixels": "passed-both-candidates",
+    "meaningfulColorVariation": "passed-both-candidates",
+    "sourceBinding": "passed",
+    "profileBinding": "passed",
+    "signature": "passed-by-deterministic-text-geometry-and-full-size-inspection",
+    "creationDate": "passed-by-deterministic-text-geometry-and-full-size-inspection",
+    "physicalMaterials": "passed-by-full-size-inspection",
+    "castAndContactShadows": "passed-by-full-size-inspection",
+    "labelClippingAndOverlap": "passed-selected-candidate-full-size-inspection",
+    "evidenceLabelCoverage": "passed",
+    "safeOutputPath": "passed",
+    "ocr": "not-available-locally; tesseract and ImageMagick commands were absent"
+  },
+  "reviewStatus": "requires-user-review",
+  "limitations": [
+    "The packaged verifier supports Azure image providers only, so equivalent deterministic local qualification is recorded here.",
+    "No reference-image pixels were present in the current or indexed prior session; fidelity was evaluated against the repository production rules and the user's stated photographic target.",
+    "The selected candidate is not final or publishable until the user reviews it."
+  ]
+}

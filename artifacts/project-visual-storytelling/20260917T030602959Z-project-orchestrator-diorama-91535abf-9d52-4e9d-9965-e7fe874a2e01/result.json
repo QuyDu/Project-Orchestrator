@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "20260917T030602959Z-project-orchestrator-diorama-91535abf-9d52-4e9d-9965-e7fe874a2e01",
+  "status": "partial",
+  "source": {
+    "repositoryDigestSha256": "81907583cf1efddd5475b0c66eae12c8345415510713700b7bebfdb4da80b296",
+    "projectUnderstandingDigestSha256": "831b7845cd2c6e8e4259217b40920deb2db733b3cf5f5a8ee8b4675d11f261d6"
+  },
+  "renderer": {
+    "class": "bitmap-generation",
+    "name": "Blender Cycles 4.5.14 LTS via local OptiX path tracing"
+  },
+  "artifacts": [
+    {
+      "path": "render-context.json",
+      "mediaType": "application/json",
+      "sha256": "e39294c1689aebbe35a8dd1cf8f2d129415066629d7653a4e59c0e9a165a84a7",
+      "validated": true
+    },
+    {
+      "path": "render-plan.json",
+      "mediaType": "application/json",
+      "sha256": "ab057cc364c921b044ab948c1f6199e286303b6a16608c02fa8b3c4dd69bf338",
+      "validated": true
+    },
+    {
+      "path": "diorama-specification.md",
+      "mediaType": "text/markdown",
+      "sha256": "1d24e59f2fa3509831b0d04bc88f648e9933ef21e89737e6f4430bb90cb91ede",
+      "validated": true
+    },
+    {
+      "path": "evidence-map.md",
+      "mediaType": "text/markdown",
+      "sha256": "56f52ce852410dea936776c77eb0bc3cf93e5d2c826bd7314399253c52c2fd15",
+      "validated": true
+    },
+    {
+      "path": "diorama-alt-text.md",
+      "mediaType": "text/markdown",
+      "sha256": "1f800c39d80a8f59c34d5f5ffd1bd79954971f09e0ae605e3100aaf1d73e903f",
+      "validated": true
+    },
+    {
+      "path": "renderer-qualification.json",
+      "mediaType": "application/json",
+      "sha256": "9a6f11dd2259f48424719437a6234a992a412a0c97f7bb5996a58e23d741ac4f",
+      "validated": true
+    },
+    {
+      "path": "diorama-cycles-candidate-a.png",
+      "mediaType": "image/png",
+      "sha256": "176b09e6b55f4350690e6c20689e593429441801dfbf6e487ea2fcff1b945a77",
+      "validated": true
+    },
+    {
+      "path": "diorama-cycles-candidate-b.png",
+      "mediaType": "image/png",
+      "sha256": "9c3fae5b25bcedbc36cbfc9ec1c245917900c40c301c26271ad30477a0b5d59c",
+      "validated": true
+    }
+  ],
+  "warnings": [
+    "Candidate B is the selected replacement, but user review is still required before it is treated as final.",
+    "Local OCR was unavailable; exact labels, signature, and date were verified through deterministic Blender text geometry and full-size visual inspection."
+  ],
+  "limitations": [
+    "No reference-image pixels were attached or recoverable from current or indexed prior sessions, so the candidate follows the written photographic standard and the user's stated target rather than an unseen exact composition.",
+    "The packaged verifier supports Azure image providers only; equivalent local Cycles qualification is recorded in renderer-qualification.json.",
+    "Publication and external sharing remain outside this run and require separate approval."
+  ]
+}

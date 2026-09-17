@@ -1,35 +1,61 @@
 {
   "schemaVersion": "1.0.0",
-  "clarificationId": "CLR-0218",
-  "generatedAt": "2026-09-11T15:49:20.396Z",
+  "clarificationId": "CLR-2026091701",
+  "generatedAt": "2026-09-17T04:15:00.000Z",
   "status": "ready",
-  "requestSummary": "Bind immutable provenance, findings, review, remediation plan, and execution to one auditRunId and close remaining audit policy contradictions.",
+  "requestSummary": "Create an implementation-ready plan for safely updating both the Project Orchestrator source checkout and previously generated projects without implementing the updater.",
   "confirmedRequirements": [
-    "Create or accept a UUID auditRunId and propagate it through Gitleaks, immutable evidence, findings, review, remediation plan, and execution.",
-    "Persist audit evidence as a content-addressed immutable snapshot and bind its SHA-256 from findings.",
-    "Require detailed verification records with tool, version, command, scope, configuration, exit, status, time, evidence digest, revision, and applicable input digests.",
-    "Fix repository-root and external-access approval wording and state all six secret scopes as one invariant.",
-    "Introduce compatible current schema versions while preserving older artifacts as historical evidence."
+    "Cover Git-native update guidance for the Project Orchestrator Launch Pad and managed updates for previously generated projects.",
+    "Keep an unqualified project update backward compatible as a safe all-mode that updates nonconflicting assets and stops for explicit conflict choices.",
+    "Provide a complete staged design covering provenance, update modes, dependency closure, conflict policy, legacy migration, transactions, tests, documentation, rollout, and rollback.",
+    "Preserve locally enhanced skills and project-owned files unless the operator explicitly selects replacement.",
+    "Treat update-all as safe reconciliation rather than force replacement and expose force replacement as a separate explicit action.",
+    "Create planning artifacts only; do not implement code, alter skill contracts, commit, push, deploy, publish, or mutate external systems."
   ],
   "projectFacts": [
-    "Schema 2.1 required verification classes but did not bind artifacts to one audit execution.",
-    "No separately owned immutable audit-evidence artifact previously existed.",
-    "Remediation plans and executions previously lacked cross-artifact auditRunId enforcement.",
-    "End-to-end run-binding fixtures now pass, so audit-code remains lifecycle tested."
+    "The current project updater reuses adoption transactions, backups, rollback, stale-plan checks, and verification.",
+    "The current update plan classifies every differing framework skill as update-skill and replaces that skill directory wholesale.",
+    "The existing adoption rerun test explicitly expects a locally customized framework skill to be overwritten.",
+    "Generated project manifests do not retain the base hashes or content references required for deterministic three-way comparison.",
+    "The mutable current workflow-plan view refers to an unrelated P4 continuation, while accepted execution events through sequence 32 must remain append-only.",
+    "The full repository check has one previously observed unrelated audit-checkpoint failure at tests/skill-contracts.test.mjs:1088."
   ],
   "assumptions": [
-    "The user's delegated answers select generated-or-supplied UUIDs, content-addressed immutable evidence, compatible new schema versions, and temporary lifecycle review.",
-    "The explicit --proceed token authorizes the four-skill schemas, scripts, tests, documentation, and evidence boundary.",
-    "No audit execution, remediation, hosted mutation, secret validation, commit, push, or publication is authorized."
+    "The user's autonomous response accepts the recommended scope, compatibility behavior, and complete staged-plan defaults.",
+    "Legacy managed assets without a reconstructable base are classified as unknown or customized when they differ from upstream and require an explicit operator choice.",
+    "The current workflow-plan and execution-state files are mutable current views and may point to this new plan after a new workflow-planned event is appended; prior P4 events remain authoritative history.",
+    "Interactive selection and equivalent noninteractive flags are both required so updates remain automatable.",
+    "Git remains authoritative for source-checkout updates; any Project Orchestrator helper only guides fetch, comparison, and validation.",
+    "No publication, deployment, commit, push, cloud authentication, remote mutation, or billable request is authorized."
   ],
-  "conflicts": [],
+  "conflicts": [
+    "Publishing this plan replaces the mutable P4 current-plan and execution-state views; the prior P4 workflow remains recoverable from its accepted sequence-32 planning event and existing reports and must not be represented as completed or cancelled."
+  ],
   "rounds": [
     {
       "round": 1,
       "questions": [
-        { "id": "Q-0244", "question": "How should auditRunId be created and passed?", "materialDecision": "Audit execution identity semantics", "recommendedDefault": "Caller-supplied or generated UUID", "answer": "The user is not available to respond and will review your work later. Work autonomously and make good decisions." },
-        { "id": "Q-0245", "question": "Should audit evidence be separately immutable?", "materialDecision": "Provenance storage and digest binding", "recommendedDefault": "Content-addressed immutable snapshot", "answer": "The user is not available to respond and will review your work later. Work autonomously and make good decisions." },
-        { "id": "Q-0246", "question": "How should compatibility and lifecycle be handled?", "materialDecision": "Schema migration and tested status", "recommendedDefault": "New current versions, legacy readable, restore tested after fixtures pass", "answer": "The user is not available to respond and will review your work later. Work autonomously and make good decisions." }
+        {
+          "id": "Q-2026091701",
+          "question": "Should the plan cover both the Launch Pad checkout and previously generated projects?",
+          "materialDecision": "Update-system scope",
+          "recommendedDefault": "Both",
+          "answer": "Autonomous default accepted: both update surfaces"
+        },
+        {
+          "id": "Q-2026091702",
+          "question": "What should an unqualified existing pso update command do after this change?",
+          "materialDecision": "Backward-compatible default update behavior",
+          "recommendedDefault": "Safe all mode",
+          "answer": "Autonomous default accepted: safe all mode"
+        },
+        {
+          "id": "Q-2026091703",
+          "question": "How far should this first implementation plan go?",
+          "materialDecision": "Plan delivery depth",
+          "recommendedDefault": "Complete staged design",
+          "answer": "Autonomous default accepted: complete staged design"
+        }
       ]
     }
   ],

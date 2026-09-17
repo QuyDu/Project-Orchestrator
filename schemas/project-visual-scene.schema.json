@@ -36,7 +36,7 @@
       "additionalProperties": false,
       "required": ["preference", "prompt"],
       "properties": {
-        "preference": { "enum": ["auto", "mai-image", "blender-cycles"] },
+        "preference": { "enum": ["auto", "azure-openai", "mai-image"] },
         "prompt": { "type": "string", "minLength": 1, "maxLength": 4000, "pattern": "^[^\\u0000-\\u001F\\u007F]+$" }
       }
     },
@@ -61,10 +61,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "label", "evidencePath", "semanticRole", "shape", "position", "size"],
+        "required": ["id", "label", "caption", "evidencePath", "semanticRole", "shape", "position", "size"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$" },
           "label": { "$ref": "#/$defs/shortText" },
+          "caption": { "type": "string", "minLength": 1, "maxLength": 180, "pattern": "^[^\\u0000-\\u001F\\u007F]+$" },
           "evidencePath": { "$ref": "#/$defs/relativePath" },
           "semanticRole": { "enum": ["focus", "positive", "risk", "neutral"] },
           "shape": { "enum": ["box", "cylinder", "sphere", "panel", "path", "figure"] },

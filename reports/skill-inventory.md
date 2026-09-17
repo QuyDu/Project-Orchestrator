@@ -1,6 +1,6 @@
 # Skill Inventory
 
-Generated: 2026-09-16T08:50:46.489Z
+Generated: 2026-09-17T16:06:32.296Z
 
 | Skill | Description |
 | --- | --- |
@@ -13,7 +13,7 @@ Generated: 2026-09-16T08:50:46.489Z
 | audit-remediation | Execute an approved audit remediation plan by all eligible phases, one phase, one finding, or resume state, with validation, rollback, checkpoints, and project handoff updates. Use only after audit-plan-remediation produces a valid plan; do not use to discover, review, or prioritize findings. |
 | audit-review-findings | Transform structured audit findings into a traceable mixed-audience review while preserving IDs, severity, confidence, evidence, and limitations. Use between audit-code and remediation planning; do not use to discover new findings. |
 | azure-cleanup | Safely inspect and, after explicit confirmation, remove Azure resources associated with a project using resource-group, resource, or all-project cleanup scopes. |
-| azure-discovery | Discover Azure Commercial or Azure US Government service and model availability for the current project, persist dated results, and identify when a refresh is needed. |
+| azure-discovery | Discover Azure Commercial or Azure US Government service, chat model, image-generation model and quota, and sanitized deployment availability for the current project, persist dated results, and identify when a refresh is needed. |
 | change-review | Review a bounded working-tree, commit, or pull-request diff for defects, security regressions, requirement gaps, and missing tests, with severity-ranked evidence. Use before commit or merge; use audit-code instead for repository-wide assessment. |
 | ci-failure-triage | Resolve a specific CI run or pull request, extract actionable failing checks and logs, diagnose the local cause, and verify a scoped repair. Use for failing hosted pipelines; do not use for local-only test failures or general workflow design. |
 | clarify-the-ask | Determine whether a development request is sufficiently defined, inspect available project evidence, surface conflicts and assumptions, and ask only material clarifying questions before planning or implementation. Use for ambiguous, conflicting, high-impact, or underspecified requests; skip questions when repository evidence and safe defaults are sufficient. |

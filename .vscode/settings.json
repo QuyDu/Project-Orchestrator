@@ -1,14 +1,14 @@
 {
-	"window.title": "🎯 Project Orchestrator • ${rootName}",
-	"workbench.colorCustomizations": {
-		"titleBar.activeBackground": "#107C10",
-		"titleBar.activeForeground": "#FFFFFF",
-		"statusBar.background": "#107C10",
-		"statusBar.foreground": "#FFFFFF"
-	},
-	"chat.mcp.serverSampling": {
-		"Azure MCP Server Provider: Azure MCP": {
-			"allowedDuringChat": false
-		}
-	}
+  "window.title": "🎯 Project Orchestrator • ${rootName}",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#107C10",
+    "titleBar.activeForeground": "#FFFFFF",
+    "statusBar.background": "#107C10",
+    "statusBar.foreground": "#FFFFFF"
+  },
+  "chat.mcp.serverSampling": {
+    "Azure MCP Server Provider: Azure MCP": {
+      "allowedDuringChat": false
+    }
+  }
 }

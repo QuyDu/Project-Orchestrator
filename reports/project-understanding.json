@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "status": "complete",
-  "generatedAt": "2026-09-16T00:55:37.469Z",
+  "generatedAt": "2026-09-17T03:06:02.909Z",
   "generator": "project-understanding",
   "project": {
     "name": "project-skills-orchestrator",
@@ -13,8 +13,8 @@
   },
   "scan": {
     "mode": "full-rebuild",
-    "repositoryDigestSha256": "c46d700d55f9cf75b4d7470f5ddd08c216f240170234487af9251c510823b218",
-    "fileCount": 340,
+    "repositoryDigestSha256": "81907583cf1efddd5475b0c66eae12c8345415510713700b7bebfdb4da80b296",
+    "fileCount": 347,
     "sourceFileCount": 21,
     "testFileCount": 16,
     "excludedDirectories": [
@@ -41,8 +41,8 @@
     "files": [
       {
         "path": ".azure/environment.json",
-        "bytes": 667,
-        "sha256": "40a248bda9e856da6f7e0462e576d2e0b08d5943aa89ecad528dbfe8c021619f"
+        "bytes": 1119,
+        "sha256": "fc439f10dd237f5454d7cae48184348319cdea5b97514753f5be4b33363503f4"
       },
       {
         "path": ".gitattributes",
@@ -51,8 +51,8 @@
       },
       {
         "path": ".github/agents/visual-storytelling-director.agent.md",
-        "bytes": 2442,
-        "sha256": "1124bd0940483c7bf6b2b508ffa6c2a58044400fc5b1cb2f84803e671226e231"
+        "bytes": 2774,
+        "sha256": "9602ae3f222299b98e7eced219c43eee2edc93f8bfd63e63fca444f5b3919de1"
       },
       {
         "path": ".github/copilot-instructions.md",
@@ -71,8 +71,8 @@
       },
       {
         "path": ".github/prompts/demo-create-project.prompt.md",
-        "bytes": 6954,
-        "sha256": "f9ff7df9a1d40d79deff6aeb303c361148b4bdd3ecd24a230d0f2c48cd7bc890"
+        "bytes": 8692,
+        "sha256": "0105a1c5e9630a63cd9469596f1aed21a4ec118b57bdd16a839580a51c86e1ed"
       },
       {
         "path": ".github/prompts/demo-web-app.prompt.md",
@@ -201,8 +201,8 @@
       },
       {
         "path": ".github/skills/azure-discovery/scripts/azure-discovery.ps1",
-        "bytes": 11679,
-        "sha256": "629d647593e8d72b4dea41db7f3796fa3856306d8ef39beb937adc8c9cb22c0d"
+        "bytes": 24129,
+        "sha256": "9fa7e7d3ca952c20fb7b95b283ee11360815daab274bcaa65517a77f1963f21f"
       },
       {
         "path": ".github/skills/azure-discovery/scripts/azure-environment.ps1",
@@ -211,8 +211,8 @@
       },
       {
         "path": ".github/skills/azure-discovery/SKILL.md",
-        "bytes": 5655,
-        "sha256": "35dd6cb64d63788c9b5228021fafb45689c4e6af611e11de4334fd9c8af94a6a"
+        "bytes": 7556,
+        "sha256": "25c68d52e9b20bb70664d18906ffcbe05b1ff8663eec05bb58006dd48d706dde"
       },
       {
         "path": ".github/skills/change-review/SKILL.md",
@@ -346,13 +346,13 @@
       },
       {
         "path": ".github/skills/project-visual-storytelling/references/diorama-production-rules.md",
-        "bytes": 13073,
-        "sha256": "a923c32c36acde49fa2637ea75b1827485d0bbbd90008e977879646f0eb807cc"
+        "bytes": 12874,
+        "sha256": "b99f48c0ab1940db7e49eb463b6f2d17a4876fd868decfb0810b281eedd157d8"
       },
       {
         "path": ".github/skills/project-visual-storytelling/references/renderer-contract.md",
-        "bytes": 4325,
-        "sha256": "f97b35f1c1ef3052878560d95666480f333d692a546120dad85414c39b72fb68"
+        "bytes": 4518,
+        "sha256": "483f91ba8d54b6ae2400a2bb0b817e6bd7d1d86b6ca13eb4d0c09f938bdec7c2"
       },
       {
         "path": ".github/skills/project-visual-storytelling/references/source-evaluation-playbook.md",
@@ -361,28 +361,28 @@
       },
       {
         "path": ".github/skills/project-visual-storytelling/references/whiteboard-production-rules.md",
-        "bytes": 3506,
-        "sha256": "f2df6a321e092633654f70aa3e68bf8cbaf21a526b0d8710bdf9217332e4a55b"
+        "bytes": 3965,
+        "sha256": "db3ab889438e5008e84435e3cfe99cbaba3744b3122e8964bc8bf0f77051f1ac"
       },
       {
-        "path": ".github/skills/project-visual-storytelling/scripts/blender-render.py",
-        "bytes": 12263,
-        "sha256": "241a40df0c8c4b4479593a4d426d4bc54558eaec837e9940bd6e65335674eabc"
+        "path": ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+        "bytes": 9067,
+        "sha256": "4dff59f2cfe207cb08668bd5bda844c7750080f64b271e348d8a6c127d7d33a7"
       },
       {
         "path": ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
-        "bytes": 6958,
-        "sha256": "845dd50c0aeb394a603d0d0f4c376cf760a43657e55c1bb0a8de4e731db09d8b"
+        "bytes": 7540,
+        "sha256": "c9a1979a83483637c17e2414c6a567e319d51107f0f9bab602d5de288f4dcfb7"
       },
       {
         "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
-        "bytes": 32189,
-        "sha256": "dc56cb747ac88b3b1d245ccbf7ab3c9846f716d2db0ccf21efe9c0f984cd9b3d"
+        "bytes": 45184,
+        "sha256": "88f517710232e34e8314face6eea713f54bca2cd58e3b1de7e90131da3f6655e"
       },
       {
         "path": ".github/skills/project-visual-storytelling/SKILL.md",
-        "bytes": 21837,
-        "sha256": "9063fa8aeeffc208585a805c4f819103aac29719c1955a7a124e412b2744f79d"
+        "bytes": 22592,
+        "sha256": "50e191004fc4b8e18a3988ee325b41df8f26de29c474dae59738b601275a8ac6"
       },
       {
         "path": ".github/skills/regression-test-development/SKILL.md",
@@ -501,43 +501,13 @@
       },
       {
         "path": ".vscode/settings.json",
-        "bytes": 373,
-        "sha256": "a41d70d66304ca1c66c0219d5dbe5772e70d95e1949d40306935a05a3f24c5b7"
+        "bytes": 408,
+        "sha256": "0fd9a4e4865d04b75f36ddc3323e1e8caa2beaf947cc310dceb9cba5670d1e4b"
       },
       {
         "path": "AGENTS.md",
         "bytes": 3988,
         "sha256": "41307edbbcecab0141ee0f2f92f9eb288f936e23a68d1bcfa5425438eca7472b"
-      },
-      {
-        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-context.json",
-        "bytes": 1639,
-        "sha256": "69289fcc7fbf4aadb136abdbe2ef786f6ed1befc3cba6d753ed4c279388cc345"
-      },
-      {
-        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-plan.json",
-        "bytes": 2555,
-        "sha256": "efe69d59e294137fc507b71f9cd3236f516f9bf2621b926c707bf2a1e130584f"
-      },
-      {
-        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/renderer-qualification.json",
-        "bytes": 662,
-        "sha256": "f82c2ef44989566d664ffda3370ec59acbba33ca6f2e19cdd59757452f980f5a"
-      },
-      {
-        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/whiteboard-alt-text.md",
-        "bytes": 791,
-        "sha256": "fa0ff8a911758a8f8f306d12bb959b97d7a7f7226f064d4e400b79fd1cd8c70a"
-      },
-      {
-        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/whiteboard-specification.md",
-        "bytes": 4038,
-        "sha256": "f85563cab954583d9c404a3f58884746d868e0886afc0eee896d9c2b4f74dc14"
-      },
-      {
-        "path": "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/whiteboard.png",
-        "bytes": 1092620,
-        "sha256": "1610e96a000b5b8567a28c57c45adc4bccd52e749e9ae6866142d81b3056a532"
       },
       {
         "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/alt-text.md",
@@ -568,6 +538,61 @@
         "path": "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/visual-specification.md",
         "bytes": 559,
         "sha256": "ea576d997f62c605f501777e377fe92accc49007e156446b4df6dbdd10bde286"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T224205882Z-project-orchestrator-diorama-specification-4bcc60a6-4cca-4395-b34b-42f17c6a193f/diorama-alt-text.md",
+        "bytes": 1641,
+        "sha256": "6e19520252f1899503de5a5903759fa58ded28fba2ab7b0894e179b611b15879"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T224205882Z-project-orchestrator-diorama-specification-4bcc60a6-4cca-4395-b34b-42f17c6a193f/diorama-specification.md",
+        "bytes": 13120,
+        "sha256": "7fc1deda06171376598516c8f69b28a19f3907ee224e41fcf00a6f54fc2ad049"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T224205882Z-project-orchestrator-diorama-specification-4bcc60a6-4cca-4395-b34b-42f17c6a193f/render-context.json",
+        "bytes": 1623,
+        "sha256": "e70931cfe3e15dec44d497c6c68f0b7958516cfc8fb6e5b10da37ed56aa70d63"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/diorama-alt-text.md",
+        "bytes": 1573,
+        "sha256": "daf8795bda46c3228da528fb7df98ad17ee3661720f4abcd2beedbc8d6fc5c54"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/diorama-specification.md",
+        "bytes": 6265,
+        "sha256": "d2079e76f487a7c6edcfa463543fd1b9fb3749845ad19eefff1d8827bc47f673"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/diorama-threejs-candidate.png",
+        "bytes": 1081493,
+        "sha256": "4122cfb080af421e1b860970d7cb52c088ab0a66e959de80c62fdbbfef7e8bd0"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/evidence-map.md",
+        "bytes": 2551,
+        "sha256": "962e98a399afbe9bc52ffea0cf2c88f5619dec138b77350f1cc8920cc95bb90d"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/render-context.json",
+        "bytes": 1670,
+        "sha256": "7a0d0d0a1ce49db201344d0562b331abf31dbeee3670af74c9450aa29d903254"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/render-plan.json",
+        "bytes": 4722,
+        "sha256": "2ee9a25acd108b7baf7b579d1bde588d8b945429f4bd1e8db86da53b81d14489"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/renderer-qualification.json",
+        "bytes": 2504,
+        "sha256": "dbc1f5f52f2a9fb1623a777698bc3578d6b15d31ea0a51a542306e7dd3d4f53c"
+      },
+      {
+        "path": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0/result.json",
+        "bytes": 2361,
+        "sha256": "b3d0d37b2162acbfa2d37371c163ea5508d5b8921452a38721590e4ccee24f6a"
       },
       {
         "path": "config/gitleaks-allowlist.json",
@@ -652,12 +677,12 @@
       {
         "path": "Demo/DEMO-DAY.md",
         "bytes": 10006,
-        "sha256": "978a26c17b9ce1ccd0d88e64b65d3cc1359cab7094cdbe63a551b842e8393e4e"
+        "sha256": "214eb402ede0f04e694c30c6f0ce6f447e023bf496d109089c297de2e14b6a48"
       },
       {
         "path": "Demo/Project-Orchestrator-Demo.pptx",
-        "bytes": 100704,
-        "sha256": "04b23df49d212d452c3dcbfa84a00a6a6d9c5bce98a0b9069f239a54434692ff"
+        "bytes": 100654,
+        "sha256": "0e418d71d520f68e68f22046bb98eea9fb6eb8b6d7a44135206fdb1d44330274"
       },
       {
         "path": "Demo/project-skills-orchestrator-animation.html",
@@ -686,8 +711,8 @@
       },
       {
         "path": "docs/PROJECT-OVERVIEW.md",
-        "bytes": 50644,
-        "sha256": "e5538303dd4d1c2f87e85ce3e01eb377b90f5b56bcb640a5fc021dd21a8b4d1e"
+        "bytes": 50550,
+        "sha256": "1bfc3ee64577a642235c231adb3b77cfdaf7df45d4b9eeac01dd4af514866506"
       },
       {
         "path": "docs/SKILL-ECOSYSTEM-AUDIT.md",
@@ -726,8 +751,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 43455,
-        "sha256": "33a39fbb3819d10956d7de711e5c935d27cae0644757125e33fd28328575b632"
+        "bytes": 44292,
+        "sha256": "3c434d42bddd3502e606c1a8b23ca7a61ffc9d470797b77a650645346769fbf2"
       },
       {
         "path": "release/release-manifest.json",
@@ -746,23 +771,23 @@
       },
       {
         "path": "reports/agent-blueprints/visual-storytelling-director.json",
-        "bytes": 2378,
-        "sha256": "eae09aa495bfb4c1785d6dd5421f75038ced6bdc6c03118902021a35bcc1e200"
+        "bytes": 2716,
+        "sha256": "c986f3057179aeb001fa4ba1de3acf6c8516af0f8903aa3d21ed7aa2c76aca6a"
       },
       {
         "path": "reports/agent-builder-plan.json",
-        "bytes": 3271,
-        "sha256": "ce7dda08bcfa743101d6a80012aecf7367927c4f8bd61875d99b506c14d2beac"
+        "bytes": 3604,
+        "sha256": "58b0e602a4b427987cbdec3b6dddade5c35bb4de0c0a99f691a62208306919ec"
       },
       {
         "path": "reports/agent-builder-plan.md",
-        "bytes": 3086,
-        "sha256": "a485cae8519aaace0ec31418fa360660ef3cb8135552534e684a5841de6b4177"
+        "bytes": 3418,
+        "sha256": "158df3e2315001446972dad128324aec1e751432ab2b3614b42fda129ecff645"
       },
       {
         "path": "reports/agent-builder-result.json",
         "bytes": 433,
-        "sha256": "59d544718083c834bc15a29590ef064f472ad87db4e90ac8d2cf5194b4e4ffd4"
+        "sha256": "f7b94318aacd98a006d4edcb82c0dcadb0105df88d0c6ad0faf9aac81eccb4f3"
       },
       {
         "path": "reports/architecture-review.json",
@@ -777,7 +802,7 @@
       {
         "path": "reports/artifact-ownership.json",
         "bytes": 11217,
-        "sha256": "1008cfeafb441a6638652af8aade64396ff619099206755b7c07321ef200eedb"
+        "sha256": "229698f22030e1a66fbf42df28e49cb0bccc5673e25d60f8179eb9ae513ab728"
       },
       {
         "path": "reports/audit-evidence/2768cb96c6cf4e49d7137527757581496234b1d00b09805d75b05e3b9edcb444.json",
@@ -826,23 +851,23 @@
       },
       {
         "path": "reports/azure-discovery.json",
-        "bytes": 837,
-        "sha256": "4dbffd8b5c0f314146e8e3222dadd2beba72f66cbcc732422ddf6a49067d8f15"
+        "bytes": 1538,
+        "sha256": "1684d17aa98411b9175e6f47ba2f496dd343b48f6b1ec849f73ff042912d514d"
       },
       {
         "path": "reports/azure-discovery.md",
-        "bytes": 681,
-        "sha256": "d2e1ed7fb5f2714b3b6b4a5bdfcc7688e3004d8a6d2905253dff33bddfb04e3b"
+        "bytes": 1233,
+        "sha256": "b91a0193550ca599e7dc4a7892ab6ccaf5b03513281d22ec2748d48dccca2563"
       },
       {
         "path": "reports/change-review.json",
-        "bytes": 2301,
-        "sha256": "b2921eaa64d3827699b77155c98d06b68e5e8a8a3ae887a4c4926fe597a862f2"
+        "bytes": 2853,
+        "sha256": "935254394b55b1680a5eec87e0cde0384db135e19c1edae12b6072c2195982d7"
       },
       {
         "path": "reports/change-review.md",
-        "bytes": 1400,
-        "sha256": "b1c6613033eaccd3d0354f85a90284e1326cbf75a42f916c05b455c895da7b7d"
+        "bytes": 1638,
+        "sha256": "49c2f42360c124117a4501bfab6f80545b45a983929a3e8a9306158772aa3248"
       },
       {
         "path": "reports/ci-triage-result.json",
@@ -856,13 +881,13 @@
       },
       {
         "path": "reports/clarification-result.json",
-        "bytes": 3053,
-        "sha256": "8d4796e12b760eca8da177eb382a841cdc32d6fcdeeb925ef04adaefe3bd01cc"
+        "bytes": 3834,
+        "sha256": "4696c82485babcffef849d9e4af83f136e661ad5cd6c6230d0a25c9bff1940f6"
       },
       {
         "path": "reports/clarification-result.md",
-        "bytes": 743,
-        "sha256": "bdfb118c8d1cb37cd6e6c4a80f81abf304d01350dfaef99dcc498a566aa1e010"
+        "bytes": 1433,
+        "sha256": "f96e6cce01b1a1e00c55d801df13c879cce067188b4300c7da25e73bc6c55717"
       },
       {
         "path": "reports/code-audit-findings.json",
@@ -953,6 +978,16 @@
         "path": "reports/project-handoff.md",
         "bytes": 3551,
         "sha256": "e1f1a29bc7ae07f6340e8a68750b049a105283ed3209c4d2da2ffec540417340"
+      },
+      {
+        "path": "reports/project-status.json",
+        "bytes": 856,
+        "sha256": "fae92ff47cb858e91a7a00d1681991fe877087a7a62eaa408f2ed4d893b55bd7"
+      },
+      {
+        "path": "reports/project-status.md",
+        "bytes": 515,
+        "sha256": "bb9f6bfa7e73232717cd60ad4f2e696a0c8dfdceea72062f46987994361130f7"
       },
       {
         "path": "reports/project-video/audio/narration-manifest.json",
@@ -1117,7 +1152,7 @@
       {
         "path": "reports/security-check.json",
         "bytes": 342,
-        "sha256": "55b4be13b39f947a7af4df4256e3d102de262d92b7a8cc12ef3477ab4f1ccdbb"
+        "sha256": "5749c063a7ceca88eb30f768f100322ce167433dd9b86ebcbaa851567afdc111"
       },
       {
         "path": "reports/security-review.json",
@@ -1131,23 +1166,23 @@
       },
       {
         "path": "reports/skill-details.json",
-        "bytes": 41590,
-        "sha256": "7ef938ec2702b7c6d4048292b5ba9c41a7e21eefe7280a3c120d4c30db7e8331"
+        "bytes": 41652,
+        "sha256": "f59c03dadca738f4e4e8026f20d5f41e29daf0ceac5f8b57fce3e9a4653c74ea"
       },
       {
         "path": "reports/skill-details.md",
         "bytes": 4340,
-        "sha256": "308e10ef72a076f87b28c500680b3767179496b878c94913494f14ec689be7ab"
+        "sha256": "2d67eba43c92f61e0a02609ca62566e06bea2749f7d607da332e1ae8069ba35b"
       },
       {
         "path": "reports/skill-inventory.json",
-        "bytes": 31720,
-        "sha256": "7a3b2e8019293dd2c0f1e3327906be05ad32a874f91b07e06acbfe857b4b6b35"
+        "bytes": 31782,
+        "sha256": "2509fc6795d87e981091b08ea4690cd5df337b2d0df29835a9216b1d779cc172"
       },
       {
         "path": "reports/skill-inventory.md",
-        "bytes": 13755,
-        "sha256": "63d9e17501cec7690e6afdd11950d2a20b4c72f25b3f5169e663f1184eba1b09"
+        "bytes": 13817,
+        "sha256": "25ec888614a8a982944e00997d4b032485f8cdd6ba7e17c515d8875feced946c"
       },
       {
         "path": "reports/workflow-completion.json",
@@ -1216,8 +1251,8 @@
       },
       {
         "path": "schemas/azure-discovery.schema.json",
-        "bytes": 3161,
-        "sha256": "eab72b142efa0fb85e0c9b210fcd7baacedb54f0e7c5c33a0f2c8a3b5bd2ec98"
+        "bytes": 9822,
+        "sha256": "d428e6052c6833a87acfe241a17c5b486970ec7313554911c52a6f957d35e43a"
       },
       {
         "path": "schemas/azure-environment.schema.json",
@@ -1341,18 +1376,18 @@
       },
       {
         "path": "schemas/project-visual-request.schema.json",
-        "bytes": 2444,
-        "sha256": "4ebbdf4ded9996e162fec2eb1fb4adefa2382e3e0a73770eff4c762e87b87628"
+        "bytes": 2421,
+        "sha256": "71176d7868d2d04527a3264332144ad9168b62e92e040713e66409b9a8e02e5d"
       },
       {
         "path": "schemas/project-visual-result.schema.json",
-        "bytes": 2116,
-        "sha256": "9ecb4cf7f1e51b3f1010c8e82c3b83058de0b4e91fd7e01519972d263395d169"
+        "bytes": 2093,
+        "sha256": "c3cb438e14e69520d46aac43613e5a88b9f2b3258b0670fb9483eb760d6cbe49"
       },
       {
         "path": "schemas/project-visual-scene.schema.json",
-        "bytes": 4277,
-        "sha256": "6c9e3b6d2b75259d2390b2e37b48783168b43afa4a9672026cddf05fbcaed507"
+        "bytes": 4407,
+        "sha256": "cec6c605ac45911b542efc7875615f555bdde64f7c5f33a6bad091c14394dfc8"
       },
       {
         "path": "schemas/release-manifest.schema.json",
@@ -1471,8 +1506,8 @@
       },
       {
         "path": "scripts/update-demo-speaker-notes.ps1",
-        "bytes": 43374,
-        "sha256": "87c022953debea8762144883b454baee08423445011031c604090c38465b781e"
+        "bytes": 43567,
+        "sha256": "66f977f49746a140721c0f5801ab616742ff7b97a2b89332b8a33c9c1543a3d8"
       },
       {
         "path": "scripts/verify-release.mjs",
@@ -1487,7 +1522,7 @@
       {
         "path": "STANDALONE-WINDOWS.md",
         "bytes": 5690,
-        "sha256": "6722353d611b3a30c545b7a1fbf97604cf89d7a2f04e2f8f0b6dcb0faff6efd8"
+        "sha256": "4421f9c0ddf30d28bf13013c28212da92391933105c42a37e85a09845c15dbb8"
       },
       {
         "path": "templates/project/.editorconfig",
@@ -1641,8 +1676,8 @@
       },
       {
         "path": "templates/project/infra/discover.ps1",
-        "bytes": 11681,
-        "sha256": "edfb4144780b77061f036b4c884f9d708597aa21d571f3aec6f8f82255fe577e"
+        "bytes": 24131,
+        "sha256": "232a2e8f87f93bbf5336cec0b858cf3e6f50811317197450b07ed6c1a44cb006"
       },
       {
         "path": "templates/project/infra/main.bicep",
@@ -1651,8 +1686,8 @@
       },
       {
         "path": "templates/project/infra/README.md",
-        "bytes": 7283,
-        "sha256": "0357c8bbb8be861183de0b550962b9ee1a4c65714931c4505d289602d959bf47"
+        "bytes": 7860,
+        "sha256": "efcbf7722643de5ad8911fef2cd0f33baa09f14aaffed5045b6ea884d741ac4b"
       },
       {
         "path": "templates/scaffold-manifest.json",
@@ -1661,8 +1696,8 @@
       },
       {
         "path": "tests/adoption-rerun.test.mjs",
-        "bytes": 83440,
-        "sha256": "6e17a60820d289754e15f85527e9a60286b27d84cabef91c731f4c1212c25a40"
+        "bytes": 84383,
+        "sha256": "65e4734bf633f2f726c199d7b284efea3122cd4ad3cdf019f0a30c689bb5ebbb"
       },
       {
         "path": "tests/agent-builder.test.mjs",
@@ -1686,8 +1721,8 @@
       },
       {
         "path": "tests/fixtures/project-visual-storytelling/whiteboard-render-plan.json",
-        "bytes": 1033,
-        "sha256": "cf2473cf0f2a441de18321db627acd1197f3c949fab01bf5ca78bb4edfe4c161"
+        "bytes": 1091,
+        "sha256": "326eb1f47bd72773b437dc3d678daf62468217053615471cbfcc3b898d4fc854"
       },
       {
         "path": "tests/gitleaks-scan.test.mjs",
@@ -1696,8 +1731,8 @@
       },
       {
         "path": "tests/package-install.test.mjs",
-        "bytes": 8849,
-        "sha256": "ed397d4fb361d59e3b15d2abbe7e2c889cae1a348d814c663aa2a5b0d4955057"
+        "bytes": 9059,
+        "sha256": "d0dfc49529eb42a092bca7b84854018a2d252672aa0ddf5301042055b513612b"
       },
       {
         "path": "tests/production-gates.test.mjs",
@@ -1721,8 +1756,8 @@
       },
       {
         "path": "tests/project-visual-storytelling.test.mjs",
-        "bytes": 19929,
-        "sha256": "ad899e67ad3ef3c22934b6532245d4cf26f7190204172c007725ebc15189cbea"
+        "bytes": 35091,
+        "sha256": "c5cc41cf3daadbf50577d446c67d37be17b37faf3b5fb13ce6f3016f993c9a05"
       },
       {
         "path": "tests/security-fuzz.test.mjs",
@@ -1731,8 +1766,8 @@
       },
       {
         "path": "tests/skill-contracts.test.mjs",
-        "bytes": 87161,
-        "sha256": "23349e0c0ab0273628c6d2ad0e553d3d0ce4de742c9aa225a710b97f40747717"
+        "bytes": 89465,
+        "sha256": "c058e2ca512a539633291dee0a330a4ac9df3456eac75c3a07a72a82c1c6bc89"
       },
       {
         "path": "tests/user-personalization.test.mjs",
@@ -1776,9 +1811,9 @@
     },
     {
       "name": "artifacts",
-      "description": "Top-level project boundary containing 12 scanned files.",
+      "description": "Top-level project boundary containing 17 scanned files.",
       "evidence": [
-        "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-context.json"
+        "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/alt-text.md"
       ],
       "status": "verified"
     },
@@ -1808,7 +1843,7 @@
     },
     {
       "name": "reports",
-      "description": "Top-level project boundary containing 87 scanned files.",
+      "description": "Top-level project boundary containing 89 scanned files.",
       "evidence": [
         "reports/adoption-rerun-evidence.json"
       ],
@@ -1850,7 +1885,7 @@
   "technology": [
     {
       "name": ".md",
-      "description": "128 scanned files use this extension.",
+      "description": "132 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ],
@@ -1858,7 +1893,7 @@
     },
     {
       "name": ".json",
-      "description": "110 scanned files use this extension.",
+      "description": "113 scanned files use this extension.",
       "evidence": [
         ".azure/environment.json"
       ],
@@ -1866,7 +1901,7 @@
     },
     {
       "name": ".mjs",
-      "description": "39 scanned files use this extension.",
+      "description": "40 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/agent-builder.mjs"
       ],
@@ -1937,10 +1972,10 @@
       "status": "verified"
     },
     {
-      "name": ".py",
+      "name": ".mmd",
       "description": "1 scanned files use this extension.",
       "evidence": [
-        ".github/skills/project-visual-storytelling/scripts/blender-render.py"
+        "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/diagram.mmd"
       ],
       "status": "verified"
     }
@@ -2284,7 +2319,7 @@
       },
       {
         "name": "azure-discovery",
-        "description": "Discover Azure Commercial or Azure US Government service and model availability for the current project, persist dated results, and identify when a refresh is needed.",
+        "description": "Discover Azure Commercial or Azure US Government service, chat model, image-generation model and quota, and sanitized deployment availability for the current project, persist dated results, and identify when a refresh is needed.",
         "evidence": [
           ".github/skills/azure-discovery/SKILL.md"
         ],
@@ -3198,5 +3233,5 @@
   ],
   "limitations": [],
   "markdown": "reports/project-understanding.md",
-  "markdownSha256": "613b6f6fd23027a18647fa745afdf1a3a1eb582dd5fd2f243a3749b7d0113dac"
+  "markdownSha256": "96dad4775c05bf5f46d3527e2c6bec8ad6b97e605fbdd1cb1b4eb0ba92ecf847"
 }

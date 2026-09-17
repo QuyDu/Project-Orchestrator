@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "runtimeVersion": "1.1.2",
-  "generatedAt": "2026-09-16T08:50:46.489Z",
+  "generatedAt": "2026-09-17T16:06:32.296Z",
   "skills": [
     {
       "name": "agent-builder",
@@ -147,7 +147,7 @@
     {
       "name": "azure-discovery",
       "path": ".github/skills/azure-discovery/SKILL.md",
-      "description": "Discover Azure Commercial or Azure US Government service and model availability for the current project, persist dated results, and identify when a refresh is needed.",
+      "description": "Discover Azure Commercial or Azure US Government service, chat model, image-generation model and quota, and sanitized deployment availability for the current project, persist dated results, and identify when a refresh is needed.",
       "lifecycle": "tested",
       "confidence": "medium",
       "dependencies": [

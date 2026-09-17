@@ -1,3 +1,0 @@
-# Diorama Alt Text
-
-A photographed tabletop miniature represents Project Orchestrator as a central purple control desk connected to four physical work areas: a GitHub Copilot workspace board, a cabinet for 47 governed skills, an archive for schemas and reports, and a project-template launch station. Paper paths connect the areas, while approval-gate signs mark the controlled routes. A lower-right rail carries the signature "AI-assisted for Project Orchestrator" and the date "2026-09-15". No cloud service or deployment is depicted.

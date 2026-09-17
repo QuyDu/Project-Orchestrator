@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0.0",
+  "visualType": "diorama",
+  "source": {
+    "repositoryDigestSha256": "551b773fb8c1336ffa62ce41cf98fbcbe3ff9f64048dab0f941769c47abfa2c2"
+  },
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "samples": 128
+  },
+  "renderer": {
+    "preference": "auto",
+    "prompt": "Render a physically based macro photograph of one bounded handcrafted miniature engineering campus. Center a tall purple routing tower with 47 physical drawer marks. At left, show repository intake and a planning workshop. At right, show a lever-operated red policy and human-approval gate, a dark-green validation workshop with an evidence archive, and a governed project-workspace output bench. Connect the structures with raised black pathways and brass direction markers. Use tactile paper, painted card, wood, acrylic, metal, visible joins, consistent miniature scale, warm museum lighting, physical occlusion, cast shadows, and contact shadows. Integrate exactly six major architecture labels plus title, takeaway, source, signature, and date plaques. Do not add clouds, logos, dashboards, floating cards, invented metrics, extra identities, or deployment claims."
+  },
+  "title": "Project Orchestrator",
+  "signature": "AI-assisted for Project Orchestrator",
+  "creationDate": "2026-09-16",
+  "palette": {
+    "focus": "#6D4BB7",
+    "positive": "#1F6B45",
+    "risk": "#B8322A",
+    "neutral": "#1F252B"
+  },
+  "elements": [
+    {
+      "id": "repository-intent",
+      "label": "Repository Intent",
+      "caption": "A repository request enters the governed workflow as current-project evidence.",
+      "evidencePath": "README.md",
+      "semanticRole": "neutral",
+      "shape": "box",
+      "position": [-7.0, 0.8, 2.1],
+      "size": [2.2, 1.2, 1.7]
+    },
+    {
+      "id": "clarify-plan",
+      "label": "Clarify & Plan",
+      "caption": "Clarification resolves material choices before an executable workflow is planned.",
+      "evidencePath": ".github/skills/clarify-the-ask/SKILL.md",
+      "semanticRole": "focus",
+      "shape": "box",
+      "position": [-4.2, 1.1, 0.6],
+      "size": [2.7, 2.2, 2.4]
+    },
+    {
+      "id": "skill-router",
+      "label": "Route 47 Skills",
+      "caption": "The orchestrator routes each eligible step to one bounded owning skill.",
+      "evidencePath": "reports/project-understanding.json",
+      "semanticRole": "focus",
+      "shape": "box",
+      "position": [-0.4, 2.7, -0.4],
+      "size": [2.5, 5.4, 2.5]
+    },
+    {
+      "id": "approval-gate",
+      "label": "Policy + Human Approval",
+      "caption": "Policy and explicit human approval gate external, privileged, and mutating actions.",
+      "evidencePath": "config/orchestrator.yaml",
+      "semanticRole": "risk",
+      "shape": "panel",
+      "position": [2.7, 1.1, 1.5],
+      "size": [3.0, 2.2, 0.4]
+    },
+    {
+      "id": "validation-workshop",
+      "label": "Validate + Record",
+      "caption": "Schemas, security checks, tests, and verification produce repository evidence.",
+      "evidencePath": "package.json",
+      "semanticRole": "positive",
+      "shape": "box",
+      "position": [5.1, 1.4, -0.1],
+      "size": [3.1, 2.8, 2.7]
+    },
+    {
+      "id": "evidence-archive",
+      "label": "Evidence Archive",
+      "caption": "Machine-readable reports preserve authoritative workflow and validation evidence.",
+      "evidencePath": "reports/current-execution-state.json",
+      "semanticRole": "neutral",
+      "shape": "box",
+      "position": [3.6, 1.2, -3.2],
+      "size": [2.2, 2.4, 1.2]
+    },
+    {
+      "id": "project-workspace",
+      "label": "Governed Project Workspace",
+      "caption": "The installer and templates establish a verified governed workspace baseline.",
+      "evidencePath": "templates/project/AGENTS.md",
+      "semanticRole": "positive",
+      "shape": "box",
+      "position": [7.1, 0.8, -2.8],
+      "size": [2.4, 1.6, 1.8]
+    },
+    {
+      "id": "governed-path",
+      "label": "Governed Flow",
+      "caption": "Work moves from intent through planning, routing, controls, validation, and evidence.",
+      "evidencePath": "docs/PROJECT-ARCHITECTURE.md",
+      "semanticRole": "neutral",
+      "shape": "path",
+      "position": [0.0, 0.12, 2.8],
+      "size": [10.0, 0.12, 0.8]
+    },
+    {
+      "id": "human-judgment",
+      "label": "Human Judgment",
+      "caption": "People remain responsible for requests, approvals, review, and final decisions.",
+      "evidencePath": "AGENTS.md",
+      "semanticRole": "risk",
+      "shape": "figure",
+      "position": [1.9, 0.9, 2.2],
+      "size": [0.7, 1.8, 0.7]
+    }
+  ]
+}

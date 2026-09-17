@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "ready",
+  "generatedAt": "2026-09-16T22:42:05.882Z",
+  "outputType": "diorama-specification",
+  "visualStyle": "diorama",
+  "visualTreatment": "architectural",
+  "source": {
+    "kind": "current-project",
+    "topic": "Project Orchestrator",
+    "projectUnderstandingJson": "reports/project-understanding.json",
+    "projectUnderstandingMarkdown": "reports/project-understanding.md",
+    "generatedAt": "2026-09-16T22:42:05.826Z",
+    "repositoryDigestSha256": "aa06b45574ed2b167c269e1ef3b5daa1fcd1c28ba26413a9813f4b6faeb3486c",
+    "jsonSha256": "24a9f7d1e5ddbf62c3f6170c571217e1a09c2e33e1e48165a9c76219c8a98a0d",
+    "markdownSha256": "f65cf4c61be80881dc9b9475ddb6ed9b450b0050145a5886d97ea97c4aeea162"
+  },
+  "destination": {
+    "root": "artifacts/project-visual-storytelling",
+    "runId": "20260916T224205882Z-project-orchestrator-diorama-specification-4bcc60a6-4cca-4395-b34b-42f17c6a193f",
+    "directory": "artifacts/project-visual-storytelling/20260916T224205882Z-project-orchestrator-diorama-specification-4bcc60a6-4cca-4395-b34b-42f17c6a193f",
+    "files": {
+      "required": [
+        "diorama-specification.md",
+        "diorama-alt-text.md"
+      ],
+      "optional": []
+    }
+  },
+  "profile": {
+    "schemaVersion": "1.0.0",
+    "updatedAt": "2026-09-14T12:00:00.000Z",
+    "sha256": "b39e1de295e20e177594536779bd62b2df95862c228ced2e6f3dfee9c5465c5e"
+  },
+  "controls": {
+    "treatSourcesAsUntrusted": true,
+    "excludeConfidentialContent": true,
+    "externalPublicationRequiresApproval": true,
+    "requireAttribution": true,
+    "requireAltText": true
+  }
+}

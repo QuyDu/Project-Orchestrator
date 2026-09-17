@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "status": "ready",
-  "generatedAt": "2026-09-16T00:55:37.511Z",
-  "outputType": "diorama-specification",
+  "generatedAt": "2026-09-16T23:10:09.159Z",
+  "outputType": "diorama",
   "visualStyle": "diorama",
   "visualTreatment": "architectural",
   "source": {
@@ -10,21 +10,24 @@
     "topic": "Project Orchestrator",
     "projectUnderstandingJson": "reports/project-understanding.json",
     "projectUnderstandingMarkdown": "reports/project-understanding.md",
-    "generatedAt": "2026-09-16T00:55:37.469Z",
-    "repositoryDigestSha256": "c46d700d55f9cf75b4d7470f5ddd08c216f240170234487af9251c510823b218",
-    "jsonSha256": "257b188b2e2db18aecd4d21f479604558ceaba09c5d82ec31ecacf4dc8398ad3",
-    "markdownSha256": "613b6f6fd23027a18647fa745afdf1a3a1eb582dd5fd2f243a3749b7d0113dac"
+    "generatedAt": "2026-09-16T23:10:09.119Z",
+    "repositoryDigestSha256": "551b773fb8c1336ffa62ce41cf98fbcbe3ff9f64048dab0f941769c47abfa2c2",
+    "jsonSha256": "b7fdfcb6636e79e6c4173e3bfd6aeeb5c5bb986e492319766de8a6509baf1a1a",
+    "markdownSha256": "c7ada21eb2d9cb63a4c14872b758472239101390c50da0941d030907a0da1a26"
   },
   "destination": {
     "root": "artifacts/project-visual-storytelling",
-    "runId": "20260916T005537511Z-project-orchestrator-diorama-specification-84eee552-9439-437b-9baa-89dbd27164f7",
-    "directory": "artifacts/project-visual-storytelling/20260916T005537511Z-project-orchestrator-diorama-specification-84eee552-9439-437b-9baa-89dbd27164f7",
+    "runId": "20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0",
+    "directory": "artifacts/project-visual-storytelling/20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0",
     "files": {
       "required": [
         "diorama-specification.md",
         "diorama-alt-text.md"
       ],
-      "optional": []
+      "optional": [
+        "diorama-azure-openai-candidate.png",
+        "diorama-mai-candidate.png"
+      ]
     }
   },
   "profile": {

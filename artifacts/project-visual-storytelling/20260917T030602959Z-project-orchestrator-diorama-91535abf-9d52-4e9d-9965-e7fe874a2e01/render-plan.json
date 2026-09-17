@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0.0",
+  "visualType": "diorama",
+  "source": {
+    "repositoryDigestSha256": "81907583cf1efddd5475b0c66eae12c8345415510713700b7bebfdb4da80b296"
+  },
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "samples": 128
+  },
+  "renderer": {
+    "preference": "auto",
+    "prompt": "Create a path-traced macro product photograph of one bounded handcrafted Project Orchestrator museum diorama. Use a joined timber shadow box, layered cotton card, visible corrugated cuts, linen seams, cork inclusions, paper fibers, hand-shaped clay figures, scratched brass, stitched fabric routing, and hand-cut acrylic. Center a wood-and-brass routing wheel in front of exactly 47 paper skill folios. Place repository intent at a staffed drafting bench on the left, a human-operated approval gate in the foreground, a glass-front validation and evidence workshop on the right, and a finished governed workspace at the route endpoint. Use warm directional museum light, cool reflected fill, contact shadows, cast shadows, physical occlusion, moderate macro depth of field, and controlled handmade imperfections. Integrate only the title, Repository Intent, 47 Governed Skills, Human Approval, Validate + Record, Governed Workspace, one takeaway, source attribution, exact signature, and current Eastern date as physical exhibit plaques. Do not use flat UI cards, glossy generic icons, floating labels, a tall routing tower, clouds, logos, dashboards, invented metrics, extra identities, or deployment claims."
+  },
+  "title": "Project Orchestrator",
+  "signature": "AI-assisted for Project Orchestrator",
+  "creationDate": "2026-09-16",
+  "palette": {
+    "focus": "#67375D",
+    "positive": "#315B42",
+    "risk": "#984239",
+    "neutral": "#252627"
+  },
+  "elements": [
+    {
+      "id": "repository-intent",
+      "label": "Repository Intent",
+      "caption": "A current repository request enters at a staffed drafting bench as the sole project source.",
+      "evidencePath": "README.md",
+      "semanticRole": "neutral",
+      "shape": "box",
+      "position": [-5.9, 1.1, 2.8],
+      "size": [4.5, 3.6, 3.9]
+    },
+    {
+      "id": "governed-skills",
+      "label": "47 Governed Skills",
+      "caption": "Exactly 47 bounded skills appear as individual paper folios in the central library.",
+      "evidencePath": "reports/project-understanding.json",
+      "semanticRole": "focus",
+      "shape": "panel",
+      "position": [-0.35, 3.7, 3.7],
+      "size": [5.6, 0.4, 4.2]
+    },
+    {
+      "id": "routing-wheel",
+      "label": "Route Plan Track",
+      "caption": "The central hand-built wheel represents skill routing, planning, and live workflow tracking.",
+      "evidencePath": ".github/skills/project-skills-orchestrator/SKILL.md",
+      "semanticRole": "focus",
+      "shape": "cylinder",
+      "position": [0.0, 0.95, 3.45],
+      "size": [4.4, 0.8, 4.4]
+    },
+    {
+      "id": "approval-gate",
+      "label": "Human Approval",
+      "caption": "A clay operator physically controls the red approval boundary before governed work proceeds.",
+      "evidencePath": "AGENTS.md",
+      "semanticRole": "risk",
+      "shape": "panel",
+      "position": [3.08, -1.18, 2.45],
+      "size": [2.6, 0.8, 2.8]
+    },
+    {
+      "id": "validation-workshop",
+      "label": "Validate + Record",
+      "caption": "Schemas, security checks, tests, and verification are represented by a working evidence press.",
+      "evidencePath": "package.json",
+      "semanticRole": "positive",
+      "shape": "box",
+      "position": [5.75, 1.63, 3.3],
+      "size": [4.3, 3.8, 4.1]
+    },
+    {
+      "id": "evidence-archive",
+      "label": "Evidence Archive",
+      "caption": "Physical drawers inside the validation workshop represent authoritative machine-readable reports.",
+      "evidencePath": "reports/current-execution-state.json",
+      "semanticRole": "neutral",
+      "shape": "box",
+      "position": [6.53, 2.83, 3.03],
+      "size": [1.8, 0.7, 2.7]
+    },
+    {
+      "id": "governed-workspace",
+      "label": "Governed Workspace",
+      "caption": "The route ends at a finished instruction-bound workspace with governed project controls.",
+      "evidencePath": "templates/project/AGENTS.md",
+      "semanticRole": "positive",
+      "shape": "box",
+      "position": [7.15, -2.25, 2.4],
+      "size": [3.1, 2.1, 2.7]
+    },
+    {
+      "id": "governed-route",
+      "label": "Governed Workflow",
+      "caption": "A stitched fabric route connects intent, routing, approval, validation, evidence, and workspace output.",
+      "evidencePath": "docs/PROJECT-ARCHITECTURE.md",
+      "semanticRole": "neutral",
+      "shape": "path",
+      "position": [0.0, -1.0, 1.32],
+      "size": [10.0, 0.3, 0.2]
+    },
+    {
+      "id": "human-judgment",
+      "label": "Human Judgment",
+      "caption": "Miniature stewards clarify scale and preserve human responsibility for approval and final decisions.",
+      "evidencePath": ".skills-orchestrator/user-personalization.json",
+      "semanticRole": "risk",
+      "shape": "figure",
+      "position": [1.6, -1.6, 2.0],
+      "size": [0.8, 0.8, 2.0]
+    }
+  ]
+}

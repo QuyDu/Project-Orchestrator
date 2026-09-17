@@ -72,19 +72,42 @@ Use Project Orchestrator only as the immutable source framework to provision a n
 
 4. Open the new project in its own Visual Studio Code window using a unique temporary workspace
    identity. Reusing the generated `.code-workspace` path can restore editor tabs from an earlier
-   rehearsal, including a localhost preview before the app server exists. Load the generated
-   workspace as structured JSON, point its folder at the selected project, and write the session
-   copy outside the project so no demo artifact is added:
+   rehearsal, including a localhost preview before the app server exists. Before creating another
+   identity, detect whether the demo window is already open or still loading. Focus and reuse one
+   exact match; when VS Code status identifies the demo but its title is not ready, stop without
+   opening another window. Only create a session identity when neither check finds the demo. Load
+   the generated workspace as structured JSON, point its folder at the selected project, and write
+   the session copy outside the project so no demo artifact is added:
 
    ```powershell
    $projectPath = "C:\repos\skills-orchestrator-demo"
    $generatedWorkspace = Join-Path $projectPath "skills-orchestrator-demo.code-workspace"
-   $sessionWorkspace = Join-Path $env:TEMP "skills-orchestrator-demo-$([guid]::NewGuid().ToString('N')).code-workspace"
-   $workspace = Get-Content $generatedWorkspace -Raw | ConvertFrom-Json
-   $workspace.folders[0].path = $projectPath
-   $workspace.settings.'window.title' = "🚀 Skills Orchestrator Demo • skills-orchestrator-demo (Workspace)"
-   $workspace | ConvertTo-Json -Depth 20 | Set-Content $sessionWorkspace -Encoding utf8
-   code --new-window $sessionWorkspace
+      $windowTitle = "🚀 Skills Orchestrator Demo • skills-orchestrator-demo (Workspace)"
+      $codeStatus = (& code --status 2>$null | Out-String)
+      $matchingWindows = @(Get-Process -Name Code -ErrorAction SilentlyContinue |
+         Where-Object { $_.MainWindowTitle -eq $windowTitle })
+      $statusShowsDemo = $codeStatus -match '(?i)\bskills-orchestrator-demo(?:-[0-9a-f]{32})?\b'
+
+      if ($matchingWindows.Count -gt 1) {
+         throw "More than one matching demo window is open. Stop and close duplicates manually."
+      }
+
+      if ($matchingWindows.Count -eq 1) {
+         $shell = New-Object -ComObject WScript.Shell
+         if (-not $shell.AppActivate($windowTitle)) {
+            throw "The existing demo window could not be focused. Stop without opening another."
+         }
+         Write-Host "Reused the existing demo workspace window."
+      } elseif ($statusShowsDemo) {
+         throw "The demo workspace is already open or still loading. Stop without generating another workspace identity."
+      } else {
+         $sessionWorkspace = Join-Path $env:TEMP "skills-orchestrator-demo-$([guid]::NewGuid().ToString('N')).code-workspace"
+         $workspace = Get-Content $generatedWorkspace -Raw | ConvertFrom-Json
+         $workspace.folders[0].path = $projectPath
+         $workspace.settings.'window.title' = $windowTitle
+         $workspace | ConvertTo-Json -Depth 20 | Set-Content $sessionWorkspace -Encoding utf8
+         code --new-window $sessionWorkspace
+      }
    ```
 
    In test mode, substitute the test project path, generated workspace filename, and title. Require the
@@ -92,6 +115,11 @@ Use Project Orchestrator only as the immutable source framework to provision a n
    and confirm its only folder resolves to the selected project before opening it. Never open the
    stable generated workspace directly during this workflow. Do not delete prior VS Code
    workspace storage or chat history.
+
+   Treat the existing-window check as the retry boundary. Never generate another GUID or invoke
+   `code --new-window` when an exact demo window is open or `code --status` shows that its workspace
+   is still loading. If more than one matching demo window exists, stop and report the duplicates;
+   do not close windows automatically because they may contain unsaved work.
 
    `--new-window` is required. Without it the command can return exit code 0 and open nothing at all. Confirm a window titled `skills-orchestrator-demo (Workspace)` appears before reporting success.
 

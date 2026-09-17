@@ -77,20 +77,27 @@ function getGovernmentToken() {
   return result.stdout.trim();
 }
 
+export function supportsMaiImageDimensions(width, height) {
+  return Number.isInteger(width) && Number.isInteger(height) && width >= 768 && height >= 768 && width * height <= 1_048_576;
+}
+
 function validateGenerationInput({ prompt, width, height }) {
   if (typeof prompt !== "string" || !prompt.trim() || prompt.length > 4_000 || /[\u0000-\u001f\u007f]/u.test(prompt)) throw new Error("MAI image prompt must be printable text between 1 and 4000 characters");
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 768 || height < 768 || width * height > 1_048_576) {
+  if (!supportsMaiImageDimensions(width, height)) {
     throw new Error("MAI image dimensions must be at least 768x768 and no more than 1,048,576 total pixels");
   }
 }
 
-export async function generateMaiImage({ capability, prompt, width, height, outputPath, renderPlanSha256 }) {
+export async function generateMaiImage({ capability, prompt, width, height, outputPath, renderPlanSha256, fetchImpl = globalThis.fetch, tokenProvider = getGovernmentToken }) {
   if (!capability?.available || capability.cloud !== "AzureUSGovernment") throw new Error("MAI-Image capability is not qualified for Azure Government");
   validateGenerationInput({ prompt, width, height });
-  const response = await fetch(`${capability.endpoint}${capability.apiPath}`, {
+  if (typeof fetchImpl !== "function" || typeof tokenProvider !== "function") throw new Error("MAI-Image transport is unavailable");
+  const token = await tokenProvider();
+  if (typeof token !== "string" || !token || token.length > 16_384 || /[\u0000-\u0020\u007f]/u.test(token)) throw new Error("MAI-Image authentication did not return a bounded bearer token");
+  const response = await fetchImpl(`${capability.endpoint}${capability.apiPath}`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${getGovernmentToken()}`,
+      "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ model: capability.deployment, prompt, width, height, web_grounding: false }),
@@ -112,6 +119,7 @@ export async function generateMaiImage({ capability, prompt, width, height, outp
     deployment: capability.deployment,
     processingBoundary: "AzureUSGovernment",
     endpointHost: new URL(capability.endpoint).hostname,
+    authentication: "microsoft-entra",
     referencePixelsSupplied: false,
     webGrounding: false,
     promptSha256: sha256(prompt),

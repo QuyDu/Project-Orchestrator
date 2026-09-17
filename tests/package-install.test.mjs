@@ -44,7 +44,7 @@ test("private package installs offline and resolves bundled project assets", asy
     assert.ok(existsSync(path.join(createdProject, ".github", "skills", "agent-builder", "scripts", "agent-builder.mjs")));
     assert.ok(existsSync(path.join(createdProject, ".github", "skills", "user-personalization", "scripts", "user-personalization.mjs")));
     assert.ok(existsSync(path.join(createdProject, ".github", "skills", "project-visual-storytelling", "scripts", "project-visual-storytelling.mjs")));
-    assert.ok(existsSync(path.join(createdProject, ".github", "skills", "project-visual-storytelling", "scripts", "blender-render.py")));
+    assert.ok(existsSync(path.join(createdProject, ".github", "skills", "project-visual-storytelling", "scripts", "azure-openai-image-render.mjs")));
     assert.ok(existsSync(path.join(createdProject, ".github", "skills", "project-visual-storytelling", "scripts", "mai-image-render.mjs")));
     assert.ok(existsSync(path.join(createdProject, ".github", "skills", "project-visual-storytelling", "references", "diorama-production-rules.md")));
     assert.ok(existsSync(path.join(createdProject, ".github", "skills", "project-visual-storytelling", "references", "renderer-contract.md")));
@@ -77,9 +77,10 @@ test("private package installs offline and resolves bundled project assets", asy
     assert.match(installedVisualStorytellingRuntime, /const OUTPUT_TYPES = new Set\(\["whiteboard", "whiteboard-specification", "diorama", "diorama-specification"\]\)/);
     assert.match(installedVisualStorytellingRuntime, /async function renderRun/);
     assert.match(installedVisualStorytellingRuntime, /async function verifyRender/);
+    assert.match(installedVisualStorytellingRuntime, /async function createVisual/);
+    assert.match(installedVisualStorytellingRuntime, /inspectAzureOpenAIImage/);
     assert.match(installedVisualStorytellingRuntime, /inspectMaiImage/);
     assert.match(installedDioramaRules, /bitmap-generation/);
-    assert.match(installedDioramaRules, /physically-based-3d/);
     assert.match(installedDioramaRules, /HTML, CSS, SVG.*prohibited as final diorama output/is);
     assert.match(installedDioramaRules, /## Renderer Qualification Record/);
     assert.match(installedDioramaRules, /## Final Artifact Validation/);
@@ -90,7 +91,8 @@ test("private package installs offline and resolves bundled project assets", asy
     assert.equal(installedVisualRequestSchema.title, "Project Visual Storytelling Request");
     assert.equal(installedVisualResultSchema.title, "Project Visual Storytelling Result");
     assert.deepEqual(installedVisualSceneSchema.properties.visualType.enum, ["whiteboard", "diorama"]);
-    assert.deepEqual(installedVisualSceneSchema.properties.renderer.properties.preference.enum, ["auto", "mai-image", "blender-cycles"]);
+    assert.deepEqual(installedVisualSceneSchema.properties.renderer.properties.preference.enum, ["auto", "azure-openai", "mai-image"]);
+    assert.ok(installedVisualSceneSchema.properties.elements.items.required.includes("caption"));
     const verification = JSON.parse(await readFile(path.join(createdProject, "reports", "installation-verification.json"), "utf8"));
     assert.equal(verification.status, "passed");
     assert.equal(verification.checks.frameworkSkills, expectedSkillCount);

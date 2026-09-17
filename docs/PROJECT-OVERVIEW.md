@@ -540,14 +540,14 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `project-memory` | Maintains durable operational preferences while keeping current instructions and evidence authoritative. |
 | `linkedin-post` | Produces an evidence-grounded, profile-aware short-form project post with LinkedIn structure, media-readiness, confidentiality, and public-context checks; publication remains separately approved. |
 | `user-personalization` | Builds and validates one local, Git-ignored profile of user-approved voice, perspective, visual, and safety preferences. |
-| `project-visual-storytelling` | Refreshes Project Understanding and uses the current repository as its sole source for technical Mermaid diagrams, profile-aware whiteboards, and architectural/conceptual dioramas under `artifacts/project-visual-storytelling/<run-id>/`. Technical runs produce request-bound Mermaid, specification, evidence-map, and partial-result artifacts without requiring a profile. Agent-assisted rendering validates the local Visual Storytelling Director; Azure Foundry selection requires fresh Azure Government discovery and saved-context login, while Copilot Studio is a separately approved handoff. Its hybrid image policy can use a discovery-confirmed Azure Government MAI-Image deployment only after explicit external-processing approval; otherwise it uses Blender/Cycles. Automated PNG qualification remains `requires-review`, and unavailable renderers fall back to specification and alt text. |
+| `project-visual-storytelling` | Refreshes Project Understanding and uses the current repository as its sole source for technical Mermaid diagrams, profile-aware whiteboards, and architectural/conceptual dioramas under `artifacts/project-visual-storytelling/<run-id>/`. Its one-shot `create --request` path prioritizes meaningful project capabilities, builds evidence-backed labels and captions, and renders a photographed handcrafted whiteboard or miniature diorama through a qualified Azure Government GPT Image or MAI deployment after current-invocation approval. The packaged Node adapters require no separately installed rendering application. PNGs remain review-required candidates, and unavailable image providers fail clearly without claiming a rendered artifact. |
 | `project-video` | Produces an evidence-grounded browser preview or approved narrated MP4 from a meaningful implemented project. |
 
 ### Azure operations
 
 | Skill | Primary responsibility |
 | --- | --- |
-| `azure-discovery` | Discovers current Azure Commercial or Azure US Government service/model availability and records dated evidence. |
+| `azure-discovery` | Discovers current Azure Commercial or Azure US Government chat, Speech, and image-model availability, image quota certainty, and sanitized existing-deployment evidence. |
 | `azure-cleanup` | Inspects and, after explicit confirmation, removes project-associated Azure resources within a selected scope. |
 
 ## High-Value Workflows

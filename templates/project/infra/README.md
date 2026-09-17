@@ -13,7 +13,7 @@ subscription**. Run it with `-WhatIf` first and read the plan before you trust i
 | --- | --- |
 | `deploy.ps1` | The entry point. Dot-sources the modules below and runs them in order. |
 | `azure-environment.ps1` | Persists nonsecret Azure choices, configures MCP opt-in, and establishes the Azure CLI context. |
-| `discover.ps1` | Library. Probes the region for available services and picks the best OpenAI model. |
+| `discover.ps1` | Library. Probes services, selects chat and image models, checks image quota, and summarizes compatible image deployments. |
 | `deploy-infra.ps1` | Library. Runs `az deployment group create` against `main.bicep`. |
 | `main.bicep` | App Service with a system-assigned identity, Key Vault with RBAC, optional Azure OpenAI. |
 
@@ -42,9 +42,15 @@ remains supported as an alias for `-Gov`.
 The Copilot skill `/azure-discovery` runs the same read-only probe and writes both
 `reports/azure-discovery.json` and the readable `reports/azure-discovery.md`. Use
 `/azure-discovery -Commercial` or `/azure-discovery -Gov` to update the saved cloud.
-The report also records whether the existing Speech-resource query succeeded plus only the count,
-kinds, and regions of compatible accounts. It never stores account names, resource identifiers, or
-keys. `/project-video` requires this evidence to be no older than 14 days before Azure narration.
+The report records whether the existing Speech-resource query succeeded plus only the count, kinds,
+and regions of compatible accounts. It also discovers Azure OpenAI and Microsoft MAI image models,
+prefers generally available `gpt-image-2` over limited-access or preview candidates, checks matching
+regional quota, and summarizes compatible image deployments by count, region, model, and format.
+Account and deployment names are used only transiently for read-only enumeration. The report never
+stores them, resource identifiers, endpoints, subscription or tenant IDs, or keys. Catalog presence
+alone is not deployment readiness: missing quota evidence remains `unknown`, and limited-access or
+preview models require separate acceptance. `/project-video` requires Speech evidence to be no older
+than 14 days before Azure narration.
 
 ## Cleanup
 

@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-15T17:35:51.476Z",
+  "generatedAt": "2026-09-16T19:42:12.914Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "19ea80424a7b54d2d8dc33385060a333e707fc4a917b494b7627f6e526eef0ce",
+    "jsonSha256": "22d3144ccf16b8861fe246af7085ff167de4e3ef2859d127279c58807c1351d7",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "ed7f845f7fe1438c335691230dbc62d38df0a41babe405edeffc235971d11c43"
+    "markdownSha256": "9e0aae8ae010330e5f997d5658f71d5582c21976d7efa186a1332d15d5c7de0a"
   },
   "guide": "docs/PROJECT-GUIDE.md",
-  "guideSha256": "2127398c88f4a65c8ea883b20487fb91b93f210438af54d45b039c8b9f947c5c",
+  "guideSha256": "fa9c26023ebf65cf463998e7151a7daff6d3fc5d11e6c59a110281584e8d5a88",
   "claims": [
     {
       "id": "claim-01-azure",
@@ -52,7 +52,7 @@
       "status": "verified",
       "statement": "Top-level project boundary containing 6 scanned files.",
       "evidence": [
-        "artifacts/project-visual-storytelling/20260914T235648887Z-project-orchestrator-whiteboard-ceece9af-8b79-4951-ac4c-0917481f1223/render-context.json"
+        "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/alt-text.md"
       ]
     },
     {
@@ -86,7 +86,7 @@
       "id": "claim-09-reports",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 87 scanned files.",
+      "statement": "Top-level project boundary containing 89 scanned files.",
       "evidence": [
         "reports/adoption-rerun-evidence.json"
       ]
@@ -131,7 +131,7 @@
       "id": "claim-14-md",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "125 scanned files use this extension.",
+      "statement": "127 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -149,7 +149,7 @@
       "id": "claim-16-mjs",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "39 scanned files use this extension.",
+      "statement": "40 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/agent-builder.mjs"
       ]
@@ -227,12 +227,12 @@
       ]
     },
     {
-      "id": "claim-25-py",
+      "id": "claim-25-mmd",
       "topic": "project-understanding",
       "status": "verified",
       "statement": "1 scanned files use this extension.",
       "evidence": [
-        ".github/skills/project-visual-storytelling/scripts/blender-render.py"
+        "artifacts/project-visual-storytelling/20260915T230651774Z-project-orchestrator-architecture-ec398438-9f94-4e2f-b4c1-7419c279dbfd/diagram.mmd"
       ]
     },
     {

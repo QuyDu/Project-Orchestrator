@@ -23,7 +23,7 @@
       "additionalProperties": false,
       "required": ["class", "name"],
       "properties": {
-        "class": { "enum": ["deterministic-source", "deterministic-vector", "bitmap-generation", "physically-based-3d", "none"] },
+        "class": { "enum": ["deterministic-source", "deterministic-vector", "bitmap-generation", "none"] },
         "name": { "type": "string", "minLength": 1, "maxLength": 120 }
       }
     },

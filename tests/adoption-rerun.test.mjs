@@ -1273,7 +1273,7 @@ test("standalone project update refreshes framework skills without replacing pro
       cwd: root, encoding: "utf8"
     });
     assert.equal(updated.status, 0, updated.stderr);
-    assert.match(await readFile(skillPath, "utf8"), /discover services, regions, models, SKUs/);
+    assert.match(await readFile(skillPath, "utf8"), /discover services, regions, chat and image-generation models, SKUs/);
     assert.equal(await readFile(projectFile, "utf8"), "preserve me\n");
     assert.equal(await readFile(report, "utf8"), "preserve report\n");
   } finally {
@@ -1334,6 +1334,10 @@ test("discovery probes every region rather than only the target region", async (
   assert.match(discover, /function Get-AzureDiscoveryProjectRoot/);
   assert.match(discover, /function Get-AzureCognitiveKindRegion/);
   assert.match(discover, /function Get-AzureSpeechResourceSummary/);
+  assert.match(discover, /function Get-AzureImageModelClassification/);
+  assert.match(discover, /function ConvertTo-AzureImageModelSummary/);
+  assert.match(discover, /function Get-AzureImageQuotaSummary/);
+  assert.match(discover, /function Get-AzureImageDeploymentSummary/);
   assert.match(discover, /function Invoke-AzureDiscovery/);
   // The all-region probe omits --location on purpose; pinning it reports false negatives.
   assert.match(discover, /az cognitiveservices account list-skus --kind \$Kind `\r?\n\s*--query "\[\]\.locations"/);
@@ -1342,6 +1346,13 @@ test("discovery probes every region rather than only the target region", async (
   assert.match(discover, /existingResourceRegions/);
   assert.doesNotMatch(discover, /\.\{name:name,/, "Speech discovery must not persist resource names");
   assert.match(discover, /'gpt-5\.1', 'gpt-4\.1'/, "the model preference ladder is present");
+  assert.match(discover, /\^gpt-image-2/);
+  assert.match(discover, /\^MAI-Image-/);
+  assert.match(discover, /az cognitiveservices usage list --location \$Location/);
+  assert.match(discover, /az cognitiveservices account deployment list --name \$account\.accountName --resource-group \$account\.resourceGroup/);
+  assert.match(discover, /catalogQuerySucceeded\s+=\s+\$imageCatalogQuerySucceeded/);
+  assert.match(discover, /requiresExplicitAcceptance\s+=\s+\[bool\]/);
+  assert.doesNotMatch(discover, /deploymentName|deploymentId|resourceId|endpoint\s+=/, "tracked image discovery must not persist deployment identifiers or endpoints");
 });
 
 test("adoption accepts an explicit stack override", async () => {

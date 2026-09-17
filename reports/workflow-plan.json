@@ -1,53 +1,367 @@
 {
   "schemaVersion": "1.1.0",
-  "workflowId": "WF-P4-CONTINUATION-20260911",
-  "runId": "RUN-P4-PLAN-20260911-01",
-  "intent": "Continue from the current blocked handoff through a candidate-bound P4 release-assurance decision without treating planning as authorization to commit, push, sign, publish, deploy, or release.",
+  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
+  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+  "intent": "Implement, only after explicit phase approval, a provenance-backed and non-destructive Project Orchestrator update system covering Git-native Launch Pad guidance and additive, safe-all, and selective updates for generated projects without committing, pushing, publishing, deploying, or mutating external systems.",
   "status": "planned",
-  "createdAt": "2026-09-11T11:13:13.000Z",
-  "terminalStepId": "STEP-017",
+  "createdAt": "2026-09-17T15:26:19.668Z",
+  "terminalStepId": "STEP-014",
   "steps": [
     {
       "id": "STEP-001",
-      "owner": { "type": "skill", "id": "workflow-recovery" },
-      "action": "Reconstruct the P4 execution timeline and determine the safe recovery route from the stale checkpoint to the current revision.",
+      "owner": { "type": "skill", "id": "skill-dependency-manager" },
+      "action": "Map managed update assets, ownership scopes, skill dependency closure, generated companions, and affected consumers before changing update contracts.",
       "status": "ready",
       "inputs": [
-        "reports/current-execution-state.json",
-        "reports/execution-log.jsonl",
-        "reports/audit-remediation-execution.json",
-        "reports/project-handoff.json",
-        "reports/audit-remediation-plans/040dad9a30d0f52ebda13c232d1885abbd9ee27b6dcbbeeab3174b1c60de65e7.json",
-        "Current Git revision and worktree evidence"
+        "reports/skill-inventory.json",
+        "reports/artifact-ownership.json",
+        ".github/skills/*/SKILL.md",
+        "config/profiles.yaml",
+        "templates/scaffold-manifest.json",
+        "pso.mjs update, adoption, creation, verification, and transaction paths"
       ],
       "outputs": [
-        "reports/recovery-plan.json",
-        "reports/recovery-plan.md"
+        "reports/skill-dependency-graph.json",
+        "reports/skill-dependency-report.md",
+        "Dependency-closed capability bundle and managed-asset impact map"
       ],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": [],
       "completionCriteria": [
-        "The last valid checkpoint and all intervening repository changes are identified.",
-        "The recovery result selects restart, resume, or replan and states deterministic stop conditions.",
-        "No stale checkpoint is represented as directly resumable without compatibility evidence."
+        "Every framework skill has a deterministic transitive dependency closure and generated help companion.",
+        "Whole-file, directory, generated-file, and managed-region ownership scopes are distinguished from project-owned paths.",
+        "Affected creation, adoption, update, verification, profile, schema, and report consumers are identified with no unresolved cycle or missing owner."
       ],
-      "checkpoint": "CP-P4-RECOVERY-DECISION",
-      "rollback": "No rollback is required because recovery analysis is read-only.",
-      "recovery": "If event or checkpoint evidence is inconsistent, keep P4 blocked and repair continuity evidence before proceeding.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
+      "checkpoint": "CP-UPDATE-DEPENDENCY-MAP",
+      "rollback": "No rollback is required because this step is read-only analysis; preserve the prior valid dependency reports if regeneration fails.",
+      "recovery": "Correct incomplete inventory or ownership evidence and rerun the same dependency analysis before migration planning.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
     },
     {
       "id": "STEP-002",
-      "owner": { "type": "skill", "id": "change-review" },
-      "action": "Review the bounded continuity, clarification, workflow-plan, and validation-generated report changes before defining a candidate revision.",
+      "owner": { "type": "skill", "id": "artifact-upgrade" },
+      "action": "Define the versioned manifest, baseline lock, update-plan, selection, compatibility, migration, and rollback contracts for safe three-way updates.",
       "status": "planned",
       "inputs": [
-        "STEP-001 recovery decision",
-        "Current working-tree diff",
-        "reports/clarification-result.json",
-        "reports/workflow-plan.json"
+        "STEP-001 dependency and ownership map",
+        "Current project-orchestrator.json schema 1.0 shape",
+        "Current adoption plan and verification report shapes",
+        "Current transaction journal and backup behavior"
+      ],
+      "outputs": [
+        "reports/artifact-upgrade-plan.json",
+        "reports/artifact-upgrade-report.md",
+        "Manifest and lock compatibility matrix",
+        "Forward migration and rollback specification"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-001"],
+      "completionCriteria": [
+        "The design records normalized per-file SHA-256 baselines, source framework identity, ownership scope, and track, pin, or fork policy without absolute source paths or secrets.",
+        "The three-way classifier covers unchanged, upstream-only, local-only, converged, diverged, added, deleted, and legacy-unknown states.",
+        "Schema 1.0 consumers remain readable while schema 1.1 manifest and lock creation, adoption, update, downgrade, backup, and rollback behavior is explicit.",
+        "Legacy projects with no lock bootstrap only byte-equivalent assets and preserve every differing asset as unknown or customized pending an explicit decision."
+      ],
+      "checkpoint": "CP-UPDATE-MIGRATION-DESIGNED",
+      "rollback": "Reject the candidate migration design and preserve schema 1.0 behavior and reports.",
+      "recovery": "Resolve any consumer, compatibility, or rollback gap and regenerate the migration plan before approval.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-003",
+      "owner": { "type": "operator", "id": "product-owner" },
+      "action": "Review and explicitly approve the exact local implementation phase, public CLI compatibility rules, contract changes, and bounded file list.",
+      "status": "planned",
+      "inputs": [
+        "STEP-001 dependency and ownership map",
+        "STEP-002 migration and rollback specification",
+        "Proposed implementation files and public CLI examples"
+      ],
+      "outputs": [
+        "Explicit implementation phase approval",
+        "Approved CLI, schema, test, and documentation boundary"
+      ],
+      "requiresApproval": true,
+      "approvalClasses": ["phase"],
+      "prerequisites": ["STEP-002"],
+      "completionCriteria": [
+        "Approval names the exact implementation boundary and confirms that bare pso update means safe all-mode, never force replacement.",
+        "Approval confirms additive, all, and select behavior plus track, pin, fork, keep, replace, and exact-asset force semantics.",
+        "Commit, push, publication, deployment, release, remote fetch, and external mutation remain separately prohibited."
+      ],
+      "checkpoint": "CP-UPDATE-IMPLEMENTATION-APPROVED",
+      "rollback": "Withdraw approval before implementation starts; no source artifacts are changed by this gate.",
+      "recovery": "Record rejected or narrowed requirements in a new clarification and workflow-plan lineage rather than inferring approval.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-004",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Implement baseline provenance capture and the pure three-way asset classifier through focused red-green tests.",
+      "status": "planned",
+      "inputs": [
+        "STEP-003 approved implementation boundary",
+        "STEP-002 manifest and lock contracts",
+        "tests/adoption-rerun.test.mjs neighboring creation and adoption fixtures"
+      ],
+      "outputs": [
+        "Failing then passing provenance and classifier tests",
+        "Versioned project manifest and baseline lock schemas",
+        "Creation and adoption baseline capture",
+        "Pure managed-asset classification implementation",
+        "reports/regression-test-result.json",
+        "reports/regression-test-result.md"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-003"],
+      "completionCriteria": [
+        "Creation and adoption record canonical normalized-text hashes for every managed file and file within a managed directory.",
+        "Line-ending normalization prevents false local modifications across supported Windows and Unix checkouts.",
+        "The complete base, local, and upstream state matrix is covered by behavior-level tests, including local or upstream deletion and equal convergence.",
+        "Project-owned files and untracked local skills never enter the managed lock implicitly."
+      ],
+      "checkpoint": "CP-UPDATE-PROVENANCE-GREEN",
+      "rollback": "Restore the schema 1.0 manifest writer and remove only the newly introduced lock, schemas, classifier, and focused tests from this slice.",
+      "recovery": "Keep the correctly failing test, record the implementation blocker, and route through terminal handoff if the baseline contract cannot be made deterministic.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-005",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Split update planning from adoption and implement additive, safe-all, and selective plans with deterministic dependency closure and automation-safe selection input.",
+      "status": "planned",
+      "inputs": [
+        "STEP-004 provenance and classifier implementation",
+        "STEP-001 capability dependency map",
+        "Current buildAdoptionPlan and updateProject behavior"
+      ],
+      "outputs": [
+        "Failing then passing update-mode tests",
+        "Versioned project update-plan and selection schemas",
+        "Dedicated update plan builder and reports",
+        "Interactive selection and equivalent noninteractive CLI inputs"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-004"],
+      "completionCriteria": [
+        "An unqualified pso update resolves to mode all and dry-run remains mutation-free.",
+        "Additive mode installs only absent upstream capability bundles, their missing transitive skill dependencies, generated help, and absent required schemas without overwriting existing content.",
+        "Select mode accepts skills and exact asset selectors interactively on a TTY and through a versioned selection file in noninteractive runs; empty noninteractive selection fails closed.",
+        "All-mode plans every applicable tracked asset but sets canApply false while any conflict or required compatibility decision remains unresolved.",
+        "Portable JSON reports omit source-machine absolute paths and embedded file content."
+      ],
+      "checkpoint": "CP-UPDATE-MODES-GREEN",
+      "rollback": "Remove the dedicated update planner and retain the existing adoption planner; preserve the passing provenance slice for independent review.",
+      "recovery": "Reduce the failing mode to one classifier or closure case, repair that behavior, and rerun the same focused suite before continuing.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-006",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Implement track, pin, and fork policy plus explicit keep, replace, fork, and exact-asset force conflict resolutions without silent local-data loss.",
+      "status": "planned",
+      "inputs": [
+        "STEP-005 dedicated update plans",
+        "STEP-002 policy and compatibility rules",
+        "skill-update exact-target and approval requirements for skill forks"
+      ],
+      "outputs": [
+        "Failing then passing policy and conflict-resolution tests",
+        "Policy persistence in the baseline lock",
+        "Validated conflict-resolution file support",
+        "Skill fork and exact-asset replacement plan actions"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-005"],
+      "completionCriteria": [
+        "Track is the default only for framework-installed assets; pin preserves the installed baseline and reports available upstream changes.",
+        "Fork requires an exact new project-owned skill ID and preserves the local package before restoring the canonical tracked framework skill and regenerating affected help or references.",
+        "Keep records an explicit pin or project-owned disposition rather than pretending the local content equals upstream.",
+        "Replace and force replacement require exact asset selectors, fresh destination-state preconditions, risk acceptance, and backup; no force-all shortcut exists.",
+        "Unresolved or invalid resolutions leave the plan non-applicable and make no project mutation."
+      ],
+      "checkpoint": "CP-UPDATE-POLICIES-GREEN",
+      "rollback": "Restore the pre-resolution lock and every backed-up selected asset; never remove a successfully preserved project-owned fork during rollback.",
+      "recovery": "Discard only the invalid resolution plan, retain local files unchanged, and require a newly generated plan with exact selectors.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-007",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Integrate safe update application with locks, stale-plan checks, transaction journaling, backups, rollback, verification, and dedicated update evidence.",
+      "status": "planned",
+      "inputs": [
+        "STEP-006 resolved update actions",
+        "Current prepareAdoptionTransaction, applyAdoptionLocked, rollbackAdoptionTransaction, and verifyInstallation behavior",
+        "Current interruption and unsafe-path fixtures"
+      ],
+      "outputs": [
+        "Failing then passing transactional update tests",
+        "Atomic update apply and rollback implementation",
+        "reports/project-update-plan.json",
+        "reports/project-update-plan.md",
+        "reports/update-verification.json"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-006"],
+      "completionCriteria": [
+        "No action is written when the plan is stale, unresolved, outside the managed root, or inconsistent with its recorded base and destination hashes.",
+        "The transaction snapshots the manifest, lock, selected managed assets, generated companions, and update reports before the first write.",
+        "Interruption or verification failure restores pre-update content and policy state and leaves a recoverable terminal journal.",
+        "Verification evaluates selected dependency closure, pins, forks, profile conformance, manifest-lock consistency, and absence of legacy IDs without requiring every pinned asset to equal current upstream.",
+        "Adoption reports retain adoption semantics while updates emit dedicated update plan and verification evidence."
+      ],
+      "checkpoint": "CP-UPDATE-TRANSACTION-GREEN",
+      "rollback": "Use the existing journaled reverse-order restore path extended to the manifest, lock, generated companions, update reports, and every selected asset.",
+      "recovery": "Run the existing recovery command against the terminal transaction journal before generating any new update plan.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-008",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Implement conservative legacy bootstrap, upstream removal handling, and backward-compatible CLI diagnostics through red-green migration and fuzz tests.",
+      "status": "planned",
+      "inputs": [
+        "STEP-007 transactional updater",
+        "Schema 1.0 generated-project fixtures",
+        "Legacy skill ID and duplicate-command fixtures",
+        "tests/security-fuzz.test.mjs"
+      ],
+      "outputs": [
+        "Failing then passing legacy migration tests",
+        "Failing then passing selector, path, symlink, and malformed-lock fuzz tests",
+        "Conservative lock bootstrap implementation",
+        "Upstream deprecation and removal decision actions"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-007"],
+      "completionCriteria": [
+        "A legacy asset equal to current upstream can be adopted as the current baseline without a content write.",
+        "A legacy asset differing from current upstream is marked legacy-unknown and preserved until keep, replace, or fork is explicitly selected.",
+        "Upstream deletion or retirement never deletes a local asset by default and requires an exact reviewed removal action with backup.",
+        "Malformed locks, traversal selectors, symlink escapes, duplicate identities, and stale selection files fail closed.",
+        "Existing dry-run, JSON, risk-acceptance, and force-templates command behavior remains compatible outside the new update options."
+      ],
+      "checkpoint": "CP-UPDATE-LEGACY-GREEN",
+      "rollback": "Restore the pre-bootstrap manifest and omit the new lock when migration cannot complete; all legacy content remains in place.",
+      "recovery": "Emit a blocked migration report naming each unknown asset and the exact non-destructive operator choices available.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-009",
+      "owner": { "type": "skill", "id": "artifact-upgrade" },
+      "action": "Validate the implemented artifact migration, compatibility matrix, forward cutover, downgrade behavior, backup completeness, and rollback evidence.",
+      "status": "planned",
+      "inputs": [
+        "STEP-008 passing migration and fuzz evidence",
+        "Implemented schemas, manifest writer, lock writer, and update reports",
+        "Schema 1.0 and 1.1 project fixtures"
+      ],
+      "outputs": [
+        "Updated reports/artifact-upgrade-plan.json",
+        "Updated reports/artifact-upgrade-report.md",
+        "Validated forward and rollback evidence"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-008"],
+      "completionCriteria": [
+        "Every supported producer and consumer combination is passed, blocked, or unsupported with deterministic evidence.",
+        "Forward migration and rollback restore tests pass for clean, customized, pinned, forked, interrupted, and legacy-unknown fixtures.",
+        "No cutover-ready conclusion is issued if a baseline, compatibility, backup, or restore gap remains."
+      ],
+      "checkpoint": "CP-UPDATE-MIGRATION-VALIDATED",
+      "rollback": "Reject the migration candidate and preserve the last valid implementation checkpoint without changing external projects.",
+      "recovery": "Return to the first failing red-green slice and repeat migration validation after repair.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-010",
+      "owner": { "type": "skill", "id": "skill-dependency-manager" },
+      "action": "Recompute skill and artifact dependency closure against the implemented catalog, profiles, generated companions, pins, and fork rules.",
+      "status": "planned",
+      "inputs": [
+        "STEP-009 validated migration candidate",
+        "Updated scaffold manifest and schemas",
+        "All skill contracts and conformance profiles"
+      ],
+      "outputs": [
+        "Updated reports/skill-dependency-graph.json",
+        "Updated reports/skill-dependency-report.md",
+        "Final dependency-closure evidence"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-009"],
+      "completionCriteria": [
+        "Additive and selective bundles are dependency-closed for every conformance profile.",
+        "Pins or forks that would violate a required dependency or profile produce a blocking compatibility result.",
+        "No cycle, missing skill, ambiguous owner, or orphaned generated companion remains."
+      ],
+      "checkpoint": "CP-UPDATE-CLOSURE-VALIDATED",
+      "rollback": "Preserve the prior valid graph and keep the implementation blocked from candidate preparation.",
+      "recovery": "Repair the catalog, profile, or dependency declaration responsible for the inconsistency and rerun this step.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-011",
+      "owner": { "type": "skill", "id": "documentation-builder" },
+      "action": "Document generated-project update modes and policies plus a Git-native, validation-first Launch Pad update procedure that never hides merge semantics.",
+      "status": "planned",
+      "inputs": [
+        "STEP-010 validated commands, contracts, and closure rules",
+        "README.md",
+        "STANDALONE-WINDOWS.md",
+        "docs/PROJECT-OVERVIEW.md",
+        "docs/PROJECT-ARCHITECTURE.md",
+        "docs/PROJECT-GUIDE.md"
+      ],
+      "outputs": [
+        "Updated operator-facing update documentation",
+        "Launch Pad Git fetch, inspect, integrate, validate, and rollback procedure",
+        "Generated-project additive, all, select, pin, fork, resolution, migration, and recovery examples"
+      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-010"],
+      "completionCriteria": [
+        "Launch Pad guidance keeps Git authoritative, requires an explicit external action before fetch, and never performs merge, reset, commit, push, or release implicitly.",
+        "Generated-project examples show dry-run first, safe-all compatibility, additive dependency closure, interactive and noninteractive selection, and exact conflict resolution.",
+        "Documentation states that legacy-unknown assets are preserved, update-all is not force-all, and recovery must complete before replanning after interruption.",
+        "Commands and report names exactly match current executable behavior."
+      ],
+      "checkpoint": "CP-UPDATE-DOCS-CURRENT",
+      "rollback": "Restore the prior documentation views if implementation commands or contracts are withdrawn.",
+      "recovery": "Correct mismatched examples from verified CLI output and rerun documentation validation.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
+    },
+    {
+      "id": "STEP-012",
+      "owner": { "type": "skill", "id": "change-review" },
+      "action": "Review the bounded update-system diff for data loss, compatibility regressions, unsafe selectors, incomplete dependency closure, migration gaps, and missing tests.",
+      "status": "planned",
+      "inputs": [
+        "STEP-011 documented implementation",
+        "Complete bounded working-tree diff",
+        "Focused red-green, migration, dependency, fuzz, and repository validation evidence"
       ],
       "outputs": [
         "reports/change-review.json",
@@ -55,459 +369,56 @@
       ],
       "requiresApproval": false,
       "approvalClasses": [],
-      "prerequisites": [
-        "STEP-001"
-      ],
+      "prerequisites": ["STEP-011"],
       "completionCriteria": [
-        "The exact diff boundary is recorded.",
-        "No unresolved high- or critical-severity finding remains in the candidate-preparation boundary.",
-        "Validation gaps and generated-report churn are explicit."
+        "No unresolved critical or high-severity defect or local-data-loss path remains.",
+        "Every changed contract surface has corresponding tests and documentation.",
+        "The review distinguishes the known unrelated audit-checkpoint failure from update-system regressions and records all residual risk."
       ],
-      "checkpoint": "CP-P4-CHANGE-REVIEW",
-      "rollback": "No source rollback is performed by this read-only review.",
-      "recovery": "Resolve confirmed findings, rerun focused validation, and repeat the same bounded review.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-003",
-      "owner": { "type": "skill", "id": "prepare-commit" },
-      "action": "Prepare a minimal candidate-freeze boundary and pre-commit checklist without committing or pushing.",
-      "status": "planned",
-      "inputs": [
-        "Passing STEP-002 change review",
-        "Current repository validation evidence",
-        "Current working-tree path inventory"
-      ],
-      "outputs": [
-        "Reviewed path boundary",
-        "Commit summary",
-        "Pre-commit checklist and blockers"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-002"
-      ],
-      "completionCriteria": [
-        "Every proposed path maps to the continuation objective.",
-        "The repository gate is current for the proposed boundary.",
-        "Commit and push remain unperformed and separately approval-gated."
-      ],
-      "checkpoint": "CP-P4-CANDIDATE-PREPARED",
-      "rollback": "Discard only newly generated candidate-preparation artifacts if preparation fails; preserve user-owned changes.",
-      "recovery": "Return to STEP-002 when the proposed boundary or validation evidence changes.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-004",
-      "owner": { "type": "operator", "id": "release-owner" },
-      "action": "Obtain explicit commit and push approval, then coordinate creation of one clean immutable candidate revision and record its exact commit SHA.",
-      "status": "planned",
-      "inputs": [
-        "STEP-003 pre-commit checklist",
-        "Explicit user approval for the exact commit and push boundary"
-      ],
-      "outputs": [
-        "Exact candidate commit SHA",
-        "Clean worktree evidence",
-        "Configured remote branch evidence"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": ["commit", "push"],
-      "prerequisites": [
-        "STEP-003"
-      ],
-      "completionCriteria": [
-        "The candidate revision is committed without force or history rewrite.",
-        "The approved branch update succeeds and the worktree is clean.",
-        "No approval is reused for later commits or pushes."
-      ],
-      "checkpoint": "CP-P4-CANDIDATE-FROZEN",
-      "rollback": "Do not rewrite published history; supersede a defective candidate with a separately approved corrective revision.",
-      "recovery": "On commit or push failure, stop and revalidate the boundary before requesting new approval.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-005",
-      "owner": { "type": "skill", "id": "audit-code" },
-      "action": "Audit the exact frozen candidate and determine whether AUD-0205 or any new blocking finding remains reproducible.",
-      "status": "planned",
-      "inputs": [
-        "STEP-004 exact candidate commit SHA",
-        "Clean candidate checkout",
-        "Current repository instructions and audit schemas"
-      ],
-      "outputs": [
-        "reports/code-audit-findings.json",
-        "reports/gitleaks-scan.json"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Audit evidence is bound to the exact candidate revision.",
-        "AUD-0205 and any new findings have explicit status and evidence.",
-        "The findings report passes deterministic validation."
-      ],
-      "checkpoint": "CP-P4-CANDIDATE-AUDITED",
-      "rollback": "No rollback is required for read-only audit outputs.",
-      "recovery": "If the audit cannot establish current assurance, keep P4 blocked and correct the evidence gap before review.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-006",
-      "owner": { "type": "skill", "id": "audit-review-findings" },
-      "action": "Review current candidate findings without weakening IDs, severity, confidence, evidence, or limitations.",
-      "status": "planned",
-      "inputs": [
-        "reports/code-audit-findings.json",
-        "Exact candidate commit SHA"
-      ],
-      "outputs": [
-        "reports/code-audit-review.json",
-        "reports/code-audit-review.md"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-005"
-      ],
-      "completionCriteria": [
-        "Every finding remains traceable to candidate-bound evidence.",
-        "Confirmed findings and limitations are suitable for remediation planning.",
-        "Automated review is not represented as the required distinct qualified human review."
-      ],
-      "checkpoint": "CP-P4-FINDINGS-REVIEWED",
-      "rollback": "Preserve the prior review if the new review fails validation.",
-      "recovery": "Return to STEP-005 if findings lack reproducible evidence.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-007",
-      "owner": { "type": "skill", "id": "audit-plan-remediation" },
-      "action": "Create a current candidate-bound P4 remediation plan for every confirmed release-assurance gap.",
-      "status": "planned",
-      "inputs": [
-        "reports/code-audit-review.json",
-        "STEP-001 recovery decision",
-        "Exact candidate commit SHA"
-      ],
-      "outputs": [
-        "reports/audit-remediation-plan.json",
-        "reports/audit-remediation-plan.md"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-006"
-      ],
-      "completionCriteria": [
-        "The plan includes signing, independent review, artifact health, revocation, and production verification when still unresolved.",
-        "Dependencies are acyclic and ownership is explicit.",
-        "The plan passes schema and deterministic validation."
-      ],
-      "checkpoint": "CP-P4-REMEDIATION-REPLANNED",
-      "rollback": "Do not alter immutable prior snapshots; reject and replace only the mutable current-plan view.",
-      "recovery": "Return to STEP-006 when the review cannot support an executable remediation plan.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-008",
-      "owner": { "type": "skill", "id": "architecture-review" },
-      "action": "Refresh architecture assurance for the exact candidate, including operational ownership, artifact distribution, health, and revocation design.",
-      "status": "planned",
-      "inputs": [
-        "Exact candidate commit SHA",
-        "Current release architecture and operational evidence"
-      ],
-      "outputs": [
-        "reports/architecture-review.json",
-        "reports/architecture-review.md"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-007"
-      ],
-      "completionCriteria": [
-        "Architecture evidence is current and candidate-bound.",
-        "Operational ownership, health signals, and revocation routes are passed or explicitly blocked.",
-        "Unknown external controls fail closed."
-      ],
-      "checkpoint": "CP-P4-ARCHITECTURE-REVIEWED",
-      "rollback": "Preserve the last valid review if refresh fails.",
-      "recovery": "Keep P4 blocked and assign missing operational controls before repeating the review.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-009",
-      "owner": { "type": "skill", "id": "security-review" },
-      "action": "Refresh security assurance for the exact candidate and signing, artifact, identity, and revocation trust boundaries.",
-      "status": "planned",
-      "inputs": [
-        "Exact candidate commit SHA",
-        "Current signing, provenance, artifact, and access-control evidence"
-      ],
-      "outputs": [
-        "reports/security-review.json",
-        "reports/security-review.md"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-008"
-      ],
-      "completionCriteria": [
-        "Security evidence is current and candidate-bound.",
-        "Signer separation, reviewer independence, artifact access, and revocation controls are passed or blocked.",
-        "No secret values are recorded in reports."
-      ],
-      "checkpoint": "CP-P4-SECURITY-REVIEWED",
-      "rollback": "Preserve the last valid review if refresh fails.",
-      "recovery": "Keep P4 blocked until missing identity or trust evidence is supplied and independently reviewable.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-010",
-      "owner": { "type": "skill", "id": "deployment-review" },
-      "action": "Evaluate candidate readiness for the named restricted internal environment without deploying or promoting it.",
-      "status": "planned",
-      "inputs": [
-        "Exact candidate commit SHA",
-        "reports/architecture-review.json",
-        "reports/security-review.json",
-        "Named restricted internal artifact destination",
-        "Installation-health and rollback design"
-      ],
-      "outputs": [
-        "reports/deployment-review.json",
-        "reports/deployment-review.md"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-008",
-        "STEP-009",
-        "STEP-013"
-      ],
-      "completionCriteria": [
-        "Every readiness gate is passed, failed, or not applicable with evidence.",
-        "Installation verification and rollback triggers are observable and time-bounded.",
-        "The review remains blocked when the target environment or rollback route is unknown."
-      ],
-      "checkpoint": "CP-P4-DEPLOYMENT-REVIEWED",
-      "rollback": "No deployment occurs in this step.",
-      "recovery": "Supply missing target, health, or rollback evidence and rerun the read-only review.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-011",
-      "owner": { "type": "operator", "id": "governance-owner" },
-      "action": "Assign a distinct qualified reviewer who did not author or sign the candidate and record the review scope.",
-      "status": "planned",
-      "inputs": [
-        "Exact candidate commit SHA",
-        "Reviewer qualification and independence evidence"
-      ],
-      "outputs": [
-        "Named independent reviewer",
-        "Candidate-bound review scope"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": ["privileged"],
-      "prerequisites": [
-        "STEP-007"
-      ],
-      "completionCriteria": [
-        "The reviewer is distinct from the candidate author and signer.",
-        "Qualifications and exact candidate review scope are recorded without sensitive data.",
-        "Assignment approval is current and scoped to this candidate."
-      ],
-      "checkpoint": "CP-P4-REVIEWER-ASSIGNED",
-      "rollback": "Withdraw the assignment without altering prior review evidence.",
-      "recovery": "Keep P4 blocked and nominate a different qualified reviewer.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-012",
-      "owner": { "type": "operator", "id": "security-owner" },
-      "action": "Assign a controlled signing identity and independently pinned trust anchor for the exact candidate.",
-      "status": "planned",
-      "inputs": [
-        "Exact candidate commit SHA",
-        "Signing custody and trust-anchor policy"
-      ],
-      "outputs": [
-        "Controlled signer identity reference",
-        "Pinned external trust-anchor reference"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": ["privileged", "signing"],
-      "prerequisites": [
-        "STEP-007"
-      ],
-      "completionCriteria": [
-        "Signer custody is separate from independent review.",
-        "The trust anchor can be independently pinned and verified.",
-        "No private key or credential value is recorded in project evidence."
-      ],
-      "checkpoint": "CP-P4-SIGNER-ASSIGNED",
-      "rollback": "Remove the candidate assignment without deleting historical identity evidence.",
-      "recovery": "Keep P4 blocked and assign a compliant controlled signer and trust anchor.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
+      "checkpoint": "CP-UPDATE-CHANGE-REVIEWED",
+      "rollback": "No source rollback is performed by this read-only review; preserve prior review evidence if regeneration fails.",
+      "recovery": "Return to the owning red-green or documentation step for each confirmed finding and repeat the bounded review.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
     },
     {
       "id": "STEP-013",
-      "owner": { "type": "operator", "id": "release-owner" },
-      "action": "Assign a restricted internal artifact destination and define installation-health and revocation acceptance criteria.",
+      "owner": { "type": "skill", "id": "prepare-commit" },
+      "action": "Prepare a minimal validated candidate boundary and commit summary without committing, pushing, publishing, deploying, or releasing.",
       "status": "planned",
       "inputs": [
-        "Exact candidate commit SHA",
-        "Internal distribution policy",
-        "Operational health and revocation requirements"
+        "STEP-012 passing bounded change review",
+        "Current focused and full repository validation evidence",
+        "Exact update-system path inventory"
       ],
       "outputs": [
-        "Named restricted artifact destination and owner",
-        "Installation-health success and failure thresholds",
-        "Revocation test procedure and verification criteria"
+        "Reviewed candidate path boundary",
+        "Commit summary",
+        "Pre-commit checklist and remaining blockers"
       ],
-      "requiresApproval": true,
-      "approvalClasses": ["external", "privileged", "publication"],
-      "prerequisites": [
-        "STEP-007"
-      ],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-012"],
       "completionCriteria": [
-        "The destination is restricted to authorized internal use and has a named owner.",
-        "Health signals and stop thresholds are observable.",
-        "Revocation initiation, propagation, and verification steps are testable."
+        "Every proposed path maps to the approved update-system objective and unrelated generated churn is excluded.",
+        "Focused tests and npm run check are current, with any unrelated baseline failure explicitly isolated and not waived.",
+        "No commit, push, publication, deployment, release, or external mutation has occurred."
       ],
-      "checkpoint": "CP-P4-ARTIFACT-CONTROLS-ASSIGNED",
-      "rollback": "Withdraw the destination from candidate use and preserve prior evidence.",
-      "recovery": "Keep P4 blocked until a restricted destination and testable controls are approved.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
+      "checkpoint": "CP-UPDATE-CANDIDATE-PREPARED",
+      "rollback": "Discard only newly generated candidate-preparation artifacts; preserve implementation and user-owned changes for review.",
+      "recovery": "Return to STEP-012 whenever the path boundary, implementation, or validation evidence changes.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
     },
     {
       "id": "STEP-014",
-      "owner": { "type": "skill", "id": "policy-engine" },
-      "action": "Evaluate the exact P4 execution request and enumerate phase, external, privileged, signing, publication, revocation, commit, push, and release approvals.",
-      "status": "planned",
-      "inputs": [
-        "Current candidate-bound remediation plan",
-        "Current architecture, security, and deployment reviews",
-        "Named reviewer, signer, artifact owner, and release owner",
-        "Proposed action scopes and mutation levels"
-      ],
-      "outputs": [
-        "reports/policy-evaluation.json",
-        "reports/policy-evaluation.md",
-        "reports/policy-decision-log.jsonl"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-010",
-        "STEP-011",
-        "STEP-012",
-        "STEP-013"
-      ],
-      "completionCriteria": [
-        "Every proposed action has an allow, deny, or require-approval decision with rule trace.",
-        "Missing context produces a blocked or denied decision.",
-        "Policy output is not treated as user approval."
-      ],
-      "checkpoint": "CP-P4-POLICY-EVALUATED",
-      "rollback": "Policy evaluation is read-only; append-only decision records are never rewritten.",
-      "recovery": "Correct incomplete action attributes or controls and issue a new policy evaluation.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-015",
-      "owner": { "type": "skill", "id": "audit-remediation" },
-      "action": "Snapshot the validated plan, then execute the separately approved P4 phase against the exact candidate and record terminal evidence.",
-      "status": "planned",
-      "inputs": [
-        "Validated current remediation plan",
-        "STEP-014 policy evaluation",
-        "Explicit P4 phase approval",
-        "Separate point-of-action approvals for external, privileged, signing, publication, revocation, commit, push, or release actions"
-      ],
-      "outputs": [
-        "Immutable content-addressed remediation-plan snapshot",
-        "reports/audit-remediation-execution.json",
-        "reports/audit-remediation-execution.md",
-        "Candidate-bound checksums, SBOM, provenance, signature, review, CI, health, revocation, and production-verification evidence"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": ["phase", "external", "privileged", "signing", "publication", "release"],
-      "prerequisites": [
-        "STEP-014"
-      ],
-      "completionCriteria": [
-        "The execution binds its immutable plan snapshot before mutation.",
-        "All P4 acceptance criteria pass for the same commit and candidate digest.",
-        "Any denied, failed, stale, or missing control leaves P4 blocked."
-      ],
-      "checkpoint": "CP-P4-EXECUTION-TERMINAL",
-      "rollback": "Reinstate blockers, stop distribution, and invoke the tested revocation route when candidate or trust evidence becomes invalid.",
-      "recovery": "Checkpoint partial outcomes, publish terminal handoff, and resume only after workflow-recovery verifies side effects and approvals.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-016",
-      "owner": { "type": "skill", "id": "audit-code" },
-      "action": "Re-audit the exact candidate and verify whether AUD-0205 can be closed from current evidence.",
-      "status": "planned",
-      "inputs": [
-        "STEP-015 completed execution evidence",
-        "Exact candidate commit SHA and digest",
-        "All P4 assurance artifacts"
-      ],
-      "outputs": [
-        "reports/code-audit-findings.json",
-        "reports/gitleaks-scan.json",
-        "AUD-0205 verification result"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
-      "prerequisites": [
-        "STEP-015"
-      ],
-      "completionCriteria": [
-        "AUD-0205 closes only if it is no longer reproducible and every acceptance criterion passes.",
-        "Stale, missing, or mismatched evidence preserves the finding and blocked status.",
-        "The final audit report passes deterministic validation."
-      ],
-      "checkpoint": "CP-P4-CLOSURE-VERIFIED",
-      "rollback": "Reopen AUD-0205 if later evidence invalidates closure.",
-      "recovery": "Return to the failed P4 control through a new reviewed remediation plan rather than editing historical evidence.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
-    },
-    {
-      "id": "STEP-017",
       "owner": { "type": "skill", "id": "project-handoff" },
-      "action": "Publish synchronized terminal continuity for completed, blocked, failed, deferred, and pending work with one next action.",
+      "action": "Publish terminal continuity for completed, blocked, failed, or approval-waiting update-system work with one exact next action.",
       "status": "planned",
       "inputs": [
-        "Latest completed, blocked, or failed workflow outcome",
-        "Latest valid checkpoint",
-        "Current worktree and candidate evidence"
+        "Latest valid workflow checkpoint",
+        "STEP-013 candidate preparation when reached",
+        "Any blocker, failure, rejected approval, or residual-risk evidence"
       ],
       "outputs": [
         "reports/project-handoff.json",
@@ -516,17 +427,17 @@
       ],
       "requiresApproval": false,
       "approvalClasses": [],
-      "prerequisites": [],
+      "prerequisites": ["STEP-013"],
       "completionCriteria": [
-        "Completed actions are removed from the active resume path.",
-        "Blocked, failed, deferred, and pending work remains explicit.",
-        "The handoff identifies exactly one next eligible action and does not reuse consumed approvals."
+        "The handoff records completed, pending, blocked, and failed work without treating planning or phase approval as commit, push, release, or deployment approval.",
+        "The latest validation, migration, rollback, and local-change preservation evidence is traceable.",
+        "Exactly one next eligible action is identified and the unrelated P4 lineage remains historical rather than silently completed or cancelled."
       ],
-      "checkpoint": "CP-P4-HANDOFF-PUBLISHED",
-      "rollback": "Preserve the previous valid handoff if synchronized publication fails.",
-      "recovery": "Regenerate all three continuity artifacts from the same latest valid checkpoint.",
-      "onBlocked": "STEP-017",
-      "onFailed": "STEP-017"
+      "checkpoint": "CP-UPDATE-HANDOFF-PUBLISHED",
+      "rollback": "Preserve the last valid handoff and regenerate only the mutable continuity views from accepted evidence.",
+      "recovery": "Rebuild synchronized continuity from the latest valid checkpoint and append-only event history.",
+      "onBlocked": "STEP-014",
+      "onFailed": "STEP-014"
     }
   ]
 }

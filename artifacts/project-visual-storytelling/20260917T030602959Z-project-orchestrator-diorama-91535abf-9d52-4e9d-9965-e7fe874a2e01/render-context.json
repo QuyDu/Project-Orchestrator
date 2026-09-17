@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "ready",
+  "generatedAt": "2026-09-17T03:06:02.959Z",
+  "outputType": "diorama",
+  "visualStyle": "diorama",
+  "visualTreatment": "architectural",
+  "source": {
+    "kind": "current-project",
+    "topic": "Project Orchestrator",
+    "projectUnderstandingJson": "reports/project-understanding.json",
+    "projectUnderstandingMarkdown": "reports/project-understanding.md",
+    "generatedAt": "2026-09-17T03:06:02.909Z",
+    "repositoryDigestSha256": "81907583cf1efddd5475b0c66eae12c8345415510713700b7bebfdb4da80b296",
+    "jsonSha256": "831b7845cd2c6e8e4259217b40920deb2db733b3cf5f5a8ee8b4675d11f261d6",
+    "markdownSha256": "96dad4775c05bf5f46d3527e2c6bec8ad6b97e605fbdd1cb1b4eb0ba92ecf847"
+  },
+  "destination": {
+    "root": "artifacts/project-visual-storytelling",
+    "runId": "20260917T030602959Z-project-orchestrator-diorama-91535abf-9d52-4e9d-9965-e7fe874a2e01",
+    "directory": "artifacts/project-visual-storytelling/20260917T030602959Z-project-orchestrator-diorama-91535abf-9d52-4e9d-9965-e7fe874a2e01",
+    "files": {
+      "required": [
+        "diorama-specification.md",
+        "diorama-alt-text.md"
+      ],
+      "optional": [
+        "diorama-azure-openai-candidate.png",
+        "diorama-mai-candidate.png"
+      ]
+    }
+  },
+  "profile": {
+    "schemaVersion": "1.0.0",
+    "updatedAt": "2026-09-14T12:00:00.000Z",
+    "sha256": "b39e1de295e20e177594536779bd62b2df95862c228ced2e6f3dfee9c5465c5e"
+  },
+  "controls": {
+    "treatSourcesAsUntrusted": true,
+    "excludeConfidentialContent": true,
+    "externalPublicationRequiresApproval": true,
+    "requireAttribution": true,
+    "requireAltText": true
+  }
+}

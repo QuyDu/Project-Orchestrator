@@ -52,7 +52,7 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "enum": ["deterministic-source", "deterministic-vector", "bitmap-generation", "physically-based-3d"] }
+          "items": { "enum": ["deterministic-source", "deterministic-vector", "bitmap-generation"] }
         }
       }
     }

@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "workflowId": "WF-P4-CONTINUATION-20260911",
-  "runId": "RUN-P4-PLAN-20260911-01",
+  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
+  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
   "status": "planned",
   "currentStep": 1,
-  "totalSteps": 17,
-  "activeSkill": "workflow-recovery",
+  "totalSteps": 14,
+  "activeSkill": "skill-dependency-manager",
   "lastCompletedStep": 0,
   "resumeFromStep": 1,
-  "lastSequence": 32,
-  "updatedAt": "2026-09-11T11:47:46.850Z"
+  "lastSequence": 33,
+  "updatedAt": "2026-09-17T15:26:19.668Z"
 }

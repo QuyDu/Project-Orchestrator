@@ -84,6 +84,188 @@ function Get-AzureSpeechResourceSummary {
     }
 }
 
+function Get-AzureImageModelClassification {
+    param([Parameter(Mandatory)][string]$ModelName)
+
+    switch -Regex ($ModelName) {
+        '^gpt-image-2(?:$|[-.])' {
+            return [pscustomobject]@{ provider = 'azure-openai'; maturity = 'generally-available'; rank = 0 }
+        }
+        '^gpt-image-1\.5(?:$|[-.])' {
+            return [pscustomobject]@{ provider = 'azure-openai'; maturity = 'limited-access'; rank = 10 }
+        }
+        '^gpt-image-1-mini(?:$|[-.])' {
+            return [pscustomobject]@{ provider = 'azure-openai'; maturity = 'limited-access'; rank = 11 }
+        }
+        '^gpt-image-1$' {
+            return [pscustomobject]@{ provider = 'azure-openai'; maturity = 'limited-access'; rank = 12 }
+        }
+        '^MAI-Image-' {
+            return [pscustomobject]@{ provider = 'mai-image'; maturity = 'preview'; rank = 20 }
+        }
+        default { return $null }
+    }
+}
+
+function ConvertTo-AzureImageModelSummary {
+    param(
+        [AllowEmptyCollection()][object[]]$Models,
+        [Parameter(Mandatory)][string]$Location
+    )
+
+    $ranked = @()
+    $seen = @{}
+    $skuPreference = @('GlobalStandard', 'DataZoneStandard', 'Standard')
+    foreach ($model in @($Models)) {
+        if (-not $model) { continue }
+        $name = [string]$model.name
+        $version = [string]$model.version
+        $classification = Get-AzureImageModelClassification -ModelName $name
+        if (-not $classification -or [string]::IsNullOrWhiteSpace($version)) { continue }
+
+        $format = [string]$model.format
+        if ([string]::IsNullOrWhiteSpace($format)) {
+            $format = if ($classification.provider -eq 'mai-image') { 'Microsoft' } else { 'OpenAI' }
+        }
+        $skuNames = @($model.skus | ForEach-Object {
+            if ($_ -is [string]) { [string]$_ } elseif ($_.name) { [string]$_.name }
+        } | Where-Object { $_ } | Select-Object -Unique)
+        $skuName = ''
+        foreach ($preferredSku in $skuPreference) {
+            if ($skuNames -contains $preferredSku) {
+                $skuName = $preferredSku
+                break
+            }
+        }
+        if (-not $skuName) { continue }
+
+        $key = "$name|$version|$format|$skuName".ToLowerInvariant()
+        if ($seen.ContainsKey($key)) { continue }
+        $seen[$key] = $true
+        $ranked += [pscustomobject]@{
+            rank  = [int]$classification.rank
+            value = [pscustomobject][ordered]@{
+                name      = $name
+                version   = $version
+                format    = $format
+                sku       = $skuName
+                provider  = [string]$classification.provider
+                maturity  = [string]$classification.maturity
+                available = $true
+                regions   = @($Location.ToLowerInvariant())
+            }
+        }
+    }
+
+    return @($ranked |
+        Sort-Object @{ Expression = 'rank'; Ascending = $true }, @{ Expression = { $_.value.name }; Ascending = $true }, @{ Expression = { $_.value.version }; Descending = $true } |
+        Select-Object -First 20 |
+        ForEach-Object { $_.value })
+}
+
+function Get-AzureImageQuotaSummary {
+    param(
+        [Parameter(Mandatory)][string]$Location,
+        [AllowEmptyString()][string]$ModelName,
+        [AllowEmptyString()][string]$SkuName
+    )
+
+    $unknown = [ordered]@{
+        querySucceeded = $false
+        matchFound     = $false
+        status         = 'unknown'
+        currentValue   = $null
+        limit          = $null
+        unit           = ''
+    }
+    if ([string]::IsNullOrWhiteSpace($ModelName)) { return $unknown }
+
+    try {
+        $usage = az cognitiveservices usage list --location $Location `
+            --query "[].{name:name.value,localizedName:name.localizedValue,currentValue:currentValue,limit:limit,unit:unit}" `
+            -o json 2>$null | ConvertFrom-Json
+        if ($LASTEXITCODE -ne 0) { throw 'Azure Cognitive Services quota query failed.' }
+        $unknown.querySucceeded = $true
+
+        $modelToken = ($ModelName -replace '[^A-Za-z0-9]', '').ToLowerInvariant()
+        $skuToken = ($SkuName -replace '[^A-Za-z0-9]', '').ToLowerInvariant()
+        $quotaMatches = @($usage | Where-Object {
+            $usageToken = ("$($_.name) $($_.localizedName)" -replace '[^A-Za-z0-9]', '').ToLowerInvariant()
+            $usageToken.Contains($modelToken)
+        })
+        $match = $quotaMatches | Where-Object {
+            if (-not $skuToken) { return $true }
+            $usageToken = ("$($_.name) $($_.localizedName)" -replace '[^A-Za-z0-9]', '').ToLowerInvariant()
+            return $usageToken.Contains($skuToken)
+        } | Select-Object -First 1
+        if (-not $match) { $match = $quotaMatches | Select-Object -First 1 }
+        if (-not $match) { return $unknown }
+
+        $unknown.matchFound = $true
+        if ($null -eq $match.currentValue -or $null -eq $match.limit) { return $unknown }
+        $currentValue = [double]$match.currentValue
+        $limit = [double]$match.limit
+        if ($currentValue -lt 0 -or $limit -lt 0) { return $unknown }
+        return [ordered]@{
+            querySucceeded = $true
+            matchFound     = $true
+            status         = if ($limit -gt $currentValue) { 'available' } else { 'exhausted' }
+            currentValue   = $currentValue
+            limit          = $limit
+            unit           = [string]$match.unit
+        }
+    } catch {
+        return $unknown
+    }
+}
+
+function Get-AzureImageDeploymentSummary {
+    $empty = [ordered]@{
+        querySucceeded = $false
+        available      = $false
+        count          = 0
+        regions        = @()
+        models         = @()
+        formats        = @()
+    }
+
+    try {
+        $accounts = az cognitiveservices account list `
+            --query "[?kind=='OpenAI' || kind=='AIServices' || kind=='CognitiveServices'].{accountName:name,resourceGroup:resourceGroup,location:location}" `
+            -o json 2>$null | ConvertFrom-Json
+        if ($LASTEXITCODE -ne 0) { throw 'Azure AI account query failed.' }
+
+        $imageDeployments = @()
+        foreach ($account in @($accounts)) {
+            if (-not $account) { continue }
+            $deployments = az cognitiveservices account deployment list --name $account.accountName --resource-group $account.resourceGroup `
+                --query "[].{modelName:properties.model.name,modelFormat:properties.model.format}" `
+                -o json 2>$null | ConvertFrom-Json
+            if ($LASTEXITCODE -ne 0) { throw 'Azure AI deployment query failed.' }
+            foreach ($deployment in @($deployments)) {
+                if (-not $deployment) { continue }
+                if (-not (Get-AzureImageModelClassification -ModelName ([string]$deployment.modelName))) { continue }
+                $imageDeployments += [pscustomobject]@{
+                    region = ([string]$account.location).ToLowerInvariant()
+                    model  = [string]$deployment.modelName
+                    format = [string]$deployment.modelFormat
+                }
+            }
+        }
+
+        return [ordered]@{
+            querySucceeded = $true
+            available      = ($imageDeployments.Count -gt 0)
+            count          = $imageDeployments.Count
+            regions        = @($imageDeployments | ForEach-Object { $_.region } | Where-Object { $_ } | Select-Object -Unique)
+            models         = @($imageDeployments | ForEach-Object { $_.model } | Where-Object { $_ } | Select-Object -Unique)
+            formats        = @($imageDeployments | ForEach-Object { $_.format } | Where-Object { $_ } | Select-Object -Unique)
+        }
+    } catch {
+        return $empty
+    }
+}
+
 function Resolve-AzureOpenAIApiVersion {
     param([Parameter(Mandatory)][AllowEmptyString()][string]$ModelName)
     switch -Wildcard ($ModelName) {
@@ -182,6 +364,36 @@ function Invoke-AzureDiscovery {
         Write-Host "  API version: $openAIApiVersion" -ForegroundColor Cyan
     }
 
+    $imageCatalogQuerySucceeded = $false
+    $imageModels = @()
+    try {
+        $catalogModels = az cognitiveservices model list --location $Location `
+            --query "[].{name:model.name,version:model.version,format:model.format,skus:model.skus}" `
+            -o json 2>$null | ConvertFrom-Json
+        if ($LASTEXITCODE -ne 0) { throw 'Azure image model catalog query failed.' }
+        $imageCatalogQuerySucceeded = $true
+        $imageModels = @(ConvertTo-AzureImageModelSummary -Models @($catalogModels) -Location $Location)
+    } catch {
+        Write-Host "  Could not query image-generation models (non-fatal): $_" -ForegroundColor Yellow
+    }
+    $selectedImageModel = $imageModels | Select-Object -First 1
+    $imageAvailable = ($null -ne $selectedImageModel)
+    $imageQuota = Get-AzureImageQuotaSummary -Location $Location `
+        -ModelName $(if ($selectedImageModel) { [string]$selectedImageModel.name } else { '' }) `
+        -SkuName $(if ($selectedImageModel) { [string]$selectedImageModel.sku } else { '' })
+    $imageDeployments = Get-AzureImageDeploymentSummary
+    if ($imageAvailable) {
+        Write-Host "  Image generation: selected $($selectedImageModel.name) ($($selectedImageModel.maturity), $($selectedImageModel.sku))" -ForegroundColor Cyan
+        Write-Host "  Image quota: $($imageQuota.status)" -ForegroundColor $(if ($imageQuota.status -eq 'available') { 'Green' } else { 'Yellow' })
+    } elseif ($imageCatalogQuerySucceeded) {
+        Write-Host "  Image generation: no compatible model found in '$Location'" -ForegroundColor Yellow
+    }
+    if ($imageDeployments.available) {
+        Write-Host "  Existing image deployments: $($imageDeployments.count) in $($imageDeployments.regions -join ', ')" -ForegroundColor Green
+    } elseif (-not $imageDeployments.querySucceeded) {
+        Write-Host '  Existing image deployment query unavailable' -ForegroundColor Yellow
+    }
+
     $speechServiceRegions = @(Get-AzureCognitiveKindRegion -Kind 'SpeechServices')
     $speechResources = Get-AzureSpeechResourceSummary
     if ($speechResources.available) {
@@ -204,6 +416,20 @@ function Invoke-AzureDiscovery {
         openAIModelVersion = $openAIModelVersion
         openAIModelSku     = $openAIModelSku
         openAIApiVersion   = $openAIApiVersion
+        imageGeneration    = [ordered]@{
+            catalogQuerySucceeded      = $imageCatalogQuerySucceeded
+            available                  = $imageAvailable
+            models                     = @($imageModels)
+            selectedModelName          = if ($selectedImageModel) { [string]$selectedImageModel.name } else { '' }
+            selectedModelVersion       = if ($selectedImageModel) { [string]$selectedImageModel.version } else { '' }
+            selectedModelFormat        = if ($selectedImageModel) { [string]$selectedImageModel.format } else { '' }
+            selectedModelSku           = if ($selectedImageModel) { [string]$selectedImageModel.sku } else { '' }
+            selectedProvider           = if ($selectedImageModel) { [string]$selectedImageModel.provider } else { 'none' }
+            selectedMaturity           = if ($selectedImageModel) { [string]$selectedImageModel.maturity } else { 'none' }
+            requiresExplicitAcceptance = [bool]($selectedImageModel -and $selectedImageModel.maturity -ne 'generally-available')
+            quota                      = $imageQuota
+            existingDeployments        = $imageDeployments
+        }
         speech             = @{
             serviceAvailable               = ($speechServiceRegions.Count -gt 0)
             serviceRegions                 = $speechServiceRegions
@@ -234,6 +460,21 @@ function Invoke-AzureDiscovery {
             "- Model SKU: $($result.openAIModelSku)"
             "- API version: $($result.openAIApiVersion)"
             "- Cognitive regions: $($result.cognitiveRegions -join ', ')"
+            "- Image catalog query succeeded: $($result.imageGeneration.catalogQuerySucceeded)"
+            "- Image generation available: $($result.imageGeneration.available)"
+            "- Selected image model: $($result.imageGeneration.selectedModelName)"
+            "- Selected image model version: $($result.imageGeneration.selectedModelVersion)"
+            "- Selected image model format: $($result.imageGeneration.selectedModelFormat)"
+            "- Selected image model SKU: $($result.imageGeneration.selectedModelSku)"
+            "- Selected image provider: $($result.imageGeneration.selectedProvider)"
+            "- Selected image model maturity: $($result.imageGeneration.selectedMaturity)"
+            "- Image model requires explicit acceptance: $($result.imageGeneration.requiresExplicitAcceptance)"
+            "- Image quota query succeeded: $($result.imageGeneration.quota.querySucceeded)"
+            "- Image quota status: $($result.imageGeneration.quota.status)"
+            "- Existing image deployment query succeeded: $($result.imageGeneration.existingDeployments.querySucceeded)"
+            "- Existing image deployments: $($result.imageGeneration.existingDeployments.count)"
+            "- Existing image deployment regions: $($result.imageGeneration.existingDeployments.regions -join ', ')"
+            "- Existing image deployment models: $($result.imageGeneration.existingDeployments.models -join ', ')"
             "- Speech service regions: $($result.speech.serviceRegions -join ', ')"
             "- Existing Speech resource query succeeded: $($result.speech.existingResourceQuerySucceeded)"
             "- Existing Speech resources: $($result.speech.existingResourceCount)"

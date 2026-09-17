@@ -30,20 +30,19 @@ Without confirmed reuse rights and approval, references may be viewed for analys
 
 ## Renderer Gate
 
-A finished `diorama.png` may be produced only by one of these renderer classes:
+A finished `diorama.png` may be produced only by this renderer class:
 
 - `bitmap-generation`: an approved image-generation or image-editing capability that creates a raster scene directly.
-- `physically-based-3d`: a genuine 3D renderer using modeled geometry, a perspective camera, physically based materials, lighting, and cast/contact shadows. WebGL is acceptable only when it meets all of those requirements.
 
-The specification must record the renderer class and relevant local or approved external-processing boundary. HTML, CSS, SVG, presentation shapes, 2D canvas compositing, or browser screenshots that merely fake depth are prohibited as final diorama output. They may be used privately to reason about layout, but must never be delivered, renamed, or described as `diorama.png`.
+The specification must record the renderer class and approved external-processing boundary. HTML, CSS, SVG, presentation shapes, 2D canvas compositing, or browser screenshots that merely fake depth are prohibited as final diorama output. They may be used privately to reason about layout, but must never be delivered, renamed, or described as `diorama.png`.
 
-The packaged local adapter qualifies as `physically-based-3d` only when `doctor` confirms Blender, the render uses Cycles, and `verify` confirms the bound render plan, modeled geometry, procedural PBR materials, multiple lights, perspective camera, cast/contact shadows, intended dimensions, and meaningful pixel variation. Automated verification returns `requires-review`; a person must still inspect physical fidelity and exact text before delivery.
+The packaged Azure OpenAI adapter may produce a `bitmap-generation` candidate only after fresh discovery selects a generally available GPT Image 2 model and confirms a matching existing deployment in Azure Government, and the current invocation explicitly approves external processing. Record the model, Government endpoint host, Entra authentication, disabled web grounding, absence of reference pixels, prompt digest, and plan digest. Name the output `diorama-azure-openai-candidate.png`; it is not `diorama.png` and cannot be delivered until exact labels, signature, date, and evidence coverage are deterministically corrected and verified.
 
 The packaged MAI-Image adapter may produce a `bitmap-generation` candidate only after fresh discovery confirms the model in Azure Government and the current invocation explicitly approves external processing. Record the Microsoft model, Government endpoint host, Entra authentication, disabled web grounding, absence of reference pixels, prompt digest, and plan digest. Name the output `diorama-mai-candidate.png`; it is not `diorama.png` and cannot be delivered until exact labels, signature, date, and evidence coverage are deterministically corrected and verified.
 
 Any private prototype must remain outside the final run directory and be deleted before final validation.
 
-If neither approved renderer class is available, stop image production and deliver only `diorama-specification.md` and `diorama-alt-text.md`. The specification must contain this prominent status:
+If neither approved image provider is available, `create` fails and must not claim a PNG. Use `diorama-specification` explicitly when specification and alt text are the intended deliverables. A failed run records this prominent status:
 
 ```markdown
 ## Render Status
@@ -55,13 +54,12 @@ No finished image produced. [State the missing or failed renderer capability.]
 
 Before a PNG is created, `diorama-specification.md` must include `## Renderer Qualification` with:
 
-1. Renderer class: `bitmap-generation` or `physically-based-3d`
+1. Renderer class: `bitmap-generation`
 2. Tool or capability used
-3. Local or explicitly approved external-processing boundary
+3. Explicitly approved Azure Government processing boundary
 4. Output dimensions and raster format
 5. Validation method
-6. For `bitmap-generation`: whether reference pixels were supplied and the applicable reuse approval
-7. For `physically-based-3d`: geometry types, perspective camera, physically based material model, light sources, cast shadows, and contact shadows
+6. Whether reference pixels were supplied and the applicable reuse approval
 
 A renderer label is not evidence. Each listed capability must be verified before delivery.
 
@@ -128,9 +126,9 @@ Render the scene as a photographed crafted physical model using plausible miniat
 ## Accessibility And Fallback
 
 - Provide alt text that describes the container, viewing angle, foreground/middle/background layers, primary structures, pathways, labels, color semantics, people, risk boundaries, and takeaway.
-- Generate a PNG only when a capable image or local rendering tool can produce and validate the complete scene.
+- Generate a PNG only when a qualified Azure Government image model can produce and validate the complete scene.
 - Retry one failed render with fewer structures and simpler lighting while preserving evidence, scale, layers, attribution, and accessibility.
-- If a coherent diorama cannot be rendered, return `diorama-specification.md` and `diorama-alt-text.md` and state that no finished image was produced.
+- If a coherent diorama cannot be rendered, fail the render, remove or reject the PNG, and state that no finished image was produced. Specification-only output remains a separate explicit mode.
 - A layout prototype or flat browser screenshot never satisfies the PNG requirement and must be removed from the final run directory.
 
 ## Final Artifact Validation
@@ -150,7 +148,7 @@ If any rendered text or identity cannot be verified, remove or omit the PNG and 
 ## Final Review
 
 - The image reads as a miniature physical scene inside a bounded base or container.
-- The renderer class is recorded as `bitmap-generation` or `physically-based-3d`; otherwise no PNG is delivered.
+- The renderer class is recorded as `bitmap-generation`; otherwise no PNG is delivered.
 - Renderer qualification evidence verifies the declared class rather than merely naming it.
 - Tactile materials, visible thickness, contact shadows, cast shadows, physical occlusion, and photographic lighting are present.
 - The image is not an HTML/CSS/SVG screenshot, faux-isometric diagram, or card layout with simulated depth.

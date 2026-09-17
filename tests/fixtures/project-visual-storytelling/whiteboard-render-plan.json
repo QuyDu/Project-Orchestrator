@@ -26,6 +26,7 @@
     {
       "id": "project",
       "label": "Project",
+      "caption": "Verified current-project capability.",
       "evidencePath": "README.md",
       "semanticRole": "focus",
       "shape": "panel",

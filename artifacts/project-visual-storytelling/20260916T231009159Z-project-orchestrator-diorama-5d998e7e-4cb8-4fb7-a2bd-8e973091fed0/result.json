@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "20260916T231009159Z-project-orchestrator-diorama-5d998e7e-4cb8-4fb7-a2bd-8e973091fed0",
+  "status": "partial",
+  "source": {
+    "repositoryDigestSha256": "551b773fb8c1336ffa62ce41cf98fbcbe3ff9f64048dab0f941769c47abfa2c2",
+    "projectUnderstandingDigestSha256": "b7fdfcb6636e79e6c4173e3bfd6aeeb5c5bb986e492319766de8a6509baf1a1a"
+  },
+  "renderer": {
+    "class": "bitmap-generation",
+    "name": "three.js-webgl-pbr"
+  },
+  "artifacts": [
+    {
+      "path": "render-context.json",
+      "mediaType": "application/json",
+      "sha256": "7a0d0d0a1ce49db201344d0562b331abf31dbeee3670af74c9450aa29d903254",
+      "validated": true
+    },
+    {
+      "path": "render-plan.json",
+      "mediaType": "application/json",
+      "sha256": "2ee9a25acd108b7baf7b579d1bde588d8b945429f4bd1e8db86da53b81d14489",
+      "validated": true
+    },
+    {
+      "path": "diorama-specification.md",
+      "mediaType": "text/markdown",
+      "sha256": "d2079e76f487a7c6edcfa463543fd1b9fb3749845ad19eefff1d8827bc47f673",
+      "validated": true
+    },
+    {
+      "path": "evidence-map.md",
+      "mediaType": "text/markdown",
+      "sha256": "962e98a399afbe9bc52ffea0cf2c88f5619dec138b77350f1cc8920cc95bb90d",
+      "validated": true
+    },
+    {
+      "path": "diorama-alt-text.md",
+      "mediaType": "text/markdown",
+      "sha256": "daf8795bda46c3228da528fb7df98ad17ee3661720f4abcd2beedbc8d6fc5c54",
+      "validated": true
+    },
+    {
+      "path": "renderer-qualification.json",
+      "mediaType": "application/json",
+      "sha256": "dbc1f5f52f2a9fb1623a777698bc3578d6b15d31ea0a51a542306e7dd3d4f53c",
+      "validated": true
+    },
+    {
+      "path": "diorama-threejs-candidate.png",
+      "mediaType": "image/png",
+      "sha256": "4122cfb080af421e1b860970d7cb52c088ab0a66e959de80c62fdbbfef7e8bd0",
+      "validated": true
+    }
+  ],
+  "warnings": [
+    "Automated qualification and full-size agent inspection passed; user review is required before this candidate is treated as final."
+  ],
+  "limitations": [
+    "The packaged verifier supports Azure image providers only, so equivalent deterministic local qualification is recorded in renderer-qualification.json.",
+    "Publication and external sharing remain outside this run and require separate approval."
+  ]
+}

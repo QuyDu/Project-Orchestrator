@@ -16,7 +16,7 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 - **config**: Top-level project boundary containing 4 scanned files.
 - **docs**: Top-level project boundary containing 6 scanned files.
 - **release**: Top-level project boundary containing 1 scanned files.
-- **reports**: Top-level project boundary containing 87 scanned files.
+- **reports**: Top-level project boundary containing 89 scanned files.
 - **schemas**: Top-level project boundary containing 49 scanned files.
 - **scripts**: Top-level project boundary containing 13 scanned files.
 - **templates**: Top-level project boundary containing 34 scanned files.
@@ -24,9 +24,9 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 ## Technology
 
-- **.md**: 125 scanned files use this extension.
+- **.md**: 127 scanned files use this extension.
 - **.json**: 108 scanned files use this extension.
-- **.mjs**: 39 scanned files use this extension.
+- **.mjs**: 40 scanned files use this extension.
 - **.mp3**: 22 scanned files use this extension.
 - **.ps1**: 11 scanned files use this extension.
 - **.svg**: 8 scanned files use this extension.
@@ -35,7 +35,7 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 - **.yaml**: 2 scanned files use this extension.
 - **.html**: 2 scanned files use this extension.
 - **.jsonl**: 2 scanned files use this extension.
-- **.py**: 1 scanned files use this extension.
+- **.mmd**: 1 scanned files use this extension.
 
 ## Setup And Usage
 

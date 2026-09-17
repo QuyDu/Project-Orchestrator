@@ -1,19 +1,52 @@
 {
+  "cloud": "AzureUSGovernment",
+  "openAIAvailable": true,
   "cognitiveRegions": [
     "usgovarizona",
     "usgovvirginia"
   ],
   "cognitiveAvailable": true,
-  "openAIModelVersion": "2025-11-13",
-  "openAIModelName": "gpt-5.1",
   "schemaVersion": "1.0.0",
+  "openAIModelVersion": "2025-11-13",
+  "imageGeneration": {
+    "catalogQuerySucceeded": true,
+    "available": false,
+    "models": [],
+    "selectedModelName": "",
+    "selectedModelVersion": "",
+    "selectedModelFormat": "",
+    "selectedModelSku": "",
+    "selectedProvider": "none",
+    "selectedMaturity": "none",
+    "requiresExplicitAcceptance": false,
+    "quota": {
+      "querySucceeded": false,
+      "matchFound": false,
+      "status": "unknown",
+      "currentValue": null,
+      "limit": null,
+      "unit": ""
+    },
+    "existingDeployments": {
+      "querySucceeded": true,
+      "available": false,
+      "count": 0,
+      "regions": [],
+      "models": [],
+      "formats": []
+    }
+  },
+  "discoveredAt": "2026-09-16T23:05:17.7138319Z",
   "location": "usgovvirginia",
-  "cloud": "AzureUSGovernment",
-  "openAIApiVersion": "2025-04-01-preview",
   "openAIModelSku": "DataZoneStandard",
-  "discoveredAt": "2026-08-26T23:35:27.3914740Z",
-  "openAIAvailable": true,
+  "openAIModelName": "gpt-5.1",
   "speech": {
+    "existingResourceQuerySucceeded": true,
+    "existingResourceKinds": [
+      "SpeechServices",
+      "AIServices"
+    ],
+    "existingResourceCount": 2,
     "serviceAvailable": true,
     "serviceRegions": [
       "usgovarizona",
@@ -22,12 +55,7 @@
     "existingResourceRegions": [
       "usgovarizona"
     ],
-    "existingResourceQuerySucceeded": true,
-    "existingResourceAvailable": true,
-    "existingResourceKinds": [
-      "SpeechServices",
-      "AIServices"
-    ],
-    "existingResourceCount": 2
-  }
+    "existingResourceAvailable": true
+  },
+  "openAIApiVersion": "2025-04-01-preview"
 }

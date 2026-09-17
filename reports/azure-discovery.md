@@ -1,6 +1,6 @@
 # Azure Discovery
 
-- Discovered at (UTC): 2026-08-26T23:35:27.3914740Z
+- Discovered at (UTC): 2026-09-16T23:05:17.7138319Z
 - Cloud: AzureUSGovernment
 - Location: usgovvirginia
 - Cognitive Services: True
@@ -10,6 +10,21 @@
 - Model SKU: DataZoneStandard
 - API version: 2025-04-01-preview
 - Cognitive regions: usgovarizona, usgovvirginia
+- Image catalog query succeeded: True
+- Image generation available: False
+- Selected image model:
+- Selected image model version:
+- Selected image model format:
+- Selected image model SKU:
+- Selected image provider: none
+- Selected image model maturity: none
+- Image model requires explicit acceptance: False
+- Image quota query succeeded: False
+- Image quota status: unknown
+- Existing image deployment query succeeded: True
+- Existing image deployments: 0
+- Existing image deployment regions:
+- Existing image deployment models:
 - Speech service regions: usgovarizona, usgovvirginia
 - Existing Speech resource query succeeded: True
 - Existing Speech resources: 2

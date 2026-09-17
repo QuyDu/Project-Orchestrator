@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "rendered",
+  "qualifiedAt": "2026-09-17T02:27:40.6718515Z",
+  "rendererClass": "bitmap-generation",
+  "provider": "three.js-webgl-pbr",
+  "rendererVersion": "three@0.186.0",
+  "processingBoundary": "local-machine-loopback-only",
+  "externalProcessing": false,
+  "authentication": "not-applicable",
+  "referencePixelsSupplied": false,
+  "webGrounding": false,
+  "sourceRepositoryDigestSha256": "551b773fb8c1336ffa62ce41cf98fbcbe3ff9f64048dab0f941769c47abfa2c2",
+  "projectUnderstandingDigestSha256": "b7fdfcb6636e79e6c4173e3bfd6aeeb5c5bb986e492319766de8a6509baf1a1a",
+  "profileSha256": "0b5705c70c8816d7f41555d890309c617a5662ad86711b526c23c4f52ea32a98",
+  "renderPlanSha256": "2ee9a25acd108b7baf7b579d1bde588d8b945429f4bd1e8db86da53b81d14489",
+  "promptSha256": "3f30f2ae8330b66c0f91cbb55956c169c43a3fd7955423d971bcefee7d78b7de",
+  "artifact": "diorama-threejs-candidate.png",
+  "artifactSha256": "4122cfb080af421e1b860970d7cb52c088ab0a66e959de80c62fdbbfef7e8bd0",
+  "artifactBytes": 1081493,
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "capture": {
+    "method": "direct-webgl-canvas-png-export",
+    "serverBinding": "127.0.0.1",
+    "externalRequests": 0
+  },
+  "webgl": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "renderer": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "contextLost": false
+  },
+  "pixelVariation": {
+    "samplingStride": 4,
+    "sampledPixels": 129600,
+    "nonDarkSamples": 122304,
+    "colorBuckets": 451,
+    "luminanceMinimum": 0,
+    "luminanceMaximum": 241,
+    "semanticColorSamples": {
+      "purple": 894,
+      "green": 2349,
+      "red": 5172
+    }
+  },
+  "validation": {
+    "pngSignature": "passed",
+    "plannedDimensions": "passed",
+    "nonblankPixels": "passed",
+    "semanticPalette": "passed",
+    "webglContext": "passed",
+    "sourceBinding": "passed",
+    "profileSignature": "passed-by-full-size-agent-inspection",
+    "creationDate": "passed-by-full-size-agent-inspection",
+    "physicalDepthAndShadows": "passed-by-full-size-agent-inspection",
+    "outputPath": "passed"
+  },
+  "reviewStatus": "requires-user-review",
+  "limitations": [
+    "The packaged verifier supports Azure image providers only, so equivalent local qualification checks are recorded here.",
+    "User full-size review is required before the candidate is treated as final or published."
+  ]
+}

@@ -17,6 +17,141 @@
     "openAIModelVersion": { "type": "string", "maxLength": 80 },
     "openAIModelSku": { "type": "string", "minLength": 1, "maxLength": 80 },
     "openAIApiVersion": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "imageGeneration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalogQuerySucceeded", "available", "models", "selectedModelName", "selectedModelVersion", "selectedModelFormat", "selectedModelSku", "selectedProvider", "selectedMaturity", "requiresExplicitAcceptance", "quota", "existingDeployments"],
+      "properties": {
+        "catalogQuerySucceeded": { "type": "boolean" },
+        "available": { "type": "boolean" },
+        "models": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/imageModel" }
+        },
+        "selectedModelName": { "type": "string", "maxLength": 120 },
+        "selectedModelVersion": { "type": "string", "maxLength": 80 },
+        "selectedModelFormat": { "type": "string", "maxLength": 40 },
+        "selectedModelSku": { "type": "string", "maxLength": 80 },
+        "selectedProvider": { "enum": ["azure-openai", "mai-image", "none"] },
+        "selectedMaturity": { "enum": ["generally-available", "limited-access", "preview", "none"] },
+        "requiresExplicitAcceptance": { "type": "boolean" },
+        "quota": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["querySucceeded", "matchFound", "status", "currentValue", "limit", "unit"],
+          "properties": {
+            "querySucceeded": { "type": "boolean" },
+            "matchFound": { "type": "boolean" },
+            "status": { "enum": ["available", "exhausted", "unknown"] },
+            "currentValue": { "type": ["number", "null"], "minimum": 0 },
+            "limit": { "type": ["number", "null"], "minimum": 0 },
+            "unit": { "type": "string", "maxLength": 40 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "matchFound": { "const": false } }, "required": ["matchFound"] },
+              "then": {
+                "properties": {
+                  "status": { "const": "unknown" },
+                  "currentValue": { "type": "null" },
+                  "limit": { "type": "null" },
+                  "unit": { "maxLength": 0 }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "querySucceeded": { "const": false } }, "required": ["querySucceeded"] },
+              "then": { "properties": { "matchFound": { "const": false } } }
+            }
+          ]
+        },
+        "existingDeployments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["querySucceeded", "available", "count", "regions", "models", "formats"],
+          "properties": {
+            "querySucceeded": { "type": "boolean" },
+            "available": { "type": "boolean" },
+            "count": { "type": "integer", "minimum": 0 },
+            "regions": { "$ref": "#/$defs/regions" },
+            "models": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+            },
+            "formats": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "maxLength": 40 }
+            }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "available": { "const": true } }, "required": ["available"] },
+              "then": {
+                "properties": {
+                  "count": { "minimum": 1 },
+                  "regions": { "minItems": 1 },
+                  "models": { "minItems": 1 },
+                  "formats": { "minItems": 1 }
+                }
+              },
+              "else": { "properties": { "count": { "const": 0 } } }
+            },
+            {
+              "if": { "properties": { "querySucceeded": { "const": false } }, "required": ["querySucceeded"] },
+              "then": {
+                "properties": {
+                  "available": { "const": false },
+                  "count": { "const": 0 },
+                  "regions": { "maxItems": 0 },
+                  "models": { "maxItems": 0 },
+                  "formats": { "maxItems": 0 }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "available": { "const": true } }, "required": ["available"] },
+          "then": {
+            "properties": {
+              "models": { "minItems": 1 },
+              "selectedModelName": { "minLength": 1 },
+              "selectedModelVersion": { "minLength": 1 },
+              "selectedModelFormat": { "minLength": 1 },
+              "selectedModelSku": { "minLength": 1 },
+              "selectedProvider": { "not": { "const": "none" } },
+              "selectedMaturity": { "not": { "const": "none" } }
+            }
+          },
+          "else": {
+            "properties": {
+              "models": { "maxItems": 0 },
+              "selectedModelName": { "maxLength": 0 },
+              "selectedModelVersion": { "maxLength": 0 },
+              "selectedModelFormat": { "maxLength": 0 },
+              "selectedModelSku": { "maxLength": 0 },
+              "selectedProvider": { "const": "none" },
+              "selectedMaturity": { "const": "none" },
+              "requiresExplicitAcceptance": { "const": false }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "catalogQuerySucceeded": { "const": false } }, "required": ["catalogQuerySucceeded"] },
+          "then": { "properties": { "available": { "const": false } } }
+        },
+        {
+          "if": { "properties": { "selectedMaturity": { "enum": ["limited-access", "preview"] } }, "required": ["selectedMaturity"] },
+          "then": { "properties": { "requiresExplicitAcceptance": { "const": true } } },
+          "else": { "properties": { "requiresExplicitAcceptance": { "const": false } } }
+        }
+      ]
+    },
     "speech": {
       "type": "object",
       "additionalProperties": false,
@@ -61,6 +196,21 @@
     }
   },
   "$defs": {
+    "imageModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "format", "sku", "provider", "maturity", "available", "regions"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "format": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "sku": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "provider": { "enum": ["azure-openai", "mai-image"] },
+        "maturity": { "enum": ["generally-available", "limited-access", "preview"] },
+        "available": { "const": true },
+        "regions": { "$ref": "#/$defs/regions", "minItems": 1 }
+      }
+    },
     "region": { "type": "string", "pattern": "^[a-z0-9-]+$" },
     "regions": {
       "type": "array",

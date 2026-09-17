@@ -355,6 +355,14 @@ test("project video is a portable narrated MP4 capability", async () => {
   assert.equal(browserPreviewSchema.properties.capabilities.properties.portableMedia.const, false);
   const discoverySchema = JSON.parse(await readFile(path.join(root, "schemas", "azure-discovery.schema.json"), "utf8"));
   assert.equal(discoverySchema.properties.schemaVersion.const, "1.0.0");
+  assert.ok(!discoverySchema.required.includes("imageGeneration"), "legacy 1.0.0 discovery reports remain valid");
+  assert.equal(discoverySchema.properties.imageGeneration.additionalProperties, false);
+  assert.ok(discoverySchema.properties.imageGeneration.required.includes("catalogQuerySucceeded"));
+  assert.ok(discoverySchema.properties.imageGeneration.required.includes("existingDeployments"));
+  assert.equal(discoverySchema.properties.imageGeneration.properties.models.items.$ref, "#/$defs/imageModel");
+  assert.deepEqual(discoverySchema.properties.imageGeneration.properties.quota.properties.status.enum, ["available", "exhausted", "unknown"]);
+  assert.deepEqual(discoverySchema.$defs.imageModel.properties.provider.enum, ["azure-openai", "mai-image"]);
+  assert.deepEqual(discoverySchema.$defs.imageModel.properties.maturity.enum, ["generally-available", "limited-access", "preview"]);
   assert.equal(discoverySchema.properties.speech.additionalProperties, false);
   assert.ok(discoverySchema.properties.speech.required.includes("existingResourceQuerySucceeded"));
   assert.ok(discoverySchema.properties.speech.required.includes("existingResourceRegions"));
@@ -618,6 +626,9 @@ test("every governed skill has deterministic help coverage", async () => {
   const discovery = skills.get("azure-discovery");
   assert.ok(discovery, "azure-discovery skill must be available to generated projects");
   assert.match(discovery.source, /Speech-resource readiness/);
+  assert.match(discovery.source, /image-generation models/);
+  assert.match(discovery.source, /requiresExplicitAcceptance/);
+  assert.match(discovery.source, /never implies authorization to deploy or invoke/);
   assert.match(discovery.source, /\.azure\/environment\.json/);
   assert.match(discovery.source, /defaults to Azure Commercial/);
   assert.match(discovery.source, /start the recorded login method/);
@@ -628,6 +639,10 @@ test("every governed skill has deterministic help coverage", async () => {
   assert.match(discoveryScript, /azure-discovery\.json/);
   assert.match(discoveryScript, /Get-AzureSpeechResourceSummary/);
   const packagedDiscoveryScript = await readFile(path.join(skillsRoot, "azure-discovery", "scripts", "azure-discovery.ps1"), "utf8");
+  assert.match(packagedDiscoveryScript, /Get-AzureImageModelClassification/);
+  assert.match(packagedDiscoveryScript, /Get-AzureImageQuotaSummary/);
+  assert.match(packagedDiscoveryScript, /Get-AzureImageDeploymentSummary/);
+  assert.match(packagedDiscoveryScript, /imageGeneration\s+=\s+\[ordered\]@\{/);
   const normalizedPowerShell = (value) => value.replace(/^\uFEFF/, "").replaceAll("\r\n", "\n").trimEnd();
   assert.equal(normalizedPowerShell(packagedDiscoveryScript), normalizedPowerShell(discoveryScript), "skill-owned and infrastructure discovery implementations must stay synchronized");
   const environmentScript = await readFile(path.join(templateRoot, "infra", "azure-environment.ps1"), "utf8");
@@ -689,6 +704,15 @@ test("every governed skill has deterministic help coverage", async () => {
   assert.match(demoPrompt, /source repository is immutable during the demo/i);
   assert.match(demoPrompt, /Modify only the newly created project/i);
   assert.match(demoPrompt, /unique temporary workspace/i);
+  assert.match(demoPrompt, /Get-Process -Name Code/);
+  assert.match(demoPrompt, /AppActivate/);
+  assert.match(demoPrompt, /code --status/);
+  assert.match(demoPrompt, /already open or still loading/i);
+  assert.ok(
+    demoPrompt.indexOf("code --status") < demoPrompt.indexOf("[guid]::NewGuid") &&
+      demoPrompt.indexOf("Get-Process -Name Code") < demoPrompt.indexOf("[guid]::NewGuid"),
+    "demo launch must detect and reuse an existing window before generating a new workspace identity"
+  );
   assert.match(demoPrompt, /\$env:TEMP/);
   assert.match(demoPrompt, /\[guid\]::NewGuid/);
   assert.match(demoPrompt, /ConvertFrom-Json/);
@@ -832,7 +856,7 @@ test("project visual storytelling requires one local profile owner", async () =>
   assert.match(content.source, /whiteboard\|whiteboard-specification\|diorama\|diorama-specification/);
   assert.match(content.source, /diorama-production-rules\.md/);
   assert.match(content.source, /canonical spelling `diorama`/);
-  assert.match(content.source, /A final diorama PNG requires an approved bitmap image generator or a genuine physically based 3D renderer/);
+  assert.match(content.source, /A final diorama PNG requires an approved bitmap image generator/);
   assert.match(content.source, /HTML\/CSS\/SVG screenshot does not qualify/);
   assert.match(content.source, /one central sculpted metaphor/);
   assert.match(content.source, /legacy identity that differs from the validated profile/);
@@ -840,13 +864,16 @@ test("project visual storytelling requires one local profile owner", async () =>
   assert.match(content.source, /A planned optional PNG is not a promise of delivery/);
   assert.match(content.source, /validate the PNG signature, dimensions, nonblank pixels/);
   assert.match(content.source, /schemas\/project-visual-scene\.schema\.json/);
+  assert.match(content.source, /create --project \. --output-type whiteboard\|diorama --request/);
   assert.match(content.source, /render --project \. --run-id/);
   assert.match(content.source, /Automated qualification must return `requires-review`/);
+  assert.match(content.source, /PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT/);
   assert.match(content.source, /PROJECT_VISUAL_MAI_ENDPOINT/);
   assert.match(content.source, /--external-processing-approved true/);
-  assert.match(content.source, /Current Azure Government discovery does not confirm MAI-Image/);
+  assert.match(content.source, /Use fresh `azure-discovery` output to qualify Azure OpenAI or MAI-Image availability in Azure Government/);
+  assert.match(content.source, /<visual>-azure-openai-candidate\.png/);
   assert.match(content.source, /<visual>-mai-candidate\.png/);
-  assert.match(content.source, /## Render Status.*No finished image produced/s);
+  assert.match(content.source, /If an approved bitmap generator is unavailable, `create` fails clearly and does not claim a PNG/);
   assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "references", "diorama-production-rules.md")));
   assert.match(content.source, /documentation-builder.*owns authoritative written project guides/);
   assert.match(content.source, /linkedin-post.*owns LinkedIn drafts/);
@@ -867,7 +894,7 @@ test("project visual storytelling requires one local profile owner", async () =>
   assert.doesNotMatch(questionnaire, /\btadd\b/i);
   assert.ok(existsSync(path.join(skillsRoot, "user-personalization", "scripts", "user-personalization.mjs")));
   assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "project-visual-storytelling.mjs")));
-  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "blender-render.py")));
+  assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "azure-openai-image-render.mjs")));
   assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "scripts", "mai-image-render.mjs")));
   assert.ok(existsSync(path.join(skillsRoot, "project-visual-storytelling", "references", "renderer-contract.md")));
   const visualSceneSchema = JSON.parse(await readFile(path.join(root, "schemas", "project-visual-scene.schema.json"), "utf8"));
@@ -875,7 +902,8 @@ test("project visual storytelling requires one local profile owner", async () =>
   assert.equal(visualSceneSchema.additionalProperties, false);
   assert.deepEqual(visualSceneSchema.properties.visualType.enum, ["whiteboard", "diorama"]);
   assert.equal(visualSceneSchema.properties.elements.maxItems, 12);
-  assert.deepEqual(visualSceneSchema.properties.renderer.properties.preference.enum, ["auto", "mai-image", "blender-cycles"]);
+  assert.deepEqual(visualSceneSchema.properties.renderer.properties.preference.enum, ["auto", "azure-openai", "mai-image"]);
+  assert.ok(visualSceneSchema.properties.elements.items.required.includes("caption"));
 
   const profiles = await loadProfiles();
   assert.ok(profiles.get("durable").required.includes("user-personalization"));

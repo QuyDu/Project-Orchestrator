@@ -1,16 +1,63 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { lstat, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { inspectMaiImage } from "../.github/skills/project-visual-storytelling/scripts/mai-image-render.mjs";
+import { pathToFileURL } from "node:url";
+import { generateAzureOpenAIImage, inspectAzureOpenAIImage, supportsAzureOpenAIImageDimensions } from "../.github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs";
+import { generateMaiImage, inspectMaiImage, supportsMaiImageDimensions } from "../.github/skills/project-visual-storytelling/scripts/mai-image-render.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const helper = path.join(root, ".github", "skills", "project-visual-storytelling", "scripts", "project-visual-storytelling.mjs");
 
-function run(args, cwd = root) {
-  return spawnSync(process.execPath, [helper, ...args], { cwd, encoding: "utf8", env: process.env });
+function run(args, cwd = root, env = process.env) {
+  return spawnSync(process.execPath, [helper, ...args], { cwd, encoding: "utf8", env });
+}
+
+async function installMockAzureImageProvider(project) {
+  const preload = path.join(project, "mock-image-fetch.mjs");
+  await mkdir(path.join(project, ".azure"), { recursive: true });
+  await mkdir(path.join(project, "reports"), { recursive: true });
+  await writeFile(path.join(project, ".azure", "environment.json"), `${JSON.stringify({ cloud: "AzureUSGovernment", location: "usgovarizona" })}\n`);
+  await writeFile(path.join(project, "reports", "azure-discovery.json"), `${JSON.stringify({
+    cloud: "AzureUSGovernment",
+    discoveredAt: new Date().toISOString(),
+    imageGeneration: {
+      catalogQuerySucceeded: true,
+      available: true,
+      selectedModelName: "gpt-image-2",
+      selectedProvider: "azure-openai",
+      selectedMaturity: "generally-available",
+      requiresExplicitAcceptance: false,
+      models: [{ name: "gpt-image-2", format: "OpenAI", provider: "azure-openai", maturity: "generally-available", available: true, regions: ["usgovarizona"] }],
+      existingDeployments: { querySucceeded: true, available: true, count: 1, regions: ["usgovarizona"], models: ["gpt-image-2"], formats: ["OpenAI"] }
+    }
+  })}\n`);
+  await writeFile(preload, `import childProcess from "node:child_process";
+import { syncBuiltinESMExports } from "node:module";
+const originalSpawnSync = childProcess.spawnSync;
+childProcess.spawnSync = (command, ...args) => command === "az"
+  ? { status: 0, stdout: "test-government-token\\n", stderr: "" }
+  : originalSpawnSync(command, ...args);
+syncBuiltinESMExports();
+globalThis.fetch = async () => {
+  const image = Buffer.alloc(1024);
+  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image, 0);
+  image.write("IHDR", 12, "ascii");
+  image.writeUInt32BE(1200, 16);
+  image.writeUInt32BE(800, 20);
+  return { ok: true, status: 200, json: async () => ({ data: [{ b64_json: image.toString("base64") }] }), text: async () => "" };
+};
+`, "utf8");
+  return {
+    ...process.env,
+    NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --import=${pathToFileURL(preload).href}`.trim(),
+    PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT: "https://visual.openai.azure.us",
+    PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT: "visual-gpt-image",
+    PROJECT_VISUAL_AZURE_OPENAI_MODEL: "gpt-image-2"
+  };
 }
 
 function profile() {
@@ -31,6 +78,100 @@ function profile() {
   };
 }
 
+test("Project Visual Storytelling creates and verifies a photorealistic diorama in one command", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-project-visual-create-"));
+  try {
+    await mkdir(path.join(project, ".skills-orchestrator"), { recursive: true });
+    await mkdir(path.join(project, "src"), { recursive: true });
+    await writeFile(path.join(project, ".gitignore"), ".skills-orchestrator/\n");
+    await writeFile(path.join(project, "README.md"), "# Workshop Platform\n\nA cloud architecture with services, controls, and operator workflows.\n");
+    await writeFile(path.join(project, "src", "platform.js"), "export const controls = ['plan', 'validate', 'operate'];\n");
+    await writeFile(path.join(project, ".skills-orchestrator", "user-personalization.json"), `${JSON.stringify(profile(), null, 2)}\n`);
+    const imageProviderEnvironment = await installMockAzureImageProvider(project);
+    const request = "Create a photorealistic handcrafted miniature diorama with a central operations workshop and clear project pathways.";
+    const created = run([
+      "create", "--project", project, "--output-type", "diorama", "--request", request, "--external-processing-approved", "true"
+    ], project, imageProviderEnvironment);
+    assert.equal(created.status, 0, `${created.stderr}\n${created.stdout}`);
+    const result = JSON.parse(created.stdout);
+    assert.equal(result.status, "partial");
+    assert.equal(result.renderer.class, "bitmap-generation");
+    assert.equal(result.renderer.name, "azure-openai");
+    assert.ok(result.warnings.some((warning) => /human review/i.test(warning)));
+    const runDirectory = path.join(project, "artifacts", "project-visual-storytelling", result.runId);
+    const requestRecord = JSON.parse(await readFile(path.join(runDirectory, "request.json"), "utf8"));
+    const renderPlan = JSON.parse(await readFile(path.join(runDirectory, "render-plan.json"), "utf8"));
+    assert.equal(requestRecord.visual.type, "diorama");
+    assert.deepEqual(requestRecord.rendering.allowedClasses, ["bitmap-generation"]);
+    assert.match(renderPlan.renderer.prompt, /photorealistic handcrafted miniature diorama/i);
+    assert.match(renderPlan.renderer.prompt, /central operations workshop/i);
+    assert.match(renderPlan.renderer.prompt, /intentionally handcrafted/i);
+    assert.match(renderPlan.renderer.prompt, /exact main title/i);
+    assert.equal(renderPlan.renderer.preference, "auto");
+    assert.ok(renderPlan.elements.every((element) => typeof element.caption === "string" && element.caption.length > 0));
+    assert.ok(renderPlan.elements.some((element) => element.label === "Workshop Platform"));
+    assert.ok(result.artifacts.some((artifact) => artifact.path.endsWith("/diorama-azure-openai-candidate.png") && artifact.validated));
+    assert.match(await readFile(path.join(runDirectory, "diorama-specification.md"), "utf8"), /## Renderer Qualification/);
+    assert.match(await readFile(path.join(runDirectory, "diorama-specification.md"), "utf8"), /## Reference Use/);
+    assert.match(await readFile(path.join(runDirectory, "diorama-alt-text.md"), "utf8"), /handcrafted miniature/i);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("Project Visual Storytelling requires current approval before image generation", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-project-visual-local-auto-"));
+  const previous = {
+    endpoint: process.env.PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT,
+    deployment: process.env.PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT,
+    model: process.env.PROJECT_VISUAL_AZURE_OPENAI_MODEL
+  };
+  try {
+    await mkdir(path.join(project, ".azure"), { recursive: true });
+    await mkdir(path.join(project, ".skills-orchestrator"), { recursive: true });
+    await mkdir(path.join(project, "reports"), { recursive: true });
+    await mkdir(path.join(project, "src"), { recursive: true });
+    await writeFile(path.join(project, ".gitignore"), ".skills-orchestrator/\n");
+    await writeFile(path.join(project, "README.md"), "# Local Visual Project\n\nA project with qualified cloud configuration that must remain local without current approval.\n");
+    await writeFile(path.join(project, "src", "visual.js"), "export const rendererPolicy = 'approval-required';\n");
+    await writeFile(path.join(project, ".azure", "environment.json"), `${JSON.stringify({ cloud: "AzureUSGovernment", location: "usgovarizona" })}\n`);
+    await writeFile(path.join(project, ".skills-orchestrator", "user-personalization.json"), `${JSON.stringify(profile(), null, 2)}\n`);
+    await writeFile(path.join(project, "reports", "azure-discovery.json"), `${JSON.stringify({
+      cloud: "AzureUSGovernment",
+      discoveredAt: new Date().toISOString(),
+      imageGeneration: {
+        catalogQuerySucceeded: true,
+        available: true,
+        selectedModelName: "gpt-image-2",
+        selectedProvider: "azure-openai",
+        selectedMaturity: "generally-available",
+        requiresExplicitAcceptance: false,
+        models: [{ name: "gpt-image-2", format: "OpenAI", provider: "azure-openai", maturity: "generally-available", available: true, regions: ["usgovarizona"] }],
+        existingDeployments: { querySucceeded: true, available: true, count: 1, regions: ["usgovarizona"], models: ["gpt-image-2"], formats: ["OpenAI"] }
+      }
+    })}\n`);
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT = "https://visual.openai.azure.us";
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT = "visual-gpt-image";
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_MODEL = "gpt-image-2";
+    const created = run([
+      "create", "--project", project, "--output-type", "whiteboard", "--request", "Create a photorealistic physical project whiteboard."
+    ], project, process.env);
+    assert.notEqual(created.status, 0);
+    assert.match(created.stderr, /requires --external-processing-approved true/);
+    assert.equal(existsSync(path.join(project, "artifacts")), false);
+  } finally {
+    for (const [name, value] of Object.entries({
+      PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT: previous.endpoint,
+      PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT: previous.deployment,
+      PROJECT_VISUAL_AZURE_OPENAI_MODEL: previous.model
+    })) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
 test("Project Visual Storytelling blocks until User Personalization is valid", async () => {
   const project = await mkdtemp(path.join(os.tmpdir(), "pso-project-visual-storytelling-"));
   try {
@@ -38,10 +179,10 @@ test("Project Visual Storytelling blocks until User Personalization is valid", a
     assert.equal(doctor.status, 0, doctor.stderr);
     const doctorResult = JSON.parse(doctor.stdout);
     assert.equal(doctorResult.command, "doctor");
-    assert.equal(doctorResult.renderer.rendererClass, "physically-based-3d");
-    assert.equal(typeof doctorResult.renderer.available, "boolean");
-    assert.equal(doctorResult.renderer.engine, doctorResult.renderer.available ? "CYCLES" : undefined);
-    assert.equal(doctorResult.renderers.blender.rendererClass, "physically-based-3d");
+    assert.equal(typeof doctorResult.imageGenerationAvailable, "boolean");
+    assert.deepEqual(Object.keys(doctorResult.renderers).sort(), ["azureOpenAIImage", "maiImage"]);
+    assert.equal(doctorResult.renderers.azureOpenAIImage.rendererClass, "bitmap-generation");
+    assert.equal(doctorResult.renderers.azureOpenAIImage.provider, "azure-openai");
     assert.equal(doctorResult.renderers.maiImage.rendererClass, "bitmap-generation");
     assert.equal(doctorResult.renderers.maiImage.provider, "mai-image");
 
@@ -81,7 +222,7 @@ test("Project Visual Storytelling blocks until User Personalization is valid", a
     assert.equal(result.source.projectUnderstandingJson, "reports/project-understanding.json");
     assert.match(result.destination.directory, /^artifacts\/project-visual-storytelling\/[A-Za-z0-9-]+$/);
     assert.deepEqual(result.destination.files.required, ["whiteboard-specification.md", "whiteboard-alt-text.md"]);
-    assert.deepEqual(result.destination.files.optional, ["whiteboard.png"]);
+    assert.deepEqual(result.destination.files.optional, ["whiteboard-azure-openai-candidate.png", "whiteboard-mai-candidate.png"]);
     const runDirectory = path.join(project, ...result.destination.directory.split("/"));
     assert.equal((await lstat(runDirectory)).isDirectory(), true);
     const renderContext = JSON.parse(await readFile(path.join(runDirectory, "render-context.json"), "utf8"));
@@ -120,7 +261,7 @@ test("Project Visual Storytelling blocks until User Personalization is valid", a
     assert.equal(dioramaResult.visualStyle, "diorama");
     assert.equal(dioramaResult.visualTreatment, "conceptual");
     assert.deepEqual(dioramaResult.destination.files.required, ["diorama-specification.md", "diorama-alt-text.md"]);
-    assert.deepEqual(dioramaResult.destination.files.optional, ["diorama.png"]);
+    assert.deepEqual(dioramaResult.destination.files.optional, ["diorama-azure-openai-candidate.png", "diorama-mai-candidate.png"]);
     assert.match(dioramaResult.destination.directory, /-diorama-/);
 
     await writeFile(path.join(project, "README.md"), "# Service Handbook\n\nA practical guide for operators.\n");
@@ -210,7 +351,6 @@ test("Project Visual Storytelling references are generic and close reviewed pack
   assert.doesNotMatch(outputs, /article|action-plan|linkedin|teams/i);
   assert.match(dioramaRules, /photograph of a deliberately handcrafted miniature exhibit/i);
   assert.match(dioramaRules, /bitmap-generation/);
-  assert.match(dioramaRules, /physically-based-3d/);
   assert.match(dioramaRules, /HTML, CSS, SVG.*prohibited as final diorama output/is);
   assert.match(dioramaRules, /one central sculpted metaphor/i);
   assert.match(dioramaRules, /fewer, larger labels/i);
@@ -220,7 +360,7 @@ test("Project Visual Storytelling references are generic and close reviewed pack
   assert.match(dioramaRules, /Do not imitate a reference image's exact composition/i);
   assert.match(dioramaRules, /## Renderer Qualification Record/);
   assert.match(dioramaRules, /A renderer label is not evidence/);
-  assert.match(dioramaRules, /geometry types, perspective camera, physically based material model, light sources, cast shadows, and contact shadows/);
+  assert.match(dioramaRules, /approved Azure Government processing boundary/);
   assert.match(dioramaRules, /## Render Status[\s\S]*No finished image produced/);
   assert.match(dioramaRules, /## Reference Use Record/);
   assert.match(dioramaRules, /their pixels must not be submitted to an image-to-image or training workflow/);
@@ -229,17 +369,18 @@ test("Project Visual Storytelling references are generic and close reviewed pack
   assert.match(dioramaRules, /meaningful nonblank pixel variation/);
   assert.match(dioramaRules, /every visible project label has a row in the evidence-mapping table/);
   assert.match(dioramaRules, /profile signature appears exactly once/);
-  assert.match(sources[4], /Render plans are data, never Python or Blender expressions/);
+  assert.match(sources[4], /Render plans are bounded data, never executable expressions/);
   assert.match(sources[4], /Automated verification returns `requires-review`, not `complete`/);
+  assert.match(sources[4], /qualified dimension-compatible Azure OpenAI first, then MAI-Image/);
+  assert.match(sources[0], /create --project \. --output-type whiteboard\|diorama --request/);
+  assert.match(sources[0], /PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT/);
   assert.equal(JSON.parse(await readFile(path.join(root, "schemas", "project-visual-scene.schema.json"), "utf8")).title, "Project Visual Storytelling Render Plan");
-  const blenderScript = await readFile(path.join(skillRoot, "scripts", "blender-render.py"), "utf8");
-  assert.match(blenderScript, /plan_bytes = plan_path\.read_bytes\(\)/);
-  assert.match(blenderScript, /hashlib\.sha256\(plan_bytes\)/);
-  assert.match(blenderScript, /bpy\.data\.images\.load\(str\(output_path\)/);
-  assert.equal((await lstat(path.join(skillRoot, "scripts", "blender-render.py"))).isFile(), true);
+  assert.equal((await lstat(path.join(skillRoot, "scripts", "azure-openai-image-render.mjs"))).isFile(), true);
+  assert.equal((await lstat(path.join(skillRoot, "scripts", "mai-image-render.mjs"))).isFile(), true);
   const visualRuntime = await readFile(path.join(skillRoot, "scripts", "project-visual-storytelling.mjs"), "utf8");
-  assert.match(visualRuntime, /blender-launcher\.exe/);
-  assert.match(visualRuntime, /runpy\.run_path/);
+  assert.match(visualRuntime, /Image generation requires --external-processing-approved true/);
+  assert.match(visualRuntime, /intentionally handcrafted/);
+  assert.match(visualRuntime, /caption/);
 });
 
 test("MAI-Image qualification is Azure Government and discovery bound", async () => {
@@ -272,6 +413,30 @@ test("MAI-Image qualification is Azure Government and discovery bound", async ()
     assert.equal(qualified.cloud, "AzureUSGovernment");
     assert.equal(qualified.authentication, "microsoft-entra");
     assert.equal(qualified.apiPath, "/mai/v1/images/generations");
+    assert.equal(supportsMaiImageDimensions(1_200, 800), true);
+    assert.equal(supportsMaiImageDimensions(1_920, 1_080), false);
+
+    const image = Buffer.alloc(1_024);
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image, 0);
+    let request;
+    const outputPath = path.join(project, "candidate.png");
+    const report = await generateMaiImage({
+      capability: qualified,
+      prompt: "A photorealistic project diorama with reserved blank label panels.",
+      width: 1_200,
+      height: 800,
+      outputPath,
+      renderPlanSha256: "b".repeat(64),
+      tokenProvider: () => "test-government-token",
+      fetchImpl: async (url, options) => {
+        request = { url, options };
+        return { ok: true, status: 200, json: async () => ({ data: [{ b64_json: image.toString("base64") }] }) };
+      }
+    });
+    assert.equal(request.url, "https://visual.services.ai.azure.us/mai/v1/images/generations");
+    assert.equal(request.options.headers.Authorization, "Bearer test-government-token");
+    assert.equal(report.authentication, "microsoft-entra");
+    assert.equal(report.provider, "mai-image");
 
     await writeFile(path.join(project, "reports", "azure-discovery.json"), `${JSON.stringify({
       cloud: "AzureUSGovernment",
@@ -286,6 +451,104 @@ test("MAI-Image qualification is Azure Government and discovery bound", async ()
       PROJECT_VISUAL_MAI_ENDPOINT: previous.endpoint,
       PROJECT_VISUAL_MAI_DEPLOYMENT: previous.deployment,
       PROJECT_VISUAL_MAI_MODEL: previous.model
+    })) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("Azure OpenAI image qualification and generation are Government discovery bound", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-project-visual-openai-"));
+  const previous = {
+    endpoint: process.env.PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT,
+    deployment: process.env.PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT,
+    model: process.env.PROJECT_VISUAL_AZURE_OPENAI_MODEL
+  };
+  try {
+    await mkdir(path.join(project, ".azure"), { recursive: true });
+    await mkdir(path.join(project, "reports"), { recursive: true });
+    await writeFile(path.join(project, ".azure", "environment.json"), `${JSON.stringify({ cloud: "AzureUSGovernment", location: "usgovarizona" })}\n`);
+    const discovery = {
+      cloud: "AzureUSGovernment",
+      discoveredAt: new Date().toISOString(),
+      imageGeneration: {
+        catalogQuerySucceeded: true,
+        available: true,
+        selectedModelName: "gpt-image-2",
+        selectedProvider: "azure-openai",
+        selectedMaturity: "generally-available",
+        requiresExplicitAcceptance: false,
+        models: [{ name: "gpt-image-2", format: "OpenAI", provider: "azure-openai", maturity: "generally-available", available: true, regions: ["usgovarizona"] }],
+        existingDeployments: { querySucceeded: true, available: true, count: 1, regions: ["usgovarizona"], models: ["gpt-image-2"], formats: ["OpenAI"] }
+      }
+    };
+    await writeFile(path.join(project, "reports", "azure-discovery.json"), `${JSON.stringify(discovery)}\n`);
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT = "visual-gpt-image";
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_MODEL = "gpt-image-2";
+
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT = "https://visual.openai.azure.com";
+    const publicEndpoint = await inspectAzureOpenAIImage(project);
+    assert.equal(publicEndpoint.available, false);
+    assert.match(publicEndpoint.reason, /not an Azure Government OpenAI endpoint/);
+
+    process.env.PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT = "https://visual.openai.azure.us";
+    const qualified = await inspectAzureOpenAIImage(project);
+    assert.equal(qualified.available, true);
+    assert.equal(qualified.authentication, "microsoft-entra");
+    assert.equal(qualified.apiPath, "/openai/v1/images/generations?api-version=preview");
+    assert.equal(supportsAzureOpenAIImageDimensions(1_200, 800), true);
+    assert.equal(supportsAzureOpenAIImageDimensions(1_920, 1_080), false);
+    assert.equal(supportsAzureOpenAIImageDimensions(-1_024, -1_024), false);
+
+    const image = Buffer.alloc(1_024);
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image, 0);
+    image.write("IHDR", 12, "ascii");
+    image.writeUInt32BE(1_200, 16);
+    image.writeUInt32BE(800, 20);
+    let request;
+    const outputPath = path.join(project, "candidate.png");
+    const report = await generateAzureOpenAIImage({
+      capability: qualified,
+      prompt: "A photorealistic project diorama with reserved blank label panels.",
+      width: 1_200,
+      height: 800,
+      outputPath,
+      renderPlanSha256: "a".repeat(64),
+      tokenProvider: () => "test-government-token",
+      fetchImpl: async (url, options) => {
+        request = { url, options };
+        return { ok: true, status: 200, json: async () => ({ data: [{ b64_json: image.toString("base64") }] }) };
+      }
+    });
+    assert.equal(request.url, "https://visual.openai.azure.us/openai/v1/images/generations?api-version=preview");
+    assert.equal(request.options.headers.Authorization, "Bearer test-government-token");
+    assert.deepEqual(JSON.parse(request.options.body), {
+      model: "visual-gpt-image",
+      prompt: "A photorealistic project diorama with reserved blank label panels.",
+      size: "1200x800",
+      n: 1,
+      quality: "high",
+      output_format: "png"
+    });
+    assert.deepEqual(await readFile(outputPath), image);
+    assert.equal(report.provider, "azure-openai");
+    assert.equal(report.processingBoundary, "AzureUSGovernment");
+    assert.equal(report.endpointHost, "visual.openai.azure.us");
+    assert.equal(report.referencePixelsSupplied, false);
+    assert.equal(report.webGrounding, false);
+
+    discovery.discoveredAt = "2026-01-01T00:00:00.000Z";
+    await writeFile(path.join(project, "reports", "azure-discovery.json"), `${JSON.stringify(discovery)}\n`);
+    const stale = await inspectAzureOpenAIImage(project);
+    assert.equal(stale.available, false);
+    assert.match(stale.reason, /older than 14 days/);
+  } finally {
+    for (const [name, value] of Object.entries({
+      PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT: previous.endpoint,
+      PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT: previous.deployment,
+      PROJECT_VISUAL_AZURE_OPENAI_MODEL: previous.model
     })) {
       if (value === undefined) delete process.env[name];
       else process.env[name] = value;
