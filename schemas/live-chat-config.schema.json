@@ -26,6 +26,27 @@
         "spokenOutputDefault": { "const": "off" }
       }
     },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cloud", "subscriptionId", "location", "openAI"],
+      "properties": {
+        "cloud": { "enum": ["AzureCloud", "AzureUSGovernment"] },
+        "subscriptionId": { "type": "string", "minLength": 1 },
+        "location": { "type": "string", "minLength": 1 },
+        "openAI": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["endpoint", "deployment", "model", "apiVersion"],
+          "properties": {
+            "endpoint": { "type": "string", "format": "uri", "pattern": "^https://" },
+            "deployment": { "type": "string", "minLength": 1 },
+            "model": { "type": "string", "minLength": 1 },
+            "apiVersion": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
     "halfDuplex": { "const": true },
     "fallback": { "type": "array", "items": { "enum": ["text-fallback", "guided-fallback"] }, "minItems": 1, "uniqueItems": true }
   }

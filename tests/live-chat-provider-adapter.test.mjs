@@ -10,13 +10,41 @@ function fakeResponse(lines, status = 200) {
 }
 
 test("compatibility matrix and server credential are enforced before transport", () => {
-  assert.equal(providerCompatibilityMatrix.openAI.model, "gpt-5.1");
+  assert.equal(providerCompatibilityMatrix.AzureUSGovernment.openAI.endpointSuffix, ".openai.azure.us");
+  assert.equal(providerCompatibilityMatrix.AzureCloud.openAI.endpointSuffix, ".openai.azure.com");
   assert.deepEqual(validateProviderConfig(config).openAI.apiVersion, "2025-04-01-preview");
-  assert.throws(() => validateProviderConfig({ ...config, cloud: "AzureCloud" }), (error) => error.code === "cloud-mismatch");
+  assert.deepEqual(validateProviderConfig({ ...config, cloud: "AzureCloud", location: "eastus", openAI: { ...config.openAI, endpoint: "https://chat.openai.azure.com" } }).cloud, "AzureCloud");
+  assert.throws(() => validateProviderConfig({ ...config, cloud: "AzureChinaCloud" }), (error) => error.code === "cloud-mismatch");
   assert.throws(() => validateProviderConfig({ ...config, openAI: { ...config.openAI, endpoint: "https://chat.openai.azure.com" } }), (error) => error.code === "sovereignty-mismatch");
   assert.throws(() => validateProviderConfig({ ...config, openAI: { ...config.openAI, apiVersion: "" } }), (error) => error.code === "api-version-mismatch");
+  assert.throws(() => createProviderAdapter({ config, fetchImpl: () => { throw new Error("must not call"); } }), (error) => error.code === "credential-required");
   assert.throws(() => createProviderAdapter({ config, credential: { apiKey: "secret" }, fetchImpl: () => { throw new Error("must not call"); } }), (error) => error.code === "credential-required");
   assert.throws(() => validateSpeechConfig({ endpoint: "https://speech.cognitiveservices.azure.us", region: "usgovarizona" }), (error) => error.code === "speech-api-version-required");
+  assert.deepEqual(validateSpeechConfig({ endpoint: "https://speech.cognitiveservices.azure.com", region: "eastus", apiVersion: "2025-10-15" }, "AzureCloud").region, "eastus");
+  assert.throws(() => validateSpeechConfig({ endpoint: "https://speech.cognitiveservices.azure.us", region: "usgovarizona", apiVersion: "2025-10-15" }, "AzureCloud"), (error) => error.code === "sovereignty-mismatch");
+  assert.throws(() => validateSpeechConfig({ endpoint: "https://speech.cognitiveservices.azure.com", region: "eastus", apiVersion: "2025-10-15" }, "AzureUSGovernment"), (error) => error.code === "sovereignty-mismatch");
+});
+
+test("Azure Commercial transport uses the Commercial Entra token audience", async () => {
+  const scopes = [];
+  const adapter = createProviderAdapter({
+    config: { ...config, cloud: "AzureCloud", location: "eastus", openAI: { ...config.openAI, endpoint: "https://chat.openai.azure.com" } },
+    credential: { getToken: async (scope) => { scopes.push(scope); return { token: "fake-token" }; } },
+    fetchImpl: async () => fakeResponse("data: [DONE]\n")
+  });
+  for await (const _event of adapter.streamOpenAI({ sessionId: "s1", identity: "user-1", turnId: "turn-1", messages: [] })) {}
+  assert.deepEqual(scopes, ["https://cognitiveservices.azure.com/.default"]);
+});
+
+test("Azure Government transport uses the Government Entra token audience", async () => {
+  const scopes = [];
+  const adapter = createProviderAdapter({
+    config,
+    credential: { getToken: async (scope) => { scopes.push(scope); return { token: "fake-token" }; } },
+    fetchImpl: async () => fakeResponse("data: [DONE]\n")
+  });
+  for await (const _event of adapter.streamOpenAI({ sessionId: "s1", identity: "user-1", turnId: "turn-1", messages: [] })) {}
+  assert.deepEqual(scopes, ["https://cognitiveservices.azure.us/.default"]);
 });
 
 test("OpenAI streaming uses injected fakes, hooks, redacted telemetry, cancellation, deadline, retry, rate, and cost guards", async () => {

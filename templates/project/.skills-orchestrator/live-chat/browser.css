@@ -1,0 +1,5 @@
+.live-chat-panel { max-width: 42rem; padding: 1rem; border: 1px solid #9aa8a8; background: #f7faf8; color: #172121; }
+.live-chat-panel textarea { display: block; width: 100%; min-height: 5rem; margin-block: .5rem 1rem; }
+.live-chat-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.live-chat-actions button { min-height: 2.75rem; padding: .5rem .9rem; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; } }

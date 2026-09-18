@@ -1,6 +1,9 @@
 dist/
 node_modules/
 .skills-orchestrator/
+!templates/project/.skills-orchestrator/
+!templates/project/.skills-orchestrator/live-chat/
+!templates/project/.skills-orchestrator/live-chat/**
 .azure/environment.json
 .pso-release.lock
 *.pem

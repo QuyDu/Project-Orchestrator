@@ -16,7 +16,7 @@ test("generated project receives disposable live-chat template assets", async ()
     });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const liveChatRoot = path.join(fixtureRoot, "live-chat-fixture", ".skills-orchestrator", "live-chat");
-    const assets = ["conversation-state.mjs", "grounding.mjs", "local-session.mjs", "browser-controller.mjs", "browser-panel.html", "browser.css"];
+    const assets = ["conversation-state.mjs", "grounding.mjs", "local-session.mjs", "evaluation.mjs", "browser-controller.mjs", "browser-panel.html", "browser.css", "server/provider-adapter.mjs"];
     for (const assetName of assets) assert.ok((await readFile(path.join(liveChatRoot, assetName), "utf8")).length > 0, `${assetName} must be generated`);
     assert.match(await readFile(path.join(liveChatRoot, "browser-panel.html"), "utf8"), /aria-live|label=/);
     assert.match(await readFile(path.join(liveChatRoot, "browser.css"), "utf8"), /prefers-reduced-motion|@media/);

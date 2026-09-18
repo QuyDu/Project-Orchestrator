@@ -89,10 +89,10 @@ test("STEP-016 deterministically evaluates frozen local and provider-adapter thr
   metrics.push(metric("rate-retry.deadline", adapter.credentialMode === "server-only" ? "passed" : "failed", { retryLimit: 2, deadlineMs: 10000 }, "retries <=2; deadline <=15s", "Adapter default deadline is 10 seconds and retry ceiling is two."));
   metrics.push(metric("rate-retry.identity-turn-transcript-response-circuit", "passed", { identity: true, turn: true, transcriptChars: 8000, responseTokens: 1500, circuit: true }, "1 active identity/session turn; 30 turns/10m; 8000 chars; 1500 tokens; circuit", "Adapter rejects missing identity/turn, excessive transcript or response limits, concurrent identity use, and repeated provider failures."));
 
-  assert.throws(() => provider.validateProviderConfig({ ...config, cloud: "AzureCloud" }), (error) => error.code === "cloud-mismatch");
-  assert.throws(() => provider.validateProviderConfig({ ...config, openAI: { ...config.openAI, endpoint: "https://chat.openai.azure.com" } }), (error) => error.code === "sovereignty-mismatch");
+  assert.throws(() => provider.validateProviderConfig({ ...config, cloud: "AzureChinaCloud" }), (error) => error.code === "cloud-mismatch");
+  assert.throws(() => provider.validateProviderConfig({ ...config, cloud: "AzureCloud" }), (error) => error.code === "sovereignty-mismatch");
   assert.throws(() => provider.validateSpeechConfig({ endpoint: "https://speech.tts.speech.azure.us", region: "usgovarizona" }), provider.ProviderAdapterError);
-  metrics.push(metric("government.matrix-speech-fail-closed-commercial", "passed", provider.providerCompatibilityMatrix, "AzureUSGovernment only; explicit Speech API; no Commercial fallback", "Commercial and invalid Speech configurations reject before transport."));
+  metrics.push(metric("cloud.matrix-speech-fail-closed-mismatch", "passed", provider.providerCompatibilityMatrix, "Azure Commercial or Government; explicit Speech API; no cross-cloud endpoint fallback", "Only supported cloud and matching endpoint configurations reach transport."));
 
   const events = [];
   const browser = controller.createBrowserController({ dispatch: (event) => events.push(event), speech: { getUserMedia: async () => { throw new Error("denied"); } } });
