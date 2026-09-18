@@ -1,6 +1,6 @@
 # Skill Inventory
 
-Generated: 2026-09-18T15:02:55.953Z
+Generated: 2026-09-18T18:40:56.763Z
 
 | Skill | Description |
 | --- | --- |
@@ -24,6 +24,7 @@ Generated: 2026-09-18T15:02:55.953Z
 | environment-update | Inventory installed development tools and present available updates, then update only existing tools selected by the user with complete findings and error reporting. |
 | framework-health-check | Validate framework structure, skill contracts, schemas, ownership, profiles, fixtures, configuration, and conformance evidence. Use to verify the installed orchestrator framework itself; use audit-code instead to assess application code. |
 | linkedin-post | Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history. |
+| live-chat-interaction | Build and validate provider-neutral local voice and text conversation state, grounding, session boundaries, fallbacks, and accessible browser interaction without cloud processing or consequential action authority. |
 | multi-agent-coordinator | Coordinate concurrent agents with leases, fencing tokens, ownership transfer, conflict detection, and shared-read or exclusive-write semantics. Use when more than one agent may write the same artifacts concurrently; do not use for single-agent sequential work. |
 | policy-engine | Evaluate centralized authorization, risk, compliance, escalation, and approval policies without executing the governed action. Use to decide whether an action is allowed, denied, or approval-gated; never use it to perform the action. |
 | prepare-commit | Prepare a minimal, validated change set and commit summary after bounded change review, without committing, pushing, deploying, or bypassing protections. Use when changes are ready for a pre-commit decision. |

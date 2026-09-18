@@ -36,6 +36,9 @@ This model covers GitHub cloning, local project creation, inspection, adoption, 
 | Renderer package or lifecycle script is compromised | Renderer installation requires separate approval, uses exact `ffmpeg-static@5.3.0` under an isolated tools directory, records npm lock integrity and package license, and binds the binary SHA-256 digest in a renderer manifest | Registry, package publisher, download host, and native FFmpeg binary remain external supply-chain dependencies requiring organizational review. |
 | Untrusted project text injects commands or escapes output paths | Plans validate bounded strings and repository-relative evidence; rendering uses argument arrays, generated pixels, canonical roots, and component-wise symlink rejection rather than shell interpolation | A malicious same-user process may still race filesystem checks or replace an approved external executable after verification. |
 | Partial or stale narration is rendered | Scene audio is written through `.partial` files and a provider-specific narration manifest binds the current plan, provider evidence, narration text, file path, and every MP3 or WAV digest before FFmpeg runs | Storage failure after verification can still interrupt rendering; incomplete final files retain a `.partial.mp4` suffix and are deleted. |
+| Live chat prompt injection or stale grounding | Local grounding accepts only a fresh approved versioned manifest, validates source IDs, digests, and citations, and returns explicit unknown or guided fallback for instruction-like, malformed, stale, or unsupported content | The local capability does not prove the truth of source documents; corpus approval and refresh remain operator responsibilities. |
+| Voice endpoint submits an unintended consequential action | Endpoint acceptance auto-submits informational turns only; consequential intent enters confirmation-required state and cancellation/correction reject late events | Future product action adapters need a separate authorization and approval review. |
+| Browser or session boundary leaks credentials or audio | Browser assets contain no service credentials, session events are identity/replay bounded, idle and absolute expiry reject late events, transcripts are session-only by default, raw audio export is unavailable, and the provider boundary enforces identity concurrency, transcript/response ceilings, bounded retries, and circuit opening | Production timing and VAD accuracy remain unmeasured; any provider adapter must preserve the server-side credential boundary and independently validate retention. |
 
 ## Security Invariants
 
@@ -51,6 +54,7 @@ This model covers GitHub cloning, local project creation, inspection, adoption, 
 10. Remote provisioning never overwrites an existing destination or publishes an unverified clone.
 11. Project video generation never changes narration providers, sends text externally, installs a local voice or renderer, executes FFmpeg, or replaces final media without the corresponding explicit approvals.
 12. A final project-video manifest is written only after every narration digest matches the current plan and FFmpeg decodes both video and audio streams.
+13. Local Live Chat accepts no raw-audio persistence, no browser service credentials, no cross-session event replay, and no consequential submission without explicit confirmation.
 
 ## Review Triggers
 

@@ -35,6 +35,7 @@ profiles:
       - project-handoff
       - project-status
       - workflow-telemetry
+      - live-chat-interaction
   durable:
     extends: core
     required:

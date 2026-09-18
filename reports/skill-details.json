@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "runtimeVersion": "1.1.2",
-  "generatedAt": "2026-09-18T15:02:55.953Z",
+  "generatedAt": "2026-09-18T18:40:56.763Z",
   "skills": [
     {
       "name": "agent-builder",
@@ -23,7 +23,7 @@
       "sha256": "cc75136bc177e1b52349a95ccbbbeb8614ff272219fc7632a2569e0211fcb424",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.751Z",
+        "checkedAt": "2026-09-18T18:40:56.629Z",
         "findings": []
       }
     },
@@ -43,7 +43,7 @@
       "sha256": "7819970e807c5fa91a82f18ffc0ae4559eba4c94ad08fe429594cd5b1d7a30a3",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.751Z",
+        "checkedAt": "2026-09-18T18:40:56.629Z",
         "findings": []
       }
     },
@@ -64,7 +64,7 @@
       "sha256": "a14a7f0734b303a649a3e29c5f7df754a742d61e8fa4186aeee71bcd5685d5f3",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.751Z",
+        "checkedAt": "2026-09-18T18:40:56.629Z",
         "findings": []
       }
     },
@@ -81,7 +81,7 @@
       "sha256": "b44801c265343f4a81ff773a671cd77181a654c3f253a14fe7f2ee144cae910a",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.751Z",
+        "checkedAt": "2026-09-18T18:40:56.629Z",
         "findings": []
       }
     },
@@ -100,7 +100,7 @@
       "sha256": "b49c6762aac38e3144254d0db47bfef80d2925c2e256184df21116155640b3d4",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -121,7 +121,7 @@
       "sha256": "d1c20d0aea7e863c29cc70bb7fe3bf2890a6618f45bb990870d3e803675c0a4b",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -149,7 +149,7 @@
       "sha256": "d024f1c0d5d26c34691c77036ce7fdb5521d5bb8b1f33a26321275fe470d2c30",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -172,7 +172,7 @@
       "sha256": "e33f464cbe34860038b52654872b04eae4a216e7e8e4bb06da3ea941690b64d8",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -194,7 +194,7 @@
       "sha256": "3eb17b9f93e90381b04a77d3093466b4670128fca8bd714217ab33a850435b95",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -214,7 +214,7 @@
       "sha256": "099a35fe24739579397da7754d9ce0cf3c9b18cf5191b3a99ecad1719a4141cf",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -234,7 +234,7 @@
       "sha256": "9474f9b59f6b038526072531b3e026c24ef606c76afd0927ee32b84a6363c80f",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -257,7 +257,7 @@
       "sha256": "f1c3a96ed04db735c71092191be99cba3613cae2037eea2ec20542c9ca052a82",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -275,7 +275,7 @@
       "sha256": "40605215358dedbde2dc2a7e17182f9095b145aa693dab9d851556e865b0943f",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -297,7 +297,7 @@
       "sha256": "bea177c78409ba2308cf3707713f9b2ff2bf3f9951f15bc784c5b5bb45b29398",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -318,7 +318,7 @@
       "sha256": "4598004b0138b7b4b2e2ddeca692dd29c0a1963cd320bdcb09f0a744c6a78336",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -339,7 +339,7 @@
       "sha256": "f7967274250d9fd0bc5d63111f8775244a1a4bd429f7e0e9fe5d5a9ea15ed70f",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -360,7 +360,7 @@
       "sha256": "b7810042cee44bc805fd6dbc28753cf00bbd0a12272249077eaadd585da51545",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -381,7 +381,7 @@
       "sha256": "38a1440b3263e632286e888f8c861389841bcea5c219a0869d2bbf9756a50c12",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -404,7 +404,7 @@
       "sha256": "d0a70a9d38f3b1a9d9955203460f37fedc46434b6487e40f4031e5fb36427083",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.752Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
         "findings": []
       }
     },
@@ -425,7 +425,27 @@
       "sha256": "46b30f35ec56aed588d52026bb795732b6f397d8830ecab8865a87e0cf0fb36a",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.630Z",
+        "findings": []
+      }
+    },
+    {
+      "name": "live-chat-interaction",
+      "path": ".github/skills/live-chat-interaction/SKILL.md",
+      "description": "Build and validate provider-neutral local voice and text conversation state, grounding, session boundaries, fallbacks, and accessible browser interaction without cloud processing or consequential action authority.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "clarify-the-ask",
+        "policy-engine",
+        "project-understanding",
+        "regression-test-development"
+      ],
+      "reports": [],
+      "sha256": "7db00e2168ed7c306eafa7415f1c233db86083d38013490fe2f5201757aba993",
+      "audit": {
+        "status": "passed",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -446,7 +466,7 @@
       "sha256": "0657c56ff20da9b5117a688fb83555afe301ee6578ffbb0094141172a7558bd7",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -465,7 +485,7 @@
       "sha256": "114f91c04fd17cb663a82d385e3ee25c3b13a63500f2d591cd008f25b478322e",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -482,7 +502,7 @@
       "sha256": "385d187eceac9d84123e3ae0f195d5cee7df84579b0b8817774b40fa73907783",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -503,7 +523,7 @@
       "sha256": "0d0d175b743a09216d5de8d9365a958fb7d1bfb2f22be8a6a73065bd3ac30db6",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -523,7 +543,7 @@
       "sha256": "aaa52fc21c7809da802921ecabc22945d1be1d9ba8ac97e32b059ab2171ff022",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -543,7 +563,7 @@
       "sha256": "55cdd90fd2b4318097cf3ad424c2408fd3ce1366f9c30f02eefd8b1c91de4121",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -564,7 +584,7 @@
       "sha256": "40a1431910034b5156157b70c6279766baedf47eb295014abc1e97d4fd0edbc2",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -589,7 +609,7 @@
       "sha256": "fc3af631122d12742f0e699eeeb9cf4a9b973ea468f2f225acebc0fb87394c27",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -611,7 +631,7 @@
       "sha256": "08e72a378293463ab4934c2f38ba1240a89c2f552895361eec49ce67e5bcf65b",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -631,7 +651,7 @@
       "sha256": "1851ba69d4655f8ce1afa6650e51a1977db6d25a2a73d8b665d4c3b343e2fa70",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -665,7 +685,7 @@
       "sha256": "31e004483443403721e139b3c3b321e0d1c13b7053236d55c9ee65b26f59d064",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -687,7 +707,7 @@
       "sha256": "e9c48d81a7fca0b7b895780a5138a00270e7ce9b5dc2cf50e7730e86f783ddd4",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -708,7 +728,7 @@
       "sha256": "8c192662e5d4ae23e7e308c8bb02d51624b16e6c4a43837bd35f935eaac23afb",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -728,7 +748,7 @@
       "sha256": "1fbc49418267f5543a97d3c3e033e1b264c58c0f0fec6acaa77a7670dc3593b2",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -748,7 +768,7 @@
       "sha256": "3f65d8b9c594a749e8f0c87714f8717dec4f28b47ac5127591aff17e5b369980",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -768,7 +788,7 @@
       "sha256": "d4a5ab2a5913324678005d0a0ca018a72977799099c226075275c73de2e5bedf",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.631Z",
         "findings": []
       }
     },
@@ -789,7 +809,7 @@
       "sha256": "92f5047cf76c37acb3b147510c3a50f5df02c0e0f7ae2ca4caba7f5f87eeb174",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -811,7 +831,7 @@
       "sha256": "557f2c514dd23f2d90aa759ac9849f9d738c2ad9a1c8b0f37157b601439e5ec9",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.753Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -831,7 +851,7 @@
       "sha256": "f4dabff4ef690c82bc9a44844416b68fef966255e2a562a96505013b341e5314",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -852,7 +872,7 @@
       "sha256": "aced076a579fb3d8ad26f0f1445b6e1f6b83e2dab3ba6cc1e289aa6f571ac82e",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -867,7 +887,7 @@
       "sha256": "4959e5cd32b65d48516dfe31e7c40142964fe0b94ceed851187ac1f608b267c2",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -889,7 +909,7 @@
       "sha256": "d7185eb0500f7a09677698a4963b689096775f035ede5d13f17965028cac58a0",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -910,7 +930,7 @@
       "sha256": "6aac7de74ad8c4042bdabeb3fa4aa89a9901d4e12d5f9c4043267e754f66c789",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -931,7 +951,7 @@
       "sha256": "94bc5af7fbdea242269bded803cc62b49596d5f43df30a61a57d1642ec49fa66",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -952,7 +972,7 @@
       "sha256": "42b5e673e82cf1868ebc0696cc1c6e79621e9667fc46ff03a10aa868e5bc5677",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -973,7 +993,7 @@
       "sha256": "1e84bad95979685409e581cba3724f0940cda10014e3f8736d62fae82ef94e86",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     },
@@ -993,7 +1013,7 @@
       "sha256": "102c20432b0a92a85234633a86b4ad9082be60cb5043dfc9753ea65d8cdf597d",
       "audit": {
         "status": "passed",
-        "checkedAt": "2026-09-18T15:02:55.754Z",
+        "checkedAt": "2026-09-18T18:40:56.632Z",
         "findings": []
       }
     }

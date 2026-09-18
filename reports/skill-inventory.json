@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "runtimeVersion": "1.1.2",
-  "generatedAt": "2026-09-18T15:02:55.953Z",
+  "generatedAt": "2026-09-18T18:40:56.763Z",
   "skills": [
     {
       "name": "agent-builder",
@@ -308,6 +308,20 @@
       "reports": [
         "reports/linkedin-post-draft.md"
       ]
+    },
+    {
+      "name": "live-chat-interaction",
+      "path": ".github/skills/live-chat-interaction/SKILL.md",
+      "description": "Build and validate provider-neutral local voice and text conversation state, grounding, session boundaries, fallbacks, and accessible browser interaction without cloud processing or consequential action authority.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "clarify-the-ask",
+        "policy-engine",
+        "project-understanding",
+        "regression-test-development"
+      ],
+      "reports": []
     },
     {
       "name": "multi-agent-coordinator",

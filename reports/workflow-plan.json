@@ -1,443 +1,351 @@
 {
   "schemaVersion": "1.1.0",
-  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
-  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
-  "intent": "Implement, only after explicit phase approval, a provenance-backed and non-destructive Project Orchestrator update system covering Git-native Launch Pad guidance and additive, safe-all, and selective updates for generated projects without committing, pushing, publishing, deploying, or mutating external systems.",
+  "workflowId": "WF-LIVE-CHAT-20260918",
+  "runId": "RUN-LIVE-CHAT-PLAN-20260918-01",
+  "intent": "Implement only after explicit gates a reusable natural real-time voice and grounded text chat capability, validated locally with disposable generated-project fixtures, with cloud-portable per-subscription discovery and external processing separately gated; Azure Government remains the deployment-test target; no commit, push, deployment, or publication is included.",
   "status": "planned",
-  "createdAt": "2026-09-17T15:26:19.668Z",
-  "terminalStepId": "STEP-014",
+  "createdAt": "2026-09-18T15:25:09.3571524Z",
+  "terminalStepId": "STEP-020",
   "steps": [
     {
       "id": "STEP-001",
-      "owner": { "type": "skill", "id": "skill-dependency-manager" },
-      "action": "Map managed update assets, ownership scopes, skill dependency closure, generated companions, and affected consumers before changing update contracts.",
+      "owner": { "type": "skill", "id": "skill-inventory" },
+      "action": "Inspect current capability reuse, duplication, ownership, profiles, and dependencies; decide whether candidate skill ID live-chat-interaction is needed without authoring it.",
       "status": "ready",
-      "inputs": [
-        "reports/skill-inventory.json",
-        "reports/artifact-ownership.json",
-        ".github/skills/*/SKILL.md",
-        "config/profiles.yaml",
-        "templates/scaffold-manifest.json",
-        "pso.mjs update, adoption, creation, verification, and transaction paths"
-      ],
-      "outputs": [
-        "reports/skill-dependency-graph.json",
-        "reports/skill-dependency-report.md",
-        "Dependency-closed capability bundle and managed-asset impact map"
-      ],
+      "inputs": ["reports/clarification-result.json", "reports/skill-inventory.json", "reports/skill-dependency-graph.json", "reports/project-handoff.json"],
+      "outputs": ["Capability reuse and duplication assessment", "Exact owner-gap and candidate-skill decision"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": [],
-      "completionCriteria": [
-        "Every framework skill has a deterministic transitive dependency closure and generated help companion.",
-        "Whole-file, directory, generated-file, and managed-region ownership scopes are distinguished from project-owned paths.",
-        "Affected creation, adoption, update, verification, profile, schema, and report consumers are identified with no unresolved cycle or missing owner."
-      ],
-      "checkpoint": "CP-UPDATE-DEPENDENCY-MAP",
-      "rollback": "No rollback is required because this step is read-only analysis; preserve the prior valid dependency reports if regeneration fails.",
-      "recovery": "Correct incomplete inventory or ownership evidence and rerun the same dependency analysis before migration planning.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Existing skills are mapped to every requested responsibility and no current conversational-runtime owner is assumed without evidence.", "Reuse is selected when sufficient; otherwise live-chat-interaction is recorded as the exact nonduplicate candidate, with no authoring yet."],
+      "checkpoint": "CP-LIVE-CHAT-INVENTORY",
+      "rollback": "Preserve the prior validated inventory and discard only the candidate assessment.",
+      "recovery": "Refresh missing ownership evidence and rerun inventory; if ambiguity remains, stop at STEP-020.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-002",
-      "owner": { "type": "skill", "id": "artifact-upgrade" },
-      "action": "Define the versioned manifest, baseline lock, update-plan, selection, compatibility, migration, and rollback contracts for safe three-way updates.",
+      "owner": { "type": "skill", "id": "architecture-review" },
+      "action": "Define local-first contracts for client microphone and transcript state, server session isolation, asynchronous streaming, VAD and end-of-turn adapters, grounding, cancellation, reconnect, half-duplex baseline, and future barge-in extension.",
       "status": "planned",
-      "inputs": [
-        "STEP-001 dependency and ownership map",
-        "Current project-orchestrator.json schema 1.0 shape",
-        "Current adoption plan and verification report shapes",
-        "Current transaction journal and backup behavior"
-      ],
-      "outputs": [
-        "reports/artifact-upgrade-plan.json",
-        "reports/artifact-upgrade-report.md",
-        "Manifest and lock compatibility matrix",
-        "Forward migration and rollback specification"
-      ],
+      "inputs": ["STEP-001 owner assessment", "LIVE-CHAT-001 requirements", "Current framework boundaries"],
+      "outputs": ["Component and trust-boundary architecture", "Conversation, transport, grounding, adapter, cancellation, and reconnect contracts"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-001"],
-      "completionCriteria": [
-        "The design records normalized per-file SHA-256 baselines, source framework identity, ownership scope, and track, pin, or fork policy without absolute source paths or secrets.",
-        "The three-way classifier covers unchanged, upstream-only, local-only, converged, diverged, added, deleted, and legacy-unknown states.",
-        "Schema 1.0 consumers remain readable while schema 1.1 manifest and lock creation, adoption, update, downgrade, backup, and rollback behavior is explicit.",
-        "Legacy projects with no lock bootstrap only byte-equivalent assets and preserve every differing asset as unknown or customized pending an explicit decision."
-      ],
-      "checkpoint": "CP-UPDATE-MIGRATION-DESIGNED",
-      "rollback": "Reject the candidate migration design and preserve schema 1.0 behavior and reports.",
-      "recovery": "Resolve any consumer, compatibility, or rollback gap and regenerate the migration plan before approval.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Browser, server session, adapters, and versioned grounding sources have separate contracts and trust boundaries.", "Natural half-duplex uses live transcript, tunable silence endpointing, automatic informational submission, correction or cancellation, streaming response, and listening resume; barge-in remains an extension."],
+      "checkpoint": "CP-LIVE-CHAT-ARCHITECTURE",
+      "rollback": "Reject the candidate architecture and retain existing framework boundaries.",
+      "recovery": "Resolve ambiguous state or trust boundaries and repeat architecture review before STEP-003.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-003",
-      "owner": { "type": "operator", "id": "product-owner" },
-      "action": "Review and explicitly approve the exact local implementation phase, public CLI compatibility rules, contract changes, and bounded file list.",
+      "owner": { "type": "skill", "id": "security-review" },
+      "action": "Threat-model consent and privacy, prompt injection, output safety, audio and transcript retention, auth and RBAC, rate limits, abuse, redacted telemetry, browser permission, and server secrets.",
       "status": "planned",
-      "inputs": [
-        "STEP-001 dependency and ownership map",
-        "STEP-002 migration and rollback specification",
-        "Proposed implementation files and public CLI examples"
-      ],
-      "outputs": [
-        "Explicit implementation phase approval",
-        "Approved CLI, schema, test, and documentation boundary"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": ["phase"],
+      "inputs": ["STEP-002 architecture", "Session-only transcript and no-raw-audio defaults", "Grounding and external-processing constraints"],
+      "outputs": ["LIVE-CHAT-001 threat model", "Testable privacy, safety, identity, retention, validation, and abuse controls"],
+      "requiresApproval": false,
+      "approvalClasses": [],
       "prerequisites": ["STEP-002"],
-      "completionCriteria": [
-        "Approval names the exact implementation boundary and confirms that bare pso update means safe all-mode, never force replacement.",
-        "Approval confirms additive, all, and select behavior plus track, pin, fork, keep, replace, and exact-asset force semantics.",
-        "Commit, push, publication, deployment, release, remote fetch, and external mutation remain separately prohibited."
-      ],
-      "checkpoint": "CP-UPDATE-IMPLEMENTATION-APPROVED",
-      "rollback": "Withdraw approval before implementation starts; no source artifacts are changed by this gate.",
-      "recovery": "Record rejected or narrowed requirements in a new clarification and workflow-plan lineage rather than inferring approval.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Notice and consent precede microphone or cloud use; raw audio is not retained and transcripts default to session-only.", "Untrusted input, retrieval, and output are validated; content safety, least privilege, server secrets, redacted structured logs, retries, rate limits, health, and metrics are required."],
+      "checkpoint": "CP-LIVE-CHAT-THREAT-MODEL",
+      "rollback": "Discard the candidate threat model without changing runtime or policy state.",
+      "recovery": "Carry unresolved safe-default decisions to STEP-005 or stop at STEP-020.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-004",
-      "owner": { "type": "skill", "id": "regression-test-development" },
-      "action": "Implement baseline provenance capture and the pure three-way asset classifier through focused red-green tests.",
+      "owner": { "type": "skill", "id": "workflow-simulator" },
+      "action": "Simulate silence, noise, false endpointing, interruption, denied microphone, model or Speech unavailability, reconnect, stale grounding, approval rejection, costs, and fallback without mutation.",
       "status": "planned",
-      "inputs": [
-        "STEP-003 approved implementation boundary",
-        "STEP-002 manifest and lock contracts",
-        "tests/adoption-rerun.test.mjs neighboring creation and adoption fixtures"
-      ],
-      "outputs": [
-        "Failing then passing provenance and classifier tests",
-        "Versioned project manifest and baseline lock schemas",
-        "Creation and adoption baseline capture",
-        "Pure managed-asset classification implementation",
-        "reports/regression-test-result.json",
-        "reports/regression-test-result.md"
-      ],
+      "inputs": ["STEP-002 contracts", "STEP-003 controls", "Planned approval and recovery routes"],
+      "outputs": ["Failure and approval simulation", "Deterministic fallback and stop-condition matrix"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-003"],
-      "completionCriteria": [
-        "Creation and adoption record canonical normalized-text hashes for every managed file and file within a managed directory.",
-        "Line-ending normalization prevents false local modifications across supported Windows and Unix checkouts.",
-        "The complete base, local, and upstream state matrix is covered by behavior-level tests, including local or upstream deletion and equal convergence.",
-        "Project-owned files and untracked local skills never enter the managed lock implicitly."
-      ],
-      "checkpoint": "CP-UPDATE-PROVENANCE-GREEN",
-      "rollback": "Restore the schema 1.0 manifest writer and remove only the newly introduced lock, schemas, classifier, and focused tests from this slice.",
-      "recovery": "Keep the correctly failing test, record the implementation blocker, and route through terminal handoff if the baseline contract cannot be made deterministic.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Every named failure has a deterministic user-visible transition to correction, cancellation, reconnect, text or guided fallback, or handoff.", "Approval rejection and cost limits never imply consequential submission or external authorization."],
+      "checkpoint": "CP-LIVE-CHAT-SIMULATED",
+      "rollback": "Discard simulated state; repository and external state remain unchanged.",
+      "recovery": "Repair incomplete architecture or control routes and rerun simulation before STEP-005.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-005",
-      "owner": { "type": "skill", "id": "regression-test-development" },
-      "action": "Split update planning from adoption and implement additive, safe-all, and selective plans with deterministic dependency closure and automation-safe selection input.",
+      "owner": { "type": "operator", "id": "product-owner" },
+      "action": "Approve the exact new-skill, runtime, template, schema, test, docs, UX-default, and threshold boundary, including explicit skill-create proceed authorization; no implementation starts before this gate.",
       "status": "planned",
-      "inputs": [
-        "STEP-004 provenance and classifier implementation",
-        "STEP-001 capability dependency map",
-        "Current buildAdoptionPlan and updateProject behavior"
-      ],
-      "outputs": [
-        "Failing then passing update-mode tests",
-        "Versioned project update-plan and selection schemas",
-        "Dedicated update plan builder and reports",
-        "Interactive selection and equivalent noninteractive CLI inputs"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
+      "inputs": ["STEP-001 through STEP-004 evidence", "Exact proposed files and behaviors"],
+      "outputs": ["Explicit local implementation phase approval", "Explicit skill-create --proceed approval or reuse-only decision", "Frozen deterministic UX and evaluation thresholds"],
+      "requiresApproval": true,
+      "approvalClasses": ["phase"],
       "prerequisites": ["STEP-004"],
-      "completionCriteria": [
-        "An unqualified pso update resolves to mode all and dry-run remains mutation-free.",
-        "Additive mode installs only absent upstream capability bundles, their missing transitive skill dependencies, generated help, and absent required schemas without overwriting existing content.",
-        "Select mode accepts skills and exact asset selectors interactively on a TTY and through a versioned selection file in noninteractive runs; empty noninteractive selection fails closed.",
-        "All-mode plans every applicable tracked asset but sets canApply false while any conflict or required compatibility decision remains unresolved.",
-        "Portable JSON reports omit source-machine absolute paths and embedded file content."
-      ],
-      "checkpoint": "CP-UPDATE-MODES-GREEN",
-      "rollback": "Remove the dedicated update planner and retain the existing adoption planner; preserve the passing provenance slice for independent review.",
-      "recovery": "Reduce the failing mode to one classifier or closure case, repair that behavior, and rerun the same focused suite before continuing.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Approval names the exact skill/runtime/template/schema/test/docs boundary and confirms no permanent demo app in the Launch Pad.", "Approval freezes endpoint, latency, correction, grounding, citation, unknown, accessibility, privacy, cost, and fallback thresholds and separately satisfies skill-create proceed when needed.", "Commit, push, Azure discovery, external processing, provisioning, deployment, publication, and release remain excluded."],
+      "checkpoint": "CP-LIVE-CHAT-IMPLEMENTATION-APPROVED",
+      "rollback": "Withdraw approval before implementation; the gate changes no source.",
+      "recovery": "Record rejection or narrowing and stop at STEP-020; never infer approval.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-006",
-      "owner": { "type": "skill", "id": "regression-test-development" },
-      "action": "Implement track, pin, and fork policy plus explicit keep, replace, fork, and exact-asset force conflict resolutions without silent local-data loss.",
+      "owner": { "type": "skill", "id": "skill-create" },
+      "action": "After STEP-005, compare inventory again and author live-chat-interaction only if reuse remains insufficient; otherwise record the owner and avoid duplication.",
       "status": "planned",
-      "inputs": [
-        "STEP-005 dedicated update plans",
-        "STEP-002 policy and compatibility rules",
-        "skill-update exact-target and approval requirements for skill forks"
-      ],
-      "outputs": [
-        "Failing then passing policy and conflict-resolution tests",
-        "Policy persistence in the baseline lock",
-        "Validated conflict-resolution file support",
-        "Skill fork and exact-asset replacement plan actions"
-      ],
+      "inputs": ["STEP-005 approval", "STEP-001 assessment", "skill-create governance contract"],
+      "outputs": ["Governed skill package or documented reuse decision", "Catalog, help, profile, dependency, routing, tests, and docs propagation when created"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-005"],
-      "completionCriteria": [
-        "Track is the default only for framework-installed assets; pin preserves the installed baseline and reports available upstream changes.",
-        "Fork requires an exact new project-owned skill ID and preserves the local package before restoring the canonical tracked framework skill and regenerating affected help or references.",
-        "Keep records an explicit pin or project-owned disposition rather than pretending the local content equals upstream.",
-        "Replace and force replacement require exact asset selectors, fresh destination-state preconditions, risk acceptance, and backup; no force-all shortcut exists.",
-        "Unresolved or invalid resolutions leave the plan non-applicable and make no project mutation."
-      ],
-      "checkpoint": "CP-UPDATE-POLICIES-GREEN",
-      "rollback": "Restore the pre-resolution lock and every backed-up selected asset; never remove a successfully preserved project-owned fork during rollback.",
-      "recovery": "Discard only the invalid resolution plan, retain local files unchanged, and require a newly generated plan with exact selectors.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["A new complete governed skill is created only after explicit proceed and renewed proof that no current owner suffices.", "When created, catalog/help/profile/dependency/routing/tests/docs stay acyclic and dependency-closed; otherwise no duplicate is added."],
+      "checkpoint": "CP-LIVE-CHAT-OWNER-ESTABLISHED",
+      "rollback": "Remove only the new skill and approved companions, or retain the reuse decision.",
+      "recovery": "Correct duplication or contract failures and repeat skill validation before STEP-007.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-007",
       "owner": { "type": "skill", "id": "regression-test-development" },
-      "action": "Integrate safe update application with locks, stale-plan checks, transaction journaling, backups, rollback, verification, and dedicated update evidence.",
+      "action": "Red-green a pure conversation state machine with interim transcript, configurable silence endpoint, automatic informational submission, explicit action confirmation, correction, cancellation, no raw-audio retention, and half-duplex listening resume using local doubles.",
       "status": "planned",
-      "inputs": [
-        "STEP-006 resolved update actions",
-        "Current prepareAdoptionTransaction, applyAdoptionLocked, rollbackAdoptionTransaction, and verifyInstallation behavior",
-        "Current interruption and unsafe-path fixtures"
-      ],
-      "outputs": [
-        "Failing then passing transactional update tests",
-        "Atomic update apply and rollback implementation",
-        "reports/project-update-plan.json",
-        "reports/project-update-plan.md",
-        "reports/update-verification.json"
-      ],
+      "inputs": ["STEP-006 owner", "STEP-002 contracts", "STEP-005 thresholds"],
+      "outputs": ["Pure state machine and tests", "Fake VAD, speech, response, clock, and cancellation adapters"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-006"],
-      "completionCriteria": [
-        "No action is written when the plan is stale, unresolved, outside the managed root, or inconsistent with its recorded base and destination hashes.",
-        "The transaction snapshots the manifest, lock, selected managed assets, generated companions, and update reports before the first write.",
-        "Interruption or verification failure restores pre-update content and policy state and leaves a recoverable terminal journal.",
-        "Verification evaluates selected dependency closure, pins, forks, profile conformance, manifest-lock consistency, and absence of legacy IDs without requiring every pinned asset to equal current upstream.",
-        "Adoption reports retain adoption semantics while updates emit dedicated update plan and verification evidence."
-      ],
-      "checkpoint": "CP-UPDATE-TRANSACTION-GREEN",
-      "rollback": "Use the existing journaled reverse-order restore path extended to the manifest, lock, generated companions, update reports, and every selected asset.",
-      "recovery": "Run the existing recovery command against the terminal transaction journal before generating any new update plan.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Informational voice turns need no manual submit; consequential actions require explicit confirmation.", "Live transcript, tunable pause, false-endpoint correction/cancel, session-only transcript, no raw audio, spoken-response opt-in, and listening resume pass deterministic tests."],
+      "checkpoint": "CP-LIVE-CHAT-STATE-MACHINE-GREEN",
+      "rollback": "Remove only this implementation slice and its tests.",
+      "recovery": "Keep the smallest failing transition test, repair it, and rerun the focused suite.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-008",
       "owner": { "type": "skill", "id": "regression-test-development" },
-      "action": "Implement conservative legacy bootstrap, upstream removal handling, and backward-compatible CLI diagnostics through red-green migration and fuzz tests.",
+      "action": "Red-green grounding over versioned approved docs and capability metadata with source links, explicit unknowns, prompt-injection boundaries, stale-source handling, and output validation.",
       "status": "planned",
-      "inputs": [
-        "STEP-007 transactional updater",
-        "Schema 1.0 generated-project fixtures",
-        "Legacy skill ID and duplicate-command fixtures",
-        "tests/security-fuzz.test.mjs"
-      ],
-      "outputs": [
-        "Failing then passing legacy migration tests",
-        "Failing then passing selector, path, symlink, and malformed-lock fuzz tests",
-        "Conservative lock bootstrap implementation",
-        "Upstream deprecation and removal decision actions"
-      ],
+      "inputs": ["STEP-007 core", "STEP-003 controls", "Approved corpus contract"],
+      "outputs": ["Versioned local grounding pipeline", "Citation, unknown, stale-source, injection, and validation tests"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-007"],
-      "completionCriteria": [
-        "A legacy asset equal to current upstream can be adopted as the current baseline without a content write.",
-        "A legacy asset differing from current upstream is marked legacy-unknown and preserved until keep, replace, or fork is explicitly selected.",
-        "Upstream deletion or retirement never deletes a local asset by default and requires an exact reviewed removal action with backup.",
-        "Malformed locks, traversal selectors, symlink escapes, duplicate identities, and stale selection files fail closed.",
-        "Existing dry-run, JSON, risk-acceptance, and force-templates command behavior remains compatible outside the new update options."
-      ],
-      "checkpoint": "CP-UPDATE-LEGACY-GREEN",
-      "rollback": "Restore the pre-bootstrap manifest and omit the new lock when migration cannot complete; all legacy content remains in place.",
-      "recovery": "Emit a blocked migration report naming each unknown asset and the exact non-destructive operator choices available.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Answers cite approved source links and corpus versions or explicitly state unknown.", "Retrieved instructions cannot override policy; stale, malformed, or absent sources fail to unknown or guided fallback."],
+      "checkpoint": "CP-LIVE-CHAT-GROUNDING-GREEN",
+      "rollback": "Remove grounding changes and restore the passing STEP-007 checkpoint.",
+      "recovery": "Reduce to one source or injection case, repair it, and rerun focused tests.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-009",
-      "owner": { "type": "skill", "id": "artifact-upgrade" },
-      "action": "Validate the implemented artifact migration, compatibility matrix, forward cutover, downgrade behavior, backup completeness, and rollback evidence.",
+      "owner": { "type": "skill", "id": "development-environment-readiness" },
+      "action": "Validate the server-side transport, asynchronous streaming, session, and auth boundary with local fake adapters and no browser credentials.",
       "status": "planned",
-      "inputs": [
-        "STEP-008 passing migration and fuzz evidence",
-        "Implemented schemas, manifest writer, lock writer, and update reports",
-        "Schema 1.0 and 1.1 project fixtures"
-      ],
-      "outputs": [
-        "Updated reports/artifact-upgrade-plan.json",
-        "Updated reports/artifact-upgrade-report.md",
-        "Validated forward and rollback evidence"
-      ],
+      "inputs": ["STEP-008 pipeline", "STEP-002 server contracts", "STEP-003 secret controls"],
+      "outputs": ["Validated local server boundary", "Fake streaming, auth, retry, health, and failure adapters"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-008"],
-      "completionCriteria": [
-        "Every supported producer and consumer combination is passed, blocked, or unsupported with deterministic evidence.",
-        "Forward migration and rollback restore tests pass for clean, customized, pinned, forked, interrupted, and legacy-unknown fixtures.",
-        "No cutover-ready conclusion is issued if a baseline, compatibility, backup, or restore gap remains."
-      ],
-      "checkpoint": "CP-UPDATE-MIGRATION-VALIDATED",
-      "rollback": "Reject the migration candidate and preserve the last valid implementation checkpoint without changing external projects.",
-      "recovery": "Return to the first failing red-green slice and repeat migration validation after repair.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["No service credential or privileged token enters browser code.", "Session isolation, streaming cancellation, reconnect, retries/backoff, rate signaling, health, metrics, and fallback run locally without cloud or billable services."],
+      "checkpoint": "CP-LIVE-CHAT-LOCAL-TRANSPORT",
+      "rollback": "Remove transport scaffolding and retain passing pure components.",
+      "recovery": "Repair local boundary gaps with fake adapters and repeat readiness validation.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-010",
-      "owner": { "type": "skill", "id": "skill-dependency-manager" },
-      "action": "Recompute skill and artifact dependency closure against the implemented catalog, profiles, generated companions, pins, and fork rules.",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Build an accessible responsive fixture only in a disposable generated project for microphone, listening, transcribing, thinking, speaking, correction, cancellation, denied, unavailable, error, text, and guided states.",
       "status": "planned",
-      "inputs": [
-        "STEP-009 validated migration candidate",
-        "Updated scaffold manifest and schemas",
-        "All skill contracts and conformance profiles"
-      ],
-      "outputs": [
-        "Updated reports/skill-dependency-graph.json",
-        "Updated reports/skill-dependency-report.md",
-        "Final dependency-closure evidence"
-      ],
+      "inputs": ["STEP-009 local boundary", "STEP-005 UX defaults", "Approved shipped framework boundary"],
+      "outputs": ["Disposable demo fixture", "Keyboard, screen-reader, reduced-motion, responsive, text, and guided fallback tests"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-009"],
-      "completionCriteria": [
-        "Additive and selective bundles are dependency-closed for every conformance profile.",
-        "Pins or forks that would violate a required dependency or profile produce a blocking compatibility result.",
-        "No cycle, missing skill, ambiguous owner, or orphaned generated companion remains."
-      ],
-      "checkpoint": "CP-UPDATE-CLOSURE-VALIDATED",
-      "rollback": "Preserve the prior valid graph and keep the implementation blocked from candidate preparation.",
-      "recovery": "Repair the catalog, profile, or dependency declaration responsible for the inconsistency and rerun this step.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["All interaction and failure states are perceivable, responsive, and operable by keyboard and screen reader with reduced motion.", "Only approved reusable shipped assets remain; no permanent app or demo project is created inside the Launch Pad."],
+      "checkpoint": "CP-LIVE-CHAT-DEMO-FIXTURE-GREEN",
+      "rollback": "Delete the fixture and remove only approved reusable assets from this slice.",
+      "recovery": "Reproduce the failing UI state, repair the owning asset, and rerun accessibility tests.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-011",
-      "owner": { "type": "skill", "id": "documentation-builder" },
-      "action": "Document generated-project update modes and policies plus a Git-native, validation-first Launch Pad update procedure that never hides merge semantics.",
+      "owner": { "type": "skill", "id": "security-review" },
+      "action": "Perform the local security/change checkpoint and full local repository gate before any Azure discovery request.",
       "status": "planned",
-      "inputs": [
-        "STEP-010 validated commands, contracts, and closure rules",
-        "README.md",
-        "STANDALONE-WINDOWS.md",
-        "docs/PROJECT-OVERVIEW.md",
-        "docs/PROJECT-ARCHITECTURE.md",
-        "docs/PROJECT-GUIDE.md"
-      ],
-      "outputs": [
-        "Updated operator-facing update documentation",
-        "Launch Pad Git fetch, inspect, integrate, validate, and rollback procedure",
-        "Generated-project additive, all, select, pin, fork, resolution, migration, and recovery examples"
-      ],
+      "inputs": ["STEP-006 through STEP-010 diff", "Focused test evidence", "Repository validation command"],
+      "outputs": ["Local security and bounded-change findings", "Focused tests and npm run check evidence"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-010"],
-      "completionCriteria": [
-        "Launch Pad guidance keeps Git authoritative, requires an explicit external action before fetch, and never performs merge, reset, commit, push, or release implicitly.",
-        "Generated-project examples show dry-run first, safe-all compatibility, additive dependency closure, interactive and noninteractive selection, and exact conflict resolution.",
-        "Documentation states that legacy-unknown assets are preserved, update-all is not force-all, and recovery must complete before replanning after interruption.",
-        "Commands and report names exactly match current executable behavior."
-      ],
-      "checkpoint": "CP-UPDATE-DOCS-CURRENT",
-      "rollback": "Restore the prior documentation views if implementation commands or contracts are withdrawn.",
-      "recovery": "Correct mismatched examples from verified CLI output and rerun documentation validation.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["No critical or high security, privacy, auth, injection, secret, retention, or abuse issue remains.", "The bounded diff matches STEP-005 and focused tests plus npm run check pass."],
+      "checkpoint": "CP-LIVE-CHAT-LOCAL-GATE-PASSED",
+      "rollback": "Preserve the last passing local checkpoint; review is nonmutating.",
+      "recovery": "Return findings to their owner, repair, and repeat STEP-011.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-012",
-      "owner": { "type": "skill", "id": "change-review" },
-      "action": "Review the bounded update-system diff for data loss, compatibility regressions, unsafe selectors, incomplete dependency closure, migration gaps, and missing tests.",
+      "owner": { "type": "operator", "id": "product-owner" },
+      "action": "Approve read-only discovery in the saved Azure Commercial or Azure Government cloud for one named subscription, excluding provisioning, model selection, billable processing, deployment, and application-data transfer.",
       "status": "planned",
-      "inputs": [
-        "STEP-011 documented implementation",
-        "Complete bounded working-tree diff",
-        "Focused red-green, migration, dependency, fuzz, and repository validation evidence"
-      ],
-      "outputs": [
-        "reports/change-review.json",
-        "reports/change-review.md"
-      ],
-      "requiresApproval": false,
-      "approvalClasses": [],
+      "inputs": ["STEP-011 local gate", "Saved Azure cloud profile", "Exact named subscription and read-only discovery scope"],
+      "outputs": ["Explicit cloud and subscription discovery approval or rejection", "Approved subscription, cloud, and read-only boundary"],
+      "requiresApproval": true,
+      "approvalClasses": ["phase", "external", "privileged"],
       "prerequisites": ["STEP-011"],
-      "completionCriteria": [
-        "No unresolved critical or high-severity defect or local-data-loss path remains.",
-        "Every changed contract surface has corresponding tests and documentation.",
-        "The review distinguishes the known unrelated audit-checkpoint failure from update-system regressions and records all residual risk."
-      ],
-      "checkpoint": "CP-UPDATE-CHANGE-REVIEWED",
-      "rollback": "No source rollback is performed by this read-only review; preserve prior review evidence if regeneration fails.",
-      "recovery": "Return to the owning red-green or documentation step for each confirmed finding and repeat the bounded review.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Approval identifies the saved Azure cloud, named subscription, and read-only scope without authorizing creation or billing.", "No audio, transcript, corpus, prompt, user, or fixture data is sent; cloud mismatch or invalid context stops at STEP-020 without silent cross-cloud fallback.", "Azure Government is recorded as the required deployment-test target even when discovery occurs in another approved cloud."],
+      "checkpoint": "CP-LIVE-CHAT-AZURE-DISCOVERY-APPROVED",
+      "rollback": "Withdraw approval before discovery; the gate changes no resource.",
+      "recovery": "Record denial or missing prerequisites and stop at STEP-020.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-013",
-      "owner": { "type": "skill", "id": "prepare-commit" },
-      "action": "Prepare a minimal validated candidate boundary and commit summary without committing, pushing, publishing, deploying, or releasing.",
+      "owner": { "type": "skill", "id": "azure-discovery" },
+      "action": "If approved, read-only discover the selected cloud and subscription's Speech and chat-model availability, regions, quota, cost indicators, identity, data boundaries, cloud endpoints, and supported SDK/REST API versions without selecting a model or creating resources.",
       "status": "planned",
-      "inputs": [
-        "STEP-012 passing bounded change review",
-        "Current focused and full repository validation evidence",
-        "Exact update-system path inventory"
-      ],
-      "outputs": [
-        "Reviewed candidate path boundary",
-        "Commit summary",
-        "Pre-commit checklist and remaining blockers"
-      ],
+      "inputs": ["STEP-012 approval", ".azure/environment.json", "Selected cloud and subscription auth context", "Local adapter requirements"],
+      "outputs": ["Sanitized Government availability evidence", "Region, quota, cost, identity, data-boundary, and fallback findings"],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": ["STEP-012"],
-      "completionCriteria": [
-        "Every proposed path maps to the approved update-system objective and unrelated generated churn is excluded.",
-        "Focused tests and npm run check are current, with any unrelated baseline failure explicitly isolated and not waived.",
-        "No commit, push, publication, deployment, release, or external mutation has occurred."
-      ],
-      "checkpoint": "CP-UPDATE-CANDIDATE-PREPARED",
-      "rollback": "Discard only newly generated candidate-preparation artifacts; preserve implementation and user-owned changes for review.",
-      "recovery": "Return to STEP-012 whenever the path boundary, implementation, or validation evidence changes.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "completionCriteria": ["Discovery is read-only in the selected cloud and subscription, with no resource, reservation, deployment, or inference creation.", "Evidence includes service, model, region, quota, cost indicator, cloud endpoint, SDK/REST API version, auth/RBAC feasibility, and data boundary; no model is selected.", "Azure Government availability is separately recorded for deployment testing; denied or unavailable capability preserves local fallback and stops at STEP-020."],
+      "checkpoint": "CP-LIVE-CHAT-AZURE-DISCOVERED",
+      "rollback": "Discard stale discovery output; no Azure rollback is required for read-only work.",
+      "recovery": "Correct the approved Government context and retry, or stop with local fallback evidence.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     },
     {
       "id": "STEP-014",
-      "owner": { "type": "skill", "id": "project-handoff" },
-      "action": "Publish terminal continuity for completed, blocked, failed, or approval-waiting update-system work with one exact next action.",
+      "owner": { "type": "operator", "id": "product-owner" },
+      "action": "Separately approve any billable model or Speech external-processing implementation and required provisioning; discovery is not approval and deployment remains excluded.",
       "status": "planned",
-      "inputs": [
-        "Latest valid workflow checkpoint",
-        "STEP-013 candidate preparation when reached",
-        "Any blocker, failure, rejected approval, or residual-risk evidence"
-      ],
-      "outputs": [
-        "reports/project-handoff.json",
-        "reports/project-handoff.md",
-        "reports/current-work-state.json"
-      ],
+      "inputs": ["STEP-013 discovery", "Frozen privacy, data, cost, quota, identity, and evaluation boundaries", "Exact proposed external scope"],
+      "outputs": ["Explicit external-processing and privileged phase approval or rejection", "Exact allowed cloud, subscription, services, API versions, data classes, identity, cost, and retention scope"],
+      "requiresApproval": true,
+      "approvalClasses": ["phase", "external", "privileged"],
+      "prerequisites": ["STEP-013"],
+      "completionCriteria": ["Approval names Government services, data classes, retention, cost ceiling, resource scope, and least-privilege identity.", "No approval is inferred; rejection or waiting stops at STEP-020, and commit, push, deployment, publication, and release stay excluded."],
+      "checkpoint": "CP-LIVE-CHAT-EXTERNAL-PROCESSING-APPROVED",
+      "rollback": "Withdraw approval before provisioning or external implementation.",
+      "recovery": "Record rejection, narrowing, or waiting and stop at STEP-020.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
+    },
+    {
+      "id": "STEP-015",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "After STEP-014 only, integrate the approved cloud-specific server adapter selected from the compatibility matrix with DefaultAzureCredential or managed identity, least-privilege RBAC, streaming, retries/backoff, safety, redacted telemetry, rate limits, health, and metrics; Azure Government remains the deployment-test target.",
+      "status": "planned",
+      "inputs": ["STEP-014 approval", "STEP-013 discovery and API compatibility matrix", "Passing local adapter contract"],
+      "outputs": ["Approved Government server adapter", "Identity, streaming, retry, safety, telemetry, rate, health, and fallback tests"],
       "requiresApproval": false,
       "approvalClasses": [],
-      "prerequisites": ["STEP-013"],
-      "completionCriteria": [
-        "The handoff records completed, pending, blocked, and failed work without treating planning or phase approval as commit, push, release, or deployment approval.",
-        "The latest validation, migration, rollback, and local-change preservation evidence is traceable.",
-        "Exactly one next eligible action is identified and the unrelated P4 lineage remains historical rather than silently completed or cancelled."
-      ],
-      "checkpoint": "CP-UPDATE-HANDOFF-PUBLISHED",
-      "rollback": "Preserve the last valid handoff and regenerate only the mutable continuity views from accepted evidence.",
-      "recovery": "Rebuild synchronized continuity from the latest valid checkpoint and append-only event history.",
-      "onBlocked": "STEP-014",
-      "onFailed": "STEP-014"
+      "prerequisites": ["STEP-014"],
+      "completionCriteria": ["DefaultAzureCredential or managed identity and least-privilege RBAC keep credentials out of browser and logs.", "Async streaming, cancellation, bounded retries, content safety, input/output validation, redacted logs, rate limits, health, metrics, and fallback pass within the approved scope."],
+      "checkpoint": "CP-LIVE-CHAT-AZURE-ADAPTER-GREEN",
+      "rollback": "Disable the Azure adapter and remove only resources explicitly covered by the approved rollback while retaining local adapters.",
+      "recovery": "Fail closed to local text or guided mode and stop at STEP-020 on identity, safety, cost, or sovereignty failure.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
+    },
+    {
+      "id": "STEP-016",
+      "owner": { "type": "skill", "id": "regression-test-development" },
+      "action": "Evaluate latency, endpoint accuracy, transcript correction, grounding quality, citations, unknowns, injection, security, accessibility, cost, and fallback against thresholds frozen at STEP-005 before rollout consideration.",
+      "status": "planned",
+      "inputs": ["STEP-015 adapter evidence", "STEP-005 thresholds", "STEP-003 controls", "STEP-004 scenarios"],
+      "outputs": ["Deterministic quality, security, accessibility, latency, grounding, cost, and fallback evidence", "Pass/fail decision"],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-015"],
+      "completionCriteria": ["Endpointing, correction, cancellation, latency, resume, grounding, citations, unknowns, injection, safety, privacy, and accessibility meet frozen thresholds.", "Cost ceiling, rate limits, retries, unavailable-service behavior, and text/guided fallback pass before any rollout claim."],
+      "checkpoint": "CP-LIVE-CHAT-EVALUATION-PASSED",
+      "rollback": "Reject the candidate at the last passing checkpoint; evaluation performs no rollout.",
+      "recovery": "Return failed metrics to their implementation owner and rerun the frozen suite.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
+    },
+    {
+      "id": "STEP-017",
+      "owner": { "type": "skill", "id": "documentation-builder" },
+      "action": "Update authoritative guides, runbooks, privacy notices, retention, configuration, corpus versioning, fallback, health, metrics, and troubleshooting using verified evidence only.",
+      "status": "planned",
+      "inputs": ["STEP-016 evidence", "Verified local and approved Government behavior", "Authoritative docs"],
+      "outputs": ["Updated guides and runbooks", "Privacy, retention, configuration, fallback, and corpus procedures"],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-016"],
+      "completionCriteria": ["Docs distinguish local fakes from approved Government processing and make consent, session-only transcript, no raw audio, spoken opt-in, action confirmation, and server secrets clear.", "Configuration, corpus versions, accessibility, retries, rates, health, metrics, recovery, and limitations match evidence."],
+      "checkpoint": "CP-LIVE-CHAT-DOCUMENTED",
+      "rollback": "Restore prior docs when corresponding behavior is withdrawn.",
+      "recovery": "Correct claims against tests and rerun docs and repository validation.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
+    },
+    {
+      "id": "STEP-018",
+      "owner": { "type": "skill", "id": "change-review" },
+      "action": "Review the bounded LIVE-CHAT-001 diff for defects, requirement gaps, privacy and auth regressions, unsafe external behavior, unsupported claims, missing tests, and Launch Pad boundary violations.",
+      "status": "planned",
+      "inputs": ["STEP-017 candidate", "Bounded diff", "Focused and full validation evidence"],
+      "outputs": ["Severity-ranked review", "Resolved or blocking findings"],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-017"],
+      "completionCriteria": ["No critical or high defect, security/privacy gap, unauthorized external action, or boundary violation remains.", "All acceptance criteria and changed contracts have evidence; no commit, push, deployment, publication, release, or unapproved Azure action occurred."],
+      "checkpoint": "CP-LIVE-CHAT-CHANGE-REVIEWED",
+      "rollback": "Review is read-only; preserve prior valid evidence.",
+      "recovery": "Repair each finding at its owner, rerun validation, and repeat review.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
+    },
+    {
+      "id": "STEP-019",
+      "owner": { "type": "skill", "id": "prepare-commit" },
+      "action": "Prepare the minimal validated candidate boundary and commit summary without staging, committing, pushing, deploying, publishing, or releasing.",
+      "status": "planned",
+      "inputs": ["STEP-018 review", "Current validation", "Exact approved paths"],
+      "outputs": ["Candidate path boundary", "Commit summary and pre-commit checklist", "Remaining blockers"],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-018"],
+      "completionCriteria": ["Every path maps to STEP-005 and unrelated work is excluded.", "Tests, evaluation, review, and npm run check are current; no staging, commit, push, deployment, publication, or release occurs."],
+      "checkpoint": "CP-LIVE-CHAT-CANDIDATE-PREPARED",
+      "rollback": "Discard only preparation output and preserve implementation and user changes.",
+      "recovery": "Return to STEP-018 whenever candidate or evidence changes.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
+    },
+    {
+      "id": "STEP-020",
+      "owner": { "type": "skill", "id": "project-handoff" },
+      "action": "Publish the single terminal handoff for completed, blocked, failed, denied, or waiting outcomes with prior workflow lineage and exactly one next action.",
+      "status": "planned",
+      "inputs": ["Latest valid checkpoint", "Approval, blocker, fallback, cost, and risk evidence", "STEP-019 preparation when reached"],
+      "outputs": ["reports/project-handoff.json", "reports/project-handoff.md", "reports/current-work-state.json"],
+      "requiresApproval": false,
+      "approvalClasses": [],
+      "prerequisites": ["STEP-019"],
+      "completionCriteria": ["Handoff distinguishes planning, local work, Azure discovery, external processing, and candidate preparation without implying later gates.", "Prior safe-update and P4 workflows remain append-only history and exactly one next action is recorded without claiming commit, push, deployment, publication, or release."],
+      "checkpoint": "CP-LIVE-CHAT-HANDOFF-PUBLISHED",
+      "rollback": "Preserve the last valid handoff and regenerate mutable views from accepted evidence.",
+      "recovery": "Rebuild continuity from the latest checkpoint and append-only history.",
+      "onBlocked": "STEP-020",
+      "onFailed": "STEP-020"
     }
   ]
 }

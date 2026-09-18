@@ -1,22 +1,192 @@
 {
   "schemaVersion": "1.0.0",
-  "reviewId": "ARC-0205",
-  "generatedAt": "2026-09-05T17:05:00.000Z",
+  "reviewId": "ARC-2026091801",
+  "generatedAt": "2026-09-18T16:00:52.000Z",
   "scope": {
-    "components": ["Registry-free CLI and private internal package", "Release build, checksum, SBOM, provenance, signature, and independent-review gates", "GitHub Actions validation and CodeQL workflows", "Transactional project creation, adoption, rollback, and recovery", "Schema-governed reports, skill catalog, and shipped templates"],
-    "environments": ["Local Windows validation", "GitHub-hosted Windows, Linux, and macOS runners", "Authorized internal package consumption"],
-    "targetCloud": "unknown",
+    "components": [
+      "LIVE-CHAT-001 capability ownership and reuse boundary",
+      "Browser microphone, transcript, consent, correction, cancellation, and fallback client",
+      "Server-side isolated conversation session and asynchronous event transport",
+      "Local VAD, end-of-turn, speech, response, clock, and cancellation adapters",
+      "Versioned approved grounding corpus, citation, unknown, and stale-source behavior",
+      "Historical release architecture finding ARCF-0205"
+    ],
+    "environments": [
+      "Local Windows analysis",
+      "Future disposable generated-project fixtures",
+      "Future AzureUSGovernment integration only after separate approval"
+    ],
+    "targetCloud": "cloud-profile-selected; azure-government-required-for-deployment-test",
     "regions": [],
-    "excluded": ["Live Azure resources and deployed workload posture", "Remote mutation, release publication, and package promotion", "Unreachable or pruned Git objects"]
+    "excluded": [
+      "Model or Speech service selection",
+      "Azure discovery, network access, resource creation, inference, and billable processing",
+      "Source, skill, schema, template, test, documentation, or runtime implementation",
+      "Commit, push, deployment, publication, and release",
+      "Deployed-environment posture"
+    ]
   },
   "coverage": [
-    { "pillar": "reliability", "assessed": true, "evidence": ["Transactional adoption journals, locks, rollback, and recovery are documented in docs/THREAT-MODEL.md and exercised by npm run check.", "The current unsigned candidate verifies 151 checksum-covered files."] },
-    { "pillar": "security", "assessed": true, "evidence": ["Local security and Gitleaks scans pass with pinned tools and immutable workflow actions.", "Production verification requires trusted RSA signatures and independently signed review evidence.", "Read-only GitHub inspection found no main-branch protection or rulesets and disabled hosted secret/dependency protections."] },
-    { "pillar": "cost-optimization", "assessed": true, "evidence": ["The package has zero runtime dependencies and no always-on service cost.", "Hosted validation uses bounded jobs and retention windows; no deployment resources are part of this package release."] },
-    { "pillar": "operational-excellence", "assessed": true, "evidence": ["JSON schemas, immutable execution snapshots, release checks, and 43 skill contracts provide deterministic operations evidence.", "Merge commit 5190959 passed nine OS/Node jobs, three Gitleaks jobs, aggregate evidence, and CodeQL.", "Candidate-bound operational evidence blocks on unconfigured internal artifact health and untested revocation."] },
-    { "pillar": "performance-efficiency", "assessed": true, "evidence": ["Repository scans and project discovery are bounded; the complete local gate passes within its configured CI timeout.", "No application runtime or deployed service performance is in scope."] }
+    {
+      "pillar": "reliability",
+      "assessed": true,
+      "evidence": [
+        "reports/workflow-plan.json STEP-002 requires explicit cancellation, reconnect, half-duplex, grounding, adapter, and session contracts.",
+        "The proposed state machine has deterministic idle, consent-required, listening, transcribing, endpoint-pending, thinking, speaking, correcting, reconnecting, text-fallback, guided-fallback, denied, unavailable, cancelled, and error states.",
+        "Every client and server event carries a session ID, turn ID, monotonic sequence, event type, schema version, timestamp, and idempotency key so replay and reconnect cannot duplicate a turn."
+      ]
+    },
+    {
+      "pillar": "security",
+      "assessed": true,
+      "evidence": [
+        "The browser owns notice, microphone permission, opt-in spoken output, transient audio capture, transcript review, correction, cancellation, and accessible fallback; it never receives service credentials or privileged tokens.",
+        "The server owns authentication, authorization, session isolation, grounding policy, output validation, rate enforcement, redacted telemetry, and any future service adapters.",
+        "Raw audio is ephemeral and not retained; transcripts default to session-only; approved grounding documents remain untrusted content and cannot override system policy."
+      ]
+    },
+    {
+      "pillar": "cost-optimization",
+      "assessed": true,
+      "evidence": [
+        "Steps 1-4 use only local analysis and deterministic local adapter contracts; no model, Speech provider, region, SKU, resource, or deployment topology is selected.",
+        "The response and speech ports support local fakes, text-only fallback, and guided-only fallback so unavailable or over-budget services do not create retry loops or implied authorization.",
+        "Future external processing remains gated at STEP-014 after per-subscription discovery at STEP-013; Azure Government is the required deployment-test target."
+      ]
+    },
+    {
+      "pillar": "operational-excellence",
+      "assessed": true,
+      "evidence": [
+        "The server contract exposes readiness and liveness separately, bounded retry with jitter, retry-after signaling, per-stage latency metrics, cancellation counts, reconnect counts, endpoint-correction counts, fallback counts, and redacted error categories.",
+        "Transport errors are typed as permission-denied, authentication, authorization, rate-limited, unavailable, timeout, stale-grounding, validation, cancelled, and internal; user-visible messages never expose server details.",
+        "Grounding responses bind corpus version and source IDs to each answer; stale or absent sources transition to explicit unknown or guided fallback."
+      ]
+    },
+    {
+      "pillar": "performance-efficiency",
+      "assessed": true,
+      "evidence": [
+        "Interim transcripts are replaceable snapshots while final transcript, response delta, citation, status, and completion events are ordered and replay-safe.",
+        "End-of-turn detection is an adapter with configurable silence duration, minimum voiced duration, confidence floor, maximum utterance duration, and a correction grace window; thresholds are proposed for STEP-005 rather than treated as approved.",
+        "Half-duplex is the initial contract: capture pauses during response playback and resumes only after completion or cancellation; barge-in is a future extension point and is not silently enabled."
+      ]
+    }
   ],
   "findings": [
+    {
+      "id": "ARCF-2026091801",
+      "title": "No existing skill owns the real-time conversational runtime",
+      "pillar": "operational-excellence",
+      "location": "reports/skill-inventory.json and .github/skills/*/SKILL.md",
+      "impact": "Assigning live microphone, transcript endpointing, streaming session, correction, cancellation, reconnect, and grounded conversational behavior to an adjacent skill would blur ownership and leave core runtime acceptance criteria without a governed owner.",
+      "severity": "informational",
+      "confidence": "high",
+      "recommendation": "Record live-chat-interaction as the exact nonduplicate candidate skill. Reuse project-understanding and documentation-builder for approved grounding inputs, security-review for threat analysis, regression-test-development for deterministic tests, development-environment-readiness for local transport validation, policy-engine for approvals, and azure-discovery only after STEP-012. Route creation through skill-create after explicit STEP-005 --proceed authorization.",
+      "tradeOffs": [
+        "A dedicated skill adds one governed contract and generated companion to maintain.",
+        "Reusing adjacent skills avoids duplicate support logic but does not make them owners of the conversational runtime.",
+        "Deferring authoring preserves the approval gate but leaves the capability unavailable until STEP-006."
+      ],
+      "decisionRecord": "reports/workflow-plan.json STEP-001 and STEP-006",
+      "conflictsWithDecision": false,
+      "evidence": [
+        "The current inventory contains 47 skills with no missing dependencies, cycles, ownership conflicts, or blockers.",
+        "agent-builder owns agent definitions and publication handoffs, not product microphone or session runtime.",
+        "project-video owns evidence-grounded narrated media and browser preview speech, not continuous conversational turns.",
+        "azure-discovery owns availability evidence, not runtime behavior or model selection authorization.",
+        "No skill description or contract claims live transcript endpointing, conversational state, streaming reconnect, or half-duplex response/listen coordination."
+      ]
+    },
+    {
+      "id": "ARCF-2026091802",
+      "title": "Local-first conversation and transport contracts are required before provider integration",
+      "pillar": "reliability",
+      "location": "reports/workflow-plan.json STEP-002",
+      "impact": "Provider-coupled state or ambiguous event ordering would make silence endpointing, correction, cancellation, reconnect, and fallback nondeterministic and difficult to test without cloud services.",
+      "severity": "medium",
+      "confidence": "high",
+      "recommendation": "Define a pure reducer that accepts typed commands and adapter events and emits state plus effects. Keep browser capture, server session, transport, grounding, VAD/end-of-turn, speech, response, clock, and cancellation behind explicit ports. Use versioned replay-safe events and per-turn cancellation tokens.",
+      "tradeOffs": [
+        "Explicit ports and events add up-front contract work.",
+        "A pure reducer makes local failure simulation and provider replacement deterministic.",
+        "Half-duplex is less fluid than barge-in but materially reduces echo, race, and cancellation complexity for the first version."
+      ],
+      "decisionRecord": "reports/workflow-plan.json STEP-002",
+      "conflictsWithDecision": false,
+      "evidence": [
+        "Client commands: grant-consent, start-listening, stop-listening, transcript-interim, transcript-final, correct-transcript, cancel-turn, confirm-action, reject-action, reconnect, and choose-fallback.",
+        "Server events: session-ready, listening, transcript-interim, transcript-final, endpoint-pending, turn-accepted, response-delta, citation, response-complete, speaking, retrying, fallback, error, and cancelled.",
+        "Automatic submission is allowed only for informational turns after endpoint acceptance; consequential intent transitions to confirmation-required and cannot execute from speech endpointing alone.",
+        "Reconnect presents the last acknowledged event sequence and session resume token; the server replays only later events and rejects expired, mismatched, or already-completed turn mutations."
+      ]
+    },
+    {
+      "id": "ARCF-2026091803",
+      "title": "Grounding must be version-bound and fail to explicit unknown",
+      "pillar": "security",
+      "location": "reports/workflow-plan.json STEP-002 and STEP-003",
+      "impact": "Unversioned or instruction-bearing retrieved content can produce unsupported claims, stale walkthroughs, or prompt-policy override.",
+      "severity": "high",
+      "confidence": "high",
+      "recommendation": "Accept only approved corpus manifests with version, digest, source ID, title, canonical local link, classification, and freshness metadata. Separate retrieved text from instructions, validate citations against the active manifest, and return explicit unknown or guided fallback when support is absent, stale, malformed, or contradictory.",
+      "tradeOffs": [
+        "Strict unknown behavior reduces answer coverage.",
+        "Corpus versioning adds refresh and review work.",
+        "Source-bound answers improve reproducibility and make stale-grounding failures testable."
+      ],
+      "decisionRecord": "reports/workflow-plan.json STEP-008",
+      "conflictsWithDecision": false,
+      "evidence": [
+        "The plan requires approved versioned product documentation, source links, explicit unknowns, injection boundaries, and stale-source handling.",
+        "No current Azure or web grounding is authorized.",
+        "A response-complete event must carry corpusVersion, citedSourceIds, validationStatus, and fallbackReason when applicable."
+      ]
+    },
+    {
+      "id": "ARCF-2026091804",
+      "title": "Operational controls must be observable without retaining conversation content",
+      "pillar": "operational-excellence",
+      "location": "reports/workflow-plan.json STEP-003",
+      "impact": "Without typed health, retry, rate, and telemetry contracts, failures can loop, leak transcript content into logs, or appear as silent stalls.",
+      "severity": "medium",
+      "confidence": "high",
+      "recommendation": "Emit content-free structured telemetry keyed by pseudonymous session and turn correlation IDs, state transition, duration bucket, error category, retry count, endpoint correction, cancellation, reconnect, and fallback. Bound retries, honor cancellation, expose health separately from readiness, and never log raw audio, transcript, prompt, retrieved passages, response text, credentials, or authorization headers.",
+      "tradeOffs": [
+        "Redacted metrics provide less direct debugging context.",
+        "Local opt-in diagnostic capture may be designed later under a separate privacy decision.",
+        "Explicit health and error typing increase adapter obligations but prevent indefinite thinking or reconnect states."
+      ],
+      "decisionRecord": "reports/workflow-plan.json STEP-003",
+      "conflictsWithDecision": false,
+      "evidence": [
+        "The workflow requires retries, rate limits, health, metrics, and redacted structured logs.",
+        "Session-only transcript and no-raw-audio defaults prohibit using conversation content as routine telemetry.",
+        "Cancellation and deadline signals propagate from browser through server to every active adapter."
+      ]
+    },
+    {
+      "id": "ARCF-2026091805",
+      "title": "Provider and cost choices remain unresolved by design",
+      "pillar": "cost-optimization",
+      "location": "reports/workflow-plan.json STEP-012 through STEP-015",
+      "impact": "Selecting a model, Speech service, region, resource, quota, or retry budget during local analysis would bypass AzureUSGovernment discovery, privacy review, and explicit external-processing approval.",
+      "severity": "informational",
+      "confidence": "high",
+      "recommendation": "Keep adapter capability requirements provider-neutral through STEP-011. After separate STEP-012 approval, discover the saved cloud and named subscription without selection, including cloud endpoints and SDK/REST API versions; require STEP-014 approval before any billable implementation or provisioning, and validate deployment in Azure Government.",
+      "tradeOffs": [
+        "Provider-neutral contracts defer end-to-end latency evidence.",
+        "Separate discovery and processing gates add schedule time.",
+        "Local text and guided fallbacks keep the capability testable without cloud dependency."
+      ],
+      "decisionRecord": "reports/workflow-plan.json STEP-012 through STEP-015",
+      "conflictsWithDecision": false,
+      "evidence": [
+        "The current request prohibits network and Azure access and requires no model selection.",
+        "The saved workflow routes cloud/subscription discovery and external processing through distinct approvals and requires Azure Government for deployment testing.",
+        "No service availability claim is made in this review."
+      ]
+    },
     {
       "id": "ARCF-0205",
       "title": "Hosted source changes do not require an independent human review",
@@ -32,5 +202,12 @@
       "evidence": ["Main protection now requires strict Aggregate cross-platform evidence and JavaScript security analysis checks with admin enforcement, linear history, conversation resolution, and no force pushes or deletions.", "Secret scanning, push protection, Dependabot security updates, vulnerability alerts, automated fixes, and private vulnerability reporting are enabled.", "Actions are restricted to GitHub-owned actions and CodeQL reports zero open alerts after reviewed dispositions.", "The repository has one write-capable collaborator, so required_pull_request_reviews remains unset; SECURITY.md requires independent review before production release."]
     }
   ],
-  "limitations": ["This is a design-time review; no Azure environment or package deployment was accessed.", "Non-provider secret patterns and validity checks remain unavailable or disabled after best-effort enablement.", "No second qualified reviewer identity or trusted release-signing identity is currently provisioned."]
+  "limitations": [
+    "This is a design-time analytical review; no runtime was implemented or executed.",
+    "No Azure environment, network, provider catalog, service, model, region, quota, price, or deployed workload was accessed.",
+    "Latency, endpoint accuracy, grounding quality, accessibility, and cost values are proposed approval thresholds, not measured outcomes.",
+    "ARCF-0205 is preserved as unrelated historical project security architecture history and is not evidence about LIVE-CHAT-001.",
+    "Non-provider secret patterns and validity checks remain unavailable or disabled after prior best-effort enablement.",
+    "No second qualified reviewer identity or trusted release-signing identity is currently provisioned."
+  ]
 }

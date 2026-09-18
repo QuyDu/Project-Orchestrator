@@ -3,12 +3,12 @@
   "generatedAt": "2026-09-18T14:45:00.000Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "e78d0498cba42faa0e5db1cec4994b15e9edef8d1d2eca417e57616c6134e729",
+    "jsonSha256": "aa5510c364e2e3abcd29915ce2abe8e9ba7805a347db5a288e11e827736725ed",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "f7ba18ef5febda70df45bb28fc310dc482c1a914d37f06a734f02493cd7350eb"
+    "markdownSha256": "58bd6c4f10608845ed4fef6a290df02bb77c0f8f0823de55a8e3afa51d52147a"
   },
   "guide": "docs/PROJECT-GUIDE.md",
-  "guideSha256": "c0b8c5bec3c91fd6f66ef5412ea87e9975bad6e9013fa3e98e459c0074cf82de",
+  "guideSha256": "ee81d13925ef4511edfd51d41baeb2ff68e3d8959651aad42031984fe5bc059a",
   "claims": [
     {
       "id": "claim-01-azure",

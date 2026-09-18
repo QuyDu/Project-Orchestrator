@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Live Chat Proposed Local Evaluation Thresholds",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "approvalStatus", "thresholds"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "approvalStatus": { "const": "proposed-local-acceptance-thresholds" },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endpointing", "latency", "grounding", "privacyAndSecurity", "rateRetryHealth", "accessibility", "cost", "fallback"],
+      "properties": {
+        "endpointing": { "type": "object", "additionalProperties": true, "required": ["defaultSilenceMs", "duplicateSubmissionMaximum"], "properties": { "defaultSilenceMs": { "const": 900 }, "duplicateSubmissionMaximum": { "const": 0 } } },
+        "latency": { "type": "object", "additionalProperties": true, "required": ["fallbackVisibleP95Ms"], "properties": { "fallbackVisibleP95Ms": { "const": 500 } } },
+        "grounding": { "type": "object", "additionalProperties": true, "required": ["supportedFactualClaimsWithCitationPercent", "staleOrInvalidCorpusFallbackPercent"], "properties": { "supportedFactualClaimsWithCitationPercent": { "const": 100 }, "staleOrInvalidCorpusFallbackPercent": { "const": 100 } } },
+        "privacyAndSecurity": { "type": "object", "additionalProperties": true, "required": ["rawAudioRetainedBytes", "consequentialActionsWithoutExplicitConfirmationMaximum"], "properties": { "rawAudioRetainedBytes": { "const": 0 }, "consequentialActionsWithoutExplicitConfirmationMaximum": { "const": 0 } } },
+        "rateRetryHealth": { "type": "object", "additionalProperties": true, "required": ["maximumTransientRetries"], "properties": { "maximumTransientRetries": { "const": 2 } } },
+        "accessibility": { "type": "object", "additionalProperties": true, "required": ["keyboardCriticalFlowPassPercent", "textFallbackCriticalFlowPassPercent"], "properties": { "keyboardCriticalFlowPassPercent": { "const": 100 }, "textFallbackCriticalFlowPassPercent": { "const": 100 } } },
+        "cost": { "type": "object", "additionalProperties": true, "required": ["localThroughStep011Usd"], "properties": { "localThroughStep011Usd": { "const": 0 } } },
+        "fallback": { "type": "object", "additionalProperties": true, "required": ["permissionDeniedFallbackPercent", "serviceUnavailableFallbackPercent"], "properties": { "permissionDeniedFallbackPercent": { "const": 100 }, "serviceUnavailableFallbackPercent": { "const": 100 } } }
+      }
+    }
+  }
+}

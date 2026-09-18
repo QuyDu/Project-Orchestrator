@@ -1,330 +1,236 @@
-# Safe Project Update Workflow Plan
+# LIVE-CHAT-001 Governed Workflow Plan
 
-Generated: 2026-09-17T15:26:19.668Z
+Generated: `2026-09-18T15:25:09.3571524Z`
 
-Workflow: `WF-SAFE-PROJECT-UPDATE-20260917`
-Run: `RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01`
-Status: **Planned; implementation approval required at STEP-003**
+Workflow: `WF-LIVE-CHAT-20260918`
+Run: `RUN-LIVE-CHAT-PLAN-20260918-01`
+Status: **Planning only**
+Exact next action: **STEP-001 only**
+
+## Authorization Boundary
+
+This plan does not authorize implementation. The first implementation gate is **STEP-005**. Cloud and subscription discovery is separately gated at **STEP-012**. Any external or billable model or Speech processing and related provisioning is separately gated at **STEP-014**. Azure Government remains the required deployment-test target.
+
+No commit, push, deployment, publication, release, model selection, Azure resource creation, or external processing is implied. No demo project currently exists. Local implementation validation, if STEP-005 is approved, uses disposable generated-project fixtures and leaves no permanent application inside the Launch Pad beyond explicitly approved reusable shipped framework assets.
 
 ## Objective
 
-Build a provenance-backed, non-destructive update system for Project Orchestrator. The design covers:
+Create a reusable natural live-voice and grounded-text capability with:
 
-1. Git-native update guidance for the Project Orchestrator Launch Pad checkout.
-2. Additive, safe-all, and selective updates for projects created or adopted by Project Orchestrator.
-3. Preservation of locally enhanced skills and project-owned files.
-4. Deterministic dependency closure, preview, conflict resolution, journaling, rollback, and verification.
+- live interim transcript and configurable pause detection;
+- automatic submission for informational voice turns without a manual Submit action;
+- explicit confirmation before consequential actions;
+- correction and cancellation after false endpointing;
+- natural half-duplex response and listening resume, with future barge-in as an extension;
+- session-only transcript by default, no raw-audio retention, and spoken response opt-in;
+- text-only and guided-only fallback;
+- answers grounded in approved versioned sources with links and explicit unknowns;
+- keyboard, screen-reader, reduced-motion, and responsive operation;
+- browser/server separation with all credentials and privileged processing server-side;
+- Azure Commercial and Azure Government through the saved cloud profile and correct cloud endpoints; no silent cross-cloud fallback.
+- Dynamic per-subscription discovery of service/model availability, regions, quotas, cost indicators, auth/RBAC feasibility, data boundaries, and SDK/REST API versions before provider integration.
 
-This plan does not implement the updater and does not authorize a commit, push, fetch, publication, deployment, release, cloud operation, or other external mutation.
+No model is selected by this plan.
 
-## Governing Decisions
+## Governing Design
 
-- Git remains authoritative for the Launch Pad source checkout. The initial release adds documented Git procedures, not a second merge engine.
-- Bare `pso update` remains accepted and maps to `--mode all`, but all means safe reconciliation, never force replacement.
-- A generated project records the exact framework-owned baseline it received. Updates classify base, local, and upstream state before proposing a write.
-- Unresolved conflicts make the entire update plan non-applicable. There is no partial mutation before conflict decisions are complete.
-- `track` is the default for framework-installed assets. `pin` and `fork` are explicit persistent policies.
-- `keep`, `replace`, and `fork` are explicit conflict dispositions. Keep does not falsely advance the baseline.
-- Force replacement is limited to exact selected assets, requires risk acceptance and a fresh dry-run, and has no force-all form.
-- Existing projects without baseline provenance preserve every differing managed asset as `legacy-unknown` until the operator chooses its disposition.
-- Project-owned skills, application code, reports, documentation, and other paths outside the managed ledger are never enrolled or changed implicitly.
+The local baseline separates client microphone/transcript state, a server session and authentication boundary, asynchronous streaming transport, VAD/end-of-turn adapters, grounding, cancellation, reconnect, speech/model adapters, health, and metrics. Fake adapters make the baseline deterministic and cloud-free.
 
-## Planned Change Boundary
+All input, retrieved content, source metadata, and generated output are untrusted. Required controls include input/output validation, prompt-injection isolation, content safety, least-privilege RBAC, `DefaultAzureCredential` or managed identity for any approved Azure adapter, redacted structured logging, bounded retries with backoff, rate limits, abuse controls, health checks, metrics, privacy notice, and evaluation before rollout consideration.
 
-The implementation phase may propose changes only after STEP-003 approval. Its expected boundary is:
+## Approval Gates
 
-| Area | Expected paths |
-| --- | --- |
-| Runtime | `pso.mjs` |
-| Managed catalog | `templates/scaffold-manifest.json` |
-| New contracts | `schemas/project-orchestrator-manifest.schema.json`, `schemas/project-orchestrator-lock.schema.json`, `schemas/project-update-plan.schema.json`, `schemas/project-update-selection.schema.json` |
-| Behavior tests | `tests/adoption-rerun.test.mjs`, `tests/security-fuzz.test.mjs` |
-| Contract tests | `tests/skill-contracts.test.mjs` |
-| Operator docs | `README.md`, `STANDALONE-WINDOWS.md`, `docs/PROJECT-OVERVIEW.md`, `docs/PROJECT-ARCHITECTURE.md`, `docs/PROJECT-GUIDE.md` |
-| Generated downstream state | `project-orchestrator.json`, `project-orchestrator.lock.json`, `reports/project-update-plan.json`, `reports/project-update-plan.md`, `reports/update-verification.json` |
+| Gate | Approval classes | Exact scope | Explicit exclusions |
+| --- | --- | --- | --- |
+| STEP-005 | `phase` | Exact skill/runtime/template/schema/test/docs boundary, UX defaults, frozen thresholds, and explicit `skill-create --proceed` when a new skill remains necessary | Azure work, external processing, provisioning, commit, push, deploy, publish, release |
+| STEP-012 | `phase`, `external`, `privileged` | Read-only discovery in the saved cloud and one named subscription | Model selection, resource creation, billing, inference, application-data transfer, deployment |
+| STEP-014 | `phase`, `external`, `privileged` | Exact approved cloud, subscription, services, API versions, data classes, retention, cost ceiling, resources, identity, and external-processing implementation | Inferred approval, deployment, publication, release, commit, push |
 
-No existing skill contract is changed by default. If implementation later requires an existing skill-contract change, that exact skill must go through `skill-update` and its separate `--proceed` gate before editing.
-
-## Data Contracts
-
-### Project manifest
-
-Advance generated `project-orchestrator.json` from schema `1.0.0` to `1.1.0` while retaining all schema 1.0 fields. Add only compact update metadata:
-
-- lock path and lock schema version;
-- digest algorithm identifier;
-- installed framework and runtime source identity;
-- minimum updater runtime version;
-- last successful reconciliation timestamp and transaction ID.
-
-The manifest remains human-readable metadata. Per-asset state belongs in the lock.
-
-### Baseline lock
-
-Create version-controlled `project-orchestrator.lock.json` with schema `1.0.0`. Each managed asset records:
-
-- stable asset ID, normalized relative path, kind, and ownership scope;
-- scope type: whole file, directory, generated file, or managed region;
-- framework identity and installed base version;
-- `track`, `pin`, or `fork` policy and any fork target ID;
-- normalized base digest and sorted per-file digests for directories;
-- skill dependencies and generated companions when applicable;
-- source catalog digest, without absolute paths or embedded secrets.
-
-The lock records hashes and provenance, not duplicate source content. Conflict review compares local and upstream content while the recorded base digest determines which side changed.
-
-### Digest rules
-
-Use a named `sha256-normalized-text-v1` algorithm:
-
-1. For valid UTF-8 text, remove a UTF-8 BOM, normalize CRLF and lone CR to LF, and preserve every other byte including final-newline presence.
-2. For non-text content, hash raw bytes with SHA-256.
-3. For directories, sort normalized relative file paths ordinally and hash each path, content digest, and scope marker into one package digest.
-4. Ignore no file inside a managed directory unless the catalog explicitly excludes it.
-
-This avoids false local changes caused only by checkout line endings while retaining meaningful whitespace and content changes.
-
-### Update plan
-
-Create schema `1.0.0` for `reports/project-update-plan.json`. It records:
-
-- source and target framework/runtime identities;
-- requested mode, selectors, and selection-file digest;
-- per-asset base, local, and upstream digests;
-- classification, policy, proposed action, resolution, and destination-state precondition;
-- dependency and generated-companion closure;
-- conflicts, warnings, counts, `canApply`, and stable plan digest;
-- no source-machine absolute paths and no embedded file content.
-
-The Markdown view presents the same actions and blockers in the same order.
-
-### Selection and resolution file
-
-Create schema `1.0.0` for an automation-safe input file containing:
-
-- expected plan digest and target framework version;
-- selected skill IDs or exact managed asset paths;
-- policy changes;
-- conflict dispositions of keep, replace, or fork with an exact fork ID;
-- exact force-replace paths when explicitly authorized.
-
-A stale plan digest, unknown selector, duplicate disposition, traversal path, or mode-incompatible option fails closed.
-
-## Three-Way Classification
-
-`B` is the recorded base digest, `L` is current local state, and `U` is current upstream state. Absence is a first-class state.
-
-| Base / Local / Upstream | Classification | Default result |
-| --- | --- | --- |
-| `B = L = U` | current | No write |
-| `L = B`, `U != B` | upstream-only | Update when selected and tracked |
-| `U = B`, `L != B` | local-only change | Preserve; no baseline advance |
-| `L = U`, both differ from `B` | converged | Advance lock without rewriting content |
-| `L != B`, `U != B`, `L != U` | diverged | Block for keep, replace, or fork |
-| No `B`, no `L`, `U` present | new-upstream | Create when included by mode and closure |
-| No `B`, `L` present, no `U` | project-local | Leave unmanaged |
-| No `B`, `L = U` | legacy-equivalent | Bootstrap current baseline without content write |
-| No `B`, `L != U` | legacy-unknown | Preserve and block for explicit disposition |
-| `B` present, `L` absent | locally deleted | Preserve deletion; block if profile or dependency closure requires the asset |
-| `B` present, `U` absent | upstream removed | Preserve by default; require exact reviewed removal |
-| `B` present, both absent | removed on both sides | Remove ledger entry after compatibility validation |
-
-Managed regions are classified by region digest so user text outside the region does not create a false conflict. A malformed, duplicate, or missing managed marker is a blocking conflict.
-
-## Update Modes
-
-### Safe all
-
-`pso update` and `pso update --mode all` are equivalent.
-
-- Plan every applicable tracked managed asset.
-- Include newly introduced mandatory assets and generated companions.
-- Update only upstream-only assets and converge equal content.
-- Preserve local-only changes and pins.
-- Block the full apply while any diverged, legacy-unknown, required deletion, incompatible pin, or malformed managed-region decision remains unresolved.
-
-### Additive
-
-`--mode additive` installs capabilities that are absent from the project.
-
-- A selected new skill expands to its missing transitive skill dependencies and generated help.
-- New required schemas and mandatory companions are included only when absent.
-- Existing files are never overwritten in additive mode.
-- An existing dependency is preserved when compatible; an unprovable or incompatible dependency blocks the bundle.
-- Newly discovered untracked local skills remain project-owned.
-
-### Select
-
-`--mode select` accepts skill IDs and exact managed asset paths.
-
-- On an interactive TTY with no selectors, present a grouped capability list and conflict choices.
-- In noninteractive execution, require selectors or `--selection-file`; an empty selection is an error.
-- Expand selected skills to dependency and generated-companion closure before preview.
-- Display every implicit dependency separately from explicitly selected assets.
-
-The exact option spelling is finalized in STEP-002 and frozen at STEP-003. Planned examples are:
-
-```powershell
-node .\pso.mjs update --root C:\repos\my-project --dry-run
-node .\pso.mjs update --root C:\repos\my-project --mode additive --dry-run
-node .\pso.mjs update --root C:\repos\my-project --mode select --skills skill-a,skill-b --dry-run
-node .\pso.mjs update --root C:\repos\my-project --mode select --selection-file .\update-selection.json --dry-run
-node .\pso.mjs update --root C:\repos\my-project --resolution-file .\update-resolution.json --accept-risk
-```
-
-## Policies And Resolutions
-
-### Track
-
-Framework-installed assets start as tracked. Upstream-only changes update when selected. A local change does not silently change policy; it produces local-only or diverged state.
-
-### Pin
-
-Pin retains the recorded installed baseline. The planner reports available upstream versions and validates whether the pin still satisfies selected skill and profile dependencies. An incompatible pin blocks apply.
-
-### Fork
-
-Fork is explicit and applies primarily to skill packages:
-
-1. Require an exact unused project-owned skill ID and destination.
-2. Preserve the complete local package under that ID.
-3. Validate its twelve-section contract and dependency references through the existing `skill-update` governance route when content or identity changes are needed.
-4. Restore the canonical framework skill as tracked upstream content.
-5. Regenerate canonical help and update only explicitly approved project references.
-
-Fork never invents an ID and never rewrites arbitrary project text by substring replacement.
-
-### Keep and replace
-
-- Keep records a pin or explicit project-owned disposition and leaves the base digest unchanged.
-- Replace writes upstream content, updates the base digest only after verification, and preserves the prior local content in the transaction backup.
-- Force replacement is an exact-asset variant of replace. It requires the target path, matching plan digest, current destination-state precondition, `--accept-risk`, and backup. There is no `--force-replace all`.
-
-## Transaction Semantics
-
-Reuse the current lock, stale-plan, journal, backup, interruption, rollback, and verification foundation. Split update planning and reporting from adoption while sharing hardened primitives.
-
-Apply order:
-
-1. Validate mode, selection, resolution, profile closure, plan digest, and every destination precondition.
-2. Refuse apply when another adoption, update, or recovery transaction is active.
-3. Snapshot the manifest, baseline lock, selected assets, generated companions, and pre-existing update reports.
-4. Create approved project-owned forks before replacing canonical paths.
-5. Apply dependency-ordered creates and replacements.
-6. Regenerate selected help and managed wiring.
-7. Run inventory and update-specific verification.
-8. Write the new lock and manifest last, then mark the journal complete.
-
-On any failure, restore files in reverse order, restore the prior manifest and lock, verify restored digests, and leave a terminal recoverable journal. A transaction-created fork is removed only after the canonical local package has been restored and verified; its backup remains available until recovery is finalized.
-
-`verifyInstallation` must be split or generalized so update verification understands pins, forks, selected closure, and legacy-unknown blockers. It must no longer require every managed skill to equal current upstream when policy intentionally preserves a compatible pin.
-
-## Legacy Migration
-
-Projects with schema 1.0 manifests or no lock use conservative bootstrap:
-
-1. Read the existing project without writing.
-2. If local content equals current upstream under the canonical digest algorithm, record that current digest as base with `track` policy.
-3. If local content differs, classify it as `legacy-unknown`; do not infer whether the change was local or upstream.
-4. Treat paths absent upstream as project-local unless existing framework evidence proves ownership.
-5. Require explicit keep, replace, or fork for every legacy-unknown asset selected by all-mode.
-6. Write schema 1.1 manifest and lock only inside a successful transaction.
-
-Older updater runtimes cannot honor the new lock and may retain the historical overwrite behavior. The new manifest therefore records a minimum updater runtime and documentation must prohibit downgrade use. Runtime rollback after a schema 1.1 project update must be paired with restoration of that project's pre-migration transaction backup.
-
-Legacy duplicate skills and prompt commands are removed only when their content is recognized as unchanged framework content. Any customization converts removal into a conflict.
-
-## Launch Pad Update Procedure
-
-The first release documents this process and does not add an automatic source merge command:
-
-1. Record the current branch, revision, worktree status, runtime version, and validation baseline.
-2. Obtain explicit approval before remote fetch because it is an external action.
-3. Use normal Git to fetch tags and branches, inspect release notes and the bounded diff, and select a trusted target revision.
-4. Integrate through a normal fast-forward, merge, or reviewed pull request chosen by the repository owner. Never hide reset, merge, rebase, commit, or push inside `pso`.
-5. Run `npm ci` when dependency metadata changed, then `npm run check`.
-6. Update downstream generated projects separately with a dry-run from the validated Launch Pad revision.
-
-Launch Pad rollback uses normal Git history and the repository's approval rules. Destructive reset is not part of the documented default. A later read-only `pso source status` helper may be considered only if it reports local/ref/version drift without fetching or integrating by default.
+A denied, missing, or waiting approval routes to STEP-020. Azure Commercial is never a fallback.
 
 ## Ordered Workflow
 
 | Step | Owner | Status | Outcome | Approval |
 | --- | --- | --- | --- | --- |
-| STEP-001 | `skill:skill-dependency-manager` | Ready | Build managed-asset and dependency closure map. | None |
-| STEP-002 | `skill:artifact-upgrade` | Planned | Freeze schemas, compatibility, migration, and rollback design. | None |
-| STEP-003 | `operator:product-owner` | Planned | Approve exact local implementation and CLI boundary. | Phase |
-| STEP-004 | `skill:regression-test-development` | Planned | Implement provenance and classifier red-green slice. | Prior phase gate |
-| STEP-005 | `skill:regression-test-development` | Planned | Implement additive, all, and select planning red-green slice. | Prior phase gate |
-| STEP-006 | `skill:regression-test-development` | Planned | Implement track, pin, fork, and conflict resolution red-green slice. | Prior phase gate |
-| STEP-007 | `skill:regression-test-development` | Planned | Integrate transactional apply, rollback, reports, and verification. | Prior phase gate |
-| STEP-008 | `skill:regression-test-development` | Planned | Add conservative legacy migration and security fuzz coverage. | Prior phase gate |
-| STEP-009 | `skill:artifact-upgrade` | Planned | Validate migration compatibility and rollback evidence. | None |
-| STEP-010 | `skill:skill-dependency-manager` | Planned | Revalidate profile and capability closure. | None |
-| STEP-011 | `skill:documentation-builder` | Planned | Publish generated-project and Launch Pad procedures. | None |
-| STEP-012 | `skill:change-review` | Planned | Review bounded implementation for regressions and data loss. | None |
-| STEP-013 | `skill:prepare-commit` | Planned | Prepare a validated candidate without committing. | None |
-| STEP-014 | `skill:project-handoff` | Planned | Publish terminal continuity from every outcome. | None |
+| STEP-001 | `skill:skill-inventory` | Ready | Map reuse and duplication; decide whether `live-chat-interaction` is needed without authoring it. | None |
+| STEP-002 | `skill:architecture-review` | Planned | Freeze local-first client, server, streaming, VAD, grounding, cancellation, reconnect, half-duplex, and barge-in-extension contracts. | None |
+| STEP-003 | `skill:security-review` | Planned | Threat-model privacy, consent, injection, output safety, retention, auth/RBAC, abuse, telemetry, and browser permission. | None |
+| STEP-004 | `skill:workflow-simulator` | Planned | Simulate voice, permission, service, reconnect, grounding, approval, cost, and fallback failures. | None |
+| STEP-005 | `operator:product-owner` | Planned | Approve exact local implementation boundary, UX thresholds, and skill-create proceed decision. | Phase |
+| STEP-006 | `skill:skill-create` | Planned | Create the governed owner only if renewed inventory proves reuse insufficient; otherwise avoid duplication. | Prior STEP-005 gate |
+| STEP-007 | `skill:regression-test-development` | Planned | Red-green the pure conversation state machine and fake adapters. | Prior STEP-005 gate |
+| STEP-008 | `skill:regression-test-development` | Planned | Red-green versioned grounding, citations, unknowns, injection boundaries, and output validation. | Prior STEP-005 gate |
+| STEP-009 | `skill:development-environment-readiness` | Planned | Validate local server transport, streaming, auth, health, retry, and fake-adapter boundaries. | Prior STEP-005 gate |
+| STEP-010 | `skill:regression-test-development` | Planned | Validate the accessible responsive experience in a disposable generated project. | Prior STEP-005 gate |
+| STEP-011 | `skill:security-review` | Planned | Run local security/change checkpoint, focused tests, and `npm run check`. | None |
+| STEP-012 | `operator:product-owner` | Planned | Approve read-only discovery in the saved Azure cloud for one named subscription. | Phase, external, privileged |
+| STEP-013 | `skill:azure-discovery` | Planned | Discover selected-cloud Speech/model availability, regions, quota, cost, identity, endpoints, API versions, and data boundary without selecting or creating. | Prior STEP-012 gate |
+| STEP-014 | `operator:product-owner` | Planned | Separately approve any external/billable processing implementation or provisioning. | Phase, external, privileged |
+| STEP-015 | `skill:regression-test-development` | Planned | Integrate and test only the approved cloud-specific server adapter; Azure Government remains the deployment-test target. | Prior STEP-014 gate |
+| STEP-016 | `skill:regression-test-development` | Planned | Evaluate frozen latency, endpoint, correction, grounding, safety, accessibility, cost, and fallback thresholds. | None |
+| STEP-017 | `skill:documentation-builder` | Planned | Update authoritative guides, runbooks, privacy, retention, configuration, and corpus procedures from evidence. | None |
+| STEP-018 | `skill:change-review` | Planned | Review the bounded complete diff and validation evidence. | None |
+| STEP-019 | `skill:prepare-commit` | Planned | Prepare a candidate boundary and summary without staging or committing. | None |
+| STEP-020 | `skill:project-handoff` | Planned | Publish the single terminal continuity record with exactly one next action. | None |
 
-## Required Tests
+## Step Governance
 
-Focused tests must demonstrate red before production repair and green afterward for:
+### STEP-001: Inventory
 
-- complete three-way digest-state matrix, including both-side convergence and absent states;
-- CRLF/LF normalization, BOM handling, final newline sensitivity, binary files, and deterministic directory order;
-- new-project and adopted-project lock generation;
-- project-owned skill and application-file non-enrollment;
-- bare safe-all compatibility and mutation-free dry-run;
-- additive dependency closure and absence-only writes;
-- selective interactive and noninteractive behavior;
-- pin compatibility, exact fork identity, keep, replace, and exact force replacement;
-- unresolved-plan atomic refusal;
-- stale plan, stale selection, concurrent lock, interruption, rollback, and recovery;
-- schema 1.0 legacy-equivalent and legacy-unknown bootstrap;
-- upstream removal and customized legacy duplicate preservation;
-- path traversal, absolute path, case collision, symlink escape, malformed lock, duplicate ID, and untrusted JSON input;
-- portable reports with no absolute source paths or embedded managed content;
-- Windows and Unix behavior in the existing supported runtime matrix.
+Completion: map current runtime, grounding, security, testing, documentation, and Azure owners; prove reuse or the exact nonduplicate candidate ID.
+Checkpoint: `CP-LIVE-CHAT-INVENTORY`
+Rollback: preserve the prior inventory and discard the assessment.
+Recovery: refresh ownership evidence and rerun; unresolved ambiguity stops at STEP-020.
 
-Because the scaffold manifest and schemas are contract surfaces, `tests/skill-contracts.test.mjs` must validate every new schema, generated-project artifact, and manifest declaration. Final validation is `npm run check`; the known unrelated audit-checkpoint failure must be reproduced and isolated rather than waived if it remains.
+### STEP-002: Architecture
 
-## Rollout
+Completion: separate browser, server session, adapters, and versioned sources; define live transcript, tunable endpoint, auto-submit, correction/cancel, streaming, reconnect, half-duplex resume, and future barge-in.
+Checkpoint: `CP-LIVE-CHAT-ARCHITECTURE`
+Rollback: reject the design without changing framework boundaries.
+Recovery: resolve state or trust-boundary gaps and repeat review.
 
-1. Land the schemas and pure classifier behind tests before any apply path uses them.
-2. Validate new-project creation and existing-project adoption in temporary repositories.
-3. Exercise legacy migration in dry-run only against clean, customized, and malformed fixtures.
-4. Exercise additive and select modes before safe-all apply.
-5. Canary safe-all on disposable generated projects containing customized framework skills and project-owned skills.
-6. Verify interruption rollback and recovery before changing documented defaults.
-7. Prepare release notes with the minimum runtime requirement and downgrade limitation.
-8. Request separate approval for commit, push, publication, release, or downstream use after STEP-013; none is implied by this plan.
+### STEP-003: Security
 
-## Rollback Triggers
+Completion: freeze consent, session-only transcript, no raw audio, spoken opt-in, injection, safety, least privilege, validation, redacted telemetry, retries, rate, health, and abuse controls.
+Checkpoint: `CP-LIVE-CHAT-THREAT-MODEL`
+Rollback: discard only the threat model.
+Recovery: carry unresolved safe-default choices to STEP-005 or stop.
 
-Stop rollout and restore the last valid runtime candidate when any of these occurs:
+### STEP-004: Simulation
 
-- a project-owned or locally modified asset is overwritten without exact replacement approval;
-- update applies with unresolved conflicts or incomplete dependency closure;
-- manifest and lock disagree after verification;
-- rollback cannot restore exact pre-update digests;
-- a selector escapes the project root or resolves ambiguously;
-- a pin or fork silently violates its profile;
-- a legacy-unknown asset is inferred as safe without equality evidence;
-- the new updater makes adoption or creation non-idempotent.
+Completion: deterministic outcomes for silence/noise/false endpoint, interruption, denied mic, unavailable Speech/model, reconnect, stale grounding, rejected approval, cost, and fallback.
+Checkpoint: `CP-LIVE-CHAT-SIMULATED`
+Rollback: discard simulation output.
+Recovery: repair architecture or controls and repeat simulation.
 
-Per-project rollback uses the transaction journal and backup. Runtime candidate rollback uses the repository's normal reviewed Git process. A schema 1.1 project must be restored to its pre-migration state before an older updater runtime is used.
+### STEP-005: First Implementation Gate
 
-## Success Criteria
+Completion: approve exact files and behaviors, freeze measurable thresholds, and explicitly satisfy skill-create proceed when needed; all later gates remain excluded.
+Checkpoint: `CP-LIVE-CHAT-IMPLEMENTATION-APPROVED`
+Rollback: withdraw approval before implementation.
+Recovery: record rejection or narrowing and stop at STEP-020.
 
-The implementation is candidate-ready only when:
+### STEP-006: Governed Owner
 
-- no update mode silently overwrites local customization;
-- every selected capability is dependency-closed;
-- all unresolved conflicts block before the first write;
-- every applied asset is bound to base, local, upstream, plan, and destination digests;
-- creation, adoption, update, rollback, and recovery pass focused and repository validation;
-- operator documentation matches executable commands and downgrade limits;
-- bounded review has no unresolved high or critical finding;
-- no commit, push, publication, deployment, release, or external mutation has occurred.
+Completion: create a complete `live-chat-interaction` package only after renewed no-owner proof and explicit proceed; propagate catalog, help, profile, dependency, routing, tests, and docs, or record reuse.
+Checkpoint: `CP-LIVE-CHAT-OWNER-ESTABLISHED`
+Rollback: remove only the new package and approved companions.
+Recovery: repair duplication or contract failures and repeat validation.
 
-Terminal handoff: `STEP-014`.
+### STEP-007: Conversation Core
+
+Completion: deterministic tests pass for no-manual-submit informational turns, explicit action confirmation, live transcript, tunable pause, false-endpoint correction/cancel, session-only transcript, no raw audio, spoken opt-in, and listening resume.
+Checkpoint: `CP-LIVE-CHAT-STATE-MACHINE-GREEN`
+Rollback: remove this implementation slice and tests.
+Recovery: keep the smallest failing transition and repair it.
+
+### STEP-008: Grounding
+
+Completion: approved source links and versions or explicit unknowns; retrieved instructions cannot override policy; stale or malformed sources fall back safely.
+Checkpoint: `CP-LIVE-CHAT-GROUNDING-GREEN`
+Rollback: remove grounding and restore STEP-007.
+Recovery: isolate one source, citation, unknown, or injection failure and repair it.
+
+### STEP-009: Local Transport
+
+Completion: no browser credentials; session isolation, async streaming/cancel, reconnect, bounded retry, rate signal, health, metrics, and fallback work with local fakes.
+Checkpoint: `CP-LIVE-CHAT-LOCAL-TRANSPORT`
+Rollback: remove transport scaffolding.
+Recovery: repair with fake adapters and repeat readiness checks.
+
+### STEP-010: Disposable UX Fixture
+
+Completion: all microphone/listening/transcribing/thinking/speaking/error states plus keyboard, screen-reader, reduced-motion, responsive, text-only, and guided-only paths pass.
+Checkpoint: `CP-LIVE-CHAT-DEMO-FIXTURE-GREEN`
+Rollback: delete the disposable fixture and this slice's approved assets.
+Recovery: reproduce the failing state, repair the reusable owner, and retest.
+
+### STEP-011: Local Gate
+
+Completion: no critical/high local security or privacy finding; bounded diff matches STEP-005; focused tests and `npm run check` pass.
+Checkpoint: `CP-LIVE-CHAT-LOCAL-GATE-PASSED`
+Rollback: preserve the last passing checkpoint.
+Recovery: repair findings at their owner and repeat the full gate.
+
+### STEP-012: Azure Discovery Gate
+
+Completion: explicit saved-cloud and named-subscription read-only scope approval; no application data transfer or creation authority. Azure Government is the required deployment-test target.
+Checkpoint: `CP-LIVE-CHAT-AZURE-DISCOVERY-APPROVED`
+Rollback: withdraw before discovery.
+Recovery: denial, missing auth, or invalid cloud context stops at STEP-020 without silent cross-cloud fallback.
+
+### STEP-013: Azure Discovery
+
+Completion: sanitized selected-cloud/subscription Speech/model availability, regions, quota, cost indicators, cloud endpoints, SDK/REST API versions, managed-identity feasibility, and data boundaries are evidenced without model selection or resource creation.
+Checkpoint: `CP-LIVE-CHAT-AZURE-DISCOVERED`
+Rollback: discard stale local discovery output.
+Recovery: retry only in the approved cloud/subscription context or hand off with local fallback; Azure Government availability remains a separate deployment-test requirement.
+
+### STEP-014: External Processing Gate
+
+Completion: explicit cloud, subscription, services, API versions, data classes, retention, cost ceiling, resources, identity, and processing scope; no approval inferred from discovery.
+Checkpoint: `CP-LIVE-CHAT-EXTERNAL-PROCESSING-APPROVED`
+Rollback: withdraw before external implementation or provisioning.
+Recovery: rejection, narrowing, or waiting stops at STEP-020.
+
+### STEP-015: Approved Azure Adapter
+
+Completion: the approved cloud-specific adapter uses `DefaultAzureCredential` or managed identity, least-privilege RBAC, async streaming/cancel, bounded retries, content safety, input/output validation, redacted logs, rate limits, health, metrics, and fallback within the approved API matrix; Azure Government deployment-test evidence remains required.
+Checkpoint: `CP-LIVE-CHAT-AZURE-ADAPTER-GREEN`
+Rollback: disable the adapter and remove only resources covered by the approved rollback.
+Recovery: fail closed to local text/guided mode and hand off.
+
+### STEP-016: Evaluation
+
+Completion: all frozen endpoint, latency, correction, grounding, citation, unknown, injection, safety, privacy, accessibility, cost, rate, retry, and fallback thresholds pass before rollout consideration.
+Checkpoint: `CP-LIVE-CHAT-EVALUATION-PASSED`
+Rollback: reject the candidate at the last passing checkpoint.
+Recovery: repair each failed metric at its owner and rerun the full frozen suite.
+
+### STEP-017: Documentation
+
+Completion: evidence-backed guides distinguish local fakes from approved Government processing and cover privacy, retention, consent, configuration, corpus versions, accessibility, health, metrics, fallback, and recovery.
+Checkpoint: `CP-LIVE-CHAT-DOCUMENTED`
+Rollback: restore prior docs for withdrawn behavior.
+Recovery: correct claims against tests and rerun validation.
+
+### STEP-018: Change Review
+
+Completion: no critical/high defect, unauthorized external behavior, unsupported claim, missing acceptance coverage, or Launch Pad violation remains.
+Checkpoint: `CP-LIVE-CHAT-CHANGE-REVIEWED`
+Rollback: review is read-only.
+Recovery: repair each finding, rerun validation, and repeat review.
+
+### STEP-019: Prepare Commit
+
+Completion: minimal path boundary and current tests/evaluation/review/full gate; no staging, commit, push, deployment, publication, or release.
+Checkpoint: `CP-LIVE-CHAT-CANDIDATE-PREPARED`
+Rollback: discard only candidate-preparation output.
+Recovery: return to STEP-018 whenever the candidate or evidence changes.
+
+### STEP-020: Terminal Handoff
+
+Completion: one terminal continuity record distinguishes local, discovery, external-processing, and candidate states; preserves safe-update and P4 history; records exactly one next action.
+Checkpoint: `CP-LIVE-CHAT-HANDOFF-PUBLISHED`
+Rollback: preserve the last valid handoff and regenerate mutable views.
+Recovery: rebuild from the latest checkpoint and append-only event history.
+
+## Deterministic Routing
+
+Prerequisites are sequential and acyclic from STEP-001 through STEP-020. Every nonterminal `onBlocked` and `onFailed` route goes directly to STEP-020. STEP-020 is the only terminal project-handoff. Exactly one prerequisite-free step is ready: STEP-001.
+
+## Acceptance Criteria
+
+- Informational voice turns submit automatically after the tunable pause; no manual submit is required.
+- Live interim transcript, correction, cancellation, and false-endpoint recovery are visible and testable.
+- Consequential actions always require explicit confirmation.
+- Transcript persistence defaults to session-only; raw audio is not retained; spoken response is opt-in.
+- Text-only and guided-only fallbacks remain functional.
+- Grounded answers include approved source links and corpus versions or explicit unknowns.
+- Source content cannot override policy, authorization, or output validation.
+- Keyboard, screen-reader, reduced-motion, responsive, and browser-permission-denied paths remain functional.
+- Secrets remain server-side. Approved Azure access uses managed identity or `DefaultAzureCredential` with least privilege.
+- Any approved cloud use follows the saved cloud profile and discovered cloud endpoints; Azure Government is the required deployment-test target and Azure Commercial is never silently substituted for a Government test.
+- Async streaming, retries/backoff, content safety, redacted structured logging, rate limits, health, metrics, and evaluation precede rollout consideration.
+
+Terminal handoff: `STEP-020`.

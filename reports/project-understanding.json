@@ -1,22 +1,22 @@
 {
   "schemaVersion": "1.0.0",
   "status": "complete",
-  "generatedAt": "2026-09-18T14:26:22.324Z",
+  "generatedAt": "2026-09-18T16:07:05.696Z",
   "generator": "project-understanding",
   "project": {
     "name": "project-skills-orchestrator",
     "displayName": "Project Orchestrator",
-    "purpose": "Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 47 governed skills — installed consistently, verified after every run, and safe to rerun.",
+    "purpose": "Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 48 governed skills — installed consistently, verified after every run, and safe to rerun.",
     "evidence": [
       "README.md"
     ]
   },
   "scan": {
     "mode": "full-rebuild",
-    "repositoryDigestSha256": "132196b1c139d9522e1fe1e6e4508bcad16ea9443da19ebd52b5f2ab49468e5f",
-    "fileCount": 367,
+    "repositoryDigestSha256": "fc51c918723a2e7bf14d1f5cc4e128862d0e60d10b3ab2aff8c5793ddf8270ee",
+    "fileCount": 379,
     "sourceFileCount": 21,
-    "testFileCount": 16,
+    "testFileCount": 20,
     "excludedDirectories": [
       ".git",
       ".skills-orchestrator",
@@ -83,6 +83,11 @@
         "path": ".github/prompts/environment-update-help.prompt.md",
         "bytes": 1035,
         "sha256": "5230f6db06f94db9ecd139daaee17f8fc371c66450d887e938dfa08ee54f3b1b"
+      },
+      {
+        "path": ".github/prompts/live-chat-interaction-help.prompt.md",
+        "bytes": 3565,
+        "sha256": "72ae312ab8f6af857038d45c61ef555627780c449b51bbd043c12ce77aa90a4e"
       },
       {
         "path": ".github/prompts/project-blueprint.prompt.md",
@@ -273,6 +278,11 @@
         "path": ".github/skills/linkedin-post/SKILL.md",
         "bytes": 10241,
         "sha256": "b531d067b8924b4973d8f11bb1295d506c692707c507b4e02cc4a3d5fd3545ae"
+      },
+      {
+        "path": ".github/skills/live-chat-interaction/SKILL.md",
+        "bytes": 5384,
+        "sha256": "06a651c8bef9d0753d70686ce9d0120db33716354bd5c91512a29cb008c75a4f"
       },
       {
         "path": ".github/skills/multi-agent-coordinator/SKILL.md",
@@ -651,8 +661,8 @@
       },
       {
         "path": "config/profiles.yaml",
-        "bytes": 1550,
-        "sha256": "c46d5519b44b6a6864a99b0eb3f4b18a4bc79be561973829ced501e67c5b7f6b"
+        "bytes": 1580,
+        "sha256": "5ddaf67a0a61ffeb162cec80b633ec33bc79751b26c26cb7de42f7974608975b"
       },
       {
         "path": "config/skills-orchestrator.json",
@@ -751,8 +761,8 @@
       },
       {
         "path": "docs/PROJECT-ARCHITECTURE.md",
-        "bytes": 6260,
-        "sha256": "a78b3063cafd482b3daa833d47e2dd9851eb6f69b23bea1e52e831b5753dedaf"
+        "bytes": 6872,
+        "sha256": "2c7c2ef3660c7979605eca332cb9aae0b634a401f79e20aceb330616c153e157"
       },
       {
         "path": "docs/PROJECT-OVERVIEW.md",
@@ -766,8 +776,8 @@
       },
       {
         "path": "docs/THREAT-MODEL.md",
-        "bytes": 9458,
-        "sha256": "4d951ebe77e46886a0b29faefdf623f9fab9c29d34dd84a21e3032a106508ea2"
+        "bytes": 10699,
+        "sha256": "d17d4a361bbcb8a055ccd82f337ec034c44d024c71e7bfb6d0c224792e43598d"
       },
       {
         "path": "LICENSE",
@@ -781,8 +791,8 @@
       },
       {
         "path": "package.json",
-        "bytes": 2492,
-        "sha256": "ea9c6513a181ecdc0fe7b0e3683c307731ff14755d7e31cff6701eb3ef8869a4"
+        "bytes": 2790,
+        "sha256": "5a5dd93a3319def45fef6bff532e3fa3e91445f3e5e125036e4684a2a9b96de6"
       },
       {
         "path": "pso.mjs",
@@ -796,8 +806,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 50135,
-        "sha256": "02b4a80401983f8540fcf0c69bafcc79719d7b1acef80b96161fd7085dc83417"
+        "bytes": 50525,
+        "sha256": "f28f837c442c7d93df42e76fc9b6eb24bb5aab852ccc2dfc4debf93f741c55a9"
       },
       {
         "path": "release/release-manifest.json",
@@ -836,18 +846,18 @@
       },
       {
         "path": "reports/architecture-review.json",
-        "bytes": 4577,
-        "sha256": "e25c32166417dce61eaea2c21fb9d7a800ff2e4c515a38f6913d4776de3ce333"
+        "bytes": 16278,
+        "sha256": "68857ef9776a8f59c260b9dfb1bc555b2e0748f1d48448a815eacbc1b9c18b6f"
       },
       {
         "path": "reports/architecture-review.md",
-        "bytes": 829,
-        "sha256": "0e21f39cc1a551e6f5be0866c3daf09ef1f8a30bfb2981a33a9de5359fc6d6c6"
+        "bytes": 4543,
+        "sha256": "07220a5b9a81b4e3511de9f939d5b2fab903a6c19406d66658de0f32f5a31ba5"
       },
       {
         "path": "reports/artifact-ownership.json",
         "bytes": 11691,
-        "sha256": "866091eef219c65b29b23b1cb11610792fd25cfd568bb902ed4e863c8e28b6dc"
+        "sha256": "622f06c392653a3cccb28aec9312baa3b19dade9528b9fb855f52883913cfff5"
       },
       {
         "path": "reports/artifact-upgrade-plan.json",
@@ -916,13 +926,13 @@
       },
       {
         "path": "reports/change-review.json",
-        "bytes": 3205,
-        "sha256": "16a6d1f8439dde6b9a97915a467257354f176e4d23cf07b2cd6d043f0afca777"
+        "bytes": 3659,
+        "sha256": "126bd3648b2c3f5a997b6035cc10bc82800fb290bd0153c4c9d0f4de6e553912"
       },
       {
         "path": "reports/change-review.md",
-        "bytes": 1374,
-        "sha256": "e36d62baa272d4859c7b519361569d64adec5afe7fcfb3ba2b2ac8660532ca94"
+        "bytes": 1585,
+        "sha256": "878a838c74f6fd7b3481ceaa0a5ed30fc83910ea2250384745b3113cdfd6f588"
       },
       {
         "path": "reports/ci-triage-result.json",
@@ -936,13 +946,13 @@
       },
       {
         "path": "reports/clarification-result.json",
-        "bytes": 4444,
-        "sha256": "069aabe67e2341460224140a1752bf0ffb98bfb5a6cded6c381a006621d0059d"
+        "bytes": 7361,
+        "sha256": "e67d044e12bd1fe4a02cc81df80a93b97c8139404cc35dd60841a606d113bdec"
       },
       {
         "path": "reports/clarification-result.md",
-        "bytes": 1721,
-        "sha256": "39bb74b0709818cdd9fc42b514a18b01d982e4650ffce35849227714e6db5fd7"
+        "bytes": 1537,
+        "sha256": "85be67fe11c178a1f66ea7b5f8b8e7713ecd8f4363923230712ab0a1f7f722ca"
       },
       {
         "path": "reports/code-audit-findings.json",
@@ -966,18 +976,18 @@
       },
       {
         "path": "reports/current-execution-state.json",
-        "bytes": 354,
-        "sha256": "dceb9d557a2799da58c543070e314426de20edc24219ccaab557155c0de7d316"
+        "bytes": 330,
+        "sha256": "435bc60762eee20af559a5acb5c1266e9a15dccdbf2d80114cf6b0851a472cfc"
       },
       {
         "path": "reports/current-execution-state.md",
-        "bytes": 624,
-        "sha256": "f8212eb5cff03c859a34a5f38066b57e65d50fb1487f48729dac82dc79a9a58d"
+        "bytes": 908,
+        "sha256": "3f1dad38d4d1916aef7bd49f5282c8678281db03059aafc967c8522ae957f994"
       },
       {
         "path": "reports/current-work-state.json",
-        "bytes": 2266,
-        "sha256": "4e8440a2dc6d8e9f140e99341a96f13dbbef4a1d6f0ea75055872e7434adc338"
+        "bytes": 3784,
+        "sha256": "4b6e8c085501dcf858b308e7dd854d3349adcc2b19dca97a38ad599fcf5c552e"
       },
       {
         "path": "reports/deployment-review.json",
@@ -1001,8 +1011,8 @@
       },
       {
         "path": "reports/execution-log.jsonl",
-        "bytes": 17779,
-        "sha256": "6c38745880573075d6cbc7983d4c558626cc8b1756ea12aeee1059392f692004"
+        "bytes": 23678,
+        "sha256": "0eca50c0d7307babec1b3d672d395130e28a19bae96094d07443285270bc9af5"
       },
       {
         "path": "reports/gitleaks-scan.json",
@@ -1026,13 +1036,13 @@
       },
       {
         "path": "reports/project-handoff.json",
-        "bytes": 9845,
-        "sha256": "39048b20d013ce06265736b4f164548cb0af262ce0301b1364bc334be4d7a9e8"
+        "bytes": 13132,
+        "sha256": "0ba4aaaa19d64932850a745753e2a3070daa171cf09ee31e5cbacb335b1b0925"
       },
       {
         "path": "reports/project-handoff.md",
-        "bytes": 3551,
-        "sha256": "e1f1a29bc7ae07f6340e8a68750b049a105283ed3209c4d2da2ffec540417340"
+        "bytes": 3968,
+        "sha256": "eeb7fb82196769a095a1c371d5d8b8cdaee713afda7bc7d60eb4e0b3681e063b"
       },
       {
         "path": "reports/project-status.json",
@@ -1217,17 +1227,17 @@
       {
         "path": "reports/security-check.json",
         "bytes": 342,
-        "sha256": "3fe401b375f859b0d57663e9c154502e352fc94749fee41852b8b042cc17ba14"
+        "sha256": "668955f803b23d202ba1c3ecd4ada4598c37a8e8b2a096db47346644286dd9bc"
       },
       {
         "path": "reports/security-review.json",
-        "bytes": 3278,
-        "sha256": "70bc50b48d80e636a7ee14ff2ae90cd99581d225e5c819aa689052592aa82c33"
+        "bytes": 10737,
+        "sha256": "bb03b119ee19428bd20b0f20ae71a8bdb3a65e34582b64db187afb84feadaad5"
       },
       {
         "path": "reports/security-review.md",
-        "bytes": 728,
-        "sha256": "418e508bb9873d3b6e96d7d42b938ff6b94496b9ef9745dafc9c754d9db965a8"
+        "bytes": 3186,
+        "sha256": "687e3f7761e5631261ee848e65035f06a9c3d0570d2fd26e863afae055a2d655"
       },
       {
         "path": "reports/skill-dependency-graph.json",
@@ -1236,48 +1246,58 @@
       },
       {
         "path": "reports/skill-dependency-report.md",
-        "bytes": 7645,
-        "sha256": "5bbfd30a9c4fa71138e9472eebe3c6cac6def55025c8e3bf934bdde863ab8775"
+        "bytes": 7639,
+        "sha256": "af42173b10af70dbb6eb86ceed46f6aa5fcbdf473cdcd2def126a6d58fcbc8cf"
       },
       {
         "path": "reports/skill-details.json",
-        "bytes": 41652,
-        "sha256": "bfddc92e17baef2a9251dc4cddf79818e0a1fb247f51500350705e53402ceb7e"
+        "bytes": 42446,
+        "sha256": "321ddd3145bb2a6fff7ba352ab67d9944340abf1b687b89c8d7d57a435c80bfc"
       },
       {
         "path": "reports/skill-details.md",
-        "bytes": 4340,
-        "sha256": "c1521877d452e42ed44e2b7e0d51f724a395d586dae6d9cb2d2da27164f25e96"
+        "bytes": 4474,
+        "sha256": "2b430273c70244d7306fb07fcbe4e3ec24342016fd2ef916dee64772000ad043"
       },
       {
         "path": "reports/skill-inventory.json",
-        "bytes": 31782,
-        "sha256": "e2df3d24422d2f9f04e37df0c9073bf61d2629d70184226951b1c0e4bca62fe7"
+        "bytes": 32366,
+        "sha256": "5c2bb211260fe2f9a1611905e78a329711b70689acc4a343099db87bcd3f788d"
       },
       {
         "path": "reports/skill-inventory.md",
-        "bytes": 13817,
-        "sha256": "c9f388111ee60ed7e1956c11f958d761a6419e8eca8f190fca6bc2e5c3090835"
+        "bytes": 14059,
+        "sha256": "bf2b86ba11b36242b784eae39a7c6bbde2e75fd580adf4ef887a0199c242b27b"
       },
       {
         "path": "reports/workflow-completion.json",
-        "bytes": 1049,
-        "sha256": "693c10ca819b22584852cae0a6b4141e699e217bf31836ee78a5038e4a9df887"
+        "bytes": 1387,
+        "sha256": "f59b9cc662b2ee34eab2d6e65b509298015b42256b35f48b19860551b7453e32"
       },
       {
         "path": "reports/workflow-completion.md",
-        "bytes": 610,
-        "sha256": "d8027666ff3d4a8feb444a66853782e8c36dce65b25417df7fd4d9c91ea05845"
+        "bytes": 900,
+        "sha256": "252e1dcbf90e50b6db1a160b6e799f443b77b7587c891af572305ce1ca3ec186"
       },
       {
         "path": "reports/workflow-plan.json",
-        "bytes": 25861,
-        "sha256": "126759bbebe067989f35ee3d8b064f08c206976dd449549718edf7961a73bd8d"
+        "bytes": 26663,
+        "sha256": "f332092ce42662d7bd61a4ee8900352254171fbbd2b7234725a1e23fdbbb34dc"
       },
       {
         "path": "reports/workflow-plan.md",
-        "bytes": 20883,
-        "sha256": "c729bb5d306ea9f5814c51e7fd13acbedbfbb61f949a51c10be37d5a0c17937a"
+        "bytes": 16366,
+        "sha256": "2d1295496d7b3ca995c180c8bff5cbbe732936d75fb91b75c22d5257e1532cc3"
+      },
+      {
+        "path": "reports/workflow-simulation.json",
+        "bytes": 18521,
+        "sha256": "e2cc907f8a606a518cf2a001323020143fe791d95973922061b9ef299cf82c07"
+      },
+      {
+        "path": "reports/workflow-simulation.md",
+        "bytes": 5221,
+        "sha256": "f078547f902631103b071bd4002452b506950c37fc0151464a453a8f7ba20d11"
       },
       {
         "path": "schemas/adoption-transaction.schema.json",
@@ -1383,6 +1403,26 @@
         "path": "schemas/independent-review.schema.json",
         "bytes": 1427,
         "sha256": "2b914ca373432f79c4048aaa67d97329d7f48e459026f83c31aec5730e373d7a"
+      },
+      {
+        "path": "schemas/live-chat-config.schema.json",
+        "bytes": 1315,
+        "sha256": "7bc8a589aedffac7790109c64488da14e44cdea8c180227b974fae5833f56eee"
+      },
+      {
+        "path": "schemas/live-chat-evaluation.schema.json",
+        "bytes": 2618,
+        "sha256": "3ccacb4955bdc51e93b5cad0efff99d6d7ca8d581dcf9aa3151fefb82c8c2b7d"
+      },
+      {
+        "path": "schemas/live-chat-event.schema.json",
+        "bytes": 914,
+        "sha256": "d62d6546b74b7e1d72a9fcd1a4b268f01f4f2dfb47778da338b97ee9aef54e02"
+      },
+      {
+        "path": "schemas/live-chat-grounding-manifest.schema.json",
+        "bytes": 1093,
+        "sha256": "5df3639982e7df79540973f53ea8686a9170fd00125ebc79ac6453999921f52d"
       },
       {
         "path": "schemas/project-blueprint.schema.json",
@@ -1791,8 +1831,8 @@
       },
       {
         "path": "templates/scaffold-manifest.json",
-        "bytes": 7040,
-        "sha256": "537d76967b47d1dc11def0c74a5d8b49d91c8b2c05621d409ce9688cebc3a9e6"
+        "bytes": 8260,
+        "sha256": "2d8e2c8cbe191d70f03366b68deb7a7c778ac6ac020778c5ddf75a13235d0bf8"
       },
       {
         "path": "tests/adoption-rerun.test.mjs",
@@ -1828,6 +1868,26 @@
         "path": "tests/gitleaks-scan.test.mjs",
         "bytes": 8309,
         "sha256": "5526751da713c66649dac6509701976ec49cb23728edb55df0dbb2af701cb244"
+      },
+      {
+        "path": "tests/live-chat-generated-fixture.test.mjs",
+        "bytes": 1077,
+        "sha256": "31d295235b875ebc3e7a510420e7514f17006cfda11ede8ce3421006e7d5141f"
+      },
+      {
+        "path": "tests/live-chat-grounding.test.mjs",
+        "bytes": 1828,
+        "sha256": "e775fa56e9553c0b0b8c49e66d1a6024940977b8cc114282585a35664e8b92ab"
+      },
+      {
+        "path": "tests/live-chat-interaction.test.mjs",
+        "bytes": 3621,
+        "sha256": "05d91d405e7d397d52fd0d6e55af25a9db10b4c0527d794a24f8fa8c79f0b17e"
+      },
+      {
+        "path": "tests/live-chat-security.test.mjs",
+        "bytes": 1924,
+        "sha256": "f87cede8f6a48f6a71ec28bcf7076e75055c461fbd6c941d3e8f50cf0f04d39c"
       },
       {
         "path": "tests/package-install.test.mjs",
@@ -1866,8 +1926,8 @@
       },
       {
         "path": "tests/skill-contracts.test.mjs",
-        "bytes": 94137,
-        "sha256": "ecbf60aa831bddbdb853541229cb5f352d0c1ba69e9672b3d4789d772a9ee1f6"
+        "bytes": 94164,
+        "sha256": "5393675943393e884d196d28c21f0c4f80a3eb55dd58682ec089bfefb0785d26"
       },
       {
         "path": "tests/user-personalization.test.mjs",
@@ -1887,7 +1947,7 @@
     },
     {
       "name": ".github",
-      "description": "Top-level project boundary containing 86 scanned files.",
+      "description": "Top-level project boundary containing 88 scanned files.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ],
@@ -1943,7 +2003,7 @@
     },
     {
       "name": "reports",
-      "description": "Top-level project boundary containing 95 scanned files.",
+      "description": "Top-level project boundary containing 97 scanned files.",
       "evidence": [
         "reports/adoption-rerun-evidence.json"
       ],
@@ -1951,7 +2011,7 @@
     },
     {
       "name": "schemas",
-      "description": "Top-level project boundary containing 54 scanned files.",
+      "description": "Top-level project boundary containing 58 scanned files.",
       "evidence": [
         "schemas/adoption-transaction.schema.json"
       ],
@@ -1975,7 +2035,7 @@
     },
     {
       "name": "tests",
-      "description": "Top-level project boundary containing 16 scanned files.",
+      "description": "Top-level project boundary containing 20 scanned files.",
       "evidence": [
         "tests/adoption-rerun.test.mjs"
       ],
@@ -1985,7 +2045,7 @@
   "technology": [
     {
       "name": ".md",
-      "description": "138 scanned files use this extension.",
+      "description": "141 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ],
@@ -1993,7 +2053,7 @@
     },
     {
       "name": ".json",
-      "description": "125 scanned files use this extension.",
+      "description": "130 scanned files use this extension.",
       "evidence": [
         ".azure/environment.json"
       ],
@@ -2001,7 +2061,7 @@
     },
     {
       "name": ".mjs",
-      "description": "40 scanned files use this extension.",
+      "description": "44 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/agent-builder.mjs"
       ],
@@ -2083,7 +2143,7 @@
   "usage": [
     {
       "name": "npm run check",
-      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs && node pso.mjs verify",
+      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ],
@@ -2163,7 +2223,7 @@
     },
     {
       "name": "npm run test",
-      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs",
+      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs",
       "evidence": [
         "package.json"
       ],
@@ -2189,7 +2249,7 @@
   "features": [
     {
       "name": "Governed skill workflows",
-      "description": "47 installed skills provide bounded project actions.",
+      "description": "48 installed skills provide bounded project actions.",
       "evidence": [
         ".github/skills/agent-builder/SKILL.md",
         ".github/skills/architecture-review/SKILL.md",
@@ -2201,13 +2261,13 @@
     },
     {
       "name": "Reusable prompt workflows",
-      "description": "10 prompt files provide user-invoked workflows.",
+      "description": "11 prompt files provide user-invoked workflows.",
       "evidence": [
         ".github/prompts/azure-cleanup-help.prompt.md",
         ".github/prompts/demo-create-project.prompt.md",
         ".github/prompts/demo-web-app.prompt.md",
         ".github/prompts/environment-update-help.prompt.md",
-        ".github/prompts/project-blueprint.prompt.md"
+        ".github/prompts/live-chat-interaction-help.prompt.md"
       ],
       "status": "verified"
     },
@@ -2231,7 +2291,7 @@
   "workflows": [
     {
       "name": "npm run check",
-      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs && node pso.mjs verify",
+      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ],
@@ -2311,7 +2371,7 @@
     },
     {
       "name": "npm run test",
-      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs",
+      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs",
       "evidence": [
         "package.json"
       ],
@@ -2515,6 +2575,15 @@
         ],
         "status": "verified",
         "invocation": "/linkedin-post"
+      },
+      {
+        "name": "live-chat-interaction",
+        "description": "Build and validate provider-neutral local voice and text conversation state, grounding, session boundaries, fallbacks, and accessible browser interaction without cloud processing or consequential action authority.",
+        "evidence": [
+          ".github/skills/live-chat-interaction/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/live-chat-interaction"
       },
       {
         "name": "multi-agent-coordinator",
@@ -2798,6 +2867,15 @@
         "invocation": "/environment-update-help"
       },
       {
+        "name": "live-chat-interaction-help",
+        "description": "Help for the live-chat-interaction skill.",
+        "evidence": [
+          ".github/prompts/live-chat-interaction-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/live-chat-interaction-help"
+      },
+      {
         "name": "project-blueprint",
         "description": "Create or review the versioned project blueprint before implementation.",
         "evidence": [
@@ -3028,6 +3106,38 @@
         "description": "Machine-readable contract for a governed project artifact.",
         "evidence": [
           "schemas/independent-review.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
+        "name": "live-chat-config.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/live-chat-config.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
+        "name": "live-chat-evaluation.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/live-chat-evaluation.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
+        "name": "live-chat-event.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/live-chat-event.schema.json"
+        ],
+        "status": "verified"
+      },
+      {
+        "name": "live-chat-grounding-manifest.schema.json",
+        "description": "Machine-readable contract for a governed project artifact.",
+        "evidence": [
+          "schemas/live-chat-grounding-manifest.schema.json"
         ],
         "status": "verified"
       },
@@ -3300,7 +3410,7 @@
   "validation": [
     {
       "name": "npm run check",
-      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs && node pso.mjs verify",
+      "description": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ],
@@ -3348,7 +3458,7 @@
     },
     {
       "name": "npm run test",
-      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs",
+      "description": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs",
       "evidence": [
         "package.json"
       ],
@@ -3373,5 +3483,5 @@
   ],
   "limitations": [],
   "markdown": "reports/project-understanding.md",
-  "markdownSha256": "f7ba18ef5febda70df45bb28fc310dc482c1a914d37f06a734f02493cd7350eb"
+  "markdownSha256": "58bd6c4f10608845ed4fef6a290df02bb77c0f8f0823de55a8e3afa51d52147a"
 }

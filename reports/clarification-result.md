@@ -1,15 +1,15 @@
 # Clarification Result
 
-The requested outcome is an implementation-ready plan for safely updating both the Project Orchestrator source checkout and previously generated projects. This planning action does not implement the updater.
+The next enhancement is `LIVE-CHAT-001`: a reusable live voice and grounded chat capability for Project Orchestrator.
 
-The user delegated the three material decisions autonomously. The accepted defaults are to cover both update surfaces, preserve backward compatibility by making an unqualified `pso update` a safe all-mode, and provide a complete staged design rather than an MVP-only or architecture-only outline.
+The user delegated the three material choices. The accepted defaults are to build reusable framework behavior, validate it through disposable generated-project fixtures, and keep Azure Government discovery and billable processing behind later explicit gates.
 
-The generated-project design must preserve locally enhanced skills and project-owned files. It must distinguish base, local, and upstream content; install new capabilities with dependency closure; support additive, all, and select modes; and reserve replacement of conflicting local work for an explicit force action. Existing projects without reconstructable base provenance treat differing managed assets as unknown or customized and require an explicit operator choice.
+The first experience uses natural half-duplex turn taking. Speech appears as a live interim transcript, a configurable silence window finalizes the utterance, informational turns submit automatically, responses stream and may be spoken when enabled, and listening resumes without a manual Submit action. Consequential actions still require explicit confirmation.
 
-Git remains authoritative for updating the Launch Pad checkout. A Project Orchestrator helper may guide fetch, comparison, validation, and handoff, but it must not replace Git merge semantics or perform unapproved remote mutation.
+Answers are grounded only in approved versioned project documentation and capability metadata, include sources, and state unknowns. Text-only and guided-only modes remain functional. Raw audio is not retained; transcript persistence defaults to session-only until privacy and retention policy are approved.
 
-Publishing this plan replaces the mutable current workflow-plan and execution-state views. The unrelated P4 plan remains recoverable from accepted event history through sequence 32 and must not be represented as completed or cancelled.
+The previously used demo project does not currently exist, so local validation will use disposable generated projects unless a later approved workflow recreates a durable demo workspace.
 
-No implementation, skill-contract change, commit, push, publication, deployment, cloud authentication, external mutation, or billable request is authorized.
+Azure integration must support Azure Commercial and Azure Government through the saved cloud profile and correct cloud endpoints, dynamically discover services per subscription, and freeze a service/API compatibility matrix before provider integration. Azure Government remains the required deployment-test target. No implementation, new skill, Azure discovery, model selection, resource creation, billable use, deployment, commit, push, or publication is authorized by this clarification record.
 
-Decision: proceed to a complete, non-executing update-system workflow plan.
+Decision: proceed to a complete, non-executing `LIVE-CHAT-001` workflow plan.

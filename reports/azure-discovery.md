@@ -1,6 +1,6 @@
 # Azure Discovery
 
-- Discovered at (UTC): 2026-09-16T23:05:17.7138319Z
+- Discovered at (UTC): 2026-09-18T16:45:20.5325273Z
 - Cloud: AzureUSGovernment
 - Location: usgovvirginia
 - Cognitive Services: True

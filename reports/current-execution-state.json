@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
-  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
-  "status": "completed",
-  "currentStep": 14,
-  "totalSteps": 14,
-  "activeSkill": "project-handoff",
-  "lastCompletedStep": 14,
-  "resumeFromStep": 14,
-  "lastSequence": 49,
-  "updatedAt": "2026-09-18T14:53:52.2836707Z"
+  "workflowId": "WF-LIVE-CHAT-20260918",
+  "runId": "RUN-LIVE-CHAT-PLAN-20260918-01",
+  "status": "waiting-approval",
+  "currentStep": 19,
+  "totalSteps": 20,
+  "activeSkill": "regression-test-development",
+  "lastCompletedStep": 18,
+  "resumeFromStep": 19,
+  "lastSequence": 77,
+  "updatedAt": "2026-09-18T18:52:00.000Z"
 }

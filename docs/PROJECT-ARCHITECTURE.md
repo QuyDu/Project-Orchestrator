@@ -5,6 +5,12 @@
 - Deterministic automation performs schema checks, security validation, project setup, release verification, and evidence capture across the governed lifecycle.
 - Governance, auditability, and human approval remain visible controls that turn AI assistance into measurable business outcomes such as faster onboarding, lower risk, and stronger compliance.
 
+### Local Live Chat Capability
+
+The repository now owns `live-chat-interaction` as a provider-neutral local capability. Its shipped assets define a pure half-duplex conversation reducer, session-only transcript behavior, no raw-audio persistence, idle and absolute session expiry, approved-manifest grounding with citations and explicit unknowns, credential-free session/transport boundaries, identity-bound concurrency, transcript and response ceilings, bounded retries, a circuit breaker, and accessible text/guided fallbacks. Informational turns submit once after endpoint acceptance; consequential intent remains confirmation-gated. Provider selection, Azure discovery, external processing, and deployment remain outside this local slice.
+
+The local evaluation currently verifies the safety and fallback controls with deterministic fakes. VAD false-endpoint accuracy and production P95 latency remain unmeasured until dedicated endpoint telemetry and timing instrumentation are added; the repository makes no production-readiness claim for those metrics.
+
 ### Mermaid Diagram
 
 To render this diagram in VS Code, install the recommended Mermaid extension and open the Markdown preview with `Ctrl+Shift+V`. GitHub and other Mermaid-enabled Markdown viewers render the fenced block directly.

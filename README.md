@@ -1,13 +1,13 @@
 # Project Orchestrator
 
-Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 47 governed skills — installed consistently, verified after every run, and safe to rerun.
+Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 48 governed skills — installed consistently, verified after every run, and safe to rerun.
 
 | Item | Value |
 | --- | --- |
 | Runtime version | `1.1.2` |
 | Source version date | September 12, 2026 |
 | Framework version | `9.0.0` |
-| Skill catalog | 47 governed skills |
+| Skill catalog | 48 governed skills |
 | Supported Node.js | 22, 24, 26 |
 | Dependencies | None |
 | Distribution | Authorized internal use only |
@@ -39,7 +39,9 @@ It has two halves.
 
 **A command-line installer** (`pso.mjs`) that creates a new project or adopts an existing one. It runs entirely on Node.js built-ins — no packages to install, no registry access — and every change it makes is planned, journaled, and verified.
 
-**A catalog of 47 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
+**A catalog of 48 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
+
+The `live-chat-interaction` skill ships a provider-neutral local conversation reducer, approved-manifest grounding, credential-free session boundary, and accessible text/guided fallback assets. Informational turns can submit after endpoint acceptance; consequential intent always requires explicit confirmation. No cloud provider or raw audio persistence is part of this local capability.
 
 ### What makes it different
 

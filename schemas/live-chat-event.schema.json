@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Live Chat Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "type", "id"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "type": { "enum": ["GRANT_CONSENT", "DENY_CONSENT", "START_LISTENING", "STOP_LISTENING", "TRANSCRIPT_INTERIM", "TRANSCRIPT_FINAL", "ENDPOINT_ACCEPTED", "CORRECT_TRANSCRIPT", "CANCEL", "CONFIRM_ACTION", "REJECT_ACTION", "RESPONSE_DELTA", "RESPONSE_COMPLETE", "SPEAKING_STARTED", "SPEAKING_COMPLETE", "RECONNECT", "FALLBACK", "ERROR"] },
+    "id": { "type": "string", "minLength": 1 },
+    "sessionId": { "type": "string", "minLength": 1 },
+    "text": { "type": "string" },
+    "intent": { "enum": ["informational", "consequential"] },
+    "fallback": { "enum": ["text-fallback", "guided-fallback"] },
+    "error": { "type": "string" }
+  }
+}

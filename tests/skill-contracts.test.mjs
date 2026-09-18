@@ -63,6 +63,7 @@ const expectedSkillIds = [
   "environment-update",
   "framework-health-check",
   "linkedin-post",
+  "live-chat-interaction",
   "multi-agent-coordinator",
   "policy-engine",
   "prepare-commit",

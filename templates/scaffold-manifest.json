@@ -3,6 +3,48 @@
   "description": "Declares which project scaffold templates apply to a target repository. 'requires' lists stack tags; a template installs when any listed tag is detected or declared. 'always' templates install unconditionally. 'createOnly' templates are never added to an existing repository during adoption.",
   "templates": [
     {
+      "path": ".skills-orchestrator/live-chat/conversation-state.mjs",
+      "kind": "local-runtime",
+      "purpose": "provider-neutral conversation state machine",
+      "requires": "always"
+    },
+    {
+      "path": ".skills-orchestrator/live-chat/grounding.mjs",
+      "kind": "local-runtime",
+      "purpose": "approved local grounding and citation validation",
+      "requires": "always"
+    },
+    {
+      "path": ".skills-orchestrator/live-chat/local-session.mjs",
+      "kind": "local-runtime",
+      "purpose": "credential-free local session and transport boundary",
+      "requires": "always"
+    },
+    {
+      "path": ".skills-orchestrator/live-chat/server/provider-adapter.mjs",
+      "kind": "local-runtime",
+      "purpose": "server-only Azure Government provider compatibility and streaming adapter",
+      "requires": "always"
+    },
+    {
+      "path": ".skills-orchestrator/live-chat/browser-controller.mjs",
+      "kind": "local-runtime",
+      "purpose": "browser permission cancellation and fallback controller",
+      "requires": "always"
+    },
+    {
+      "path": ".skills-orchestrator/live-chat/browser-panel.html",
+      "kind": "local-runtime",
+      "purpose": "accessible live chat browser panel",
+      "requires": "always"
+    },
+    {
+      "path": ".skills-orchestrator/live-chat/browser.css",
+      "kind": "local-runtime",
+      "purpose": "accessible responsive live chat styling",
+      "requires": "always"
+    },
+    {
       "path": ".editorconfig",
       "kind": "workspace-support",
       "purpose": "editor formatting baseline",

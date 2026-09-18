@@ -4,7 +4,7 @@ Generated from a complete repository scan. This guide describes the project in w
 
 ## Purpose
 
-Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 47 governed skills — installed consistently, verified after every run, and safe to rerun.
+Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 48 governed skills — installed consistently, verified after every run, and safe to rerun.
 
 ## Architecture
 
@@ -74,7 +74,7 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 ## Capabilities
 
-- **Governed skill workflows**: 47 installed skills provide bounded project actions.
+- **Governed skill workflows**: 48 installed skills provide bounded project actions, including provider-neutral local live chat state, grounding, session, and fallback contracts.
 - **Reusable prompt workflows**: 10 prompt files provide user-invoked workflows.
 - **Machine-readable contracts**: Schemas validate governed plans, reports, and runtime evidence.
 - **Automated validation**: Repository tests protect contracts and implementation behavior.

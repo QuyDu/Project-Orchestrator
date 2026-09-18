@@ -1,0 +1,344 @@
+{
+  "schemaVersion": "1.0.0",
+  "simulationId": "SIM-LIVE-CHAT-2026091801",
+  "generatedAt": "2026-09-18T16:00:54.000Z",
+  "workflowId": "WF-LIVE-CHAT-20260918",
+  "runId": "RUN-LIVE-CHAT-PLAN-20260918-01",
+  "stepId": "STEP-004",
+  "status": "passed",
+  "mode": "deterministic-local-analysis",
+  "inputs": [
+    "reports/workflow-plan.json",
+    "reports/architecture-review.json",
+    "reports/security-review.json",
+    "reports/skill-inventory.json",
+    "reports/artifact-ownership.json",
+    "reports/skill-dependency-graph.json"
+  ],
+  "assumptions": [
+    "No runtime, provider, model, Speech service, network, Azure resource, or billable request is used.",
+    "Version one is informational and half-duplex; consequential actions require explicit confirmation and authorization.",
+    "Raw audio is ephemeral, transcripts are session-only, and spoken responses are off until per-session opt-in.",
+    "All adapter outcomes are injected deterministic events; probabilities and completion likelihood are not estimated.",
+    "The current live-chat workflow has no separate policy decision record; approval behavior is derived from the governed workflow plan and repository approval rules."
+  ],
+  "prerequisiteValidation": {
+    "step001Owner": "skill-inventory",
+    "step002Owner": "architecture-review",
+    "step003Owner": "security-review",
+    "step004Owner": "workflow-simulator",
+    "step005Owner": "operator:product-owner",
+    "orderedPrerequisites": true,
+    "blockedRoute": "STEP-020",
+    "failedRoute": "STEP-020",
+    "approvalRoute": "STEP-005",
+    "terminalStep": "STEP-020",
+    "result": "passed"
+  },
+  "baseline": {
+    "initialState": "idle",
+    "events": [
+      "grant-consent",
+      "start-listening",
+      "transcript-interim",
+      "transcript-final",
+      "endpoint-pending",
+      "turn-accepted",
+      "response-delta",
+      "response-complete",
+      "optional-speaking",
+      "listening-resumed"
+    ],
+    "expectedTerminalState": "listening",
+    "sideEffects": "Informational turn only; no consequential action, persistence, external authorization, or cloud processing.",
+    "result": "passed"
+  },
+  "scenarios": [
+    {
+      "id": "SIM-001-SILENCE",
+      "scenario": "silence",
+      "injection": "No voiced segment reaches minimum duration before idle timeout.",
+      "transition": "listening -> idle",
+      "userVisibleOutcome": "Listening stops with a neutral no-speech message and text/guided controls remain available.",
+      "recovery": "User may restart listening; no automatic retry.",
+      "stopCondition": "No transcript-final or turn-accepted event is emitted.",
+      "passCriteria": "Zero submission, zero retained audio, zero external call, one accessible status update.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-002-NOISE",
+      "scenario": "noise",
+      "injection": "Energy is present but voice confidence remains below the approved floor.",
+      "transition": "listening -> listening",
+      "userVisibleOutcome": "The listening indicator remains active without fabricating transcript text.",
+      "recovery": "Continue until valid speech, user cancel, maximum listen duration, or fallback selection.",
+      "stopCondition": "Maximum listen duration transitions to idle without submission.",
+      "passCriteria": "No endpoint, no turn, no content log, and no retry amplification.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-003-FALSE-ENDPOINT",
+      "scenario": "false endpoint",
+      "injection": "A pause crosses the silence threshold before the speaker finishes.",
+      "transition": "transcribing -> endpoint-pending -> correcting",
+      "userVisibleOutcome": "The final transcript remains visible during the correction grace window with Continue, Correct, Send now, and Cancel controls.",
+      "recovery": "Renewed speech or Continue merges the new segment into the same turn and invalidates the pending submit token.",
+      "stopCondition": "Only the latest endpoint token may emit turn-accepted.",
+      "passCriteria": "Exactly one final turn or one cancellation; never duplicate submission.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-004-CORRECTION",
+      "scenario": "correction",
+      "injection": "User edits the visible final transcript before acceptance.",
+      "transition": "endpoint-pending -> correcting -> endpoint-pending -> turn-accepted",
+      "userVisibleOutcome": "The corrected text replaces the prior final transcript and is announced accessibly.",
+      "recovery": "A new idempotency key is created; the superseded transcript and submit token cannot execute.",
+      "stopCondition": "Submission uses only the corrected revision.",
+      "passCriteria": "Response grounding input exactly matches the approved corrected revision.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-005-CANCEL",
+      "scenario": "cancel",
+      "injection": "User cancels during listening, endpoint-pending, thinking, or speaking.",
+      "transition": "active-state -> cancelled -> idle",
+      "userVisibleOutcome": "Capture and playback stop immediately and a cancelled status is announced.",
+      "recovery": "User may begin a new turn; cancelled turn IDs cannot resume or confirm.",
+      "stopCondition": "Cancellation propagates to transport, grounding, response, and speech adapters.",
+      "passCriteria": "No later delta, speech, action, or retry is accepted for the cancelled turn.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-006-INTERRUPTION",
+      "scenario": "interruption",
+      "injection": "The user speaks while the half-duplex response is playing.",
+      "transition": "speaking -> speaking",
+      "userVisibleOutcome": "No background capture occurs; the UI exposes Stop response and Start listening controls.",
+      "recovery": "Stopping playback transitions through cancelled to listening and starts a new turn.",
+      "stopCondition": "No implicit barge-in or overlapping capture/playback.",
+      "passCriteria": "Half-duplex invariant holds and the user can interrupt with one explicit command.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-007-MIC-DENIED",
+      "scenario": "microphone denied",
+      "injection": "Browser permission is denied or no input device is available.",
+      "transition": "consent-required -> denied -> text-fallback",
+      "userVisibleOutcome": "A concise permission-denied state appears without repeated browser prompts; text and guided controls receive focus.",
+      "recovery": "User may retry only by explicit action after changing permission or continue without voice.",
+      "stopCondition": "No audio capture or permission loop.",
+      "passCriteria": "Core capability remains keyboard and screen-reader operable through fallback.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-008-SERVICE-UNAVAILABLE",
+      "scenario": "service unavailable",
+      "injection": "Speech or response adapter returns unavailable, timeout, rate-limited, or unhealthy.",
+      "transition": "transcribing|thinking|speaking -> retrying -> text-fallback|guided-fallback",
+      "userVisibleOutcome": "The active stage reports temporary unavailability and preserves user-entered text when safe.",
+      "recovery": "Honor Retry-After or perform at most two transient retries, then open the circuit and offer deterministic fallback.",
+      "stopCondition": "No retry after cancellation, deadline, circuit-open, authorization failure, content-safety failure, or cost ceiling.",
+      "passCriteria": "No indefinite spinner, duplicate turn, hidden provider switch, or implied external authorization.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-009-RECONNECT",
+      "scenario": "reconnect",
+      "injection": "Transport disconnects after the client acknowledges event sequence N.",
+      "transition": "active-state -> reconnecting -> prior-safe-state|text-fallback",
+      "userVisibleOutcome": "A reconnecting status is announced while correction and cancel remain available when locally safe.",
+      "recovery": "Present identity-bound resume token and N; replay only events greater than N and deduplicate by turn and idempotency key.",
+      "stopCondition": "Expired, mismatched, replayed, or repeatedly failing resume transitions to text fallback and expires the server session.",
+      "passCriteria": "No lost acknowledged event, duplicate submission, cross-session data, or consequential confirmation replay.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-010-STALE-GROUNDING",
+      "scenario": "stale grounding",
+      "injection": "Corpus version is expired, digest mismatches, source is absent, or citation does not resolve.",
+      "transition": "thinking -> guided-fallback",
+      "userVisibleOutcome": "The assistant states that current approved information is unavailable and offers deterministic capability guidance.",
+      "recovery": "A separately governed corpus refresh is required; runtime retries do not bypass freshness validation.",
+      "stopCondition": "No unsupported factual answer or stale citation is emitted.",
+      "passCriteria": "One explicit unknown/fallback with corpus failure category and no retrieved text in telemetry.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-011-APPROVAL-DENIED",
+      "scenario": "approval denied",
+      "injection": "STEP-005, STEP-012, or STEP-014 approval is denied or narrowed.",
+      "transition": "approval-wait -> STEP-020 handoff",
+      "userVisibleOutcome": "The workflow records the denial or narrowed boundary and exactly one safe next action.",
+      "recovery": "A new explicit approval request may be planned; no denied step executes.",
+      "stopCondition": "No source implementation, skill-create, Azure discovery, external processing, provisioning, or consequential action is inferred.",
+      "passCriteria": "Denied scope has zero mutation and prior completed analytical evidence remains immutable.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-012-COST-CEILING",
+      "scenario": "cost",
+      "injection": "The future approved per-session or daily external-processing budget is undefined, reached, or projected to be exceeded.",
+      "transition": "active-state -> guided-fallback",
+      "userVisibleOutcome": "The session reports that assisted processing is unavailable and keeps no-cost text/guided navigation available.",
+      "recovery": "Budget reset or a separately approved higher ceiling is required; retries do not bypass the ceiling.",
+      "stopCondition": "External adapter invocation is rejected before charge when the budget cannot be reserved.",
+      "passCriteria": "No over-budget call, hidden provider fallback, or Commercial-cloud fallback.",
+      "result": "passed"
+    },
+    {
+      "id": "SIM-013-FALLBACK",
+      "scenario": "fallback",
+      "injection": "Voice, model, grounding, permission, health, safety, identity, or budget prerequisite is unavailable.",
+      "transition": "any-nonterminal-state -> text-fallback|guided-fallback",
+      "userVisibleOutcome": "The same capability entry point presents text input and deterministic capability cards without claiming unavailable features.",
+      "recovery": "The user continues locally or ends the session; provider recovery is never required to exit.",
+      "stopCondition": "Fallback performs no consequential action and sends no audio/transcript externally.",
+      "passCriteria": "Keyboard, screen-reader, reduced-motion, responsive, correction, cancellation, and explicit-unknown paths remain functional.",
+      "result": "passed"
+    }
+  ],
+  "findings": [],
+  "proposedStep005ImplementationBoundary": {
+    "approvalStatus": "proposed-unapproved",
+    "skillCreateAuthorizationRequired": true,
+    "candidateSkillId": "live-chat-interaction",
+    "files": [
+      ".github/skills/live-chat-interaction/SKILL.md",
+      ".github/prompts/live-chat-interaction-help.prompt.md",
+      "config/skills-orchestrator.json",
+      "config/profiles.yaml",
+      "templates/scaffold-manifest.json",
+      "schemas/live-chat-config.schema.json",
+      "schemas/live-chat-event.schema.json",
+      "schemas/live-chat-grounding-manifest.schema.json",
+      "schemas/live-chat-evaluation.schema.json",
+      "templates/project/.skills-orchestrator/live-chat/core/conversation-state.mjs",
+      "templates/project/.skills-orchestrator/live-chat/core/grounding.mjs",
+      "templates/project/.skills-orchestrator/live-chat/server/session.mjs",
+      "templates/project/.skills-orchestrator/live-chat/server/transport.mjs",
+      "templates/project/.skills-orchestrator/live-chat/client/controller.mjs",
+      "templates/project/.skills-orchestrator/live-chat/client/live-chat-panel.mjs",
+      "templates/project/.skills-orchestrator/live-chat/client/live-chat-panel.css",
+      "tests/live-chat-interaction.test.mjs",
+      "tests/live-chat-grounding.test.mjs",
+      "tests/live-chat-security.test.mjs",
+      "tests/live-chat-generated-fixture.test.mjs",
+      "README.md",
+      "docs/PROJECT-ARCHITECTURE.md",
+      "docs/PROJECT-GUIDE.md",
+      "docs/THREAT-MODEL.md",
+      "tests/skill-contracts.test.mjs"
+    ],
+    "behaviors": [
+      "Governed live-chat-interaction skill and generated help with catalog/profile/dependency closure.",
+      "Pure half-duplex conversation reducer with automatic informational endpoint submission and explicit consequential-action confirmation.",
+      "Provider-neutral browser, session, transport, grounding, VAD/end-of-turn, speech, response, clock, and cancellation contracts.",
+      "No raw-audio retention, session-only transcript, spoken-output opt-in, redacted telemetry, and accessible text/guided fallback.",
+      "Versioned approved local grounding with citations, explicit unknowns, stale-source and prompt-injection rejection.",
+      "Disposable generated-project fixture validation only; no permanent demo application in this Launch Pad.",
+      "Local fake adapters only through STEP-011; no model selection or Azure implementation."
+    ],
+    "excluded": [
+      "Permanent application or demo project in this repository",
+      "Provider, model, Speech service, region, SKU, quota, or deployment selection",
+      "Azure discovery or external processing before their separate approvals",
+      "Commit, push, deployment, publication, release, and remote mutation"
+    ]
+  },
+  "proposedStep005Thresholds": {
+    "approvalStatus": "proposed-unapproved",
+    "endpointing": {
+      "defaultSilenceMs": 900,
+      "allowedSilenceRangeMs": [600, 1600],
+      "minimumVoicedMs": 250,
+      "voiceConfidenceFloor": 0.65,
+      "endpointConfidenceFloor": 0.8,
+      "correctionGraceMs": 1500,
+      "maximumUtteranceSeconds": 30,
+      "cleanSpeechFalseEndpointMaximumPercent": 5,
+      "noiseFixtureFalseEndpointMaximumPercent": 10,
+      "duplicateSubmissionMaximum": 0
+    },
+    "latency": {
+      "interimTranscriptP95Ms": 300,
+      "endpointAcceptedAfterSpeechP95Ms": 1200,
+      "cancelAcknowledgementP95Ms": 250,
+      "firstTextResponseDeltaP95Ms": 2500,
+      "spokenPlaybackStartAfterFirstTextP95Ms": 1000,
+      "reconnectResumeP95Ms": 2000,
+      "fallbackVisibleP95Ms": 500
+    },
+    "grounding": {
+      "supportedFactualClaimsWithCitationPercent": 100,
+      "citationsResolvingToActiveCorpusPercent": 100,
+      "unsupportedQuestionsExplicitUnknownMinimumPercent": 95,
+      "staleOrInvalidCorpusFallbackPercent": 100,
+      "promptInjectionFixtureRejectionPercent": 100,
+      "unavailableCapabilityClaimMaximum": 0
+    },
+    "privacyAndSecurity": {
+      "rawAudioRetainedBytes": 0,
+      "transcriptDefaultRetention": "session-only",
+      "sessionIdleExpiryMinutes": 30,
+      "sessionAbsoluteExpiryMinutes": 120,
+      "spokenOutputDefault": "off",
+      "browserServiceSecretsMaximum": 0,
+      "crossSessionAccessMaximum": 0,
+      "consequentialActionsWithoutExplicitConfirmationMaximum": 0,
+      "criticalAndHighSecurityTestPassPercent": 100
+    },
+    "rateRetryHealth": {
+      "activeSessionsPerIdentity": 1,
+      "activeTurnsPerSession": 1,
+      "turnsPerTenMinutes": 30,
+      "maximumTranscriptCharacters": 8000,
+      "maximumResponseTokens": 1500,
+      "maximumTransientRetries": 2,
+      "retryBaseDelayMs": 250,
+      "retryMaximumDelayMs": 2000,
+      "dependencyDeadlineSeconds": 15,
+      "circuitOpenFailuresPerMinute": 5,
+      "circuitHalfOpenAfterSeconds": 30
+    },
+    "accessibility": {
+      "keyboardCriticalFlowPassPercent": 100,
+      "screenReaderCriticalStateAnnouncementPassPercent": 100,
+      "reducedMotionCriticalFlowPassPercent": 100,
+      "responsiveCriticalFlowPassPercent": 100,
+      "textFallbackCriticalFlowPassPercent": 100,
+      "guidedFallbackCriticalFlowPassPercent": 100
+    },
+    "cost": {
+      "localThroughStep011Usd": 0,
+      "futureExternalCostPerTenMinuteSessionMaximumUsd": 0.1,
+      "futureDevelopmentDailyMaximumUsd": 10,
+      "undefinedBudgetBehavior": "deny-external-and-fallback",
+      "commercialCloudFallbackAllowed": false
+    },
+    "fallback": {
+      "permissionDeniedFallbackPercent": 100,
+      "serviceUnavailableFallbackPercent": 100,
+      "retryExhaustedFallbackPercent": 100,
+      "costCeilingFallbackPercent": 100,
+      "staleGroundingFallbackPercent": 100,
+      "indefiniteLoadingMaximum": 0
+    }
+  },
+  "outcome": {
+    "step004": "completed",
+    "nextStep": "STEP-005",
+    "nextOwner": "operator:product-owner",
+    "workflowStatus": "waiting-approval",
+    "approvalInferred": false,
+    "implementationAuthorized": false,
+    "azureAuthorized": false,
+    "externalProcessingAuthorized": false
+  },
+  "limitations": [
+    "Scenario results prove transition completeness of the analytical contracts, not implementation correctness or measured runtime performance.",
+    "No workflow-simulation JSON schema exists in schemas; the report uses an explicit local schemaVersion and is validated for JSON parse and required semantic fields.",
+    "Cost ceilings are exact proposals for owner review, not provider pricing claims or spending authorization.",
+    "All STEP-005 files, behaviors, and thresholds remain proposed and unapproved."
+  ]
+}

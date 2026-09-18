@@ -535,6 +535,7 @@ function assertManagedTransactionPath(relative) {
     || normalized.startsWith(".github/instructions/")
     || normalized.startsWith(".github/prompts/")
     || normalized.startsWith(".github/skills/")
+    || normalized.startsWith(".skills-orchestrator/live-chat/")
     || normalized.startsWith("docs/adr/")
     || normalized.startsWith("config/")
     || normalized.startsWith("schemas/")
@@ -2472,7 +2473,7 @@ async function validBaselineScope(entry) {
   if (entry.scope === "framework-configuration") return entry.path === "config/profiles.yaml";
   if (entry.scope === "managed-regions") return new Set([".github/copilot-instructions.md", "AGENTS.md"]).has(entry.path);
   if (entry.scope === "orchestrator-configuration") return entry.path === "config/orchestrator.yaml";
-  const scaffold = /^scaffold:(workspace-support|documentation|instructions|scoped-instructions|prompt|deployment|agent)$/.exec(entry.scope);
+  const scaffold = /^scaffold:(workspace-support|documentation|instructions|scoped-instructions|prompt|deployment|agent|local-runtime)$/.exec(entry.scope);
   if (!scaffold) return false;
   return (await loadScaffoldManifest()).some((template) => template.path === entry.path && template.kind === scaffold[1]);
 }

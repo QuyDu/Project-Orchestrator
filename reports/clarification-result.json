@@ -1,61 +1,41 @@
 {
   "schemaVersion": "1.0.0",
-  "clarificationId": "CLR-2026091701",
-  "generatedAt": "2026-09-17T04:15:00.000Z",
+  "clarificationId": "CLR-20260918-LIVE-CHAT",
+  "generatedAt": "2026-09-18T15:25:09.3571524Z",
   "status": "ready",
-  "requestSummary": "Create an implementation-ready plan for safely updating both the Project Orchestrator source checkout and previously generated projects without implementing the updater.",
+  "requestSummary": "Plan a reusable live voice and grounded chat capability with automatic informational turn submission and cloud-portable Azure integration.",
   "confirmedRequirements": [
-    "Cover Git-native update guidance for the Project Orchestrator Launch Pad and managed updates for previously generated projects.",
-    "Keep an unqualified project update backward compatible as a safe all-mode that updates nonconflicting assets and stops for explicit conflict choices.",
-    "Provide a complete staged design covering provenance, update modes, dependency closure, conflict policy, legacy migration, transactions, tests, documentation, rollout, and rollback.",
-    "Preserve locally enhanced skills and project-owned files unless the operator explicitly selects replacement.",
-    "Treat update-all as safe reconciliation rather than force replacement and expose force replacement as a separate explicit action.",
-    "Create planning artifacts only; do not implement code, alter skill contracts, commit, push, deploy, publish, or mutate external systems."
+    "Provide continuous natural voice interaction without manual submission for informational turns.",
+    "Show interim transcript, detect end of turn after a configurable pause, and resume listening after responses.",
+    "Require explicit confirmation before consequential actions.",
+    "Build a reusable framework capability and validate it with disposable generated-project fixtures.",
+    "Ground answers in approved versioned sources with citations and explicit unknowns.",
+    "Keep text-only and guided-only fallback functional.",
+    "Support Azure Commercial and Azure Government through the saved cloud profile and correct endpoints; Azure Government is the deployment-test target."
   ],
   "projectFacts": [
-    "The current project updater reuses adoption transactions, backups, rollback, stale-plan checks, and verification.",
-    "The current update plan classifies every differing framework skill as update-skill and replaces that skill directory wholesale.",
-    "The existing adoption rerun test explicitly expects a locally customized framework skill to be overwritten.",
-    "Generated project manifests do not retain the base hashes or content references required for deterministic three-way comparison.",
-    "The mutable current workflow-plan view refers to an unrelated P4 continuation, while accepted execution events through sequence 32 must remain append-only.",
-    "The full repository check has one previously observed unrelated audit-checkpoint failure at tests/skill-contracts.test.mjs:1088."
+    "The updater is committed and synchronized at d02be571c2fe7f11c53b9be17926a4944572ca98.",
+    "LIVE-CHAT-001 is planning-required and has not been implemented.",
+    "No current governed skill owns a real-time conversational runtime.",
+    "C:\\repos\\skills-orchestrator-demo does not currently exist.",
+    "The repository provides discovery, policy, security, testing, documentation, and Azure scaffolding skills.",
+    "No Azure discovery, provider selection, external processing, or billable operation is authorized now."
   ],
   "assumptions": [
-    "The user's autonomous response accepts the recommended scope, compatibility behavior, and complete staged-plan defaults.",
-    "Legacy managed assets without a reconstructable base are classified as unknown or customized when they differ from upstream and require an explicit operator choice.",
-    "The current workflow-plan and execution-state files are mutable current views and may point to this new plan after a new workflow-planned event is appended; prior P4 events remain authoritative history.",
-    "Interactive selection and equivalent noninteractive flags are both required so updates remain automatable.",
-    "Git remains authoritative for source-checkout updates; any Project Orchestrator helper only guides fetch, comparison, and validation.",
-    "No publication, deployment, commit, push, cloud authentication, remote mutation, or billable request is authorized."
+    "Use local fake adapters and disposable generated projects before provider integration.",
+    "Use natural half-duplex turn taking first; barge-in is a later extension.",
+    "Transcript persistence defaults to session-only, raw audio is not retained, and spoken responses are opt-in.",
+    "Discovery runs per named subscription in the saved cloud profile and records service, model, region, quota, cost, endpoint, API version, identity, and data-boundary evidence.",
+    "Cloud processing, provisioning, deployment, commit, and push remain separately gated."
   ],
-  "conflicts": [
-    "Publishing this plan replaces the mutable P4 current-plan and execution-state views; the prior P4 workflow remains recoverable from its accepted sequence-32 planning event and existing reports and must not be represented as completed or cancelled."
-  ],
+  "conflicts": [],
   "rounds": [
     {
       "round": 1,
       "questions": [
-        {
-          "id": "Q-2026091701",
-          "question": "Should the plan cover both the Launch Pad checkout and previously generated projects?",
-          "materialDecision": "Update-system scope",
-          "recommendedDefault": "Both",
-          "answer": "Autonomous default accepted: both update surfaces"
-        },
-        {
-          "id": "Q-2026091702",
-          "question": "What should an unqualified existing pso update command do after this change?",
-          "materialDecision": "Backward-compatible default update behavior",
-          "recommendedDefault": "Safe all mode",
-          "answer": "Autonomous default accepted: safe all mode"
-        },
-        {
-          "id": "Q-2026091703",
-          "question": "How far should this first implementation plan go?",
-          "materialDecision": "Plan delivery depth",
-          "recommendedDefault": "Complete staged design",
-          "answer": "Autonomous default accepted: complete staged design"
-        }
+        { "id": "Q-0001", "question": "Which enhancement should begin next?", "materialDecision": "Select the next workflow.", "recommendedDefault": "Plan LIVE-CHAT-001.", "answer": "Delegated autonomously; accepted the recommended default." },
+        { "id": "Q-0002", "question": "Where should the initial implementation live?", "materialDecision": "Choose reusable framework versus one-off demo.", "recommendedDefault": "Reusable framework with disposable fixtures.", "answer": "Delegated autonomously; accepted the recommended default." },
+        { "id": "Q-0003", "question": "Should cloud work be included immediately?", "materialDecision": "Control privacy, cost, and external mutation exposure.", "recommendedDefault": "Local first; later gated per-subscription discovery and provider integration.", "answer": "Delegated autonomously; accepted the recommended default." }
       ]
     }
   ],

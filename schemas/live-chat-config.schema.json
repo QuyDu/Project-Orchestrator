@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Live Chat Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "endpointing", "privacy", "halfDuplex", "fallback"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "endpointing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["silenceMs", "correctionGraceMs", "maximumUtteranceSeconds"],
+      "properties": {
+        "silenceMs": { "type": "integer", "minimum": 600, "maximum": 1600 },
+        "correctionGraceMs": { "type": "integer", "minimum": 0, "maximum": 1500 },
+        "maximumUtteranceSeconds": { "type": "integer", "minimum": 1, "maximum": 30 }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transcriptRetention", "rawAudioPersistence", "spokenOutputDefault"],
+      "properties": {
+        "transcriptRetention": { "const": "session-only" },
+        "rawAudioPersistence": { "const": false },
+        "spokenOutputDefault": { "const": "off" }
+      }
+    },
+    "halfDuplex": { "const": true },
+    "fallback": { "type": "array", "items": { "enum": ["text-fallback", "guided-fallback"] }, "minItems": 1, "uniqueItems": true }
+  }
+}

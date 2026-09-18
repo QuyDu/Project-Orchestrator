@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Live Chat Grounding Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "corpusVersion", "approved", "freshness", "sources"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "corpusVersion": { "type": "string", "minLength": 1 },
+    "approved": { "const": true },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkedAt", "maxAgeHours"],
+      "properties": { "checkedAt": { "type": "string", "format": "date-time" }, "maxAgeHours": { "type": "integer", "minimum": 1, "maximum": 720 } }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "digest", "updatedAt"],
+        "properties": { "id": { "type": "string", "minLength": 1 }, "digest": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" }, "updatedAt": { "type": "string", "format": "date-time" } }
+      }
+    }
+  }
+}
