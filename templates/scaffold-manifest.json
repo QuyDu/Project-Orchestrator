@@ -21,6 +21,12 @@
       "requires": "always"
     },
     {
+      "path": ".skills-orchestrator/live-chat/evaluation.mjs",
+      "kind": "local-runtime",
+      "purpose": "deterministic endpoint and local latency evaluation helpers",
+      "requires": "always"
+    },
+    {
       "path": ".skills-orchestrator/live-chat/server/provider-adapter.mjs",
       "kind": "local-runtime",
       "purpose": "server-only Azure Government provider compatibility and streaming adapter",

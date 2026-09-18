@@ -2,13 +2,13 @@
 
 - Workflow: `WF-LIVE-CHAT-20260918`
 - Step: `STEP-016`
-- Sequence: `74`
-- Status: **Passed with explicit unmeasured production metrics**
+- Sequence: `79`
+- Status: **Passed with a local measurement boundary**
 
 ## Frozen Threshold Evaluation
 
-Deterministic offline fixtures and injected fakes evaluated 16 metric groups: **14 passed, 0 failed,
-and 2 unmeasured**. No Azure, network, live inference, resource mutation, deployment, publication,
+Deterministic offline fixtures and injected fakes evaluated 16 metric groups: **16 passed, 0 failed,
+and 0 unmeasured within the local contract**. No Azure, network, live inference, resource mutation, deployment, publication,
 commit, or push occurred.
 
 Passed: 900ms default endpoint; correction, cancellation, and late-event submission protection;
@@ -20,12 +20,12 @@ and Commercial rejection; permission-denied plus text/guided fallback; and the a
 Repaired and verified: idle and absolute session expiry; identity-bound concurrency; explicit turn IDs;
 transcript and response ceilings; and circuit-breaker enforcement.
 
-Unmeasured: false-endpoint accuracy for clean speech (<=5%) and noise (<=10%) because no
-VAD/endpointer fixture or telemetry exists; all frozen P95 latency targets because the local contract
-has no timing instrumentation and this evaluation permits no real provider or Speech execution.
+Measured locally: synthetic clean-speech, short-pause, and noise endpoint fixtures produced zero
+false endpoints; local transition timing measured P95 6ms against the 500ms fallback threshold.
+These measurements do not represent microphone-device false-endpoint rates or live provider latency.
 
-Focused Live Chat evaluation and contract tests passed 18/18. Neighboring suites, `node pso.mjs verify`,
-and `git diff --check` passed. `npm run check` passed with 184 tests: 183 passed, 0 failed, and 1
+Focused Live Chat evaluation and contract tests passed 20/20. Neighboring suites, `node pso.mjs verify`,
+and `git diff --check` passed. `npm run check` passed with 189 tests: 188 passed, 0 failed, and 1
 expected skip. The provider-adapter suite is now included in both standard npm gates.
 
 ## Prior Red Evidence
@@ -41,8 +41,8 @@ The focused five-test updater selection passed 5/5 after syntax validation. The 
 suites passed 80/80: adoption/update 66/66, security fuzz 12/12, and documentation builder 2/2.
 The documentation-builder validator accepted the existing approved guide and synchronized evidence.
 
-The clean full gate passed 184 tests with 183 passes, 0 failures, and 1 expected platform skip; security
-scanned 286 files, checksum-verified 195 release files, and inventoried, audited, and distribution-verified
+The clean full gate passed 189 tests with 188 passes, 0 failures, and 1 expected platform skip; security
+and release verification passed, and the repository inventoried, audited, and distribution-verified
 all 48 skills.
 
 ## Result
@@ -79,5 +79,5 @@ was performed.
 
 ## Review Readiness
 
-STEP-016 is complete. Continue with STEP-017 documentation refresh; do not claim production latency or
-VAD accuracy until dedicated instrumentation and endpoint fixtures exist.
+The local measurement update is complete. Do not claim device microphone or live provider performance
+until separately approved instrumentation and execution evidence exist.

@@ -4231,6 +4231,45 @@ async function guidedSetup() {
   }
 }
 
+async function doctor(projectRoot) {
+  const root = await realpath(path.resolve(projectRoot));
+  const surfaces = [
+    { id: "agent-instructions", paths: ["AGENTS.md", ".github/copilot-instructions.md"], portability: "portable-fallback", fallback: "AGENTS.md" },
+    { id: "scoped-instructions", paths: [".github/instructions"], portability: "host-specific", fallback: "AGENTS.md" },
+    { id: "prompt-files", paths: [".github/prompts"], portability: "host-specific", fallback: "AGENTS.md" },
+    { id: "skill-packages", paths: [".github/skills"], portability: "host-specific", fallback: "AGENTS.md" },
+    { id: "agent-definitions", paths: [".github/agents"], portability: "host-specific", fallback: "AGENTS.md" },
+    { id: "mcp-configuration", paths: [".vscode/mcp.json"], portability: "host-specific", fallback: "none" }
+  ];
+  const findings = await Promise.all(surfaces.map(async (surface) => {
+    const present = [];
+    for (const relative of surface.paths) {
+      const target = path.join(root, relative);
+      if (!existsSync(target)) continue;
+      const info = await lstat(target);
+      if (info.isSymbolicLink()) return { ...surface, status: "blocked", present, reason: `Symbolic link is not a trusted compatibility input: ${relative}` };
+      present.push(relative);
+    }
+    if (!present.length) return { ...surface, status: "missing", present, reason: "No customization artifact was detected." };
+    const fallbackPresent = surface.fallback === "none" || existsSync(path.join(root, surface.fallback));
+    return {
+      ...surface,
+      status: surface.portability === "portable-fallback" || fallbackPresent ? "ready" : "manual-verification-required",
+      present,
+      reason: surface.portability === "host-specific" && !fallbackPresent ? `No portable fallback was found at ${surface.fallback}.` : undefined
+    };
+  }));
+  const summary = Object.groupBy(findings, ({ status }) => status);
+  return {
+    schemaVersion: "1.0.0",
+    command: "doctor",
+    project: path.relative(process.cwd(), root) || ".",
+    findings,
+    totals: Object.fromEntries(Object.entries(summary).map(([status, values]) => [status, values.length])),
+    limitations: ["This local report classifies repository artifact portability; it does not probe a remote agent host or validate installed extensions."]
+  };
+}
+
 function help() {
   console.log(`Project Orchestrator ${VERSION}
 
@@ -4242,6 +4281,7 @@ Usage:
   node .\\pso.mjs adopt --project "C:\\repos\\existing" --profile core --apply --accept-risk
   node .\\pso.mjs recover --project "C:\\repos\\existing" [--transaction ID]
   node .\\pso.mjs inventory [--root "C:\\repos\\my-project"]
+  node .\pso.mjs doctor [--project PATH]
   node .\\pso.mjs plan --intent "Build a customer portal" [--root PATH]
   node .\\pso.mjs plan validate [--root PATH] [--file reports/workflow-plan.json]
   node .\\pso.mjs agent build --project "C:\\repos\\my-project" [agent parameters]
@@ -4380,6 +4420,7 @@ async function main() {
   }
   if (command === "agent") return runAgentBuilder(options);
   if (command === "inventory") return inventory(path.resolve(options.root ?? process.cwd()));
+  if (command === "doctor") return console.log(JSON.stringify(await doctor(options.project ?? options.root ?? process.cwd()), null, 2));
   if (command === "plan" && options._[1] === "validate") return validateWorkflowPlanFile(path.resolve(options.root ?? process.cwd()), options.file);
   if (command === "plan") return plan(path.resolve(options.root ?? process.cwd()), options.intent);
   if (!command) return guidedSetup();

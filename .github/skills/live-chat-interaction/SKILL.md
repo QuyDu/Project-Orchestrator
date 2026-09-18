@@ -46,7 +46,8 @@ Own the reusable local contract for grounded text and half-duplex voice conversa
 4. Pause capture during speaking and resume only after completion or cancellation; barge-in remains unsupported.
 5. Validate the approved grounding manifest, bind citations to active source IDs and digests, and return explicit unknown or guided fallback for stale, malformed, unsupported, or instruction-like content.
 6. Enforce session identity, replay, event, retry, and transcript bounds at the local server/session boundary.
-7. Validate browser text and guided fallbacks, permission-denied handling, cancellation, and credential absence with deterministic tests.
+7. Measure synthetic endpoint decisions and local transition latency with deterministic fixtures; keep microphone-device and cloud-provider latency explicitly unmeasured.
+8. Validate browser text and guided fallbacks, permission-denied handling, cancellation, and credential absence with deterministic tests.
 
 ## Validation
 
@@ -56,6 +57,7 @@ Own the reusable local contract for grounded text and half-duplex voice conversa
 - Cancellation rejects late events, correction reopens the turn, and half-duplex capture resumes safely.
 - Grounding citations resolve to a fresh approved manifest or return explicit unknown/guided fallback.
 - Security tests prove no raw audio persistence, browser credentials, cross-session replay, unbounded retries, or unconfirmed consequential execution.
+- Synthetic endpoint fixtures and local transition P95 measurements meet their declared thresholds without representing device or provider latency as measured.
 - `node pso.mjs verify`, repository tests, and `npm run check` pass without cloud access.
 
 ## Outputs

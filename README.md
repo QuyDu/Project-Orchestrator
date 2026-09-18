@@ -713,6 +713,7 @@ The skill will not persist credentials or silently change narration providers. M
 | `node .\pso.mjs update --project PATH --mode select --selection-file FILE --apply --accept-risk` | Apply an exact reviewed project update transactionally |
 | `node .\pso.mjs recover --project PATH [--transaction ID]` | Restore an interrupted adoption or update transaction |
 | `node .\pso.mjs inventory --root PATH` | Regenerate and validate the skill inventory |
+| `node .\pso.mjs doctor --project PATH` | Inspect local customization surfaces, portable fallbacks, and host-specific artifacts without remote host access |
 | `node .\pso.mjs plan --root PATH --intent TEXT` | Create a workflow plan |
 | `node .\pso.mjs agent build --project PATH [parameters]` | Ask for missing fields, conditionally establish Azure context, and generate a v2.1 agent blueprint and review plan |
 | `node .\pso.mjs agent validate --project PATH --blueprint FILE` | Validate a governed agent blueprint |
