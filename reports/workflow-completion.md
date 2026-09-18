@@ -1,7 +1,9 @@
 # Workflow Completion
 
-P4 local preparation and read-only hosted evidence collection completed, but `REM-0205` remains blocked.
+`WF-SAFE-PROJECT-UPDATE-20260917` completed all 14 steps at sequence 49.
 
-The deterministic unsigned candidate, SBOM, provenance, checksums, merge-SHA matrix, Gitleaks, CodeQL, and hosted safeguards validate. Trusted signing, distinct independent review, a restricted internal artifact destination, installation-health/revocation testing, and production verification remain blocked.
+The provenance-safe updater now provides manifest 1.1 and lock 1.0 baselines, normalized three-way classification, safe-all/additive/select planning, policy and resolution handling, transactional apply and recovery, conservative legacy migration, security hardening, and verified operator documentation. The independent bounded review has no remaining findings.
 
-No remote mutation, signing, publication, deployment, or Azure operation was performed. Resume requires explicit point-of-action approvals and distinct trusted identities.
+The latest full gate passed 172 tests with 0 failures and 1 expected skip; all 47 skills verified. The validated candidate remains unstaged and uncommitted.
+
+No commit, push, publication, release, deployment, network operation, or Azure mutation was performed. The single next action is explicit approval to create local commit `feat: add provenance-safe project updates`. P4 release assurance remains a separate historical blocked lineage.

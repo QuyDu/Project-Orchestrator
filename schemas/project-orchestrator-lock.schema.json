@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.dev/schemas/project-orchestrator-lock.schema.json",
+  "title": "Project Orchestrator Baseline Lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "digestAlgorithm", "baselineAt", "installedSource", "entries"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "digestAlgorithm": { "const": "sha256-normalized-text-v1" },
+    "baselineAt": { "type": "string", "format": "date-time" },
+    "installedSource": { "$ref": "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetId", "path", "scope", "ownership", "policy", "normalizedBaseDigest", "dependencies", "generatedCompanions"],
+        "properties": {
+          "assetId": { "type": "string", "pattern": "^managed:[^\\r\\n]+$" },
+          "path": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\r\\n]+$" },
+          "scope": { "type": "string", "minLength": 1 },
+          "ownership": { "enum": ["framework", "project-owned"] },
+          "policy": { "enum": ["track", "pin", "fork"] },
+          "forkSkillId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+          "normalizedBaseDigest": { "$ref": "#/$defs/sha256" },
+          "dependencies": { "type": "array", "items": { "type": "string", "pattern": "^managed:" }, "uniqueItems": true },
+          "generatedCompanions": { "type": "array", "items": { "type": "string", "pattern": "^managed:" }, "uniqueItems": true }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "policy": { "const": "fork" } }, "required": ["policy"] },
+            "then": {
+              "required": ["forkSkillId"],
+              "properties": {
+                "path": { "type": "string", "pattern": "^\\.github/skills/[a-z][a-z0-9]*(?:-[a-z0-9]+)*/SKILL\\.md$" },
+                "forkSkillId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" }
+              }
+            },
+            "else": { "not": { "required": ["forkSkillId"] } }
+          }
+        ]
+      },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

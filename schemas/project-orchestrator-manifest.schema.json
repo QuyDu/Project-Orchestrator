@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.dev/schemas/project-orchestrator-manifest.schema.json",
+  "title": "Project Orchestrator Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schemaVersion", "projectName", "frameworkVersion", "runtimeVersion", "conformanceProfile", "status", "nextAction"],
+  "properties": {
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
+    "projectName": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "frameworkVersion": { "$ref": "#/$defs/version" },
+    "runtimeVersion": { "$ref": "#/$defs/version" },
+    "conformanceProfile": { "enum": ["core", "durable", "distributed", "advanced"] },
+    "declaredStack": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "workspaceColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "riskAcceptance": { "type": "object" },
+    "resolvedConfiguration": { "type": "object" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "adoptedAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "minLength": 1 },
+    "nextAction": { "type": "string", "minLength": 1 },
+    "lockPath": { "const": "project-orchestrator.lock.json" },
+    "lockSchemaVersion": { "const": "1.0.0" },
+    "digestAlgorithm": { "const": "sha256-normalized-text-v1" },
+    "installedSource": { "$ref": "#/$defs/sourceIdentity" },
+    "minimumUpdaterRuntimeVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "lastSuccessfulReconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completedAt", "runtimeVersion", "lockDigest"],
+      "properties": {
+        "completedAt": { "type": "string", "format": "date-time" },
+        "runtimeVersion": { "$ref": "#/$defs/version" },
+        "lockDigest": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+      "then": { "required": ["lockPath", "lockSchemaVersion", "digestAlgorithm", "installedSource", "minimumUpdaterRuntimeVersion"] }
+    }
+  ],
+  "$defs": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "digest"],
+      "properties": {
+        "version": { "$ref": "#/$defs/version" },
+        "digest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["framework", "runtime"],
+      "properties": {
+        "framework": { "$ref": "#/$defs/sourceComponent" },
+        "runtime": { "$ref": "#/$defs/sourceComponent" }
+      }
+    }
+  }
+}

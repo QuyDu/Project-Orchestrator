@@ -1,57 +1,82 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-12T16:09:12.3489569Z",
+  "generatedAt": "2026-09-18T14:48:34.6130241Z",
   "project": {
     "name": "project-skills-orchestrator",
     "version": "1.1.2",
     "branch": "release/1.1.2",
-    "commit": "14441804ecd6d2fcd700c4ecc96cc33a4947a08f",
+    "commit": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
+    "remoteTrackingCommit": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
     "defaultBranch": "main",
     "defaultBranchCommit": "99b9ce663b7be69476655d4c40d77e09ff11c442"
   },
-  "status": "blocked",
+  "status": "waiting-approval",
+  "workflow": {
+    "id": "WF-SAFE-PROJECT-UPDATE-20260917",
+    "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+    "currentStep": 14,
+    "lastCompletedStep": 14,
+    "lastSequence": 49,
+    "eventStateAdvanced": true,
+    "status": "completed"
+  },
   "milestone": {
-    "name": "P4 release assurance",
-    "status": "blocked",
-    "objective": "Produce trusted release evidence and establish whether version 1.1.2 can pass internal production gates."
+    "name": "Provenance-safe project updates",
+    "status": "waiting-approval",
+    "objective": "Deliver a validated, provenance-aware, transactional project updater while preserving local customization and requiring exact approval for risky dispositions."
   },
   "lastCompletedWork": {
-    "summary": "Merged the validated workflow and audit hardening through protected PR #8, repaired cross-platform path handling and CodeQL file-state races, and validated a fresh-workspace demo launch that does not restore a premature localhost tab.",
-    "completedAt": "2026-09-12T16:09:12.3489569Z",
+    "stepId": "STEP-013",
+    "summary": "Prepared a 37-file, unstaged and uncommitted candidate for the completed safe updater implementation after full validation and an independent no-findings review rerun.",
+    "completedAt": "2026-09-18T14:46:23.5347606Z",
     "evidence": [
-      "https://github.com/QuyDu/Skills-Orchestrator/pull/8",
-      ".github/prompts/demo-create-project.prompt.md",
-      "Demo/DEMO-DAY.md",
+      "reports/current-execution-state.json",
+      "reports/current-execution-state.md",
+      "reports/execution-log.jsonl",
+      "reports/workflow-plan.json",
+      "reports/artifact-upgrade-plan.json",
+      "reports/artifact-upgrade-report.md",
+      "reports/regression-test-result.json",
+      "reports/regression-test-result.md",
+      "reports/change-review.json",
+      "reports/change-review.md",
+      "reports/skill-dependency-graph.json",
+      "reports/skill-dependency-report.md",
+      "reports/documentation-plan.json",
+      "reports/documentation-plan.md",
+      "reports/security-check.json",
       "README.md",
-      "SECURITY.md",
       "STANDALONE-WINDOWS.md",
-      "config/orchestrator.yaml",
+      "docs/PROJECT-ARCHITECTURE.md",
+      "docs/PROJECT-GUIDE.md",
       "docs/PROJECT-OVERVIEW.md",
-      "package-lock.json",
-      "package.json",
       "pso.mjs",
-      "tests/skill-contracts.test.mjs",
       "tests/adoption-rerun.test.mjs",
-      "reports/ci-triage-result.json",
-      "reports/change-review.json"
+      "tests/documentation-builder.test.mjs",
+      "tests/security-fuzz.test.mjs",
+      "tests/skill-contracts.test.mjs"
     ]
   },
   "decisions": [
     {
-      "decision": "Keep P4 release assurance blocked.",
-      "rationale": "Source validation and merge do not satisfy trusted signing, independent review, artifact health, revocation, or production verification."
+      "decision": "Treat the safe updater as implementation-complete and candidate-ready, with handoff status waiting-approval.",
+      "rationale": "STEP-013 prepared the validated candidate, but no approval has been granted to create a local commit."
     },
     {
-      "decision": "Plan Live Chat Interaction as a reusable Project Orchestrator capability with a demo-first prototype.",
-      "rationale": "The product should explain its capabilities, guide users through features, and answer follow-up questions without coupling the long-term capability to one countdown demo."
+      "decision": "Use normalized manifest 1.1 and lock 1.0 provenance with all, additive, and select planning modes.",
+      "rationale": "The updater now classifies managed state from normalized baselines and closes selected work over dependencies and generated companions."
     },
     {
-      "decision": "Use a hybrid guided and model-backed design with voice and text.",
-      "rationale": "Deterministic walkthroughs provide reliable onboarding while grounded freeform Q&A and optional speech support natural conversation."
+      "decision": "Support track, pin, and fork policies plus keep, replace, fork, and remove dispositions without a force-all option.",
+      "rationale": "Risk acceptance is exact and selection-bound; exact-force applies only to explicitly reviewed assets."
     },
     {
-      "decision": "Require Azure Government discovery before selecting model or Speech services.",
-      "rationale": "Service, model, region, quota, authorization, and data-boundary availability must be verified rather than assumed."
+      "decision": "Require transactional apply, exact rollback, and journaled recovery for modern and legacy migration paths.",
+      "rationale": "Manifest-lock cutover, local customization, fork creation, generated companions, and interrupted writes must remain recoverable without silent data loss."
+    },
+    {
+      "decision": "Preserve P4 release assurance as historical blocked lineage and LIVE-CHAT-001 as a separate planning-required initiative.",
+      "rationale": "The safe updater workflow neither completes nor cancels unrelated release assurance, and no Live Chat implementation or Azure work occurred."
     }
   ],
   "plannedInitiatives": [
@@ -93,82 +118,126 @@
       ]
     }
   ],
+  "historicalLineage": [
+    {
+      "name": "P4 release assurance",
+      "status": "blocked",
+      "historical": true,
+      "summary": "Release assurance remains blocked by trusted signing, distinct independent review, restricted artifact distribution, installation-health evidence, tested revocation, and production verification. The safe updater workflow did not complete or cancel this lineage."
+    }
+  ],
   "validation": [
     {
-      "check": "Protected source merge",
+      "check": "Safe updater implementation",
       "status": "passed",
-      "evidence": "PR #8 merged to default main commit 99b9ce6 after all 15 required checks passed; no PR-scoped CodeQL alerts remained."
+      "evidence": "Manifest 1.1 and lock 1.0 normalized provenance; all, additive, and select planning; track, pin, and fork policy; keep, replace, fork, and remove dispositions; exact-force without force-all; transactional apply, rollback, and recovery; legacy migration and security hardening; and operator documentation are complete through STEP-013."
     },
     {
-      "check": "Demo workspace startup",
+      "check": "Compatibility defect",
       "status": "passed",
-      "evidence": "A unique temporary workspace identity opened the recreated durable demo without restoring a stale localhost preview."
+      "evidence": "STEP-009-DEFECT-001 was fixed: manifests requiring a newer minimum updater runtime now fail closed, while older compatible minimums remain accepted."
     },
     {
-      "check": "Current local repository gate",
+      "check": "Bounded defect remediation",
       "status": "passed",
-      "evidence": "npm run check passed 134 of 135 tests with one expected platform-specific skip and verified all 45 skills."
+      "evidence": "The review found five defects; all five received focused red-green repairs covering persisted fork recognition, runtime lock validation, option rejection, exact fork restoration and rollback, and documentation evidence consistency."
     },
     {
-      "check": "Version 1.1.2 candidate evidence",
+      "check": "Independent review rerun",
       "status": "passed",
-      "evidence": "The unsigned candidate was rebuilt and checksum-verified against source commit 1444180."
+      "evidence": "reports/change-review.json records no findings after the five repairs and additional adversarial generated-scope and framework-fork-reference coverage."
     },
     {
-      "check": "Production release",
-      "status": "blocked",
-      "evidence": "reports/release-readiness.json is bound to version 1.1.2 and source commit 1444180; current-commit hosted matrix, trusted signing, independent review, operational artifact evidence, revocation, and production verification remain incomplete."
+      "check": "Full repository gate",
+      "status": "passed",
+      "evidence": "npm run check completed 173 total tests: 172 passed, 0 failed, and 1 expected skip; 274 files were security-scanned, 183 release files were checksum-verified, and all 47 skills were inventoried, audited, and distribution-verified."
     },
     {
-      "check": "Live Chat Interaction",
-      "status": "not-started",
-      "evidence": "Scope and constraints are recorded; no implementation, Azure discovery, resource creation, or deployment has occurred."
+      "check": "Candidate Git boundary",
+      "status": "passed",
+      "evidence": "The 37 candidate files are unstaged and uncommitted on release/1.1.2 at ad3e73cb19a645bccdedfc0ffa781976d98b31a8; the local origin/release/1.1.2 tracking ref remains at the same old commit because no push or fetch occurred."
+    },
+    {
+      "check": "External and deployment boundary",
+      "status": "passed",
+      "evidence": "No Azure work, deployment, publication, commit, push, pull request, release, or network operation occurred in this workflow."
     }
   ],
   "worktree": {
     "clean": false,
     "unmergedPaths": 0,
-    "otherChangesPresent": false,
-    "attribution": "Current local changes are the approved fresh-workspace demo prompt fix, version 1.1.2 and dated repository documentation, contract coverage, deterministic generated reports, and synchronized continuity.",
+    "stagedPaths": 0,
+    "candidatePathCount": 37,
+    "candidateCommitted": false,
+    "candidatePushed": false,
+    "attribution": "The validated implementation boundary contains 37 files. STEP-014 adds synchronized continuity and terminal state reports; all remain unstaged and uncommitted pending separate commit approval.",
     "boundedPaths": [
-      ".github/prompts/demo-create-project.prompt.md",
-      "tests/skill-contracts.test.mjs",
+      "README.md",
+      "STANDALONE-WINDOWS.md",
+      "docs/PROJECT-ARCHITECTURE.md",
+      "docs/PROJECT-GUIDE.md",
+      "docs/PROJECT-OVERVIEW.md",
+      "pso.mjs",
       "reports/artifact-ownership.json",
+      "reports/artifact-upgrade-plan.json",
+      "reports/artifact-upgrade-report.md",
+      "reports/change-review.json",
+      "reports/change-review.md",
+      "reports/current-execution-state.json",
+      "reports/current-execution-state.md",
+      "reports/documentation-plan.json",
+      "reports/documentation-plan.md",
+      "reports/execution-log.jsonl",
+      "reports/project-guide.json",
+      "reports/project-understanding.json",
+      "reports/project-understanding.md",
+      "reports/regression-test-result.json",
+      "reports/regression-test-result.md",
       "reports/security-check.json",
+      "reports/skill-dependency-graph.json",
+      "reports/skill-dependency-report.md",
       "reports/skill-details.json",
       "reports/skill-details.md",
       "reports/skill-inventory.json",
       "reports/skill-inventory.md",
+      "schemas/project-orchestrator-lock.schema.json",
+      "schemas/project-orchestrator-manifest.schema.json",
+      "schemas/project-update-plan.schema.json",
+      "schemas/project-update-selection.schema.json",
+      "schemas/update-verification.schema.json",
+      "tests/adoption-rerun.test.mjs",
+      "tests/documentation-builder.test.mjs",
+      "tests/security-fuzz.test.mjs",
+      "tests/skill-contracts.test.mjs"
+    ],
+    "continuityPaths": [
       "reports/project-handoff.json",
       "reports/project-handoff.md",
       "reports/current-work-state.json"
     ]
   },
   "blockers": [
-    "P4 production release assurance remains incomplete.",
-    "Trusted signing and a distinct qualified independent reviewer are not provisioned.",
-    "Restricted artifact distribution, installation-health signals, tested revocation, and production verification remain incomplete.",
-    "Live Chat Interaction lacks an approved implementation plan and current Azure Government service, model, quota, privacy, cost, and data-boundary evidence."
+    "Creating the local candidate commit requires explicit operator approval."
   ],
   "pendingApprovals": [
-    "Any commit, push, pull request, merge, release, publication, deployment, Azure discovery, resource creation, or external mutation requires separate approval.",
-    "Live Chat implementation must not begin until its workflow plan is reviewed and approved.",
-    "Azure Government model or Speech provisioning and billable use require point-of-action approval after discovery and cost review."
+    "First: explicit operator approval to create local commit feat: add provenance-safe project updates.",
+    "Separately after a local commit: push requires its own approval and is not included in the commit approval.",
+    "Pull request, merge, release, publication, deployment, and any Azure or other external mutation each remain separately gated.",
+    "LIVE-CHAT-001 implementation requires an approved workflow plan; Azure Government discovery and any later provisioning or billable use remain separately gated."
   ],
   "limitations": [
-    "Live Chat Interaction is a planning record, not an implementation commitment or cloud authorization.",
-    "No Azure Government model, Speech service, region, quota, endpoint, or data boundary has been selected or verified.",
-    "The current demo project is a local prototype workspace and is not part of this source repository.",
-    "Overall P4 assurance remains insufficient-evidence."
+    "This handoff does not stage, commit, push, publish, release, deploy, contact Azure, use the network, or advance current-execution-state.json or execution-log.jsonl.",
+    "The local remote-tracking ref is only local evidence of the last known remote state; no network refresh was authorized.",
+    "P4 release assurance remains historical blocked lineage, not completed or cancelled.",
+    "LIVE-CHAT-001 remains a separate planning-required initiative and has not been implemented."
   ],
   "nextAction": {
-    "skill": "workflow-planner",
-    "status": "ready",
-    "action": "Create a reviewable, non-executing implementation plan for LIVE-CHAT-001 covering demo prototype, reusable product architecture, Azure Government discovery, threat model, grounding, voice and text UX, accessibility, evaluation, cost, rollout, rollback, and approval gates.",
+    "owner": "operator",
+    "status": "approval-required",
+    "action": "Explicitly approve creating the local commit 'feat: add provenance-safe project updates'.",
     "prerequisites": [
-      "Use this handoff as the confirmed scope boundary.",
-      "Inspect the current demo and product architecture read-only.",
-      "Keep Azure discovery, resource creation, implementation, deployment, publication, commit, and push outside the planning action."
+      "Review the 37-file candidate and current validation evidence.",
+      "Approval applies only to creating the local commit; push, pull request, release, publication, deployment, and Azure work are excluded."
     ]
   }
 }

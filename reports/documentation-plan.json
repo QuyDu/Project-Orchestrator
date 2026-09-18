@@ -1,21 +1,53 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-09T09:19:56.607Z",
+  "generatedAt": "2026-09-18T10:26:42.3076689Z",
   "status": "applied",
   "documents": [
     {
-      "path": "docs/PROJECT-OVERVIEW.md",
-      "kind": "architecture-overview",
-      "audience": "executive",
-      "action": "create",
-      "reason": "Provide a standalone value narrative with enough verified technical and operational detail for a mixed leadership and engineering evaluation.",
+      "path": "README.md",
+      "kind": "readme",
+      "audience": "operator",
+      "action": "update",
+      "reason": "Serve as the canonical operator runbook for Launch Pad and generated-project updates.",
       "verifiedClaims": [
-        "Runtime version 1.1.1 and framework version 9.0.0",
-        "44 governed skills with zero third-party core runtime dependencies",
-        "Node.js 22, 24, and 26 support",
-        "Create, adopt, clone-setup, update, recover, inventory, plan, verify, help, and Agent Builder command surfaces",
-        "Bounded clarification, approval classes, transaction journaling, rollback, and recovery controls",
-        "Current validation evidence and blocked internal-candidate release status"
+        "pso.mjs help: update is plan-only unless both --apply and --accept-risk are supplied.",
+        "pso.mjs and adoption-rerun tests: all, additive, select, selection digest, policy, resolution, transaction, migration, and recovery behavior."
+      ],
+      "unverifiedClaims": []
+    },
+    {
+      "path": "STANDALONE-WINDOWS.md",
+      "kind": "operations-runbook",
+      "audience": "operator",
+      "action": "update",
+      "reason": "Provide concise PowerShell update and recovery commands for Windows operators.",
+      "verifiedClaims": [
+        "node pso.mjs help command spellings.",
+        "tests/adoption-rerun.test.mjs update apply, exact-force, migration, and recovery cases."
+      ],
+      "unverifiedClaims": []
+    },
+    {
+      "path": "docs/PROJECT-OVERVIEW.md",
+      "kind": "executive-summary",
+      "audience": "executive",
+      "action": "update",
+      "reason": "Describe the delivered updater safety and trust boundaries without implementation-level duplication.",
+      "verifiedClaims": [
+        "pso.mjs buildUpdatePlan and applyUpdate control flow.",
+        "schemas/project-orchestrator-manifest.schema.json and schemas/project-orchestrator-lock.schema.json migration contracts."
+      ],
+      "unverifiedClaims": []
+    },
+    {
+      "path": "docs/PROJECT-ARCHITECTURE.md",
+      "kind": "architecture-overview",
+      "audience": "contributor",
+      "action": "update",
+      "reason": "Record separate Git-native Launch Pad and transactional generated-project update paths.",
+      "verifiedClaims": [
+        "pso.mjs help exposes update and recover but no Launch Pad Git integration command.",
+        "pso.mjs transaction, freshness, dependency ordering, verification, and rollback implementation."
       ],
       "unverifiedClaims": []
     },
@@ -23,39 +55,25 @@
       "path": "docs/PROJECT-GUIDE.md",
       "kind": "project-guide",
       "audience": "contributor",
-      "action": "blocked",
-      "reason": "The generated canonical guide and its Project Understanding inputs are stale; refreshing them would expand the approved document boundary for this request.",
-      "verifiedClaims": [],
-      "unverifiedClaims": [
-        "Current repository purpose, inventory counts, setup commands, and capability summary in the generated guide"
-      ]
+      "action": "update",
+      "reason": "Add the current safe-update command and policy summary to the canonical guide.",
+      "verifiedClaims": [
+        "pso.mjs help and tests/adoption-rerun.test.mjs.",
+        "tests/security-fuzz.test.mjs exact selector, baseline, downgrade, and exact-force rejection cases."
+      ],
+      "unverifiedClaims": []
     }
   ],
   "contradictions": [
     {
       "document": "docs/PROJECT-GUIDE.md",
-      "authoritativeArtifact": "reports/skill-inventory.json",
-      "detail": "The generated guide reports 42 skills, while the current inventory generated on 2026-09-09 contains 44 skills."
-    },
-    {
-      "document": "reports/project-understanding.json",
-      "authoritativeArtifact": "README.md",
-      "detail": "The September 2 understanding report describes 43 governed skills, while the current README and inventory report 44."
-    },
-    {
-      "document": "STANDALONE-WINDOWS.md",
-      "authoritativeArtifact": "pso.mjs",
-      "detail": "The expected verify-output example reports 40 skills, while the current runtime verifies 44."
-    },
-    {
-      "document": "docs/PROJECT-GUIDE.md",
-      "authoritativeArtifact": "package.json",
-      "detail": "The generated guide records an older npm test/check composition that does not include all current configured test files."
+      "authoritativeArtifact": "reports/project-guide.json",
+      "detail": "STEP-011 intentionally deferred reports/project-guide.json; the confirmed STEP-012 consistency remediation now synchronizes that binding without regenerating or changing the approved guide content."
     }
   ],
   "limitations": [
-    "The overview uses current code, configuration, inventory, security, and release evidence because documentation-builder validation confirms the canonical guide inputs are stale.",
-    "No measured business ROI or comparative productivity benchmark exists in the repository; the overview recommends collecting those results through a bounded pilot.",
-    "The document describes an unsigned internal candidate and does not claim production readiness or authorization for public distribution."
+    "STEP-011 appended its accepted completion event at sequence 46. STEP-012 remediation leaves reports/current-execution-state.json, reports/current-execution-state.md, and reports/execution-log.jsonl unchanged at current step 12 and sequence 46.",
+    "No network, Azure, deployment, publication, commit, or push action was performed.",
+    "Validation passed: live help exit 0; 32 focused documentation, production, and contract tests passed; focused updater and security regression selections passed; documentation-plan schema validation passed; local links and stale-statement scans passed; git diff --check passed; npm run check exited 0 with 169 passed, 0 failed, and 1 expected skip."
   ]
 }

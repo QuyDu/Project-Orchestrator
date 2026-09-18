@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-18T06:54:18.4548657Z",
+  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
+  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+  "stepId": "STEP-002",
+  "validationStepId": "STEP-009",
+  "sequence": 43,
+  "sourceRevision": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
+  "status": "implementation-validated",
+  "planningOnly": false,
+  "designProvenance": {
+    "stepId": "STEP-002",
+    "generatedAt": "2026-09-17T22:03:02.8302569Z",
+    "sourceRevision": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
+    "preserved": true
+  },
+  "sourceEvidence": [
+    "reports/skill-dependency-graph.json",
+    "reports/skill-dependency-report.md",
+    "reports/workflow-plan.json",
+    "reports/workflow-plan.md",
+    "templates/scaffold-manifest.json",
+    "pso.mjs"
+  ],
+  "artifacts": [
+    { "path": "project-orchestrator.json", "owner": "pso runtime", "currentVersion": "1.0.0", "targetVersion": "1.1.0", "role": "human-readable project and reconciliation metadata", "writeOrder": "final visibility switch" },
+    { "path": "project-orchestrator.lock.json", "owner": "pso runtime", "currentVersion": null, "targetVersion": "1.0.0", "role": "per-asset baseline, provenance, scope, policy, dependencies, and companion ledger", "writeOrder": "immediately before manifest" },
+    { "path": "schemas/project-orchestrator-manifest.schema.json", "owner": "framework", "currentVersion": null, "targetVersion": "1.1.0", "role": "manifest contract" },
+    { "path": "schemas/project-orchestrator-lock.schema.json", "owner": "framework", "currentVersion": null, "targetVersion": "1.0.0", "role": "baseline lock contract" },
+    { "path": "schemas/project-update-plan.schema.json", "owner": "framework", "currentVersion": null, "targetVersion": "1.0.0", "role": "portable three-way update plan contract" },
+    { "path": "schemas/project-update-selection.schema.json", "owner": "framework", "currentVersion": null, "targetVersion": "1.0.0", "role": "automation-safe selection and conflict-resolution input" },
+    { "path": "reports/project-update-plan.json", "owner": "pso runtime", "currentVersion": null, "targetVersion": "1.0.0", "role": "machine-readable dry-run and apply precondition record" },
+    { "path": "reports/project-update-plan.md", "owner": "pso runtime", "currentVersion": null, "targetVersion": "1.0.0", "role": "ordered human view of the same update plan" },
+    { "path": "reports/update-verification.json", "owner": "pso runtime", "currentVersion": null, "targetVersion": "1.0.0", "role": "post-apply and rollback verification evidence" }
+  ],
+  "invariants": [
+    "Manifest 1.1 retains every manifest 1.0 field and adds only update metadata.",
+    "The lock contains digests and provenance, not duplicate managed content, absolute source paths, credentials, or secrets.",
+    "Asset IDs and normalized relative paths are unique; dependency and generated-companion references resolve.",
+    "All digest fields name sha256-normalized-text-v1 and preserve final-newline significance.",
+    "Unresolved conflicts make the whole plan non-applicable before the first write.",
+    "Project-owned and legacy-unknown content is never overwritten without an exact explicit disposition.",
+    "The destination state and plan digest must still match immediately before apply.",
+    "The lock and manifest are written only after candidate content and dependency closure verify.",
+    "The manifest is written after the lock so manifest 1.1 never advertises a missing lock.",
+    "Transaction completion is recorded only after persisted manifest-lock agreement verifies."
+  ],
+  "compatibility": [
+    { "runtime": "current legacy runtime", "manifest": "1.0.0", "lock": "absent", "read": "supported", "mutate": "legacy behavior only", "decision": "compatible current state" },
+    { "runtime": "current legacy runtime", "manifest": "1.1.0", "lock": "1.0.0", "read": "not guaranteed", "mutate": "prohibited", "decision": "restore the pre-migration backup before downgrade use" },
+    { "runtime": "new lock-aware runtime", "manifest": "1.0.0", "lock": "absent", "read": "supported as legacy input", "mutate": "only through conservative transactional bootstrap", "decision": "legacy-equivalent may enroll; legacy-unknown blocks" },
+    { "runtime": "new lock-aware runtime", "manifest": "1.1.0", "lock": "1.0.0", "read": "supported", "mutate": "supported after plan and precondition validation", "decision": "normal three-way path" },
+    { "runtime": "new lock-aware runtime", "manifest": "1.1.0", "lock": "absent or invalid", "read": "inconsistent", "mutate": "prohibited", "decision": "recovery or restore required" },
+    { "runtime": "new lock-aware runtime", "manifest": "1.0.0", "lock": "1.0.0", "read": "interrupted cutover state", "mutate": "prohibited outside recovery", "decision": "restore snapshot or finish only through journaled recovery" }
+  ],
+  "phases": [
+    {
+      "id": "preflight",
+      "actions": ["validate schemas and supported version pairing", "validate normalized paths and ownership", "validate profile and dependency closure", "reject active transaction or unresolved recovery", "validate selectors, policies, dispositions, plan digest, and destination preconditions"],
+      "gate": "no mutation when any check fails"
+    },
+    {
+      "id": "snapshot",
+      "actions": ["journal manifest presence and digest", "journal lock presence and digest", "backup selected assets and generated companions", "backup pre-existing update reports", "verify every backup before apply"],
+      "gate": "all mutation targets and metadata are recoverable"
+    },
+    {
+      "id": "forward-apply",
+      "actions": ["create approved forks", "apply dependency-ordered creates and replacements", "regenerate selected help and managed wiring", "run inventory and update-aware candidate verification"],
+      "gate": "candidate content is valid while old manifest and lock remain authoritative"
+    },
+    {
+      "id": "cutover",
+      "actions": ["write the verified lock atomically", "write manifest 1.1 atomically as the final visibility switch", "verify persisted manifest-lock agreement", "write update verification and mark journal complete"],
+      "gate": "both metadata artifacts agree or rollback starts"
+    }
+  ],
+  "legacyRules": [
+    { "condition": "no base; local equals upstream", "classification": "legacy-equivalent", "action": "record current digest with track policy; do not rewrite content" },
+    { "condition": "no base; local differs from upstream", "classification": "legacy-unknown", "action": "preserve and require keep, replace, or fork" },
+    { "condition": "no base; local present; upstream absent", "classification": "project-local", "action": "leave unmanaged" },
+    { "condition": "base present; local absent", "classification": "locally-deleted", "action": "preserve deletion and block when required by closure" },
+    { "condition": "base present; upstream absent", "classification": "upstream-removed", "action": "preserve by default and require exact reviewed removal" }
+  ],
+  "rollback": {
+    "triggers": [
+      "an unresolved conflict or stale precondition reaches apply",
+      "a project-owned or locally modified asset would be overwritten without exact approval",
+      "candidate inventory, schema, profile, or dependency verification fails",
+      "an apply write fails or the process is interrupted",
+      "the persisted lock and manifest disagree",
+      "post-cutover verification fails",
+      "restored content does not match recorded pre-update digests"
+    ],
+    "restoreOrder": [
+      "hold the transaction lock and mark rollback in progress",
+      "restore or remove the manifest to its pre-transaction state",
+      "restore or remove the lock to its pre-transaction state",
+      "restore managed assets and generated companions in reverse write order",
+      "restore pre-existing update reports",
+      "verify every restored digest and manifest-lock pairing",
+      "mark rolled back, or recovery-required when exact restoration cannot be proved"
+    ],
+    "downgradeRule": "After manifest 1.1 and lock 1.0 cutover, an older runtime may be used only after restoring the complete pre-migration transaction backup."
+  },
+  "validationPlan": [
+    "node --test --test-name-pattern=\"digest|three-way|legacy|update mode|pin|fork|rollback|recovery\" tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs",
+    "node --test tests/skill-contracts.test.mjs",
+    "node pso.mjs verify",
+    "npm run check"
+  ],
+  "implementationValidation": {
+    "stepId": "STEP-009",
+    "sequence": 43,
+    "validatedAt": "2026-09-18T07:07:38.0587045Z",
+    "status": "passed",
+    "compatibilityMatrix": [
+      { "manifest": "1.0.0", "lock": "absent", "result": "passed", "evidence": ["legacy manifest update plans conservatively classify equivalent, unknown, and project-local assets", "successful legacy migration writes manifest and lock only inside the transaction"] },
+      { "manifest": "1.1.0", "lock": "1.0.0", "result": "passed", "evidence": ["update apply replaces selected upstream content and preserves project-owned files", "manifest 1.1 and lock 1.0 accept an older compatible minimum updater"] },
+      { "manifest": "1.1.0", "lock": "absent", "result": "blocked", "evidence": ["update rejects malformed, unsupported, and colliding manifest-lock baselines"] },
+      { "manifest": "1.0.0", "lock": "1.0.0", "result": "blocked-recovery-required", "evidence": ["update rejects malformed, unsupported, and colliding manifest-lock baselines"] },
+      { "manifest": "0.9.0 or 2.0.0", "lock": "any", "result": "unsupported-blocked", "evidence": ["update rejects malformed, unsupported, and colliding manifest-lock baselines"] },
+      { "manifest": "1.1.0", "lock": "0.9.0 or 2.0.0", "result": "unsupported-blocked", "evidence": ["update rejects malformed, unsupported, and colliding manifest-lock baselines"] },
+      { "manifest": "1.1.0", "lock": "1.0.0", "minimumUpdaterRuntimeVersion": "greater than running runtime", "result": "blocked-with-downgrade-guidance", "evidence": ["update rejects malformed, unsupported, and colliding manifest-lock baselines"] }
+    ],
+    "transactionEvidence": [
+      "Journal assertions cover upstream replacement, keep/pin, fork, exact reviewed removal, exact-force interruption, legacy migration, generated companions, manifest, lock, and every prior adoption/update report path.",
+      "A forced process exit after the first exact-force asset write preserved the journal and every backup; explicit recovery restored all 15 transaction targets byte-for-byte, including CRLF report bytes.",
+      "A legacy migration failure injected after the lock write but before the manifest write rolled back to manifest 1.0, removed the newly written lock, restored every prior report byte-for-byte, and recorded a rolled-back terminal journal.",
+      "Keep/pin leaves local content outside the mutation target set while journaling manifest, lock, and reports; fork journals canonical replacements plus missing fork destinations and generated help for rollback removal; exact removal journals the deleted asset backup."
+    ],
+    "writeOrderEvidence": "applyUpdate verifies candidate content, atomically writes project-orchestrator.lock.json, invokes the tested pre-manifest failure point, then atomically writes project-orchestrator.json; the legacy rollback fixture validates the intervening failure path.",
+    "defects": [
+      {
+        "id": "STEP-009-DEFECT-001",
+        "status": "fixed",
+        "summary": "The update loader accepted a manifest whose minimumUpdaterRuntimeVersion exceeded the running runtime.",
+        "repair": "Added strict three-part minimum version validation and numeric comparison; newer requirements fail closed with compatible-updater and full-backup downgrade guidance, while older compatible minimums remain readable."
+      }
+    ],
+    "commands": [
+      { "command": "node --check pso.mjs", "result": "passed" },
+      { "command": "node --test --test-name-pattern=\"update rejects malformed, unsupported, and colliding manifest-lock baselines|manifest 1.1 and lock 1.0 accept an older compatible minimum updater\" tests/security-fuzz.test.mjs", "result": "2 passed, 0 failed" },
+      { "command": "node --test --test-name-pattern=\"interrupted exact-force update retains a backup and recovery restores every digest\" tests/adoption-rerun.test.mjs", "result": "1 passed, 0 failed" },
+      { "command": "node --test tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/skill-contracts.test.mjs", "result": "93 passed, 0 failed, 0 skipped" },
+      { "command": "npm run check", "result": "passed: 168 passed, 0 failed, 1 expected skip; 274 files security-scanned; 183 release files checksum-verified; 47 skills inventoried, audited, and distribution-verified" },
+      { "command": "git diff --check", "result": "passed with no whitespace errors; one non-failing CRLF normalization warning for tests/security-fuzz.test.mjs" }
+    ],
+    "workflowStateAdvanced": false,
+    "prohibitedActionsPerformed": []
+  },
+  "evidenceOutputs": [
+    "project-orchestrator.lock.json",
+    "reports/project-update-plan.json",
+    "reports/project-update-plan.md",
+    "reports/update-verification.json",
+    ".skills-orchestrator/transactions/<transaction-id>/journal.json and backup"
+  ],
+  "step003Decisions": [
+    { "id": "minimum-runtime", "recommended": "derive and freeze the minimum lock-aware runtime version from the implementation release; do not guess it during planning" },
+    { "id": "safe-all-conflicts", "recommended": "fail closed when unresolved; accept resolutions only through an exact digest-bound resolution or selection file" },
+    { "id": "pin-compatibility", "recommended": "block incompatible pins; never remove a pin automatically" },
+    { "id": "companion-regeneration", "recommended": "regenerate selected skill help and required managed wiring as explicit closure actions" },
+    { "id": "public-cli", "recommended": "bare pso update remains safe-all; noninteractive select requires selectors or a selection file; no force-all option" }
+  ],
+  "implementationBoundary": [
+    "pso.mjs",
+    "templates/scaffold-manifest.json",
+    "schemas/project-orchestrator-manifest.schema.json",
+    "schemas/project-orchestrator-lock.schema.json",
+    "schemas/project-update-plan.schema.json",
+    "schemas/project-update-selection.schema.json",
+    "tests/adoption-rerun.test.mjs",
+    "tests/security-fuzz.test.mjs",
+    "tests/skill-contracts.test.mjs",
+    "README.md",
+    "STANDALONE-WINDOWS.md",
+    "docs/PROJECT-OVERVIEW.md",
+    "docs/PROJECT-ARCHITECTURE.md",
+    "docs/PROJECT-GUIDE.md"
+  ],
+  "blockers": [],
+  "residualRisks": [
+    { "severity": "high", "risk": "incorrect legacy classification could overwrite customization", "control": "equality-only bootstrap and explicit disposition for every differing asset" },
+    { "severity": "high", "risk": "manifest-lock cutover could be interrupted", "control": "transaction backup, lock-first/manifest-final writes, and journaled recovery" },
+    { "severity": "medium", "risk": "older runtime could ignore the lock", "control": "minimum runtime metadata, downgrade prohibition, and full pre-migration restoration" },
+    { "severity": "medium", "risk": "pins or forks could break profile closure", "control": "dependency validation before first write and update-aware verification" }
+  ],
+  "designNextGate": { "stepId": "STEP-003", "owner": "operator:product-owner", "approvalRequired": true, "historical": true },
+  "nextGate": { "stepId": "STEP-010", "owner": "skill:skill-dependency-manager", "approvalRequired": false, "status": "ready" }
+}

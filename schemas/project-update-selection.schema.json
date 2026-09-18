@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.dev/schemas/project-update-selection.schema.json",
+  "title": "Project Orchestrator Update Selection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "expectedPlanDigest", "target", "selectors"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "expectedPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "target": { "$ref": "#/$defs/target" },
+    "selectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skills", "assets"],
+      "properties": {
+        "skills": { "type": "array", "items": { "$ref": "#/$defs/skill" }, "uniqueItems": true },
+        "assets": { "type": "array", "items": { "$ref": "#/$defs/exactPath" }, "uniqueItems": true }
+      }
+    },
+    "policyChanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset", "policy"],
+        "properties": {
+          "asset": { "$ref": "#/$defs/exactPath" },
+          "policy": { "enum": ["track", "pin", "fork"] },
+          "forkSkillId": { "$ref": "#/$defs/skill" }
+        },
+        "allOf": [
+          { "if": { "properties": { "policy": { "const": "fork" } }, "required": ["policy"] }, "then": { "required": ["forkSkillId"] }, "else": { "not": { "required": ["forkSkillId"] } } }
+        ]
+      }
+    },
+    "resolutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset", "disposition"],
+        "properties": {
+          "asset": { "$ref": "#/$defs/exactPath" },
+          "disposition": { "enum": ["keep", "replace", "fork", "remove"] },
+          "forkSkillId": { "$ref": "#/$defs/skill" }
+        },
+        "allOf": [
+          { "if": { "properties": { "disposition": { "const": "fork" } }, "required": ["disposition"] }, "then": { "required": ["forkSkillId"] }, "else": { "not": { "required": ["forkSkillId"] } } }
+        ]
+      }
+    },
+    "exactForcePaths": { "type": "array", "items": { "$ref": "#/$defs/exactPath" }, "uniqueItems": true }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "skill": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+    "path": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\r\\n]+$" },
+    "exactPath": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\*\\?\\[\\]{}!])(?!.*\\/$)[^\\r\\n]+$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectName", "frameworkVersion", "runtimeVersion", "installedSource"],
+      "properties": {
+        "projectName": { "type": "string", "minLength": 1 },
+        "frameworkVersion": { "$ref": "#/$defs/version" },
+        "runtimeVersion": { "$ref": "#/$defs/version" },
+        "installedSource": { "$ref": "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" }
+      }
+    }
+  }
+}

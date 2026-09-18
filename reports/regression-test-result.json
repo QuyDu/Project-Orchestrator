@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-18T14:15:00.000Z",
+  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
+  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+  "stepId": "STEP-012",
+  "sequence": 46,
+  "status": "passed",
+  "objective": "Remediate all five confirmed STEP-012 bounded-review findings with focused red-green regression coverage while preserving workflow state and accepted execution history.",
+  "changedFiles": [
+    "pso.mjs",
+    "tests/adoption-rerun.test.mjs",
+    "tests/security-fuzz.test.mjs",
+    "tests/documentation-builder.test.mjs",
+    "reports/documentation-plan.json",
+    "reports/documentation-plan.md",
+    "reports/project-guide.json",
+    "reports/regression-test-result.json",
+    "reports/regression-test-result.md"
+  ],
+  "red": [
+    {
+      "finding": "STEP-012-FINDING-001",
+      "command": "node --test --test-name-pattern=\"update apply forks the complete local skill package before restoring canonical upstream\" tests/adoption-rerun.test.mjs",
+      "exitCode": 1,
+      "result": "0 passed, 1 failed: a later unrelated update rolled back because the persisted project-owned fork caused duplicate azure-discovery report producers."
+    },
+    {
+      "finding": "STEP-012-FINDING-002",
+      "command": "node --test --test-name-pattern=\"update rejects malformed, unsupported, and colliding manifest-lock baselines\" tests/security-fuzz.test.mjs",
+      "exitCode": 1,
+      "result": "0 passed, 1 failed: the first adversarial lock with an unknown entry field was accepted."
+    },
+    {
+      "finding": "STEP-012-FINDING-003",
+      "command": "node --test --test-name-pattern=\"update rejects unknown options before mode defaulting or mutation\" tests/adoption-rerun.test.mjs",
+      "exitCode": 1,
+      "result": "0 passed, 1 failed: --mdoe select exited 0 and silently defaulted to safe-all."
+    },
+    {
+      "finding": "STEP-012-FINDING-004",
+      "command": "node --test --test-name-pattern=\"update apply forks the complete local skill package before restoring canonical upstream\" tests/adoption-rerun.test.mjs",
+      "exitCode": 1,
+      "result": "0 passed, 1 failed: project-notes.txt remained in the canonical skill package after the fork."
+    },
+    {
+      "finding": "STEP-012-FINDING-005",
+      "command": "node --test --test-name-pattern=\"repository project guide binding matches current guide and understanding evidence\" tests/documentation-builder.test.mjs",
+      "exitCode": 1,
+      "result": "0 passed, 1 failed: guideSha256 was fa9c26023ebf65cf463998e7151a7daff6d3fc5d11e6c59a110281584e8d5a88 but current guide content hashed to c0b8c5bec3c91fd6f66ef5412ea87e9975bad6e9013fa3e98e459c0074cf82de."
+    }
+  ],
+  "green": [
+    {
+      "command": "node --check pso.mjs && node --test --test-name-pattern=\"update rejects malformed, unsupported, and colliding manifest-lock baselines|manifest 1.1 and lock 1.0 accept an older compatible minimum updater|update rejects unknown options before mode defaulting or mutation|update apply forks the complete local skill package before restoring canonical upstream|interrupted fork recovery restores the exact canonical package and removes the created fork\" tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs",
+      "status": "passed",
+      "result": "Syntax passed; 5 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "node --test tests/adoption-rerun.test.mjs",
+      "status": "passed",
+      "result": "66 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "node --test tests/security-fuzz.test.mjs",
+      "status": "passed",
+      "result": "12 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "node --test tests/documentation-builder.test.mjs",
+      "status": "passed",
+      "result": "2 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "node .github/skills/documentation-builder/scripts/documentation-builder.mjs validate --root C:\\repos\\Skills-Orchestrator",
+      "status": "passed",
+      "result": "The existing approved guide, project-guide binding, and Project Understanding pair validated."
+    },
+    {
+      "command": "npm run check",
+      "status": "passed",
+      "result": "172 passed, 0 failed, 1 expected skip; 274 files security-scanned; 183 release files checksum-verified; 47 skills inventoried, audited, and distribution-verified."
+    }
+  ],
+  "implementedBehavior": [
+    "Persisted and candidate lock fork IDs are supplied to inventory on every update apply, so project-owned fork report ownership remains recognized on unrelated later updates.",
+    "Runtime lock loading rejects unknown fields, malformed source identity and timestamps, unsupported scopes, invalid policy or ownership combinations, malformed fork contracts, duplicate references, invalid digests and paths, and unresolved or self references before plan or apply mutation.",
+    "Update dispatch accepts only the explicit valued options project, mode, skills, assets, and selection-file plus the dry-run, apply, accept-risk, and json flags; unknown options and positional arguments fail closed before mode defaulting.",
+    "Fork apply copies the complete local package first, journals the complete canonical package directory, removes it, and rebuilds every canonical package member from upstream; rollback restores the directory digest exactly and removes transaction-created fork outputs.",
+    "The approved project guide remains unchanged while reports/project-guide.json is rebound to current guide and Project Understanding evidence; a repository test now enforces all three hashes, and the documentation-plan sequence contradiction is corrected."
+  ],
+  "workflowState": {
+    "advanced": false,
+    "currentStep": 12,
+    "lastCompletedStep": 11,
+    "lastSequence": 46,
+    "untouchedByStep012": [
+      "reports/current-execution-state.json",
+      "reports/current-execution-state.md",
+      "reports/execution-log.jsonl"
+    ]
+  },
+  "step012ReviewReadiness": "ready"
+}

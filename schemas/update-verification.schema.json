@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.dev/schemas/update-verification.schema.json",
+  "title": "Project Update Verification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "verifiedAt", "status", "mode", "planDigest", "selectionDigest", "lockDigest", "checks"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "verifiedAt": { "type": "string", "format": "date-time" },
+    "status": { "const": "passed" },
+    "mode": { "enum": ["all", "additive", "select"] },
+    "planDigest": { "$ref": "#/$defs/sha256" },
+    "selectionDigest": { "$ref": "#/$defs/sha256" },
+    "lockDigest": { "$ref": "#/$defs/sha256" },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectedAssets", "dependenciesOrdered", "pinsCompatible", "forksVerified", "manifestLockConsistent", "legacySkillsRemoved", "legacyMigrated", "projectFilesPreserved"],
+      "properties": {
+        "selectedAssets": { "type": "integer", "minimum": 0 },
+        "dependenciesOrdered": { "const": true },
+        "pinsCompatible": { "const": true },
+        "forksVerified": { "const": true },
+        "manifestLockConsistent": { "const": true },
+        "legacySkillsRemoved": { "type": "boolean" },
+        "legacyMigrated": { "type": "boolean" },
+        "projectFilesPreserved": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

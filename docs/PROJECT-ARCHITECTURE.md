@@ -137,3 +137,20 @@ flowchart LR
 - This architecture turns repository context into a governed operating model, where AI recommendations are guided by policy, validation, and human approval instead of uncontrolled autonomous action.
 - The flow is intentionally clear: users request work in the experience layer, the intelligence layer reasons over repository context, and the orchestration layer coordinates policy-controlled execution.
 - The result is measurable business value—faster onboarding, lower operational risk, stronger compliance, and faster delivery—without sacrificing auditability or decision control.
+
+### Update Safety Boundary
+
+The Launch Pad and generated projects use separate update paths:
+
+- **Launch Pad:** Git remains authoritative. An explicitly approved fetch is inspected for trusted
+    commits, diffs, dependency metadata, and release notes; integration uses the normal protected Git
+    workflow, followed by `npm run check`. The runtime performs no hidden Git operation.
+- **Generated project:** `pso update` computes a portable safe-all, additive, or selective plan from
+    manifest 1.1 and lock 1.0 baselines. Selectors close over skill dependencies; digest-bound selection
+    files carry `track`/`pin`/`fork` policies and exact `keep`/`replace`/`fork`/`remove` resolutions.
+- **Mutation boundary:** only `--apply --accept-risk` enters the locked transaction. The runtime
+    rechecks freshness, backs up every target, applies in dependency order, verifies the candidate, and
+    retains the new manifest/lock only on success. Exact force is per-path replacement, never force-all.
+- **Recovery boundary:** automatic rollback handles ordinary failures. After interruption, recovery
+    restores the journaled transaction before any new plan is generated. Legacy manifest 1.0 migrates
+    forward transactionally and cannot be downgraded in place after manifest 1.1/lock 1.0 is retained.

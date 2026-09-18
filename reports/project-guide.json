@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-16T19:42:12.914Z",
+  "generatedAt": "2026-09-18T14:45:00.000Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "22d3144ccf16b8861fe246af7085ff167de4e3ef2859d127279c58807c1351d7",
+    "jsonSha256": "e78d0498cba42faa0e5db1cec4994b15e9edef8d1d2eca417e57616c6134e729",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "9e0aae8ae010330e5f997d5658f71d5582c21976d7efa186a1332d15d5c7de0a"
+    "markdownSha256": "f7ba18ef5febda70df45bb28fc310dc482c1a914d37f06a734f02493cd7350eb"
   },
   "guide": "docs/PROJECT-GUIDE.md",
-  "guideSha256": "fa9c26023ebf65cf463998e7151a7daff6d3fc5d11e6c59a110281584e8d5a88",
+  "guideSha256": "c0b8c5bec3c91fd6f66ef5412ea87e9975bad6e9013fa3e98e459c0074cf82de",
   "claims": [
     {
       "id": "claim-01-azure",

@@ -1,7 +1,23 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-17T16:06:32.296Z",
+  "generatedAt": "2026-09-18T15:02:55.953Z",
   "artifacts": [
+    {
+      "report": "artifacts/project-visual-storytelling/<run-id>/",
+      "producer": "project-visual-storytelling"
+    },
+    {
+      "report": "project-orchestrator.json",
+      "producer": "pso-runtime"
+    },
+    {
+      "report": "project-orchestrator.lock.json",
+      "producer": "pso-runtime"
+    },
+    {
+      "report": "reports/agent-blueprints/<id>.json",
+      "producer": "agent-builder"
+    },
     {
       "report": "reports/agent-builder-plan.json",
       "producer": "agent-builder"
@@ -15,16 +31,16 @@
       "producer": "agent-builder"
     },
     {
-      "report": "reports/agent-blueprints/<id>.json",
-      "producer": "agent-builder"
-    },
-    {
       "report": "reports/architecture-review.json",
       "producer": "architecture-review"
     },
     {
       "report": "reports/architecture-review.md",
       "producer": "architecture-review"
+    },
+    {
+      "report": "reports/artifact-ownership.json",
+      "producer": "skill-inventory"
     },
     {
       "report": "reports/artifact-upgrade-plan.json",
@@ -35,28 +51,8 @@
       "producer": "artifact-upgrade"
     },
     {
-      "report": "reports/azure-audit-findings.json",
-      "producer": "audit-azure-environment"
-    },
-    {
-      "report": "reports/code-audit-findings.json",
-      "producer": "audit-code"
-    },
-    {
-      "report": "reports/gitleaks-scan.json",
-      "producer": "audit-code"
-    },
-    {
       "report": "reports/audit-evidence/*.json",
       "producer": "audit-code"
-    },
-    {
-      "report": "reports/audit-remediation-plan.json",
-      "producer": "audit-plan-remediation"
-    },
-    {
-      "report": "reports/audit-remediation-plan.md",
-      "producer": "audit-plan-remediation"
     },
     {
       "report": "reports/audit-remediation-execution.json",
@@ -67,12 +63,16 @@
       "producer": "audit-remediation"
     },
     {
-      "report": "reports/code-audit-review.json",
-      "producer": "audit-review-findings"
+      "report": "reports/audit-remediation-plan.json",
+      "producer": "audit-plan-remediation"
     },
     {
-      "report": "reports/code-audit-review.md",
-      "producer": "audit-review-findings"
+      "report": "reports/audit-remediation-plan.md",
+      "producer": "audit-plan-remediation"
+    },
+    {
+      "report": "reports/azure-audit-findings.json",
+      "producer": "audit-azure-environment"
     },
     {
       "report": "reports/azure-audit-review.json",
@@ -123,6 +123,54 @@
       "producer": "clarify-the-ask"
     },
     {
+      "report": "reports/code-audit-findings.json",
+      "producer": "audit-code"
+    },
+    {
+      "report": "reports/code-audit-review.json",
+      "producer": "audit-review-findings"
+    },
+    {
+      "report": "reports/code-audit-review.md",
+      "producer": "audit-review-findings"
+    },
+    {
+      "report": "reports/conformance-report.json",
+      "producer": "framework-health-check"
+    },
+    {
+      "report": "reports/conformance-report.md",
+      "producer": "framework-health-check"
+    },
+    {
+      "report": "reports/coordination-state.json",
+      "producer": "multi-agent-coordinator"
+    },
+    {
+      "report": "reports/coordination-state.md",
+      "producer": "multi-agent-coordinator"
+    },
+    {
+      "report": "reports/current-execution-state.json",
+      "producer": "workflow-state-manager"
+    },
+    {
+      "report": "reports/current-execution-state.md",
+      "producer": "workflow-state-manager"
+    },
+    {
+      "report": "reports/current-work-state.json",
+      "producer": "project-handoff"
+    },
+    {
+      "report": "reports/debugging-result.json",
+      "producer": "systematic-debugging"
+    },
+    {
+      "report": "reports/debugging-result.md",
+      "producer": "systematic-debugging"
+    },
+    {
       "report": "reports/dependency-maintenance.json",
       "producer": "dependency-maintenance"
     },
@@ -155,16 +203,16 @@
       "producer": "documentation-builder"
     },
     {
-      "report": "reports/project-guide.json",
-      "producer": "documentation-builder"
-    },
-    {
       "report": "reports/environment-update.json",
       "producer": "environment-update"
     },
     {
       "report": "reports/environment-update.md",
       "producer": "environment-update"
+    },
+    {
+      "report": "reports/execution-log.jsonl",
+      "producer": "workflow-state-manager"
     },
     {
       "report": "reports/framework-health.json",
@@ -175,24 +223,24 @@
       "producer": "framework-health-check"
     },
     {
-      "report": "reports/conformance-report.json",
-      "producer": "framework-health-check"
+      "report": "reports/gitleaks-scan.json",
+      "producer": "audit-code"
     },
     {
-      "report": "reports/conformance-report.md",
-      "producer": "framework-health-check"
+      "report": "reports/knowledge-capture.md",
+      "producer": "project-knowledge-capture"
+    },
+    {
+      "report": "reports/knowledge.json",
+      "producer": "project-knowledge-capture"
     },
     {
       "report": "reports/linkedin-post-draft.md",
       "producer": "linkedin-post"
     },
     {
-      "report": "reports/coordination-state.json",
-      "producer": "multi-agent-coordinator"
-    },
-    {
-      "report": "reports/coordination-state.md",
-      "producer": "multi-agent-coordinator"
+      "report": "reports/policy-decision-log.jsonl",
+      "producer": "policy-engine"
     },
     {
       "report": "reports/policy-evaluation.json",
@@ -203,8 +251,8 @@
       "producer": "policy-engine"
     },
     {
-      "report": "reports/policy-decision-log.jsonl",
-      "producer": "policy-engine"
+      "report": "reports/project-guide.json",
+      "producer": "documentation-builder"
     },
     {
       "report": "reports/project-handoff.json",
@@ -213,18 +261,6 @@
     {
       "report": "reports/project-handoff.md",
       "producer": "project-handoff"
-    },
-    {
-      "report": "reports/current-work-state.json",
-      "producer": "project-handoff"
-    },
-    {
-      "report": "reports/knowledge.json",
-      "producer": "project-knowledge-capture"
-    },
-    {
-      "report": "reports/knowledge-capture.md",
-      "producer": "project-knowledge-capture"
     },
     {
       "report": "reports/project-memory.json",
@@ -243,14 +279,6 @@
       "producer": "project-setup"
     },
     {
-      "report": "reports/workflow-completion.json",
-      "producer": "project-skills-orchestrator"
-    },
-    {
-      "report": "reports/workflow-completion.md",
-      "producer": "project-skills-orchestrator"
-    },
-    {
       "report": "reports/project-status.json",
       "producer": "project-status"
     },
@@ -267,7 +295,31 @@
       "producer": "project-understanding"
     },
     {
+      "report": "reports/project-update-plan.json",
+      "producer": "pso-runtime"
+    },
+    {
+      "report": "reports/project-update-plan.md",
+      "producer": "pso-runtime"
+    },
+    {
+      "report": "reports/project-video/audio/",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/project-video/audio/narration-manifest.json",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/project-video/claims-ledger.json",
+      "producer": "project-video"
+    },
+    {
       "report": "reports/project-video/project-evidence.json",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/project-video/project-video-manifest.json",
       "producer": "project-video"
     },
     {
@@ -279,39 +331,7 @@
       "producer": "project-video"
     },
     {
-      "report": "reports/project-video/claims-ledger.json",
-      "producer": "project-video"
-    },
-    {
       "report": "reports/project-video/script.md",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/project-video-manifest.json",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/voice-samples/voice-samples.json",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/voice-samples/index.html",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/voice-samples/",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/voice-selection.json",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/audio/narration-manifest.json",
-      "producer": "project-video"
-    },
-    {
-      "report": "reports/project-video/audio/",
       "producer": "project-video"
     },
     {
@@ -319,8 +339,28 @@
       "producer": "project-video"
     },
     {
-      "report": "artifacts/project-visual-storytelling/<run-id>/",
-      "producer": "project-visual-storytelling"
+      "report": "reports/project-video/voice-samples/",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/project-video/voice-samples/index.html",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/project-video/voice-samples/voice-samples.json",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/project-video/voice-selection.json",
+      "producer": "project-video"
+    },
+    {
+      "report": "reports/recovery-plan.json",
+      "producer": "workflow-recovery"
+    },
+    {
+      "report": "reports/recovery-plan.md",
+      "producer": "workflow-recovery"
     },
     {
       "report": "reports/regression-test-result.json",
@@ -329,6 +369,14 @@
     {
       "report": "reports/regression-test-result.md",
       "producer": "regression-test-development"
+    },
+    {
+      "report": "reports/scheduler-state.json",
+      "producer": "workflow-scheduler"
+    },
+    {
+      "report": "reports/scheduler-state.md",
+      "producer": "workflow-scheduler"
     },
     {
       "report": "reports/security-review.json",
@@ -347,14 +395,6 @@
       "producer": "skill-dependency-manager"
     },
     {
-      "report": "reports/skill-inventory.json",
-      "producer": "skill-inventory"
-    },
-    {
-      "report": "reports/skill-inventory.md",
-      "producer": "skill-inventory"
-    },
-    {
       "report": "reports/skill-details.json",
       "producer": "skill-inventory"
     },
@@ -363,7 +403,11 @@
       "producer": "skill-inventory"
     },
     {
-      "report": "reports/artifact-ownership.json",
+      "report": "reports/skill-inventory.json",
+      "producer": "skill-inventory"
+    },
+    {
+      "report": "reports/skill-inventory.md",
       "producer": "skill-inventory"
     },
     {
@@ -375,12 +419,16 @@
       "producer": "skill-registry"
     },
     {
-      "report": "reports/debugging-result.json",
-      "producer": "systematic-debugging"
+      "report": "reports/update-verification.json",
+      "producer": "pso-runtime"
     },
     {
-      "report": "reports/debugging-result.md",
-      "producer": "systematic-debugging"
+      "report": "reports/workflow-completion.json",
+      "producer": "project-skills-orchestrator"
+    },
+    {
+      "report": "reports/workflow-completion.md",
+      "producer": "project-skills-orchestrator"
     },
     {
       "report": "reports/workflow-plan.json",
@@ -391,40 +439,12 @@
       "producer": "workflow-planner"
     },
     {
-      "report": "reports/recovery-plan.json",
-      "producer": "workflow-recovery"
-    },
-    {
-      "report": "reports/recovery-plan.md",
-      "producer": "workflow-recovery"
-    },
-    {
-      "report": "reports/scheduler-state.json",
-      "producer": "workflow-scheduler"
-    },
-    {
-      "report": "reports/scheduler-state.md",
-      "producer": "workflow-scheduler"
-    },
-    {
       "report": "reports/workflow-simulation.json",
       "producer": "workflow-simulator"
     },
     {
       "report": "reports/workflow-simulation.md",
       "producer": "workflow-simulator"
-    },
-    {
-      "report": "reports/current-execution-state.json",
-      "producer": "workflow-state-manager"
-    },
-    {
-      "report": "reports/current-execution-state.md",
-      "producer": "workflow-state-manager"
-    },
-    {
-      "report": "reports/execution-log.jsonl",
-      "producer": "workflow-state-manager"
     },
     {
       "report": "reports/workflow-telemetry.json",

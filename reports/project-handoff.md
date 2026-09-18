@@ -2,53 +2,64 @@
 
 ## Current Status
 
-Version 1.1.2 is committed locally at `1444180` and dated September 12, 2026. The prior source hardening is merged to default `main` at `99b9ce6`; protected publication of the 1.1.2 source and report evidence remains pending. P4 release assurance remains blocked, and no GitHub Release or package is authorized.
+`WF-SAFE-PROJECT-UPDATE-20260917` completed all 14 steps. `STEP-014` is the last completed step and sequence 49 is the latest accepted event. The validated candidate remains **waiting approval** for a separate local commit.
 
-## Planned Initiative: Live Chat Interaction
+The provenance-safe updater implementation is complete and independently reviewed with no remaining findings. A 37-file candidate is unstaged and uncommitted on `release/1.1.2` at `ad3e73cb19a645bccdedfc0ffa781976d98b31a8`. The local `origin/release/1.1.2` tracking ref remains at that same old commit because no commit, push, fetch, or other network operation occurred.
 
-`LIVE-CHAT-001` is ready for workflow planning, not implementation.
+## Delivered
 
-Objective: let users ask what the application can do, receive guided feature walkthroughs, and continue asking grounded questions by text or voice.
+- Manifest 1.1 and lock 1.0 with normalized per-asset provenance.
+- `all`, `additive`, and `select` planning with dependency and generated-companion closure.
+- `track`, `pin`, and `fork` policies with `keep`, `replace`, `fork`, and `remove` dispositions.
+- Exact, reviewed force behavior with no force-all option.
+- Transactional apply, exact rollback, and journaled recovery, including interruption handling.
+- Conservative legacy migration, fail-closed validation, security hardening, and synchronized operator documentation.
 
-The first version should provide:
+The compatibility defect that accepted a manifest requiring a newer minimum updater runtime was fixed. Newer requirements now fail closed, while older compatible minimums remain accepted.
 
-- A visible assistant entry point with text input, microphone control, transcript review, and optional spoken responses.
-- Deterministic capability cards and guided walkthroughs.
-- Model-backed freeform Q&A grounded in approved product documentation, with source links and explicit unknowns.
-- Read-only behavior by default and explicit confirmation before any future action.
-- Text-only and guided-only fallback when model or Speech services are unavailable.
+## Validation
 
-## Architecture And Safety Constraints
+The bounded review found five defects. All five were repaired with focused red-green coverage for persisted fork recognition, runtime lock validation, unknown option rejection, exact fork restoration and rollback, and documentation evidence consistency. The independent rerun then reported no findings.
 
-- Prototype in `C:\repos\skills-orchestrator-demo`, then generalize the capability into the product.
-- Use only discovery-approved Azure Government model and Speech services.
-- Run Azure discovery before selecting region, model, quota, Speech resource, or deployment topology.
-- Keep credentials out of the browser and use a server-side managed-identity boundary for deployed access.
-- Treat retrieval and model output as untrusted; address prompt injection, unsupported claims, data leakage, and excessive agency.
-- Require clear microphone and transcript privacy notice before cloud processing.
-- This record authorizes no implementation, Azure mutation, cost, deployment, publication, commit, or push.
+The full `npm run check` gate completed 173 tests: 172 passed, 0 failed, and 1 expected skip. Security scanned 274 files, release verification checksum-verified 183 files, and all 47 skills were inventoried, audited, and distribution-verified.
 
-## Acceptance Direction
+## Candidate Boundary
 
-- Users can discover capabilities without knowing commands.
-- A user can complete a guided walkthrough and ask contextual follow-up questions.
-- Voice UX covers listening, transcript correction, cancellation, denied permission, and unavailable-service states.
-- Answers cite authoritative product sources, distinguish unknowns, and do not invent capabilities.
-- Keyboard, screen-reader, reduced-motion, responsive, and text-only use remain functional.
-- Security, privacy, quality, latency, cost, and failure-mode evidence pass before deployment approval.
+The implementation boundary contains 37 files. Nothing is staged, committed, or pushed. The exact path list is recorded in `reports/project-handoff.json`. STEP-014 continuity and terminal state reports are recorded separately; all changes remain unstaged and uncommitted.
 
-## Open Decisions
+## Preserved Lineage
 
-- Available Azure Government model and Speech options by subscription and region.
-- Authoritative grounding corpus and refresh/version policy.
-- Spoken-response default and transcript retention policy.
-- Demo and production thresholds for latency, quality, accessibility, and cost.
-- Whether the first prototype is informational only or can propose separately confirmed actions.
+P4 release assurance remains historical blocked lineage. Trusted signing, distinct independent review, restricted artifact distribution, installation-health evidence, tested revocation, and production verification remain incomplete; this workflow neither completes nor cancels that work.
 
-## Existing Blockers
+`LIVE-CHAT-001` remains a separate planning-required initiative. It has not been implemented, and no Azure discovery, Azure resource operation, deployment, or cloud processing occurred.
 
-P4 still lacks trusted signing, a distinct independent reviewer, restricted artifact distribution, installation-health evidence, tested revocation, and production verification. Live Chat also lacks an approved implementation plan and current Azure Government availability, privacy, quota, cost, and data-boundary evidence.
+## Pending Approvals
 
-## Resume Point
+The first pending approval is creating the local commit `feat: add provenance-safe project updates`. Push is separately gated and is not included. Pull request, merge, release, publication, deployment, Azure work, and other external mutation each require later explicit approval.
 
-Run `workflow-planner` to create a non-executing plan for `LIVE-CHAT-001`, covering the demo prototype, reusable architecture, Azure Government discovery, threat model, grounding, voice and text UX, accessibility, evaluation, cost, rollout, rollback, and approval gates. Do not implement, provision, deploy, publish, commit, or push during planning.
+## Next Eligible Action
+
+Exactly one action is eligible: the operator explicitly approves creating the local commit `feat: add provenance-safe project updates` after reviewing the 37-file candidate and current validation evidence.
+
+## Evidence
+
+- `reports/current-execution-state.json`
+- `reports/current-execution-state.md`
+- `reports/execution-log.jsonl`
+- `reports/workflow-plan.json`
+- `reports/artifact-upgrade-plan.json`
+- `reports/artifact-upgrade-report.md`
+- `reports/regression-test-result.json`
+- `reports/regression-test-result.md`
+- `reports/change-review.json`
+- `reports/change-review.md`
+- `reports/skill-dependency-graph.json`
+- `reports/skill-dependency-report.md`
+- `reports/documentation-plan.json`
+- `reports/documentation-plan.md`
+- `reports/security-check.json`
+- `pso.mjs`
+- `tests/adoption-rerun.test.mjs`
+- `tests/documentation-builder.test.mjs`
+- `tests/security-fuzz.test.mjs`
+- `tests/skill-contracts.test.mjs`

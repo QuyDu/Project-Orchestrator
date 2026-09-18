@@ -459,6 +459,58 @@ test("project video is a portable narrated MP4 capability", async () => {
 
   const scaffold = JSON.parse(await readFile(path.join(root, "templates", "scaffold-manifest.json"), "utf8"));
   assert.equal(scaffold.templates.find((item) => item.path === ".github/prompts/project-video.prompt.md"), undefined);
+
+  const orchestratorManifestSchema = JSON.parse(await readFile(path.join(root, "schemas", "project-orchestrator-manifest.schema.json"), "utf8"));
+  assert.equal(orchestratorManifestSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.deepEqual(orchestratorManifestSchema.properties.schemaVersion.enum, ["1.0.0", "1.1.0"]);
+  assert.ok(orchestratorManifestSchema.allOf[0].then.required.includes("lockPath"));
+  assert.equal(orchestratorManifestSchema.properties.minimumUpdaterRuntimeVersion.pattern, "^\\d+\\.\\d+\\.\\d+$");
+
+  const orchestratorLockSchema = JSON.parse(await readFile(path.join(root, "schemas", "project-orchestrator-lock.schema.json"), "utf8"));
+  assert.equal(orchestratorLockSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(orchestratorLockSchema.properties.schemaVersion.const, "1.0.0");
+  assert.equal(orchestratorLockSchema.properties.entries.items.additionalProperties, false);
+  assert.deepEqual(orchestratorLockSchema.properties.entries.items.properties.ownership.enum, ["framework", "project-owned"]);
+  assert.deepEqual(orchestratorLockSchema.properties.entries.items.properties.policy.enum, ["track", "pin", "fork"]);
+  assert.ok(orchestratorLockSchema.properties.entries.items.allOf.some((rule) => rule.if?.properties?.policy?.const === "fork"));
+
+  const updatePlanSchema = JSON.parse(await readFile(path.join(root, "schemas", "project-update-plan.schema.json"), "utf8"));
+  assert.equal(updatePlanSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(updatePlanSchema.additionalProperties, false);
+  assert.equal(updatePlanSchema.properties.schemaVersion.const, "1.0.0");
+  assert.deepEqual(updatePlanSchema.properties.requestedMode.enum, ["all", "additive", "select"]);
+  assert.equal(updatePlanSchema.properties.assets.items.additionalProperties, false);
+  assert.ok(updatePlanSchema.properties.assets.items.required.includes("baselineAction"));
+  assert.ok(updatePlanSchema.properties.assets.items.required.includes("force"));
+  assert.ok(updatePlanSchema.properties.assets.items.required.includes("fork"));
+  assert.ok(updatePlanSchema.$defs.policyChange.allOf.some((rule) => rule.if?.properties?.policy?.const === "fork"));
+  assert.ok(updatePlanSchema.$defs.resolution.allOf.some((rule) => rule.if?.properties?.disposition?.const === "fork"));
+  assert.ok(updatePlanSchema.$defs.resolution.properties.disposition.enum.includes("remove"));
+  assert.equal(updatePlanSchema.properties.planDigest.pattern, "^[a-f0-9]{64}$");
+
+  const updateSelectionSchema = JSON.parse(await readFile(path.join(root, "schemas", "project-update-selection.schema.json"), "utf8"));
+  assert.equal(updateSelectionSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(updateSelectionSchema.additionalProperties, false);
+  assert.equal(updateSelectionSchema.properties.schemaVersion.const, "1.0.0");
+  assert.equal(updateSelectionSchema.properties.selectors.additionalProperties, false);
+  assert.equal(updateSelectionSchema.properties.expectedPlanDigest.pattern, "^[a-f0-9]{64}$");
+  assert.ok(updateSelectionSchema.$defs.target.required.includes("installedSource"));
+  assert.ok(updateSelectionSchema.properties.policyChanges.items.allOf.some((rule) => rule.if?.properties?.policy?.const === "fork"));
+  assert.ok(updateSelectionSchema.properties.resolutions.items.allOf.some((rule) => rule.if?.properties?.disposition?.const === "fork"));
+  assert.ok(updateSelectionSchema.properties.resolutions.items.properties.disposition.enum.includes("remove"));
+  assert.match(updateSelectionSchema.$defs.exactPath.pattern, /[*?]/);
+
+  const updateVerificationSchema = JSON.parse(await readFile(path.join(root, "schemas", "update-verification.schema.json"), "utf8"));
+  assert.equal(updateVerificationSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(updateVerificationSchema.additionalProperties, false);
+  assert.equal(updateVerificationSchema.properties.schemaVersion.const, "1.0.0");
+  assert.equal(updateVerificationSchema.properties.status.const, "passed");
+  assert.equal(updateVerificationSchema.properties.lockDigest.$ref, "#/$defs/sha256");
+  assert.equal(updateVerificationSchema.$defs.sha256.pattern, "^[a-f0-9]{64}$");
+  assert.equal(updateVerificationSchema.properties.checks.additionalProperties, false);
+  assert.equal(updateVerificationSchema.properties.checks.properties.manifestLockConsistent.const, true);
+  assert.equal(updateVerificationSchema.properties.checks.properties.legacySkillsRemoved.type, "boolean");
+  assert.equal(updateVerificationSchema.properties.checks.properties.legacyMigrated.type, "boolean");
 });
 
 test("skill authoring has distinct create and update owners", async () => {

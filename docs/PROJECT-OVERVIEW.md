@@ -207,7 +207,7 @@ The default project configuration requires approval for:
 
 Individual skills add narrower gates. For example, Agent Builder requires direct approval around purchases, commitments, messages, account or permission changes, sensitive disclosure, and destructive actions.
 
-### Transactional project adoption
+### Transactional project adoption and update
 
 Before adoption mutates a repository, it:
 
@@ -222,7 +222,11 @@ Before adoption mutates a repository, it:
 9. verifies the installed framework;
 10. automatically restores prior state if application or verification fails.
 
-An interrupted transaction can be recovered with the `recover` command after confirming the recorded process is no longer active.
+Generated-project update adds a three-way digest classification over the installed baseline, local
+content, and current upstream content. Planning is mutation-free; apply revalidates the selected
+target, plan digest, selection file, baseline lock, and destination state before journaled writes.
+An interrupted adoption or update transaction can be recovered with the `recover` command after
+confirming the recorded process is no longer active.
 
 ### Preservation of project-owned work
 
@@ -378,21 +382,45 @@ Clone and adoption occur in a unique sibling staging directory. The final destin
 
 ## Update a Standalone Project
 
-Preview the update:
+The Launch Pad itself stays Git-native: explicitly approve `git fetch`, inspect the trusted target,
+diff, and release manifest, integrate through normal protected Git, run `npm ci` only when dependency
+metadata changed, and finish with `npm run check`. The runtime never hides a fetch, merge, reset,
+rebase, commit, push, deployment, or publication.
+
+For a generated or adopted project, preview a safe-all update:
 
 ```powershell
-node .\pso.mjs update --project "C:\repos\ExistingProject" --dry-run
+node .\pso.mjs update --project "C:\repos\ExistingProject" --mode all --dry-run
 ```
 
-Apply it after review:
+Use `additive` for absent selected content plus dependency closure, or `select` with comma-separated
+skill IDs, exact managed asset paths, interactive prompts, or a selection file. Selection files bind
+the exact target and `planDigest`, persist `track`, `pin`, or `fork` policy, and resolve conflicts with
+`keep`, `replace`, `fork`, or eligible `remove` decisions.
+
+Apply an accepted exact selection only after review:
 
 ```powershell
-node .\pso.mjs update --project "C:\repos\ExistingProject" --accept-risk
+node .\pso.mjs update `
+  --project "C:\repos\ExistingProject" `
+  --mode select `
+  --selection-file ".\update-selection.json" `
+  --apply `
+  --accept-risk
 ```
 
-Update refreshes copied framework skills, schemas, configuration, and missing scaffold assets while preserving application code, reports, and project-owned instruction customizations.
+Safe-all is not force-all. Exact force requires one exact selected asset, a matching `replace`
+resolution, a current plan, and risk acceptance. Unknown legacy and diverged managed content is
+preserved until explicitly resolved; unmanaged application files, unrelated reports, and retained
+project-owned assets remain outside replacement.
 
-## Recover an Interrupted Adoption
+Apply creates transaction backups, updates in dependency order, verifies the candidate, and records
+`reports/project-update-plan.json`, `reports/project-update-plan.md`, and
+`reports/update-verification.json`. A successful legacy migration writes manifest 1.1 and lock 1.0
+together; older runtimes cannot downgrade that pair in place. Recover an interrupted transaction
+before replanning.
+
+## Recover an Interrupted Transaction
 
 ```powershell
 node .\pso.mjs recover `

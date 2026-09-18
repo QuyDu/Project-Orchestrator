@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.dev/schemas/project-update-plan.schema.json",
+  "title": "Project Orchestrator Update Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "requestedMode", "source", "target", "selectors", "selectionDigest", "selection", "assets", "conflicts", "warnings", "counts", "canApply", "planDigest"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "requestedMode": { "enum": ["all", "additive", "select"] },
+    "source": { "$ref": "#/$defs/source" },
+    "target": { "$ref": "#/$defs/target" },
+    "selectors": { "$ref": "#/$defs/selectors" },
+    "selectionDigest": { "$ref": "#/$defs/sha256" },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["explicit", "implicit", "policyChanges", "resolutions", "exactForcePaths"],
+      "properties": {
+        "explicit": { "$ref": "#/$defs/selectors" },
+        "implicit": { "$ref": "#/$defs/selectors" },
+        "policyChanges": { "type": "array", "items": { "$ref": "#/$defs/policyChange" } },
+        "resolutions": { "type": "array", "items": { "$ref": "#/$defs/resolution" } },
+        "exactForcePaths": { "type": "array", "items": { "$ref": "#/$defs/exactPath" }, "uniqueItems": true }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetId", "path", "scope", "baseDigest", "localDigest", "upstreamDigest", "classification", "currentPolicy", "policy", "proposedAction", "baselineAction", "ownershipDisposition", "resolution", "fork", "force", "destinationPrecondition", "selection", "dependencies", "generatedCompanions"],
+        "properties": {
+          "assetId": { "type": "string", "pattern": "^managed:" },
+          "path": { "$ref": "#/$defs/path" },
+          "scope": { "type": "string", "minLength": 1 },
+          "baseDigest": { "$ref": "#/$defs/nullableSha256" },
+          "localDigest": { "$ref": "#/$defs/nullableSha256" },
+          "upstreamDigest": { "$ref": "#/$defs/nullableSha256" },
+          "classification": { "enum": ["current", "upstream-only", "local-only", "converged", "diverged", "new-upstream", "project-local", "legacy-equivalent", "legacy-unknown", "locally-deleted", "upstream-removed", "removed-both-sides", "malformed-region-state"] },
+          "currentPolicy": { "enum": ["track", "pin", "fork"] },
+          "policy": { "enum": ["track", "pin", "fork"] },
+          "proposedAction": { "enum": ["none", "create", "replace", "fork", "delete", "resolve", "blocked"] },
+          "baselineAction": { "enum": ["preserve", "establish-after-verification", "advance-after-verification", "remove-after-verification"] },
+          "ownershipDisposition": { "enum": ["framework", "project-owned"] },
+          "resolution": { "anyOf": [{ "$ref": "#/$defs/resolution" }, { "type": "null" }] },
+          "fork": { "anyOf": [{ "$ref": "#/$defs/fork" }, { "type": "null" }] },
+          "force": { "type": "boolean" },
+          "destinationPrecondition": { "type": "string", "minLength": 1 },
+          "selection": { "enum": ["explicit", "implicit"] },
+          "dependencies": { "type": "array", "items": { "type": "string", "pattern": "^managed:" }, "uniqueItems": true },
+          "generatedCompanions": { "type": "array", "items": { "type": "string", "pattern": "^managed:" }, "uniqueItems": true }
+        }
+      }
+    },
+    "conflicts": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+    "warnings": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+    "counts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "canApply": { "type": "boolean" },
+    "planDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nullableSha256": { "anyOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+    "path": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\r\\n]+$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frameworkVersion", "runtimeVersion", "installedSource", "lockDigest"],
+      "properties": {
+        "frameworkVersion": { "$ref": "#/$defs/version" },
+        "runtimeVersion": { "$ref": "#/$defs/version" },
+        "installedSource": { "$ref": "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" },
+        "lockDigest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectName", "frameworkVersion", "runtimeVersion", "installedSource"],
+      "properties": {
+        "projectName": { "type": "string", "minLength": 1 },
+        "frameworkVersion": { "$ref": "#/$defs/version" },
+        "runtimeVersion": { "$ref": "#/$defs/version" },
+        "installedSource": { "$ref": "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" }
+      }
+    },
+    "selectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skills", "assets"],
+      "properties": {
+        "skills": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "assets": { "type": "array", "items": { "$ref": "#/$defs/exactPath" }, "uniqueItems": true }
+      }
+    },
+    "policyChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "policy"],
+      "properties": {
+        "asset": { "$ref": "#/$defs/exactPath" },
+        "policy": { "enum": ["track", "pin", "fork"] },
+        "forkSkillId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" }
+      },
+      "allOf": [
+        { "if": { "properties": { "policy": { "const": "fork" } }, "required": ["policy"] }, "then": { "required": ["forkSkillId"] }, "else": { "not": { "required": ["forkSkillId"] } } }
+      ]
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "disposition"],
+      "properties": {
+        "asset": { "$ref": "#/$defs/exactPath" },
+        "disposition": { "enum": ["keep", "replace", "fork", "remove"] },
+        "forkSkillId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" }
+      },
+      "allOf": [
+        { "if": { "properties": { "disposition": { "const": "fork" } }, "required": ["disposition"] }, "then": { "required": ["forkSkillId"] }, "else": { "not": { "required": ["forkSkillId"] } } }
+      ]
+    },
+    "fork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceSkillId", "forkSkillId", "sourcePath", "destinationPath", "localAssets"],
+      "properties": {
+        "sourceSkillId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+        "forkSkillId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+        "sourcePath": { "$ref": "#/$defs/path" },
+        "destinationPath": { "$ref": "#/$defs/path" },
+        "localAssets": { "type": "array", "items": { "$ref": "#/$defs/path" }, "minItems": 1, "uniqueItems": true }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]+$" },
+        "asset": { "$ref": "#/$defs/path" },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    },
+    "exactPath": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\*\\?\\[\\]{}!])(?!.*\\/$)[^\\r\\n]+$" }
+  }
+}

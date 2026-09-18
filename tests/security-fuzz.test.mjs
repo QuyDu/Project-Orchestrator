@@ -54,6 +54,208 @@ test("configuration parser fails closed for adversarial structured inputs", asyn
   }
 });
 
+test("update selection rejects unknown fields, duplicates, and unsafe exact paths", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-selection-fuzz-"));
+  try {
+    const created = run("create-project", "--name", "Selection Fuzz", "--destination", parent, "--accept-risk");
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "selection-fuzz");
+    const selectionPath = path.join(parent, "selection.json");
+    const target = { projectName: "selection-fuzz", frameworkVersion: "9.0.0", runtimeVersion: "1.1.2" };
+    const invalidSelections = [
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: [], extra: true } },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: ["workflow-planner", "workflow-planner"], assets: [] } },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: ["schemas/x.json", "SCHEMAS/X.JSON"] } },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: ["../outside.txt"] } },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: ["C:/outside.txt"] } },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: [] }, resolutions: [{ asset: "schemas/x.json", disposition: "keep" }, { asset: "schemas/x.json", disposition: "replace" }] },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: ["schemas/*.json"] }, exactForcePaths: ["schemas/*.json"] },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: ["schemas/"] }, exactForcePaths: ["schemas/"] },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: ["azure-discovery"], assets: [] }, resolutions: [{ asset: ".github/skills/azure-discovery/SKILL.md", disposition: "fork" }] },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: ["azure-discovery"], assets: [] }, resolutions: [{ asset: ".github/skills/azure-discovery/SKILL.md", disposition: "keep", forkSkillId: "unexpected-fork" }] },
+      { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: ["schemas/project-update-plan.schema.json"] }, resolutions: [{ asset: "schemas/project-update-plan.schema.json", disposition: "fork", forkSkillId: "not-a-skill" }] }
+    ];
+    for (const selection of invalidSelections) {
+      await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+      const result = run("update", "--project", project, "--mode", "select", "--selection-file", selectionPath);
+      assert.notEqual(result.status, 0, `selection unexpectedly accepted: ${JSON.stringify(selection)}`);
+      assert.match(`${result.stdout}${result.stderr}`, /Error:/);
+      const applied = run("update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk");
+      assert.notEqual(applied.status, 0, `selection unexpectedly applied: ${JSON.stringify(selection)}`);
+      assert.match(`${applied.stdout}${applied.stderr}`, /Error:/);
+      assert.equal(existsSync(path.join(project, "reports", "update-verification.json")), false);
+    }
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update rejects malformed, unsupported, and colliding manifest-lock baselines", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-baseline-fuzz-"));
+  try {
+    const created = run("create-project", "--name", "Baseline Fuzz", "--destination", parent, "--accept-risk");
+    assert.equal(created.status, 0, created.stderr);
+    const source = path.join(parent, "baseline-fuzz");
+    const originalManifest = JSON.parse(await readFile(path.join(source, "project-orchestrator.json"), "utf8"));
+    const originalLock = JSON.parse(await readFile(path.join(source, "project-orchestrator.lock.json"), "utf8"));
+    const forkContractPath = ".github/skills/azure-discovery/SKILL.md";
+    const legacyManifest = { ...originalManifest, schemaVersion: "1.0.0" };
+    for (const field of ["lockPath", "lockSchemaVersion", "digestAlgorithm", "installedSource", "minimumUpdaterRuntimeVersion", "lastSuccessfulReconciliation"]) {
+      delete legacyManifest[field];
+    }
+    const cases = [
+      ["manifest 1.1 missing lock", originalManifest, null, /manifest 1\.1 requires a valid lock.*restore both files.*downgrade/is],
+      ["manifest 1.0 interrupted cutover", legacyManifest, originalLock, /manifest 1\.0 must not have a 1\.1 baseline lock.*pre-migration pair/is],
+      ["unsupported old manifest", { ...originalManifest, schemaVersion: "0.9.0" }, originalLock, /Unsupported manifest schemaVersion: 0\.9\.0.*compatible updater.*prior manifest and lock pair/is],
+      ["unsupported new manifest", { ...originalManifest, schemaVersion: "2.0.0" }, originalLock, /Unsupported manifest schemaVersion: 2\.0\.0.*compatible updater.*prior manifest and lock pair/is],
+      ["unsupported old lock", originalManifest, { ...originalLock, schemaVersion: "0.9.0" }, /Unsupported lock schemaVersion: 0\.9\.0.*compatible updater.*prior manifest and lock pair/is],
+      ["unsupported new lock", originalManifest, { ...originalLock, schemaVersion: "2.0.0" }, /Unsupported lock schemaVersion: 2\.0\.0.*compatible updater.*prior manifest and lock pair/is],
+      ["malformed minimum updater", { ...originalManifest, minimumUpdaterRuntimeVersion: "latest" }, originalLock, /valid minimumUpdaterRuntimeVersion/i],
+      ["newer minimum updater", { ...originalManifest, minimumUpdaterRuntimeVersion: "99.0.0" }, originalLock, /updater runtime 1\.1\.2 is older than required minimum 99\.0\.0.*compatible updater.*downgrade/is],
+      ["duplicate IDs", originalManifest, { ...originalLock, entries: [originalLock.entries[0], { ...originalLock.entries[1], assetId: originalLock.entries[0].assetId }] }, /duplicate asset IDs/i],
+      ["duplicate paths", originalManifest, { ...originalLock, entries: [originalLock.entries[0], { ...originalLock.entries[0] }] }, /Duplicate baseline path/i],
+      ["case-colliding paths", originalManifest, { ...originalLock, entries: [originalLock.entries[0], { ...originalLock.entries[1], assetId: `managed:${originalLock.entries[0].path.toUpperCase()}`, path: originalLock.entries[0].path.toUpperCase() }] }, /Case-collision baseline paths/i],
+      ["path alias", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], assetId: "managed:schemas\\alias.json", path: "schemas\\alias.json" }] }, /baseline path is not canonical/i],
+      ["unsafe path", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], assetId: "managed:../outside", path: "../outside" }] }, /Unsafe managed path/i],
+      ["unresolved dependency", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], dependencies: ["managed:missing"] }] }, /reference.*does not resolve/i],
+      ["unknown entry field", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], unexpected: true }] }, /unknown.*baseline lock entry.*unexpected/i],
+      ["unknown policy", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], policy: "freeze" }] }, /invalid update baseline policy/i],
+      ["arbitrary scope", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], scope: "operator-invented" }] }, /invalid update baseline scope/i],
+      ["mismatched generated scope", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], scope: "scaffold:prompt" }] }, /invalid update baseline scope/i],
+      ["inconsistent ownership", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], ownership: "project-owned", policy: "track" }] }, /ownership.*policy/i],
+      ["duplicate dependencies", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], dependencies: [originalLock.entries[1].assetId, originalLock.entries[1].assetId] }] }, /duplicate.*dependencies/i],
+      ["duplicate companions", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], generatedCompanions: [originalLock.entries[1].assetId, originalLock.entries[1].assetId] }] }, /duplicate.*generatedCompanions/i],
+      ["fork on non-contract", originalManifest, { ...originalLock, entries: [{ ...originalLock.entries[0], policy: "fork", forkSkillId: "project-copy" }] }, /fork policy.*skill contract/i],
+      ["missing fork reference", originalManifest, { ...originalLock, entries: originalLock.entries.map((entry) => entry.path === forkContractPath ? { ...entry, policy: "fork", forkSkillId: "project-missing" } : entry) }, /fork reference.*valid project-owned skill/i],
+      ["framework fork reference", originalManifest, { ...originalLock, entries: originalLock.entries.map((entry) => entry.path === forkContractPath ? { ...entry, policy: "fork", forkSkillId: "workflow-planner" } : entry) }, /fork reference.*valid project-owned skill/i]
+    ];
+    for (const [name, manifest, lock, expected] of cases) {
+      const project = path.join(parent, name.replaceAll(" ", "-"));
+      await mkdir(project, { recursive: true });
+      await writeFile(path.join(project, "package.json"), "{\"name\":\"baseline-case\"}\n", "utf8");
+      await writeFile(path.join(project, "project-orchestrator.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+      if (lock) await writeFile(path.join(project, "project-orchestrator.lock.json"), `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+      if (name === "framework fork reference") {
+        const frameworkFork = path.join(project, ".github", "skills", "workflow-planner");
+        await mkdir(frameworkFork, { recursive: true });
+        await writeFile(path.join(frameworkFork, "SKILL.md"), "---\nname: workflow-planner\ndescription: Framework-managed fixture.\n---\n", "utf8");
+      }
+      const watched = ["project-orchestrator.json", "project-orchestrator.lock.json", "reports/project-update-plan.json", "reports/project-update-plan.md"];
+      const before = new Map(await Promise.all(watched.map(async (relative) => [
+        relative,
+        existsSync(path.join(project, relative)) ? await readFile(path.join(project, relative)) : null
+      ])));
+      const result = run("update", "--project", project);
+      assert.notEqual(result.status, 0, name);
+      assert.match(`${result.stdout}${result.stderr}`, expected, name);
+      const applied = run("update", "--project", project, "--apply", "--accept-risk");
+      assert.notEqual(applied.status, 0, `${name} apply`);
+      assert.match(`${applied.stdout}${applied.stderr}`, expected, `${name} apply`);
+      for (const [relative, content] of before) {
+        if (content === null) assert.equal(existsSync(path.join(project, relative)), false, `${name}: ${relative} should remain absent`);
+        else assert.deepEqual(await readFile(path.join(project, relative)), content, `${name}: ${relative} should remain unchanged`);
+      }
+    }
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("manifest 1.1 and lock 1.0 accept an older compatible minimum updater", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-compatible-minimum-"));
+  try {
+    const created = run("create-project", "--name", "Compatible Minimum", "--destination", parent, "--accept-risk");
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "compatible-minimum");
+    const manifestPath = path.join(project, "project-orchestrator.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.minimumUpdaterRuntimeVersion = "1.0.0";
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+
+    const result = run("update", "--project", project, "--json");
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(JSON.parse(result.stdout).source.runtimeVersion, manifest.runtimeVersion);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update rejects a managed asset directory link escaping the project", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-link-"));
+  const outside = await mkdtemp(path.join(os.tmpdir(), "pso-update-link-outside-"));
+  try {
+    const created = run("create-project", "--name", "Update Link", "--destination", parent, "--accept-risk");
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "update-link");
+    const linkedSkill = path.join(project, ".github", "skills", "azure-discovery");
+    await rm(linkedSkill, { recursive: true, force: true });
+    await symlink(outside, linkedSkill, process.platform === "win32" ? "junction" : "dir");
+    const result = run("update", "--project", project);
+    assert.notEqual(result.status, 0);
+    assert.match(`${result.stdout}${result.stderr}`, /Unsafe symbolic link in managed path/i);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
+});
+
+test("exact force requires one selected replace resolution, fresh plan evidence, and risk acceptance", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-force-fuzz-"));
+  try {
+    const created = run("create-project", "--name", "Force Fuzz", "--destination", parent, "--accept-risk");
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "force-fuzz");
+    const asset = "schemas/project-update-plan.schema.json";
+    const assetPath = path.join(project, asset);
+    await writeFile(assetPath, "locally diverged\n", "utf8");
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    lock.entries.find((entry) => entry.path === asset).normalizedBaseDigest = "0".repeat(64);
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const initial = run("update", "--project", project, "--mode", "select", "--assets", asset, "--json");
+    assert.equal(initial.status, 0, initial.stderr);
+    const plan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    const selection = {
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: plan.planDigest,
+      target: plan.target,
+      selectors: { skills: [], assets: [asset] },
+      policyChanges: [],
+      resolutions: [{ asset, disposition: "replace" }],
+      exactForcePaths: [asset]
+    };
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const noRisk = run("update", "--project", project, "--mode", "select", "--selection-file", selectionPath);
+    assert.notEqual(noRisk.status, 0);
+    assert.match(`${noRisk.stdout}${noRisk.stderr}`, /accept-risk/i);
+
+    selection.resolutions = [{ asset, disposition: "keep" }];
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const noReplace = run("update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--accept-risk");
+    assert.notEqual(noReplace.status, 0);
+    assert.match(`${noReplace.stdout}${noReplace.stderr}`, /replace resolution/i);
+
+    selection.resolutions = [{ asset, disposition: "replace" }];
+    selection.expectedPlanDigest = "0".repeat(64);
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const stale = run("update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--accept-risk");
+    assert.notEqual(stale.status, 0);
+    assert.match(`${stale.stdout}${stale.stderr}`, /stale plan digest/i);
+
+    selection.expectedPlanDigest = plan.planDigest;
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const accepted = run("update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--accept-risk", "--json");
+    assert.equal(accepted.status, 0, accepted.stderr);
+    const acceptedPlan = JSON.parse(accepted.stdout);
+    assert.equal(acceptedPlan.canApply, true);
+    assert.equal(acceptedPlan.assets.find((item) => item.path === asset).force, true);
+    assert.equal(await readFile(assetPath, "utf8"), "locally diverged\n");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
 test("recovery rejects traversal, absolute, and device-style journal paths", async () => {
   const unsafePaths = ["../outside.txt", "/tmp/outside.txt", "C:/outside.txt", "backup/../../outside.txt", "CON", "config/NUL.txt"];
   for (const unsafePath of unsafePaths) {

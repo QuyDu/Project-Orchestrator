@@ -1,26 +1,42 @@
 {
   "schemaVersion": "1.0.0",
-  "updatedAt": "2026-09-12T16:09:12.3489569Z",
+  "updatedAt": "2026-09-18T14:48:34.6130241Z",
   "project": {
     "name": "project-skills-orchestrator",
     "version": "1.1.2",
     "branch": "release/1.1.2",
-    "commit": "14441804ecd6d2fcd700c4ecc96cc33a4947a08f",
+    "commit": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
+    "remoteTrackingCommit": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
     "defaultBranch": "main",
     "defaultBranchCommit": "99b9ce663b7be69476655d4c40d77e09ff11c442"
   },
-  "status": "blocked",
+  "status": "waiting-approval",
+  "workflow": {
+    "id": "WF-SAFE-PROJECT-UPDATE-20260917",
+    "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+    "currentStep": 14,
+    "lastCompletedStep": 14,
+    "lastSequence": 49,
+    "eventStateAdvanced": true,
+    "status": "completed"
+  },
   "activeMilestone": {
-    "name": "P4 release assurance",
-    "status": "blocked"
+    "name": "Provenance-safe project updates",
+    "status": "waiting-approval"
   },
   "lastCompletedAction": {
-    "action": "Validate fresh-workspace demo launch after protected source merge and CI security repairs",
+    "stepId": "STEP-013",
+    "action": "Prepare the validated 37-file candidate without staging, committing, pushing, publishing, releasing, or deploying",
     "status": "completed",
-    "completedAt": "2026-09-12T16:09:12.3489569Z",
+    "completedAt": "2026-09-18T14:46:23.5347606Z",
     "evidence": [
-      ".github/prompts/demo-create-project.prompt.md",
-      "tests/skill-contracts.test.mjs",
+      "reports/current-execution-state.json",
+      "reports/execution-log.jsonl",
+      "reports/change-review.json",
+      "reports/regression-test-result.json",
+      "reports/artifact-upgrade-plan.json",
+      "reports/skill-dependency-graph.json",
+      "reports/security-check.json",
       "reports/project-handoff.json"
     ]
   },
@@ -28,30 +44,66 @@
     "id": "LIVE-CHAT-001",
     "name": "Live Chat Interaction",
     "status": "planning-required",
-    "summary": "Hybrid guided and model-backed voice/text assistant, demo-first and reusable, constrained to discovery-approved Azure Government services."
+    "summary": "Separate hybrid guided and model-backed voice/text initiative; not implemented and not authorized by the safe updater workflow."
   },
+  "historicalMilestones": [
+    {
+      "name": "P4 release assurance",
+      "status": "blocked",
+      "historical": true,
+      "summary": "Preserved blocked lineage; not completed or cancelled by the safe updater workflow."
+    }
+  ],
   "validationStatus": {
     "repositoryCheck": "passed",
-    "testsPassed": 134,
+    "testsTotal": 173,
+    "testsPassed": 172,
     "testsFailed": 0,
     "testsSkipped": 1,
-    "skillsVerified": 45,
+    "skillsVerified": 47,
     "securityCheck": "passed",
+    "securityFilesScanned": 274,
     "releaseCandidateVerification": "passed",
-    "note": "The current local gate passed after the demo workspace fix; P4 release assurance and Live Chat implementation remain blocked."
+    "releaseFilesVerified": 183,
+    "review": "passed-no-findings",
+    "reviewDefectsFoundAndFixed": 5,
+    "compatibilityDefectFixed": "minimumUpdaterRuntimeVersion enforcement",
+    "note": "The 37-file safe updater candidate is validated, unstaged, and uncommitted; no Azure work or deployment occurred."
+  },
+  "worktree": {
+    "candidatePathCount": 37,
+    "stagedPaths": 0,
+    "candidateCommitted": false,
+    "candidatePushed": false,
+    "continuityPaths": [
+      "reports/project-handoff.json",
+      "reports/project-handoff.md",
+      "reports/current-work-state.json"
+    ]
   },
   "blockers": [
-    "P4 release assurance remains incomplete.",
-    "LIVE-CHAT-001 lacks an approved workflow plan and current Azure Government service, privacy, cost, quota, and data-boundary evidence."
+    "Creating the local candidate commit requires explicit operator approval."
   ],
   "pendingApprovals": [
-    "Any commit, push, pull request, merge, release, deployment, publication, Azure discovery, resource creation, or other external mutation requires separate approval.",
-    "Live Chat implementation and any Azure Government model or Speech use require later plan and point-of-action approval."
+    "First: explicit operator approval to create local commit feat: add provenance-safe project updates.",
+    "Separately after a local commit: push requires its own approval and is not included in the commit approval.",
+    "Pull request, merge, release, publication, deployment, Azure work, and other external mutation remain separately gated.",
+    "LIVE-CHAT-001 implementation remains planning-gated."
   ],
   "nextAction": {
-    "skill": "workflow-planner",
-    "status": "ready",
-    "action": "Create a non-executing implementation plan for LIVE-CHAT-001 from reports/project-handoff.json."
+    "owner": "operator",
+    "status": "approval-required",
+    "action": "Explicitly approve creating the local commit 'feat: add provenance-safe project updates'.",
+    "excludes": [
+      "push",
+      "pull request",
+      "merge",
+      "release",
+      "publication",
+      "deployment",
+      "Azure work",
+      "network activity"
+    ]
   },
   "handoff": "reports/project-handoff.json"
 }

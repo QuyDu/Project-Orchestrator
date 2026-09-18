@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -13,6 +14,22 @@ const helper = path.join(root, ".github", "skills", "documentation-builder", "sc
 function run(project, script, command) {
   return spawnSync(process.execPath, [script, command, "--root", project], { cwd: root, encoding: "utf8" });
 }
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+test("repository project guide binding matches current guide and understanding evidence", async () => {
+  const report = JSON.parse(await readFile(path.join(root, "reports", "project-guide.json"), "utf8"));
+  const guideSource = await readFile(path.join(root, report.guide), "utf8");
+  const understandingSource = await readFile(path.join(root, report.projectUnderstanding.json), "utf8");
+  const understanding = JSON.parse(understandingSource);
+  const understandingMarkdown = await readFile(path.join(root, report.projectUnderstanding.markdown), "utf8");
+  assert.equal(report.guideSha256, sha256(guideSource));
+  assert.equal(report.projectUnderstanding.jsonSha256, sha256(JSON.stringify(understanding)));
+  assert.equal(report.projectUnderstanding.markdownSha256, understanding.markdownSha256);
+  assert.equal(understanding.markdownSha256, sha256(understandingMarkdown));
+});
 
 test("documentation-builder creates and validates a guide for its target project", async () => {
   const project = await mkdtemp(path.join(os.tmpdir(), "pso-guide-"));

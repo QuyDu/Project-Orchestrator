@@ -53,6 +53,25 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 - **npm run test:gitleaks**: node --test tests/gitleaks-scan.test.mjs
 - **npm run verify**: node pso.mjs verify
 
+### Safe Updates
+
+- Update the Launch Pad with an explicitly approved `git fetch`, trusted-target and release-note
+  inspection, normal protected Git integration, conditional `npm ci` only for changed dependency
+  metadata, and `npm run check`. `pso` does not hide Git mutation or publication.
+- Generated projects use `node .\pso.mjs update --project PATH` for a plan-only safe-all update.
+  `--mode additive` installs absent selected content with dependency closure; `--mode select` accepts
+  comma-separated `--skills`, exact `--assets`, interactive selectors, or `--selection-file`.
+- Selection files bind the target and plan digest and carry `track`, `pin`, or `fork` policies plus
+  exact `keep`, `replace`, `fork`, or eligible `remove` resolutions. Exact force is limited to an
+  exact selected replacement and still requires `--accept-risk`; force-all does not exist.
+- Apply requires both `--apply` and `--accept-risk`, transactionally backs up every target, rejects
+  stale evidence, preserves unmanaged and retained project-owned content, and writes
+  `reports/project-update-plan.json`, `reports/project-update-plan.md`, and
+  `reports/update-verification.json`.
+- Manifest 1.0 migrates forward to manifest 1.1 with lock 1.0 only after verification. Do not
+  downgrade the retained pair in place. Recover interrupted work with
+  `node .\pso.mjs recover --project PATH [--transaction ID]` before replanning.
+
 ## Capabilities
 
 - **Governed skill workflows**: 47 installed skills provide bounded project actions.

@@ -6,11 +6,101 @@ import path from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import test from "node:test";
+import { classifyThreeWayAsset, digestManagedBuffer, digestManagedPath } from "../pso.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const runtime = path.join(root, "pso.mjs");
 const expectedSkillCount = (await readdir(path.join(root, ".github", "skills"), { withFileTypes: true }))
   .filter((entry) => entry.isDirectory()).length;
+const updateReportPaths = [
+  "reports/project-update-plan.json",
+  "reports/project-update-plan.md",
+  "reports/update-verification.json",
+  "reports/artifact-ownership.json",
+  "reports/skill-details.json",
+  "reports/skill-details.md",
+  "reports/skill-inventory.json",
+  "reports/skill-inventory.md"
+];
+const transactionReportPaths = [
+  "reports/adoption-plan.json",
+  "reports/adoption-plan.md",
+  "reports/adoption-verification.json",
+  ...updateReportPaths
+];
+
+async function snapshotFiles(project, relativePaths) {
+  return new Map(await Promise.all(relativePaths.map(async (relative) => [
+    relative,
+    existsSync(path.join(project, relative)) ? await readFile(path.join(project, relative)) : null
+  ])));
+}
+
+async function assertFilesMatchSnapshot(project, snapshot) {
+  for (const [relative, expected] of snapshot) {
+    if (expected === null) assert.equal(existsSync(path.join(project, relative)), false, `${relative} should remain absent`);
+    else assert.deepEqual(await readFile(path.join(project, relative)), expected, `${relative} should be restored byte-for-byte`);
+  }
+}
+
+async function latestTransaction(project) {
+  const transactionRoot = path.join(project, ".skills-orchestrator", "transactions");
+  const transactionId = (await readdir(transactionRoot)).sort().at(-1);
+  const directory = path.join(transactionRoot, transactionId);
+  return { directory, journal: JSON.parse(await readFile(path.join(directory, "journal.json"), "utf8")) };
+}
+
+test("managed digests normalize text while preserving binary bytes, final newlines, paths, and scope", async () => {
+  const normalized = digestManagedBuffer(Buffer.from("\ufeffalpha\r\nbeta\rgamma", "utf8"), { kind: "text", scope: "whole-file" });
+  const canonical = digestManagedBuffer(Buffer.from("alpha\nbeta\ngamma", "utf8"), { kind: "text", scope: "whole-file" });
+  assert.equal(normalized, canonical);
+  assert.notEqual(canonical, digestManagedBuffer(Buffer.from("alpha\nbeta\ngamma\n", "utf8"), { kind: "text", scope: "whole-file" }));
+
+  const binary = Buffer.from([0, 13, 10, 255]);
+  assert.equal(
+    digestManagedBuffer(binary, { kind: "binary", scope: "whole-file" }),
+    createHash("sha256").update(binary).digest("hex")
+  );
+
+  const first = await mkdtemp(path.join(os.tmpdir(), "pso-digest-first-"));
+  const second = await mkdtemp(path.join(os.tmpdir(), "pso-digest-second-"));
+  try {
+    await mkdir(path.join(first, "nested"));
+    await writeFile(path.join(first, "z.txt"), "z\r\n", "utf8");
+    await writeFile(path.join(first, "nested", "a.txt"), "a\r", "utf8");
+    await mkdir(path.join(second, "nested"));
+    await writeFile(path.join(second, "nested", "a.txt"), "a\n", "utf8");
+    await writeFile(path.join(second, "z.txt"), "z\n", "utf8");
+    assert.equal(await digestManagedPath(first, { scope: "skill:test" }), await digestManagedPath(second, { scope: "skill:test" }));
+    assert.notEqual(await digestManagedPath(first, { scope: "skill:test" }), await digestManagedPath(first, { scope: "schema:test" }));
+  } finally {
+    await rm(first, { recursive: true, force: true });
+    await rm(second, { recursive: true, force: true });
+  }
+});
+
+test("three-way classifier covers every base, local, and upstream state", () => {
+  const cases = [
+    ["current", "a", "a", "a"],
+    ["upstream-only", "a", "a", "b"],
+    ["local-only", "a", "b", "a"],
+    ["converged", "a", "b", "b"],
+    ["diverged", "a", "b", "c"],
+    ["new-upstream", null, null, "a"],
+    ["project-local", null, "a", null],
+    ["project-local", null, null, null],
+    ["legacy-equivalent", null, "a", "a"],
+    ["legacy-unknown", null, "a", "b"],
+    ["locally-deleted", "a", null, "a"],
+    ["locally-deleted", "a", null, "b"],
+    ["upstream-removed", "a", "a", null],
+    ["upstream-removed", "a", "b", null],
+    ["removed-both-sides", "a", null, null]
+  ];
+  for (const [expected, baseDigest, localDigest, upstreamDigest] of cases) {
+    assert.equal(classifyThreeWayAsset({ baseDigest, localDigest, upstreamDigest }), expected);
+  }
+});
 
 function runAdoption(project, mode, options = ["--profile", "core"]) {
   const mutationOptions = mode === "--apply" ? ["--accept-risk"] : [];
@@ -20,6 +110,18 @@ function runAdoption(project, mode, options = ["--profile", "core"]) {
   });
   assert.equal(result.status, 0, `${mode} failed:\n${result.stdout}\n${result.stderr}`);
   return `${result.stdout}${result.stderr}`;
+}
+
+async function downgradeToLegacyManifest(project) {
+  const manifestPath = path.join(project, "project-orchestrator.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  for (const field of ["lockPath", "lockSchemaVersion", "digestAlgorithm", "installedSource", "minimumUpdaterRuntimeVersion", "lastSuccessfulReconciliation"]) {
+    delete manifest[field];
+  }
+  manifest.schemaVersion = "1.0.0";
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  await rm(path.join(project, "project-orchestrator.lock.json"), { force: true });
+  return manifest;
 }
 
 function runInteractive(args, exchanges) {
@@ -143,6 +245,18 @@ test("rerun adoption synchronizes updates, wiring, and legacy skill IDs", async 
   try {
     await writeFile(path.join(project, "package.json"), "{\"name\":\"adoption-rerun-fixture\"}\n", "utf8");
     await writeFile(path.join(project, "AGENTS.md"), "Keep this project-specific agent instruction.\n", "utf8");
+    await writeFile(path.join(project, "project-orchestrator.json"), `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      projectName: "adoption-rerun-fixture",
+      displayName: "Legacy Adoption Fixture",
+      frameworkVersion: "8.0.0",
+      runtimeVersion: "1.0.0",
+      conformanceProfile: "core",
+      workspaceColor: "#123456",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      status: "initialized",
+      nextAction: "Preserve this legacy field set during migration"
+    }, null, 2)}\n`, "utf8");
     runAdoption(project, "--apply");
 
     const auditPath = path.join(project, ".github", "skills", "audit-code", "SKILL.md");
@@ -318,11 +432,42 @@ No approval is required for read-only work.
     assert.ok(!Object.hasOwn(adoptedSettings, "workbench.colorCustomizations"), "adoption must preserve the existing color theme");
 
     const manifest = JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8"));
+    assert.equal(manifest.schemaVersion, "1.1.0");
     assert.equal(manifest.frameworkVersion, "9.0.0");
     assert.equal(manifest.runtimeVersion, "1.1.2");
+    assert.equal(manifest.lockPath, "project-orchestrator.lock.json");
+    assert.equal(manifest.lockSchemaVersion, "1.0.0");
+    assert.equal(manifest.digestAlgorithm, "sha256-normalized-text-v1");
+    assert.equal(manifest.minimumUpdaterRuntimeVersion, "1.1.2");
+    assert.equal(manifest.installedSource.framework.version, "9.0.0");
+    assert.equal(manifest.installedSource.runtime.version, "1.1.2");
+    const ownership = JSON.parse(await readFile(path.join(project, "reports", "artifact-ownership.json"), "utf8"));
+    const runtimeOwned = new Set(ownership.artifacts.filter((item) => item.producer === "pso-runtime").map((item) => item.report));
+    assert.deepEqual(runtimeOwned, new Set([
+      "project-orchestrator.json",
+      "project-orchestrator.lock.json",
+      "reports/project-update-plan.json",
+      "reports/project-update-plan.md",
+      "reports/update-verification.json"
+    ]));
+    assert.equal(manifest.displayName, "Legacy Adoption Fixture");
+    assert.equal(manifest.workspaceColor, "#123456");
+    assert.equal(manifest.createdAt, "2026-01-01T00:00:00.000Z");
     assert.equal(manifest.conformanceProfile, "core");
     assert.equal(manifest.riskAcceptance.noticeVersion, "1.0.0");
     assert.equal(manifest.riskAcceptance.method, "cli-flag");
+    const lock = JSON.parse(await readFile(path.join(project, manifest.lockPath), "utf8"));
+    assert.equal(lock.schemaVersion, "1.0.0");
+    assert.equal(lock.digestAlgorithm, "sha256-normalized-text-v1");
+    assert.deepEqual(lock.entries.map((entry) => entry.path), [...lock.entries.map((entry) => entry.path)].sort());
+    assert.equal(new Set(lock.entries.map((entry) => entry.assetId)).size, lock.entries.length);
+    assert.equal(new Set(lock.entries.map((entry) => entry.path)).size, lock.entries.length);
+    assert.ok(lock.entries.some((entry) => entry.path === ".github/skills/audit-code/SKILL.md"));
+    assert.ok(lock.entries.some((entry) => entry.path === "schemas/project-orchestrator-lock.schema.json"));
+    assert.ok(!lock.entries.some((entry) => entry.path === "package.json"));
+    assert.ok(!lock.entries.some((entry) => entry.path === "reports/project-handoff.json"));
+    assert.ok(!lock.entries.some((entry) => entry.path.startsWith(".github/skills/custom-consumer/")));
+    assert.doesNotMatch(JSON.stringify(lock), /[A-Za-z]:\\|"source"\s*:|"content"\s*:|secret|token/i);
 
     const verification = JSON.parse(await readFile(path.join(project, "reports", "adoption-verification.json"), "utf8"));
     assert.equal(verification.status, "passed");
@@ -664,11 +809,22 @@ test("accepted project creation records the risk acknowledgment", async () => {
     });
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     const manifest = JSON.parse(await readFile(path.join(parent, "accepted-fixture", "project-orchestrator.json"), "utf8"));
+    assert.equal(manifest.schemaVersion, "1.1.0");
     assert.equal(manifest.riskAcceptance.noticeVersion, "1.0.0");
     assert.equal(manifest.riskAcceptance.method, "cli-flag");
     assert.match(manifest.riskAcceptance.acceptedAt, /^\d{4}-\d{2}-\d{2}T/);
     assert.equal(manifest.conformanceProfile, "durable");
     const created = path.join(parent, "accepted-fixture");
+    assert.equal(manifest.lockPath, "project-orchestrator.lock.json");
+    assert.equal(manifest.lockSchemaVersion, "1.0.0");
+    assert.equal(manifest.digestAlgorithm, "sha256-normalized-text-v1");
+    assert.equal(manifest.minimumUpdaterRuntimeVersion, "1.1.2");
+    const lock = JSON.parse(await readFile(path.join(created, manifest.lockPath), "utf8"));
+    assert.equal(lock.schemaVersion, "1.0.0");
+    assert.ok(lock.entries.some((entry) => entry.path === ".github/skills/project-skills-orchestrator/SKILL.md"));
+    assert.ok(lock.entries.some((entry) => entry.path === "config/profiles.yaml"));
+    assert.ok(!lock.entries.some((entry) => entry.path.startsWith("src/")));
+    assert.ok(!lock.entries.some((entry) => entry.path.startsWith("reports/")));
     const freshHandoff = JSON.parse(await readFile(path.join(created, "reports", "project-handoff.json"), "utf8"));
     assert.equal(freshHandoff.project.name, "accepted-fixture");
     assert.equal(freshHandoff.status, "initialized");
@@ -1255,7 +1411,7 @@ test("every created project receives the Azure discovery and deployment scaffold
   }
 });
 
-test("standalone project update refreshes framework skills without replacing project files", async () => {
+test("standalone project update defaults to a portable mutation-free safe-all plan", async () => {
   const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-"));
   try {
     const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Update Demo", "--destination", parent, "--accept-risk"], {
@@ -1269,13 +1425,905 @@ test("standalone project update refreshes framework skills without replacing pro
     await writeFile(skillPath, "project-owned replacement\n", "utf8");
     await writeFile(projectFile, "preserve me\n", "utf8");
     await writeFile(report, "preserve report\n", "utf8");
-    const updated = spawnSync(process.execPath, [runtime, "update", "--project", project, "--accept-risk"], {
+    const updated = spawnSync(process.execPath, [runtime, "update", "--project", project, "--json"], {
       cwd: root, encoding: "utf8"
     });
     assert.equal(updated.status, 0, updated.stderr);
-    assert.match(await readFile(skillPath, "utf8"), /discover services, regions, chat and image-generation models, SKUs/);
+    const plan = JSON.parse(updated.stdout);
+    assert.equal(plan.schemaVersion, "1.0.0");
+    assert.equal(plan.requestedMode, "all");
+    assert.equal(plan.canApply, true);
+    assert.ok(plan.assets.some((asset) => asset.path === ".github/skills/azure-discovery/SKILL.md" && asset.classification === "local-only"));
+    assert.match(plan.planDigest, /^[a-f0-9]{64}$/);
+    assert.doesNotMatch(JSON.stringify(plan), /projectRoot|sourcePath|content/);
+    assert.doesNotMatch(JSON.stringify(plan), new RegExp(parent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+    assert.equal(await readFile(skillPath, "utf8"), "project-owned replacement\n");
     assert.equal(await readFile(projectFile, "utf8"), "preserve me\n");
     assert.equal(await readFile(report, "utf8"), "preserve report\n");
+    assert.deepEqual(JSON.parse(await readFile(path.join(project, "reports", "project-update-plan.json"), "utf8")), plan);
+    assert.match(await readFile(path.join(project, "reports", "project-update-plan.md"), "utf8"), /Mode: `all`/);
+
+    const explicitAll = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "all", "--dry-run", "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(explicitAll.status, 0, explicitAll.stderr);
+    assert.equal(JSON.parse(explicitAll.stdout).selectionDigest, plan.selectionDigest);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update rejects unknown options before mode defaulting or mutation", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-unknown-option-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Unknown Option", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "unknown-option");
+    const watchedPaths = [
+      "project-orchestrator.json",
+      "project-orchestrator.lock.json",
+      ".github/skills/workflow-planner/SKILL.md",
+      "reports/project-update-plan.json",
+      "reports/project-update-plan.md"
+    ];
+    await writeFile(path.join(project, "reports", "project-update-plan.json"), "sentinel plan json\n", "utf8");
+    await writeFile(path.join(project, "reports", "project-update-plan.md"), "sentinel plan markdown\n", "utf8");
+    const before = await snapshotFiles(project, watchedPaths);
+
+    for (const extra of [[], ["--apply", "--accept-risk"]]) {
+      const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mdoe", "select", "--skills", "workflow-planner", ...extra], { cwd: root, encoding: "utf8" });
+      assert.notEqual(result.status, 0);
+      assert.match(`${result.stdout}${result.stderr}`, /unknown update option: --mdoe/i);
+      assert.deepEqual(await snapshotFiles(project, watchedPaths), before);
+    }
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("legacy manifest update plans conservatively classify equivalent, unknown, and project-local assets", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-legacy-plan-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Legacy Plan", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "legacy-plan");
+    const equivalent = ".github/skills/clarify-the-ask/SKILL.md";
+    const unknown = ".github/skills/azure-discovery/SKILL.md";
+    const projectLocal = "src/project-owned.txt";
+    await writeFile(path.join(project, unknown), "customized legacy contract\n", "utf8");
+    await writeFile(path.join(project, projectLocal), "preserve project local\n", "utf8");
+    const legacyManifest = await downgradeToLegacyManifest(project);
+
+    const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const plan = JSON.parse(result.stdout);
+    assert.equal(plan.canApply, false);
+    assert.equal(plan.assets.find((asset) => asset.path === equivalent).classification, "legacy-equivalent");
+    assert.equal(plan.assets.find((asset) => asset.path === unknown).classification, "legacy-unknown");
+    assert.ok(plan.conflicts.some((conflict) => conflict.code === "UNRESOLVED_ASSET" && conflict.asset === unknown));
+    assert.ok(plan.warnings.some((warning) => warning.code === "LEGACY_BASELINE"));
+    assert.equal(plan.assets.some((asset) => asset.path === projectLocal), false);
+    assert.equal(existsSync(path.join(project, "project-orchestrator.lock.json")), false);
+    assert.deepEqual(JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8")), legacyManifest);
+    assert.equal(await readFile(path.join(project, projectLocal), "utf8"), "preserve project local\n");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("successful legacy migration writes manifest and lock only inside the transaction", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-legacy-apply-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Legacy Apply", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "legacy-apply");
+    await downgradeToLegacyManifest(project);
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const plan = JSON.parse(initial.stdout);
+    assert.equal(plan.canApply, true, JSON.stringify(plan.conflicts));
+    assert.equal(existsSync(path.join(project, "project-orchestrator.lock.json")), false);
+
+    const applied = spawnSync(process.execPath, [runtime, "update", "--project", project, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    const manifest = JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8"));
+    const lock = JSON.parse(await readFile(path.join(project, "project-orchestrator.lock.json"), "utf8"));
+    assert.equal(manifest.schemaVersion, "1.1.0");
+    assert.equal(lock.schemaVersion, "1.0.0");
+    assert.ok(lock.entries.some((entry) => entry.path === ".github/skills/clarify-the-ask/SKILL.md"));
+    assert.equal(JSON.parse(await readFile(path.join(project, "reports", "update-verification.json"), "utf8")).checks.legacyMigrated, true);
+    const { journal } = await latestTransaction(project);
+    const journalByPath = new Map(journal.entries.map((entry) => [entry.path, entry]));
+    assert.equal(journal.status, "completed");
+    assert.match(journalByPath.get("project-orchestrator.json").originalState, /^file:sha256:/);
+    assert.equal(journalByPath.get("project-orchestrator.lock.json").originalState, "missing");
+    for (const relative of transactionReportPaths) assert.ok(journalByPath.has(relative), `${relative} must be journaled`);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("legacy migration rollback restores manifest 1.0 and omits the new lock", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-legacy-rollback-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Legacy Rollback", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "legacy-rollback");
+    const originalManifest = await downgradeToLegacyManifest(project);
+    for (const relative of transactionReportPaths) {
+      await writeFile(path.join(project, relative), `legacy prior bytes for ${relative}\r\n`, "utf8");
+    }
+    const before = await snapshotFiles(project, ["project-orchestrator.json", "project-orchestrator.lock.json", ...transactionReportPaths]);
+    const interrupted = spawnSync(process.execPath, [runtime, "update", "--project", project, "--apply", "--accept-risk"], {
+      cwd: root, encoding: "utf8", env: { ...process.env, NODE_ENV: "test", PSO_TEST_FAIL_BEFORE_MANIFEST_WRITE: "1" }
+    });
+    assert.notEqual(interrupted.status, 0);
+    assert.match(`${interrupted.stdout}${interrupted.stderr}`, /rolled back/i);
+    assert.deepEqual(JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8")), originalManifest);
+    assert.equal(existsSync(path.join(project, "project-orchestrator.lock.json")), false);
+    await assertFilesMatchSnapshot(project, before);
+    const { journal } = await latestTransaction(project);
+    const journalByPath = new Map(journal.entries.map((entry) => [entry.path, entry]));
+    assert.equal(journal.status, "rolled-back");
+    assert.match(journal.failure, /Injected failure before manifest write/);
+    assert.match(journalByPath.get("project-orchestrator.json").originalState, /^file:sha256:/);
+    assert.equal(journalByPath.get("project-orchestrator.lock.json").originalState, "missing");
+    assert.equal(journalByPath.get("project-orchestrator.lock.json").backup, null);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("legacy duplicate skills and help are removable only with exact framework evidence", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-legacy-duplicates-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Legacy Duplicates", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "legacy-duplicates");
+    const exactSkill = ".github/skills/create-skill";
+    const exactHelp = ".github/prompts/create-skill-help.prompt.md";
+    const customizedSkill = ".github/skills/personalized-content";
+    await mkdir(path.join(project, exactSkill), { recursive: true });
+    await writeFile(path.join(project, exactSkill, "SKILL.md"), (await readFile(path.join(root, ".github/skills/skill-create/SKILL.md"), "utf8")).replace(/^name: skill-create$/m, "name: create-skill"), "utf8");
+    await writeFile(path.join(project, exactHelp), (await readFile(path.join(project, ".github/prompts/skill-create-help.prompt.md"), "utf8")).replaceAll("skill-create", "create-skill"), "utf8");
+    await mkdir(path.join(project, customizedSkill), { recursive: true });
+    await writeFile(path.join(project, customizedSkill, "SKILL.md"), "---\nname: personalized-content\ndescription: Customized project capability.\n---\n", "utf8");
+    await downgradeToLegacyManifest(project);
+
+    const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const plan = JSON.parse(result.stdout);
+    assert.equal(plan.canApply, false);
+    assert.equal(plan.assets.find((asset) => asset.path === exactSkill).classification, "upstream-removed");
+    assert.equal(plan.assets.find((asset) => asset.path === exactHelp).classification, "upstream-removed");
+    assert.equal(plan.assets.find((asset) => asset.path === customizedSkill).classification, "legacy-unknown");
+    assert.ok(plan.conflicts.some((conflict) => conflict.asset === customizedSkill));
+    assert.equal(existsSync(path.join(project, exactSkill)), true);
+    assert.equal(existsSync(path.join(project, customizedSkill)), true);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("additive and selective update plans are dependency closed without overwriting files", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-select-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Select Demo", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "select-demo");
+    await rm(path.join(project, ".github", "skills", "workflow-planner"), { recursive: true, force: true });
+    await rm(path.join(project, ".github", "skills", "skill-dependency-manager"), { recursive: true, force: true });
+    await rm(path.join(project, ".github", "prompts", "workflow-planner-help.prompt.md"), { force: true });
+    await rm(path.join(project, ".github", "prompts", "skill-dependency-manager-help.prompt.md"), { force: true });
+    const sentinel = path.join(project, ".github", "skills", "azure-discovery", "SKILL.md");
+    await writeFile(sentinel, "do not overwrite\n", "utf8");
+
+    const selected = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "workflow-planner", "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(selected.status, 0, selected.stderr);
+    const selectPlan = JSON.parse(selected.stdout);
+    assert.deepEqual(selectPlan.selection.explicit.skills, ["workflow-planner"]);
+    assert.ok(selectPlan.selection.implicit.skills.includes("skill-dependency-manager"));
+    assert.ok(selectPlan.assets.some((asset) => asset.path === ".github/prompts/workflow-planner-help.prompt.md" && asset.selection === "implicit"));
+    assert.ok(selectPlan.assets.every((asset) => asset.path.includes("workflow-planner") || asset.path.includes("skill-dependency-manager") || asset.path.includes("skill-inventory") || asset.path.includes("clarify-the-ask")));
+
+    const additive = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "additive", "--skills", "workflow-planner", "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(additive.status, 0, additive.stderr);
+    const additivePlan = JSON.parse(additive.stdout);
+    assert.ok(additivePlan.assets.every((asset) => asset.localDigest === null));
+    assert.equal(await readFile(sentinel, "utf8"), "do not overwrite\n");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("selection files bind the exact target and plan digest and empty select fails closed", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-selection-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Selection Demo", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "selection-demo");
+    const empty = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select"], { cwd: root, encoding: "utf8" });
+    assert.notEqual(empty.status, 0);
+    assert.match(`${empty.stdout}${empty.stderr}`, /Select mode requires/);
+
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "workflow-planner", "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const plan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    const selection = {
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: plan.planDigest,
+      target: plan.target,
+      selectors: { skills: ["workflow-planner"], assets: [] },
+      policyChanges: [],
+      resolutions: [],
+      exactForcePaths: []
+    };
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const accepted = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(accepted.status, 0, accepted.stderr);
+
+    selection.expectedPlanDigest = "0".repeat(64);
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const stale = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath], { cwd: root, encoding: "utf8" });
+    assert.notEqual(stale.status, 0);
+    assert.match(`${stale.stdout}${stale.stderr}`, /stale plan digest/i);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("safe-all blocks diverged, retired, and malformed managed assets", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-conflicts-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Conflict Demo", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "conflict-demo");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    await writeFile(path.join(project, skillRelative), "locally diverged\n", "utf8");
+    const agentsPath = path.join(project, "AGENTS.md");
+    const originalAgents = await readFile(agentsPath, "utf8");
+    await writeFile(agentsPath, originalAgents.replace("<!-- pso:end id=clarification-protocol -->", ""), "utf8");
+    const retiredRelative = "schemas/retired.schema.json";
+    await writeFile(path.join(project, retiredRelative), "{}\n", "utf8");
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    lock.entries.find((entry) => entry.path === skillRelative).normalizedBaseDigest = "0".repeat(64);
+    lock.entries.push({
+      assetId: `managed:${retiredRelative}`,
+      path: retiredRelative,
+      scope: "framework-schema",
+      ownership: "framework",
+      policy: "track",
+      normalizedBaseDigest: digestManagedBuffer(Buffer.from("{}\n", "utf8")),
+      dependencies: [],
+      generatedCompanions: []
+    });
+    lock.entries.sort((left, right) => left.path.localeCompare(right.path));
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+
+    const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const plan = JSON.parse(result.stdout);
+    assert.equal(plan.canApply, false);
+    assert.ok(plan.assets.some((asset) => asset.path === skillRelative && asset.classification === "diverged"));
+    const removed = plan.assets.find((asset) => asset.path === retiredRelative);
+    assert.equal(removed.classification, "upstream-removed");
+    assert.equal(removed.proposedAction, "resolve");
+    assert.equal(await readFile(path.join(project, retiredRelative), "utf8"), "{}\n");
+    assert.ok(plan.assets.some((asset) => asset.path === "AGENTS.md" && asset.classification === "malformed-region-state"));
+
+    await writeFile(path.join(project, skillRelative), await readFile(path.join(root, skillRelative)), "utf8");
+    await writeFile(agentsPath, originalAgents, "utf8");
+
+    const selectionPath = path.join(parent, "removal-selection.json");
+    const removalInitial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", retiredRelative, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(removalInitial.status, 0, removalInitial.stderr);
+    const removalInitialPlan = JSON.parse(removalInitial.stdout);
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: removalInitialPlan.planDigest,
+      target: removalInitialPlan.target,
+      selectors: { skills: [], assets: [retiredRelative] },
+      policyChanges: [],
+      resolutions: [{ asset: retiredRelative, disposition: "remove" }],
+      exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+    const reviewed = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(reviewed.status, 0, reviewed.stderr);
+    const removalPlan = JSON.parse(reviewed.stdout);
+    assert.equal(removalPlan.canApply, true);
+    assert.equal(removalPlan.assets[0].proposedAction, "delete");
+    const applied = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    assert.equal(existsSync(path.join(project, retiredRelative)), false);
+    const transactionRoot = path.join(project, ".skills-orchestrator", "transactions");
+    const transactionId = (await readdir(transactionRoot)).sort().at(-1);
+    const journal = JSON.parse(await readFile(path.join(transactionRoot, transactionId, "journal.json"), "utf8"));
+    const removedBackup = journal.entries.find((entry) => entry.path === retiredRelative);
+    assert.equal(journal.status, "completed");
+    assert.ok(removedBackup?.backup);
+    assert.equal(await readFile(path.join(transactionRoot, transactionId, removedBackup.backup), "utf8"), "{}\n");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update plans resolve track, pin, keep, and replace without mutating project files", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-policy-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Policy Demo", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "policy-demo");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const skillPath = path.join(project, skillRelative);
+    const selectionPath = path.join(parent, "selection.json");
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const originalLock = await readFile(lockPath, "utf8");
+
+    await writeFile(skillPath, "installed baseline\n", "utf8");
+    const lock = JSON.parse(originalLock);
+    lock.entries.find((entry) => entry.path === skillRelative).normalizedBaseDigest = digestManagedBuffer(Buffer.from("installed baseline\n", "utf8"));
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+
+    const upstreamOnly = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(upstreamOnly.status, 0, upstreamOnly.stderr);
+    const upstreamPlan = JSON.parse(upstreamOnly.stdout);
+    const tracked = upstreamPlan.assets.find((asset) => asset.path === skillRelative);
+    assert.equal(tracked.classification, "upstream-only");
+    assert.equal(tracked.policy, "track");
+    assert.equal(tracked.proposedAction, "replace");
+
+    const selection = {
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: upstreamPlan.planDigest,
+      target: upstreamPlan.target,
+      selectors: { skills: [], assets: [skillRelative] },
+      policyChanges: [{ asset: skillRelative, policy: "pin" }],
+      resolutions: [],
+      exactForcePaths: []
+    };
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const pinned = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(pinned.status, 0, pinned.stderr);
+    const pinPlan = JSON.parse(pinned.stdout);
+    const pinnedAsset = pinPlan.assets.find((asset) => asset.path === skillRelative);
+    assert.equal(pinPlan.canApply, true);
+    assert.equal(pinnedAsset.policy, "pin");
+    assert.equal(pinnedAsset.proposedAction, "none");
+    assert.equal(pinnedAsset.baselineAction, "preserve");
+    assert.ok(pinPlan.warnings.some((warning) => warning.code === "PINNED_UPSTREAM_AVAILABLE" && warning.asset === skillRelative));
+
+    lock.entries.find((entry) => entry.path === skillRelative).policy = "pin";
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const persistedPin = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(persistedPin.status, 0, persistedPin.stderr);
+    const persistedPinAsset = JSON.parse(persistedPin.stdout).assets.find((asset) => asset.path === skillRelative);
+    assert.equal(persistedPinAsset.currentPolicy, "pin");
+    assert.equal(persistedPinAsset.policy, "pin");
+    assert.equal(persistedPinAsset.proposedAction, "none");
+
+    await writeFile(skillPath, "locally diverged\n", "utf8");
+    lock.entries.find((entry) => entry.path === skillRelative).policy = "track";
+    lock.entries.find((entry) => entry.path === skillRelative).normalizedBaseDigest = "0".repeat(64);
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const unresolved = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(unresolved.status, 0, unresolved.stderr);
+    const unresolvedPlan = JSON.parse(unresolved.stdout);
+    assert.equal(unresolvedPlan.canApply, false);
+
+    selection.expectedPlanDigest = unresolvedPlan.planDigest;
+    selection.target = unresolvedPlan.target;
+    selection.policyChanges = [];
+    selection.resolutions = [{ asset: skillRelative, disposition: "keep" }];
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const kept = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(kept.status, 0, kept.stderr);
+    const keptAsset = JSON.parse(kept.stdout).assets.find((asset) => asset.path === skillRelative);
+    assert.equal(keptAsset.policy, "pin");
+    assert.equal(keptAsset.proposedAction, "none");
+    assert.equal(keptAsset.baselineAction, "preserve");
+    assert.equal(keptAsset.baseDigest, "0".repeat(64));
+
+    selection.resolutions = [{ asset: skillRelative, disposition: "replace" }];
+    await writeFile(selectionPath, `${JSON.stringify(selection, null, 2)}\n`, "utf8");
+    const replaced = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(replaced.status, 0, replaced.stderr);
+    const replacePlan = JSON.parse(replaced.stdout);
+    const replacedAsset = replacePlan.assets.find((asset) => asset.path === skillRelative);
+    assert.equal(replacePlan.canApply, true);
+    assert.equal(replacedAsset.policy, "track");
+    assert.equal(replacedAsset.proposedAction, "replace");
+    assert.equal(replacedAsset.baselineAction, "advance-after-verification");
+    assert.equal(await readFile(skillPath, "utf8"), "locally diverged\n");
+    assert.equal((await readFile(lockPath, "utf8")).includes("0".repeat(64)), true);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update apply replaces selected upstream content and preserves project-owned files", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-apply-replace-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Apply Replace", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "apply-replace");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const skillPath = path.join(project, skillRelative);
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const selectionPath = path.join(parent, "selection.json");
+    const appPath = path.join(project, "src", "app-owned.txt");
+    const reportPath = path.join(project, "reports", "project-owned.json");
+    await writeFile(appPath, "preserve app code\n", "utf8");
+    await writeFile(reportPath, "{\"preserve\":true}\n", "utf8");
+    await writeFile(skillPath, "installed older upstream\n", "utf8");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const entry = lock.entries.find((item) => item.path === skillRelative);
+    entry.normalizedBaseDigest = digestManagedBuffer(Buffer.from("installed older upstream\n", "utf8"));
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(initial.status, 0, initial.stderr);
+    const initialPlan = JSON.parse(initial.stdout);
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: initialPlan.planDigest,
+      target: initialPlan.target,
+      selectors: { skills: [], assets: [skillRelative] },
+      policyChanges: [],
+      resolutions: [],
+      exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+
+    const applied = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    assert.equal(await readFile(skillPath, "utf8"), await readFile(path.join(root, skillRelative), "utf8"));
+    assert.equal(await readFile(appPath, "utf8"), "preserve app code\n");
+    assert.equal(await readFile(reportPath, "utf8"), "{\"preserve\":true}\n");
+    const updatedLock = JSON.parse(await readFile(lockPath, "utf8"));
+    assert.equal(updatedLock.entries.find((item) => item.path === skillRelative).normalizedBaseDigest, await digestManagedPath(skillPath, { scope: "skill:azure-discovery" }));
+    const verification = JSON.parse(await readFile(path.join(project, "reports", "update-verification.json"), "utf8"));
+    assert.equal(verification.status, "passed");
+    assert.equal(verification.planDigest, initialPlan.planDigest);
+    const manifest = JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8"));
+    assert.deepEqual(manifest.installedSource, updatedLock.installedSource);
+    assert.equal(manifest.lastSuccessfulReconciliation.lockDigest, verification.lockDigest);
+    assert.equal(JSON.parse(await readFile(path.join(project, "reports", "project-update-plan.json"), "utf8")).planDigest, initialPlan.planDigest);
+    const { directory, journal } = await latestTransaction(project);
+    const journalByPath = new Map(journal.entries.map((item) => [item.path, item]));
+    assert.equal(journal.status, "completed");
+    assert.equal(await readFile(path.join(directory, journalByPath.get(skillRelative).backup), "utf8"), "installed older upstream\n");
+    assert.ok(journalByPath.get("project-orchestrator.json").backup);
+    assert.ok(journalByPath.get("project-orchestrator.lock.json").backup);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update apply keeps local content while persisting pin and project-owned disposition", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-apply-keep-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Apply Keep", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "apply-keep");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const skillPath = path.join(project, skillRelative);
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const selectionPath = path.join(parent, "selection.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const entry = lock.entries.find((item) => item.path === skillRelative);
+    entry.normalizedBaseDigest = "0".repeat(64);
+    const originalBaseline = entry.normalizedBaseDigest;
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const localContent = `${await readFile(skillPath, "utf8")}\nLocal project note retained by pin.\n`;
+    await writeFile(skillPath, localContent, "utf8");
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const initialPlan = JSON.parse(initial.stdout);
+    assert.equal(initialPlan.canApply, false);
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: initialPlan.planDigest,
+      target: initialPlan.target,
+      selectors: { skills: [], assets: [skillRelative] },
+      policyChanges: [],
+      resolutions: [{ asset: skillRelative, disposition: "keep" }],
+      exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+    const applied = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    assert.equal(await readFile(skillPath, "utf8"), localContent);
+    const updatedEntry = JSON.parse(await readFile(lockPath, "utf8")).entries.find((item) => item.path === skillRelative);
+    assert.equal(updatedEntry.policy, "pin");
+    assert.equal(updatedEntry.ownership, "project-owned");
+    assert.equal(updatedEntry.normalizedBaseDigest, originalBaseline);
+    const { journal } = await latestTransaction(project);
+    const journalPaths = new Set(journal.entries.map((item) => item.path));
+    assert.equal(journal.status, "completed");
+    assert.equal(journalPaths.has(skillRelative), false, "keep/pin content is not a mutation target");
+    assert.ok(journalPaths.has("project-orchestrator.json"));
+    assert.ok(journalPaths.has("project-orchestrator.lock.json"));
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update apply forks the complete local skill package before restoring canonical upstream", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-apply-fork-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Apply Fork", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "apply-fork");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const packageRoot = path.join(project, ".github", "skills", "azure-discovery");
+    const forkRoot = path.join(project, ".github", "skills", "project-azure-discovery");
+    await writeFile(path.join(packageRoot, "SKILL.md"), (await readFile(path.join(packageRoot, "SKILL.md"), "utf8")).replace("name: azure-discovery", "name: azure-discovery\nlocal-marker: retained"), "utf8");
+    await writeFile(path.join(packageRoot, "project-notes.txt"), "complete local package\n", "utf8");
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "azure-discovery", "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const initialPlan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: initialPlan.planDigest,
+      target: initialPlan.target,
+      selectors: { skills: ["azure-discovery"], assets: [] },
+      policyChanges: [],
+      resolutions: [{ asset: skillRelative, disposition: "fork", forkSkillId: "project-azure-discovery" }],
+      exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+    const applied = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    assert.equal(await readFile(path.join(forkRoot, "project-notes.txt"), "utf8"), "complete local package\n");
+    assert.match(await readFile(path.join(forkRoot, "SKILL.md"), "utf8"), /^name: project-azure-discovery$/m);
+    assert.match(await readFile(path.join(forkRoot, "SKILL.md"), "utf8"), /^local-marker: retained$/m);
+    assert.equal(await readFile(path.join(packageRoot, "SKILL.md"), "utf8"), await readFile(path.join(root, skillRelative), "utf8"));
+    assert.equal(existsSync(path.join(packageRoot, "project-notes.txt")), false);
+    assert.equal(existsSync(path.join(project, ".github", "prompts", "project-azure-discovery-help.prompt.md")), true);
+    const canonicalEntry = JSON.parse(await readFile(path.join(project, "project-orchestrator.lock.json"), "utf8")).entries.find((item) => item.path === skillRelative);
+    assert.equal(canonicalEntry.policy, "fork");
+    assert.equal(canonicalEntry.forkSkillId, "project-azure-discovery");
+    const { journal } = await latestTransaction(project);
+    const journalByPath = new Map(journal.entries.map((item) => [item.path, item]));
+    assert.equal(journal.status, "completed");
+    assert.ok(journalByPath.get(".github/skills/azure-discovery").backup);
+    assert.match(journalByPath.get(".github/skills/azure-discovery").originalState, /^directory:sha256:/);
+    assert.equal(journalByPath.get(".github/skills/project-azure-discovery").originalState, "missing");
+    assert.equal(journalByPath.get(".github/prompts/project-azure-discovery-help.prompt.md").originalState, "missing");
+
+    const unrelated = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "workflow-planner", "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(unrelated.status, 0, `${unrelated.stdout}\n${unrelated.stderr}`);
+    assert.equal(await readFile(path.join(forkRoot, "project-notes.txt"), "utf8"), "complete local package\n");
+    const persistedEntry = JSON.parse(await readFile(path.join(project, "project-orchestrator.lock.json"), "utf8")).entries.find((item) => item.path === skillRelative);
+    assert.equal(persistedEntry.policy, "fork");
+    assert.equal(persistedEntry.forkSkillId, "project-azure-discovery");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("interrupted fork recovery restores the exact canonical package and removes the created fork", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-fork-recovery-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Fork Recovery", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "fork-recovery");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const packageRelative = ".github/skills/azure-discovery";
+    const packageRoot = path.join(project, packageRelative);
+    const forkRelative = ".github/skills/project-azure-discovery";
+    const forkHelpRelative = ".github/prompts/project-azure-discovery-help.prompt.md";
+    await writeFile(path.join(packageRoot, "SKILL.md"), (await readFile(path.join(packageRoot, "SKILL.md"), "utf8")).replace("name: azure-discovery", "name: azure-discovery\nlocal-marker: recover"), "utf8");
+    await writeFile(path.join(packageRoot, "project-notes.txt"), "restore this exact package\n", "utf8");
+    const beforeDigest = await digestManagedPath(packageRoot, { scope: "skill:azure-discovery" });
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "azure-discovery", "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const initialPlan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: initialPlan.planDigest,
+      target: initialPlan.target,
+      selectors: { skills: ["azure-discovery"], assets: [] },
+      policyChanges: [],
+      resolutions: [{ asset: skillRelative, disposition: "fork", forkSkillId: "project-azure-discovery" }],
+      exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+
+    const interrupted = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], {
+      cwd: root, encoding: "utf8", env: { ...process.env, NODE_ENV: "test", PSO_TEST_INTERRUPT_AFTER_FIRST_WRITE: "1" }
+    });
+    assert.equal(interrupted.status, 86, `${interrupted.stdout}\n${interrupted.stderr}`);
+    const { journal } = await latestTransaction(project);
+    const packageEntry = journal.entries.find((entry) => entry.path === packageRelative);
+    assert.ok(packageEntry?.backup);
+    assert.match(packageEntry.originalState, /^directory:sha256:/);
+    const recovered = spawnSync(process.execPath, [runtime, "recover", "--project", project, "--transaction", journal.transactionId], { cwd: root, encoding: "utf8" });
+    assert.equal(recovered.status, 0, `${recovered.stdout}\n${recovered.stderr}`);
+    assert.equal(await digestManagedPath(packageRoot, { scope: "skill:azure-discovery" }), beforeDigest);
+    assert.equal(await readFile(path.join(packageRoot, "project-notes.txt"), "utf8"), "restore this exact package\n");
+    assert.equal(existsSync(path.join(project, forkRelative)), false);
+    assert.equal(existsSync(path.join(project, forkHelpRelative)), false);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("update apply rejects stale destination state and lock contention before writes", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-apply-stale-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Apply Stale", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "apply-stale");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const skillPath = path.join(project, skillRelative);
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const plan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0", expectedPlanDigest: plan.planDigest, target: plan.target,
+      selectors: { skills: [], assets: [skillRelative] }, policyChanges: [], resolutions: [], exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+    const priorPlanReport = await readFile(path.join(project, "reports", "project-update-plan.json"), "utf8");
+    await writeFile(skillPath, "changed after planning\n", "utf8");
+    const stale = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.notEqual(stale.status, 0);
+    assert.match(`${stale.stdout}${stale.stderr}`, /stale plan digest|destination changed/i);
+    assert.equal(await readFile(skillPath, "utf8"), "changed after planning\n");
+    assert.equal(await readFile(path.join(project, "reports", "project-update-plan.json"), "utf8"), priorPlanReport);
+
+    const refreshed = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(refreshed.status, 0, refreshed.stderr);
+    const refreshedPlan = JSON.parse(refreshed.stdout);
+    const blockedSelection = JSON.parse(await readFile(selectionPath, "utf8"));
+    blockedSelection.expectedPlanDigest = refreshedPlan.planDigest;
+    blockedSelection.target = refreshedPlan.target;
+    blockedSelection.resolutions = [{ asset: skillRelative, disposition: "keep" }];
+    await writeFile(selectionPath, `${JSON.stringify(blockedSelection, null, 2)}\n`, "utf8");
+    const contentionLock = path.join(project, ".skills-orchestrator", "adoption.lock");
+    await mkdir(path.dirname(contentionLock), { recursive: true });
+    await writeFile(contentionLock, "{\"processId\":1}\n", "utf8");
+    const beforeContention = await readFile(skillPath, "utf8");
+    const contended = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.notEqual(contended.status, 0);
+    assert.match(`${contended.stdout}${contended.stderr}`, /adoption, update, or recovery transaction holds/i);
+    assert.equal(await readFile(skillPath, "utf8"), beforeContention);
+    assert.equal(existsSync(path.join(project, "reports", "update-verification.json")), false);
+    await rm(contentionLock, { force: true });
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("interrupted exact-force update retains a backup and recovery restores every digest", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-apply-recovery-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Apply Recovery", "--destination", parent, "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "apply-recovery");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const skillPath = path.join(project, skillRelative);
+    const manifestPath = path.join(project, "project-orchestrator.json");
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    await writeFile(skillPath, "force replacement source\n", "utf8");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    lock.entries.find((item) => item.path === skillRelative).normalizedBaseDigest = "0".repeat(64);
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", skillRelative, "--json"], { cwd: root, encoding: "utf8" });
+    assert.equal(initial.status, 0, initial.stderr);
+    const plan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0", expectedPlanDigest: plan.planDigest, target: plan.target,
+      selectors: { skills: [], assets: [skillRelative] }, policyChanges: [],
+      resolutions: [{ asset: skillRelative, disposition: "replace" }], exactForcePaths: [skillRelative]
+    }, null, 2)}\n`, "utf8");
+    for (const relative of transactionReportPaths) {
+      await writeFile(path.join(project, relative), `prior bytes for ${relative}\r\n`, "utf8");
+    }
+    const transactionPaths = [
+      skillRelative,
+      ".github/prompts/azure-discovery-help.prompt.md",
+      "project-orchestrator.json",
+      "project-orchestrator.lock.json",
+      ...transactionReportPaths
+    ];
+    const before = await snapshotFiles(project, transactionPaths);
+    const interrupted = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--apply", "--accept-risk"], {
+      cwd: root, encoding: "utf8", env: { ...process.env, NODE_ENV: "test", PSO_TEST_INTERRUPT_AFTER_FIRST_WRITE: "1" }
+    });
+    assert.equal(interrupted.status, 86, `${interrupted.stdout}\n${interrupted.stderr}`);
+    const transactionRoot = path.join(project, ".skills-orchestrator", "transactions");
+    const transactionId = (await readdir(transactionRoot)).sort().at(-1);
+    const journalPath = path.join(transactionRoot, transactionId, "journal.json");
+    const journal = JSON.parse(await readFile(journalPath, "utf8"));
+    assert.deepEqual(new Set(journal.entries.map((item) => item.path)), new Set(transactionPaths));
+    for (const entry of journal.entries) {
+      assert.ok(entry.backup, `${entry.path} must have a backup because every fixture path existed before apply`);
+      assert.deepEqual(await readFile(path.join(transactionRoot, transactionId, entry.backup)), before.get(entry.path));
+    }
+    const backupEntry = journal.entries.find((item) => item.path === skillRelative);
+    assert.ok(backupEntry?.backup, "exact-force replacement must have a journaled backup");
+    assert.equal(await readFile(path.join(transactionRoot, transactionId, backupEntry.backup), "utf8"), "force replacement source\n");
+    const recovered = spawnSync(process.execPath, [runtime, "recover", "--project", project, "--transaction", transactionId], { cwd: root, encoding: "utf8" });
+    assert.equal(recovered.status, 0, `${recovered.stdout}\n${recovered.stderr}`);
+    await assertFilesMatchSnapshot(project, before);
+    assert.equal(JSON.parse(await readFile(journalPath, "utf8")).status, "rolled-back");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("incompatible dependency and profile pins block an otherwise resolved plan", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-pin-compatibility-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Pin Compatibility", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "pin-compatibility");
+    const dependency = ".github/skills/skill-dependency-manager/SKILL.md";
+    const required = ".github/skills/clarify-the-ask/SKILL.md";
+    await writeFile(path.join(project, dependency), "pinned older dependency\n", "utf8");
+    await rm(path.join(project, required));
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const dependencyEntry = lock.entries.find((entry) => entry.path === dependency);
+    dependencyEntry.policy = "pin";
+    dependencyEntry.normalizedBaseDigest = digestManagedBuffer(Buffer.from("pinned older dependency\n", "utf8"));
+    lock.entries.find((entry) => entry.path === required).policy = "pin";
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+
+    const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "project-skills-orchestrator", "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const plan = JSON.parse(result.stdout);
+    assert.equal(plan.canApply, false);
+    assert.ok(plan.conflicts.some((conflict) => conflict.code === "INCOMPATIBLE_PIN" && conflict.asset === dependency));
+    assert.ok(plan.conflicts.some((conflict) => conflict.code === "INCOMPATIBLE_PIN" && conflict.asset === required));
+    assert.equal(await readFile(path.join(project, dependency), "utf8"), "pinned older dependency\n");
+    assert.equal(existsSync(path.join(project, required)), false);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("selective updates block when the declared profile is missing a required skill", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-profile-closure-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Profile Closure", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "profile-closure");
+    const required = ".github/skills/deployment-review/SKILL.md";
+    const selected = "schemas/project-update-plan.schema.json";
+    await rm(path.join(project, required));
+
+    const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", selected, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const plan = JSON.parse(result.stdout);
+    assert.equal(plan.canApply, false);
+    assert.ok(plan.conflicts.some((conflict) => conflict.code === "INCOMPATIBLE_PROFILE" && conflict.asset === required));
+
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const requiredEntry = lock.entries.find((entry) => entry.path === required);
+    await writeFile(path.join(project, required), await readFile(path.join(root, required)), "utf8");
+    requiredEntry.policy = "fork";
+    requiredEntry.forkSkillId = "project-deployment-review";
+    requiredEntry.normalizedBaseDigest = await digestManagedPath(path.join(project, required), { scope: "skill:deployment-review" });
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const forked = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--assets", selected, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.notEqual(forked.status, 0);
+    assert.match(`${forked.stdout}${forked.stderr}`, /fork reference has no valid project-owned skill/i);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("skill fork planning preserves the complete local package under a derived project-owned destination", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-fork-"));
+  try {
+    const created = spawnSync(process.execPath, [runtime, "create-project", "--name", "Fork Demo", "--destination", parent, "--accept-risk"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "fork-demo");
+    const skillRelative = ".github/skills/azure-discovery/SKILL.md";
+    const packageRoot = path.join(project, ".github", "skills", "azure-discovery");
+    const scriptRelative = ".github/skills/azure-discovery/scripts/azure-discovery.ps1";
+    const sentinel = path.join(project, "README.md");
+    await writeFile(path.join(packageRoot, "SKILL.md"), "locally diverged package\n", "utf8");
+    await writeFile(path.join(project, scriptRelative), "locally changed script\n", "utf8");
+    await writeFile(path.join(packageRoot, "project-notes.txt"), "preserve complete package\n", "utf8");
+    await writeFile(sentinel, "azure-discovery text must not be rewritten\n", "utf8");
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    lock.entries.find((entry) => entry.path === skillRelative).normalizedBaseDigest = "0".repeat(64);
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+
+    const initial = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--skills", "azure-discovery", "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(initial.status, 0, initial.stderr);
+    const initialPlan = JSON.parse(initial.stdout);
+    const selectionPath = path.join(parent, "selection.json");
+    await writeFile(selectionPath, `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      expectedPlanDigest: initialPlan.planDigest,
+      target: initialPlan.target,
+      selectors: { skills: ["azure-discovery"], assets: [] },
+      policyChanges: [],
+      resolutions: [{ asset: skillRelative, disposition: "fork", forkSkillId: "project-azure-discovery" }],
+      exactForcePaths: []
+    }, null, 2)}\n`, "utf8");
+    const collisionSelection = JSON.parse(await readFile(selectionPath, "utf8"));
+    collisionSelection.resolutions[0].forkSkillId = "azure-discovery";
+    await writeFile(selectionPath, `${JSON.stringify(collisionSelection, null, 2)}\n`, "utf8");
+    const collision = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.notEqual(collision.status, 0);
+    assert.match(`${collision.stdout}${collision.stderr}`, /collides with existing skill/i);
+    collisionSelection.resolutions[0].forkSkillId = "project-azure-discovery";
+    await writeFile(selectionPath, `${JSON.stringify(collisionSelection, null, 2)}\n`, "utf8");
+    const result = spawnSync(process.execPath, [runtime, "update", "--project", project, "--mode", "select", "--selection-file", selectionPath, "--json"], {
+      cwd: root, encoding: "utf8"
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const plan = JSON.parse(result.stdout);
+    const forked = plan.assets.find((asset) => asset.path === skillRelative);
+    assert.equal(plan.canApply, true);
+    assert.equal(forked.policy, "fork");
+    assert.equal(forked.proposedAction, "fork");
+    assert.equal(forked.fork.sourceSkillId, "azure-discovery");
+    assert.equal(forked.fork.forkSkillId, "project-azure-discovery");
+    assert.equal(forked.fork.sourcePath, ".github/skills/azure-discovery");
+    assert.equal(forked.fork.destinationPath, ".github/skills/project-azure-discovery");
+    assert.ok(forked.fork.localAssets.includes("SKILL.md"));
+    assert.ok(forked.fork.localAssets.includes("project-notes.txt"));
+    assert.equal(plan.assets.find((asset) => asset.path === scriptRelative).proposedAction, "replace");
+    assert.equal(existsSync(path.join(project, ".github", "skills", "project-azure-discovery")), false);
+    assert.equal(await readFile(path.join(packageRoot, "project-notes.txt"), "utf8"), "preserve complete package\n");
+    assert.equal(await readFile(path.join(project, scriptRelative), "utf8"), "locally changed script\n");
+    assert.equal(await readFile(sentinel, "utf8"), "azure-discovery text must not be rewritten\n");
   } finally {
     await rm(parent, { recursive: true, force: true });
   }

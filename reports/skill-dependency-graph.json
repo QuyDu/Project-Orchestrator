@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-17T22:03:02.8302569Z",
+  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
+  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+  "stepId": "STEP-001",
+  "repositoryRevision": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
+  "frameworkVersion": "9.0.0",
+  "runtimeVersion": "1.1.2",
+  "status": "passed",
+  "edgeDirection": "consumer-to-dependency",
+  "graph": {
+    "agent-builder": ["azure-discovery", "clarify-the-ask", "policy-engine"],
+    "architecture-review": ["clarify-the-ask"],
+    "artifact-upgrade": ["skill-dependency-manager", "skill-inventory"],
+    "audit-azure-environment": [],
+    "audit-code": [],
+    "audit-plan-remediation": ["audit-review-findings", "policy-engine"],
+    "audit-remediation": ["audit-code", "audit-plan-remediation", "change-review", "policy-engine", "project-handoff", "regression-test-development", "systematic-debugging", "workflow-recovery", "workflow-state-manager"],
+    "audit-review-findings": ["audit-azure-environment", "audit-code"],
+    "azure-cleanup": ["azure-discovery", "policy-engine", "project-handoff"],
+    "azure-discovery": ["project-handoff"],
+    "change-review": ["policy-engine"],
+    "ci-failure-triage": ["policy-engine", "regression-test-development", "systematic-debugging", "workflow-state-manager"],
+    "clarify-the-ask": [],
+    "dependency-maintenance": ["policy-engine", "regression-test-development", "workflow-state-manager"],
+    "deployment-review": ["architecture-review", "security-review"],
+    "development-environment-readiness": ["policy-engine", "workflow-state-manager"],
+    "documentation-builder": ["clarify-the-ask"],
+    "environment-update": ["development-environment-readiness", "policy-engine"],
+    "framework-health-check": ["skill-dependency-manager", "skill-inventory"],
+    "linkedin-post": ["documentation-builder", "project-handoff", "user-personalization"],
+    "multi-agent-coordinator": ["workflow-scheduler", "workflow-state-manager"],
+    "policy-engine": [],
+    "prepare-commit": ["change-review"],
+    "project-handoff": ["workflow-state-manager"],
+    "project-knowledge-capture": ["project-handoff"],
+    "project-memory": ["project-knowledge-capture"],
+    "project-setup": ["clarify-the-ask", "workflow-planner"],
+    "project-skills-orchestrator": ["clarify-the-ask", "policy-engine", "skill-inventory", "skill-update", "workflow-planner", "workflow-state-manager"],
+    "project-status": ["audit-azure-environment", "project-handoff", "workflow-telemetry"],
+    "project-understanding": ["clarify-the-ask"],
+    "project-video": ["azure-discovery", "clarify-the-ask", "documentation-builder", "project-understanding"],
+    "project-visual-storytelling": ["agent-builder", "azure-discovery", "project-understanding", "user-personalization"],
+    "regression-test-development": ["policy-engine", "workflow-state-manager"],
+    "security-review": ["audit-code"],
+    "skill-create": ["documentation-builder", "project-understanding", "skill-dependency-manager", "skill-inventory"],
+    "skill-dependency-manager": ["skill-inventory"],
+    "skill-inventory": [],
+    "skill-registry": ["policy-engine", "skill-dependency-manager", "skill-inventory"],
+    "skill-update": ["documentation-builder", "project-understanding", "skill-dependency-manager", "skill-inventory"],
+    "systematic-debugging": ["policy-engine", "workflow-state-manager"],
+    "user-personalization": [],
+    "workflow-planner": ["clarify-the-ask", "skill-dependency-manager", "skill-inventory"],
+    "workflow-recovery": ["project-handoff", "workflow-state-manager"],
+    "workflow-scheduler": ["policy-engine", "workflow-state-manager"],
+    "workflow-simulator": ["policy-engine", "workflow-planner"],
+    "workflow-state-manager": ["workflow-planner"],
+    "workflow-telemetry": ["workflow-state-manager"]
+  },
+  "profiles": {
+    "core": { "extends": null, "declaredCount": 34, "effectiveCount": 34, "dependencyClosed": true },
+    "durable": { "extends": "core", "declaredCount": 11, "effectiveCount": 43, "dependencyClosed": true },
+    "distributed": { "extends": "durable", "declaredCount": 3, "effectiveCount": 45, "dependencyClosed": true },
+    "advanced": { "extends": "distributed", "declaredCount": 3, "effectiveCount": 47, "dependencyClosed": true }
+  },
+  "managedAssets": [
+    { "kind": "skill-package", "path": ".github/skills/<id>/", "scope": "directory", "owner": "framework", "companions": [".github/prompts/<id>-help.prompt.md"] },
+    { "kind": "skill-help", "path": ".github/prompts/<id>-help.prompt.md", "scope": "generated-file", "owner": "framework" },
+    { "kind": "schema", "path": "schemas/*.schema.json", "scope": "whole-file", "owner": "framework" },
+    { "kind": "profile-catalog", "path": "config/profiles.yaml", "scope": "whole-file", "owner": "framework" },
+    { "kind": "scaffold-catalog", "path": "templates/scaffold-manifest.json", "scope": "whole-file", "owner": "framework" },
+    { "kind": "scaffold-template", "path": "templates/project/**", "scope": "whole-file", "owner": "framework", "policy": "stack-filtered; createOnly entries are not adopted into existing projects" },
+    { "kind": "instructions", "path": ".github/copilot-instructions.md and AGENTS.md", "scope": "managed-region", "owner": "shared" },
+    { "kind": "orchestrator-config", "path": "config/orchestrator.yaml", "scope": "generated-file", "owner": "shared", "policy": "preserve project section" },
+    { "kind": "project-manifest", "path": "project-orchestrator.json", "scope": "generated-file", "owner": "framework" },
+    { "kind": "report", "path": "reports/**", "scope": "generated-file", "owner": "declared-producer" }
+  ],
+  "projectOwnedExclusions": [
+    "application source and tests outside an explicitly managed catalog entry",
+    "locally created skills not recorded in the managed baseline",
+    "project documentation outside managed regions or generated companions",
+    "reports owned by another producer",
+    "existing createOnly scaffold destinations"
+  ],
+  "consumers": {
+    "creation": ["createProject", "buildAdoptionPlan", "applyAdoption", "verifyInstallation"],
+    "adoption": ["buildAdoptionPlan", "applyAdoption", "inventory", "verifyInstallation"],
+    "update": ["updateProject", "buildAdoptionPlan", "applyAdoption"],
+    "verification": ["inventory", "verifyInstallation", "tests/adoption-rerun.test.mjs", "tests/skill-contracts.test.mjs", "tests/security-fuzz.test.mjs"]
+  },
+  "currentUpdateBehavior": {
+    "isSafeThreeWayReconciliation": false,
+    "skills": "transactional directory replacement with rollback",
+    "instructions": "managed-region reconciliation",
+    "templates": "create when absent; force replacement is separately requested",
+    "baselineProvenance": "not recorded per managed asset",
+    "selectionModes": "additive/all/select not implemented as planned contracts"
+  },
+  "safeImplementationOrder": [
+    "freeze manifest, lock, plan, and selection contracts",
+    "implement normalized digest and pure three-way classifier",
+    "record baselines during creation and adoption",
+    "implement additive and selective planning with dependency closure",
+    "implement policy and conflict dispositions",
+    "integrate transactional apply and update-aware verification",
+    "validate legacy migration, security boundaries, and rollback"
+  ],
+  "findings": { "cycles": [], "missingNodes": [], "ownershipConflicts": [], "blockers": [] },
+  "warnings": [
+    "Current skill updates replace complete framework skill directories and can overwrite local edits.",
+    "Current projects have no per-asset baseline lock, so differing legacy content cannot be classified safely without an explicit disposition.",
+    "Generated help and other companions must move with their owning skill dependency closure."
+  ],
+  "validation": {
+    "nodeCount": 47,
+    "allDependenciesResolved": true,
+    "acyclic": true,
+    "profilesDependencyClosed": true,
+    "managedOwnershipClassified": true
+  },
+  "step010Validation": {
+    "generatedAt": "2026-09-18T07:30:36.0620117Z",
+    "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
+    "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+    "stepId": "STEP-010",
+    "checkpointId": "CP-UPDATE-CLOSURE-VALIDATED",
+    "sequenceContext": 44,
+    "repositoryRevision": "ad3e73cb19a645bccdedfc0ffa781976d98b31a8",
+    "implementationState": "working-tree",
+    "status": "passed",
+    "stateOrLogAdvanced": false,
+    "catalog": {
+      "skillCount": 47,
+      "edgeCount": 97,
+      "allDependenciesResolved": true,
+      "acyclic": true
+    },
+    "profiles": {
+      "core": { "extends": null, "declaredCount": 34, "effectiveCount": 34, "dependencyClosed": true },
+      "durable": { "extends": "core", "declaredCount": 11, "effectiveCount": 43, "dependencyClosed": true },
+      "distributed": { "extends": "durable", "declaredCount": 3, "effectiveCount": 45, "dependencyClosed": true },
+      "advanced": { "extends": "distributed", "declaredCount": 3, "effectiveCount": 47, "dependencyClosed": true }
+    },
+    "schemaContracts": [
+      { "path": "schemas/project-orchestrator-manifest.schema.json", "version": "1.1.0", "owner": "framework", "runtimeConsumers": ["createProject", "buildAdoptionPlan", "loadUpdateBaseline", "applyUpdate", "verifyPersistedUpdate"], "contractTest": "tests/skill-contracts.test.mjs" },
+      { "path": "schemas/project-orchestrator-lock.schema.json", "version": "1.0.0", "owner": "framework", "runtimeConsumers": ["buildBaselineLock", "validateBaselineLock", "loadUpdateBaseline", "buildCandidateUpdateLock", "verifyPersistedUpdate"], "contractTest": "tests/skill-contracts.test.mjs" },
+      { "path": "schemas/project-update-plan.schema.json", "version": "1.0.0", "owner": "framework", "runtimeConsumers": ["buildUpdatePlan", "writeUpdatePlanReports", "applyUpdate"], "contractTest": "tests/skill-contracts.test.mjs" },
+      { "path": "schemas/project-update-selection.schema.json", "version": "1.0.0", "owner": "framework", "runtimeConsumers": ["readUpdateSelection", "applyUpdate"], "contractTest": "tests/skill-contracts.test.mjs" },
+      { "path": "schemas/update-verification.schema.json", "version": "1.0.0", "owner": "framework", "runtimeConsumers": ["verifyUpdateCandidate", "verifyPersistedUpdate", "applyUpdate"], "contractTest": "tests/skill-contracts.test.mjs" }
+    ],
+    "managedUpdateClosure": {
+      "runtimeOwnedArtifacts": [
+        "project-orchestrator.json",
+        "project-orchestrator.lock.json",
+        "reports/project-update-plan.json",
+        "reports/project-update-plan.md",
+        "reports/update-verification.json"
+      ],
+      "scaffoldManifest": "Catalog-selected scaffold files are enrolled only when installed and identical; createOnly assets are not newly adopted, but already tracked assets retain baseline ownership.",
+      "generatedHelp": "Each selected skill contract closes over its generated managed:.github/prompts/<id>-help.prompt.md companion; all 47 contracts have deterministic help generation coverage.",
+      "selection": "select recursively includes complete skill scopes, transitive contract dependencies, and generated companions; additive includes absent closure members and framework schemas; all covers the combined baseline and upstream catalog.",
+      "profileCompatibility": "Every mode validates inherited profile requirements independently of the selected slice and blocks missing contracts, invalid persisted forks, and profile dependency omissions; pins block when they make a selected dependency unavailable or incompatible.",
+      "forkCompatibility": "A reviewed planned fork may target a not-yet-created project-owned package; persisted fork policies and post-apply verification require a matching project-owned skill contract.",
+      "candidateLock": "Every dependency and generated companion reference must resolve before candidate lock creation and again after persistence."
+    },
+    "resolvedDefects": [
+      { "id": "STEP010-PROFILE-CLOSURE", "impact": "Selective updates could remain applicable while an unrelated skill required by the declared profile was missing or backed by an invalid persisted fork.", "fix": "Added effective profile and dependency checks to planning plus required contract and fork checks to candidate verification.", "files": ["pso.mjs", "tests/adoption-rerun.test.mjs"] },
+      { "id": "STEP010-RUNTIME-OWNERSHIP", "impact": "Runtime-produced manifest, lock, update plan, and verification artifacts were absent from generated artifact ownership.", "fix": "Registered deterministic pso-runtime ownership entries and added generated-project coverage.", "files": ["pso.mjs", "tests/adoption-rerun.test.mjs"] },
+      { "id": "STEP010-SELECTION-TARGET", "impact": "The selection schema allowed target records without installedSource even though apply requires exact equality with the source-bound plan target.", "fix": "Required installedSource in the selection target and added schema contract coverage.", "files": ["schemas/project-update-selection.schema.json", "tests/skill-contracts.test.mjs"] }
+    ],
+    "findings": {
+      "cycles": [],
+      "missingNodes": [],
+      "missingOwners": [],
+      "missingSchemaContractTests": [],
+      "orphanArtifacts": [],
+      "orphanGeneratedCompanions": [],
+      "unresolvedReferences": [],
+      "ownershipConflicts": [],
+      "blockers": []
+    },
+    "validation": {
+      "graphAssertions": { "command": "node --test tests/skill-contracts.test.mjs", "tests": 18, "passed": 18, "failed": 0 },
+      "focusedUpdateClosure": { "command": "node --test --test-name-pattern=<update closure patterns> tests/adoption-rerun.test.mjs", "tests": 7, "passed": 7, "failed": 0 },
+      "securityUpdateInputs": { "command": "node --test tests/security-fuzz.test.mjs", "tests": 12, "passed": 12, "failed": 0 },
+      "repositoryGate": { "command": "npm run check", "status": "passed", "tests": 170, "passed": 169, "failed": 0, "skipped": 1, "securityFilesScanned": 274, "releaseFilesVerified": 183, "skillsVerified": 47 },
+      "diffCheck": { "command": "git diff --check", "status": "passed", "note": "Only the pre-existing tests/security-fuzz.test.mjs CRLF normalization warning was emitted." }
+    },
+    "step011": {
+      "status": "ready",
+      "reason": "Implementation, graph/profile/artifact closure, focused update and security tests, the full repository gate, and bounded diff validation pass."
+    }
+  }
+}

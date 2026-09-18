@@ -144,15 +144,121 @@ Use `/linkedin-post --update` to compare against `reports/linkedin-post-history.
 verified changes. Drafts are saved to `reports/linkedin-post-draft.md`; publication always remains a
 user-approved external action.
 
-To refresh a standalone project from a newer Skills Orchestrator checkout, preview the update first:
+### Update the Launch Pad checkout
+
+The Launch Pad repository remains Git-native. `pso update` does not fetch, merge, reset, rebase,
+commit, push, or publish this checkout. Start from a clean worktree, obtain explicit approval for the
+network fetch, inspect the trusted target and release notes, and integrate through the repository's
+normal protected Git workflow:
 
 ```powershell
-node .\pso.mjs update --project "C:\Projects\my-project" --dry-run
-node .\pso.mjs update --project "C:\Projects\my-project" --accept-risk
+Set-Location "C:\repos\Skills-Orchestrator"
+git status --short --branch
+
+# External network action: run only after explicit approval.
+git fetch origin
+git log --oneline HEAD..origin/main
+git diff --stat HEAD..origin/main
+git show origin/main:release/release-manifest.json
+$dependencyMetadataChanged = git diff --name-only HEAD..origin/main -- package.json package-lock.json
+
+# Integrate only through the repository's normal protected branch/PR policy.
+git merge --ff-only origin/main
+
+# Run npm ci only when package.json or package-lock.json changed in the inspected diff.
+if ($dependencyMetadataChanged) { npm ci }
+npm run check
 ```
 
-The updater refreshes orchestrator-owned skills, schemas, configuration, and missing framework
-assets. It preserves application code, reports, and project-owned instruction customizations.
+If dependency metadata did not change, skip `npm ci`. Update each generated or adopted project
+separately from the trusted, validated Launch Pad checkout.
+
+### Update a generated or adopted project
+
+`update` is plan-only by default. A bare update and `--mode all` are the same safe-all operation;
+neither is force-all. The plan classifies each selected managed asset against its installed baseline,
+local content, and current upstream content, then writes `reports/project-update-plan.json` and
+`reports/project-update-plan.md`.
+
+```powershell
+# Safe-all plan.
+node .\pso.mjs update --project "C:\Projects\my-project" --mode all --dry-run
+
+# Add only absent selected skills/assets; skill dependencies are selected implicitly.
+node .\pso.mjs update --project "C:\Projects\my-project" --mode additive --skills "workflow-planner"
+
+# Select canonical skill IDs or exact managed asset paths (comma-separated).
+node .\pso.mjs update --project "C:\Projects\my-project" --mode select --skills "workflow-planner,project-handoff" --json
+node .\pso.mjs update --project "C:\Projects\my-project" --mode select --assets "schemas/project-update-plan.schema.json" --json
+
+# In an interactive terminal, select mode prompts when selectors are omitted.
+node .\pso.mjs update --project "C:\Projects\my-project" --mode select
+```
+
+Review `canApply`, conflicts, implicit dependencies, asset classifications, proposed actions, and
+the SHA-256 `planDigest`. For a noninteractive resolution, create a schema 1.0 selection file bound
+to the exact digest and the complete `target` object from that plan:
+
+```powershell
+$plan = Get-Content ".\reports\project-update-plan.json" -Raw | ConvertFrom-Json
+$asset = ".github/skills/example/SKILL.md"
+$selection = [ordered]@{
+  schemaVersion = "1.0.0"
+  expectedPlanDigest = $plan.planDigest
+  target = $plan.target
+  selectors = [ordered]@{ skills = @(); assets = @($asset) }
+  policyChanges = @()
+  resolutions = @([ordered]@{ asset = $asset; disposition = "keep" })
+  exactForcePaths = @()
+}
+$selection | ConvertTo-Json -Depth 20 | Set-Content ".\update-selection.json" -Encoding utf8NoBOM
+```
+
+Policies persist intent: `track` follows verified upstream content, `pin` retains local content, and
+`fork` preserves a complete local skill package under a new project-owned skill ID before restoring
+the canonical package. Deferred conflict dispositions are `keep` (pin and mark project-owned),
+`replace` (track upstream), `fork` (skill contracts only, with `forkSkillId`), and `remove` (only an
+exactly selected asset proven removed upstream). Unknown legacy content is preserved and blocks apply
+until explicitly resolved.
+
+Apply only the reviewed, current selection:
+
+```powershell
+node .\pso.mjs update `
+  --project "C:\Projects\my-project" `
+  --mode select `
+  --selection-file ".\update-selection.json" `
+  --apply `
+  --accept-risk
+```
+
+Apply fails closed if the selection file, target, plan digest, baseline lock, or destination content
+changed after planning. `exactForcePaths` is available only in a selection file, accepts exact asset
+paths only, and requires the same asset to be explicitly selected with a `replace` resolution plus
+`--accept-risk`; there is no force-all mode.
+
+Before writing, apply acquires `.skills-orchestrator/adoption.lock` and backs up every mutation target
+under `.skills-orchestrator/transactions/<transaction-id>/`. It updates managed assets in dependency
+order, preserves files outside the managed catalog and retained project-owned assets, regenerates the
+inventory, and writes `reports/update-verification.json`. Verification must pass before the new
+baseline and manifest are retained; ordinary failures roll back automatically.
+
+The first successful update from manifest 1.0 migrates transactionally to manifest 1.1 and
+`project-orchestrator.lock.json` schema 1.0. An older updater cannot use or downgrade that pair in
+place. Use a runtime satisfying `minimumUpdaterRuntimeVersion`, or restore the complete matching
+pre-migration manifest/lock backup before using the prior runtime.
+
+If a process is interrupted, do not replan or apply again. Confirm the recorded process is no longer
+active, preserve the transaction directory, and recover it first:
+
+```powershell
+node .\pso.mjs recover --project "C:\Projects\my-project" --transaction TRANSACTION_ID
+```
+
+For troubleshooting, regenerate a plan when a digest or destination is stale; resolve every
+`UNRESOLVED_ASSET`, `INCOMPATIBLE_DEPENDENCY`, `INCOMPATIBLE_PIN`, or `INCOMPATIBLE_PROFILE`
+conflict instead of forcing the whole update; and inspect the transaction journal when recovery is
+required.
 
 Without `--stack`, you get the universal standards and a CI workflow that **fails until you configure it**. That is deliberate — a pipeline that passes without testing anything is worse than no pipeline.
 
@@ -601,7 +707,9 @@ The skill will not persist credentials or silently change narration providers. M
 | `node .\pso.mjs adopt ... --dry-run` | Preview changes to an existing project |
 | `node .\pso.mjs adopt ... --dry-run --json` | Emit the portable plan as JSON without changing the project |
 | `node .\pso.mjs adopt ... --apply --accept-risk` | Apply the reviewed plan |
-| `node .\pso.mjs recover --project PATH` | Restore an interrupted adoption |
+| `node .\pso.mjs update --project PATH [--mode all] [--dry-run]` | Write a safe-all project update plan without applying it |
+| `node .\pso.mjs update --project PATH --mode select --selection-file FILE --apply --accept-risk` | Apply an exact reviewed project update transactionally |
+| `node .\pso.mjs recover --project PATH [--transaction ID]` | Restore an interrupted adoption or update transaction |
 | `node .\pso.mjs inventory --root PATH` | Regenerate and validate the skill inventory |
 | `node .\pso.mjs plan --root PATH --intent TEXT` | Create a workflow plan |
 | `node .\pso.mjs agent build --project PATH [parameters]` | Ask for missing fields, conditionally establish Azure context, and generate a v2.1 agent blueprint and review plan |
@@ -622,6 +730,8 @@ Use `--autonomy autonomous-research --web-safety threat-informed` to let a read-
 | `reports/adoption-plan.json` | Exact actions applied by the last adoption of a target project, including skipped and covered decisions |
 | `reports/adoption-rerun-evidence.json` | Reproducible before/apply/no-op evidence from a disposable project fixture |
 | `reports/adoption-rerun-evidence.md` | Concise presentation view derived from the rerun evidence |
+| `reports/project-update-plan.json` / `.md` | Portable update plan, classifications, selections, conflicts, digests, and proposed actions |
+| `reports/update-verification.json` | Proof that an applied update passed dependency, policy, manifest/lock, migration, and preservation checks |
 | `reports/skill-inventory.json` | Installed skills, dependencies, lifecycle, outputs |
 | `reports/artifact-ownership.json` | The declared producer of every skill-owned report |
 | `reports/execution-log.jsonl` | Append-only workflow event stream |
@@ -630,7 +740,7 @@ An adoption dry run never writes into the target repository, so it does not crea
 
 ## Recovery
 
-If adoption is interrupted, the journal under `.skills-orchestrator/transactions/` holds a backup of every file touched. A `rolled-back` journal means restoration already completed. Otherwise:
+If adoption or update is interrupted, the journal under `.skills-orchestrator/transactions/` holds a backup of every file touched. A `rolled-back` journal means restoration already completed. Otherwise, recover before creating another plan:
 
 ```powershell
 node .\pso.mjs recover --project "C:\repos\ExistingProject"
