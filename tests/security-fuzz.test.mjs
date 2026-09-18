@@ -14,10 +14,18 @@ function run(...args) {
 }
 
 async function installWorkflowOwners(project) {
-  for (const skillName of ["project-skills-orchestrator", "project-handoff", "workflow-planner"]) {
+  const definitions = {
+    "project-skills-orchestrator": "Routes governed workflows.",
+    "project-handoff": "Publishes workflow continuity.",
+    "workflow-planner": "Builds workflow plans.",
+    "azure-discovery": "Discover Azure availability and supported service configuration.",
+    "clarify-the-ask": "Clarify user intent before Azure discovery."
+  };
+  for (const [skillName, description] of Object.entries(definitions)) {
     const skillRoot = path.join(project, ".github", "skills", skillName);
     await mkdir(skillRoot, { recursive: true });
-    await writeFile(path.join(skillRoot, "SKILL.md"), `---\nname: ${skillName}\ndescription: Test owner.\n---\n`, "utf8");
+    const dependencies = skillName === "azure-discovery" ? "\n## Composition and Dependencies\n\n- `clarify-the-ask`\n" : "";
+    await writeFile(path.join(skillRoot, "SKILL.md"), `---\nname: ${skillName}\ndescription: ${description}\n---\n${dependencies}`, "utf8");
   }
 }
 
@@ -371,6 +379,22 @@ test("workflow planning emits governed plan, markdown, event, and matching state
     assert.equal(state.totalSteps, plan.steps.length);
     assert.equal(state.lastSequence, event.sequence);
     assert.equal(run("plan", "validate", "--root", project).status, 0);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("workflow planning expands the matched skill and its declared prerequisites", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-plan-routing-"));
+  try {
+    await writeFile(path.join(project, "package.json"), "{\"name\":\"plan-routing\"}\n", "utf8");
+    await installWorkflowOwners(project);
+    const result = run("plan", "--root", project, "--intent", "discover Azure availability");
+    assert.equal(result.status, 0, `${result.stdout}${result.stderr}`);
+    const plan = JSON.parse(await readFile(path.join(project, "reports", "workflow-plan.json"), "utf8"));
+    assert.deepEqual(plan.steps.map((step) => step.owner.id), ["project-skills-orchestrator", "clarify-the-ask", "azure-discovery", "project-handoff"]);
+    assert.deepEqual(plan.steps[2].prerequisites, ["STEP-002"]);
+    assert.deepEqual(plan.steps[3].prerequisites, ["STEP-002", "STEP-003"]);
   } finally {
     await rm(project, { recursive: true, force: true });
   }

@@ -13,7 +13,7 @@ Assessment date: 2026-08-04.
 - The original `core`, `durable`, and `distributed` profiles omitted transitive dependencies. The contract suite now verifies dependency closure for every profile.
 - The catalog was strongest in governance, workflow state, framework lifecycle, audit, and continuity. It lacked direct owners for failure diagnosis, regression-test creation, bounded change review, hosted CI triage, and application package maintenance.
 - `prepare-commit` was disconnected. It now consumes the bounded `change-review` result.
-- The CLI validates inventory, dependencies, profiles, ownership, and selected handoffs, but its `plan` command still emits an initial plan rather than dispatching skills. This remains the largest runtime value gap.
+- The CLI validates inventory, dependencies, profiles, ownership, and selected handoffs. Its `plan` command now deterministically matches intent to installed skill descriptions, expands declared prerequisites, and records a governed handoff; it plans but does not dispatch skills.
 
 ## Mechanism Boundary
 
@@ -51,7 +51,7 @@ This boundary follows the Agent Skills specification and current GitHub Copilot 
 
 ## Remaining Priorities
 
-1. Replace the one-step CLI plan placeholder with dependency expansion, policy decisions, state transitions, output validation, and terminal status.
+1. Add policy decisions, state transitions, and output validation to intent-expanded plans before lifecycle promotion.
 2. Add schemas and fixtures for developer-workflow machine-readable reports before lifecycle promotion.
 3. Extend artifact ownership with consumers, schemas, versions, optionality, and freshness rules.
 4. Clarify whether profiles govern installation, activation, or conformance; adoption currently installs the full catalog.

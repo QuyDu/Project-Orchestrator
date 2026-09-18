@@ -3989,23 +3989,41 @@ async function plan(requestedRoot, intent) {
     const workflowId = `WF-${randomUUID()}`;
     const runId = `RUN-${randomUUID()}`;
     const now = new Date().toISOString();
+    const routedSkills = await resolvePlanSkills(root, intent);
+    const steps = [
+      {
+        id: "STEP-001", owner: { type: "skill", id: "project-skills-orchestrator" }, action: "Route clarified intent", status: "ready",
+        inputs: ["Clarified user intent"], outputs: ["Routed workflow outcome"], requiresApproval: false, approvalClasses: [], prerequisites: [],
+        completionCriteria: ["Intent is routed to exactly one owning skill per executable step."], checkpoint: "CP-ROUTED",
+        rollback: "Preserve the prior valid plan.", recovery: "Correct unresolved ownership and replan.", onBlocked: "", onFailed: ""
+      }
+    ];
+    const skillStepIds = new Map();
+    for (const skill of routedSkills) {
+      const stepNumber = String(steps.length + 1).padStart(3, "0");
+      const prerequisites = dependencyItems(skill.source).map((dependency) => skillStepIds.get(dependency)).filter(Boolean);
+      const stepId = `STEP-${stepNumber}`;
+      steps.push({
+        id: stepId, owner: { type: "skill", id: skill.name }, action: `Execute ${skill.name} for the clarified intent`, status: "planned",
+        inputs: ["STEP-001 routed intent"], outputs: [`${skill.name} outcome`], requiresApproval: false, approvalClasses: [], prerequisites: prerequisites.length ? prerequisites : ["STEP-001"],
+        completionCriteria: [`${skill.name} completes its bounded contract or reports a blocked state.`], checkpoint: `CP-${skill.name.toUpperCase()}`,
+        rollback: "Preserve prior valid artifacts.", recovery: "Correct the reported condition and rerun this bounded step.", onBlocked: "", onFailed: ""
+      });
+      skillStepIds.set(skill.name, stepId);
+    }
+    const terminalStepId = `STEP-${String(steps.length + 1).padStart(3, "0")}`;
+    for (const step of steps) {
+      step.onBlocked = terminalStepId;
+      step.onFailed = terminalStepId;
+    }
+    steps.push({
+      id: terminalStepId, owner: { type: "skill", id: "project-handoff" }, action: "Publish terminal workflow continuity", status: "planned",
+      inputs: ["Prior workflow outcomes"], outputs: ["reports/project-handoff.json", "reports/project-handoff.md", "reports/current-work-state.json"], requiresApproval: false, approvalClasses: [], prerequisites: routedSkills.length ? routedSkills.map((skill) => skillStepIds.get(skill.name)) : ["STEP-001"],
+      completionCriteria: ["The handoff records completed, blocked, failed, and pending work with one next action."], checkpoint: "CP-HANDOFF",
+      rollback: "Preserve the prior valid handoff.", recovery: "Regenerate synchronized continuity from the latest valid outcome.", onBlocked: terminalStepId, onFailed: terminalStepId
+    });
     const workflow = {
-      schemaVersion: "1.1.0", workflowId, runId, intent,
-      status: "planned", createdAt: now, terminalStepId: "STEP-002",
-      steps: [
-        {
-          id: "STEP-001", owner: { type: "skill", id: "project-skills-orchestrator" }, action: "Route clarified intent", status: "ready",
-          inputs: ["Clarified user intent"], outputs: ["Routed workflow outcome"], requiresApproval: false, approvalClasses: [], prerequisites: [],
-          completionCriteria: ["Intent is routed to exactly one owning skill per executable step."], checkpoint: "CP-ROUTED",
-          rollback: "Preserve the prior valid plan.", recovery: "Correct unresolved ownership and replan.", onBlocked: "STEP-002", onFailed: "STEP-002"
-        },
-        {
-          id: "STEP-002", owner: { type: "skill", id: "project-handoff" }, action: "Publish terminal workflow continuity", status: "planned",
-          inputs: ["STEP-001 outcome"], outputs: ["reports/project-handoff.json", "reports/project-handoff.md", "reports/current-work-state.json"], requiresApproval: false, approvalClasses: [], prerequisites: ["STEP-001"],
-          completionCriteria: ["The handoff records completed, blocked, failed, and pending work with one next action."], checkpoint: "CP-HANDOFF",
-          rollback: "Preserve the prior valid handoff.", recovery: "Regenerate synchronized continuity from the latest valid outcome.", onBlocked: "STEP-002", onFailed: "STEP-002"
-        }
-      ]
+      schemaVersion: "1.1.0", workflowId, runId, intent, status: "planned", createdAt: now, terminalStepId, steps
     };
     await validateWorkflowPlan(workflow, root);
     const eventFile = path.join(reports, "execution-log.jsonl");
@@ -4035,6 +4053,32 @@ async function plan(requestedRoot, intent) {
   } finally {
     await rm(lockPath, { force: true });
   }
+}
+
+async function resolvePlanSkills(root, intent) {
+  const terms = new Set(String(intent).toLowerCase().match(/[a-z0-9]+/g) ?? []);
+  const skills = await discoverSkills(root);
+  const eligible = skills.filter((skill) => !["project-handoff", "project-skills-orchestrator"].includes(skill.name));
+  const scored = eligible.map((skill) => {
+    const nameTerms = new Set(skill.name.split("-"));
+    const description = skill.description.toLowerCase();
+    const score = [...terms].reduce((total, term) => total + (nameTerms.has(term) ? 3 : 0) + (description.includes(term) ? 1 : 0), 0);
+    return { skill, score };
+  });
+  const highestScore = Math.max(0, ...scored.map(({ score }) => score));
+  const selected = scored.filter(({ score }) => score === highestScore && score > 0).map(({ skill }) => skill);
+  const byName = new Map(skills.map((skill) => [skill.name, skill]));
+  const resolved = new Map();
+  function addWithDependencies(skill) {
+    if (resolved.has(skill.name)) return;
+    for (const dependency of dependencyItems(skill.source)) {
+      const dependencySkill = byName.get(dependency);
+      if (dependencySkill) addWithDependencies(dependencySkill);
+    }
+    resolved.set(skill.name, skill);
+  }
+  selected.forEach(addWithDependencies);
+  return [...resolved.values()];
 }
 
 async function guidedCreate() {

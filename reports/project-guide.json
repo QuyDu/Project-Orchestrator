@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-18T22:23:19.721Z",
+  "generatedAt": "2026-09-18T23:11:49.751Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "fd07441dfa1645dc72d0213d368872f35112a3325e58fc4b156e6ed0f718cc3f",
+    "jsonSha256": "38ae20889f746bd7755725580207818ce332c92b340767ab17323b28cd43f696",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "b4c1c0770c8209a6f66a4033b360720a07f3db6eb0926912cdb4b01ffaa3fc5e"
+    "markdownSha256": "640b172f4c52111a849beadfe812cbf26a56db5d7dd7dce4330b09531fa7ee93"
   },
   "guide": "docs/PROJECT-GUIDE.md",
   "guideSha256": "4f620baa06b5321147c771708b2364a4d2c824132b0e291658dd0124c16eabfc",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "status": "complete",
-  "generatedAt": "2026-09-18T22:23:19.431Z",
+  "generatedAt": "2026-09-18T23:11:49.498Z",
   "generator": "project-understanding",
   "project": {
     "name": "project-skills-orchestrator",
@@ -13,7 +13,7 @@
   },
   "scan": {
     "mode": "full-rebuild",
-    "repositoryDigestSha256": "35e5bd8777414d9494dcb3e9cd6e737db30086bd9dee623ee848c6499243b2b1",
+    "repositoryDigestSha256": "63481aa2946ecdd12d6f36cea1bc6b639993ac48df513e5e2101a8c9dde11b46",
     "fileCount": 382,
     "sourceFileCount": 21,
     "testFileCount": 23,
@@ -771,8 +771,8 @@
       },
       {
         "path": "docs/SKILL-ECOSYSTEM-AUDIT.md",
-        "bytes": 6325,
-        "sha256": "72b4f0e52b035e43868994bb7d55f060b74ceab236bca10618fc325eb536bf88"
+        "bytes": 6360,
+        "sha256": "b38a5e72e2080bf2e987af54a4e91d8e92cdb36d56f472d91e9d29f779550f81"
       },
       {
         "path": "docs/THREAT-MODEL.md",
@@ -796,8 +796,8 @@
       },
       {
         "path": "pso.mjs",
-        "bytes": 237566,
-        "sha256": "e86732166edc3c2fde954d4099000664791f2efce494ce45ec3aeae0eb1084bc"
+        "bytes": 240198,
+        "sha256": "62634993a1be4aa354eefe2706b2870c163f58ece7a91d79297a42e15de95cbc"
       },
       {
         "path": "pso.ps1",
@@ -806,8 +806,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 50683,
-        "sha256": "1eb5419641dfedce73fb35b644be8c55fb63d0391542f26f28b1d168a4868bfe"
+        "bytes": 50787,
+        "sha256": "620e008540abec051cdf32ac5449ce8391985f1b59b81f467583a9007b35a674"
       },
       {
         "path": "release/release-manifest.json",
@@ -857,7 +857,7 @@
       {
         "path": "reports/artifact-ownership.json",
         "bytes": 11691,
-        "sha256": "76d1fd861b2f7824241a685dec3532bce467fdd7f61462c4bc56b79867af026f"
+        "sha256": "b47678c8acf0a95b070bccdb2c157c35a4ca871e0ea194aba0b1def2016bc780"
       },
       {
         "path": "reports/artifact-upgrade-plan.json",
@@ -1227,7 +1227,7 @@
       {
         "path": "reports/security-check.json",
         "bytes": 342,
-        "sha256": "e404fd8d5367eb830d89856fc0b081e2b7e2ee03b85e6f1044ef0c6dcf056d9a"
+        "sha256": "e89642e52e70e020585b597c55bd3dc4c1408f4b108283a68838828b41d5c62d"
       },
       {
         "path": "reports/security-review.json",
@@ -1252,22 +1252,22 @@
       {
         "path": "reports/skill-details.json",
         "bytes": 42446,
-        "sha256": "440cc15e5db1f0cd4c8cd858376bfb307a823785d872327062bb58da47992437"
+        "sha256": "10cfc8f984baa5624e6f1f1fbc47189820a02088c4b5338ab6d110ca9eb4b6ca"
       },
       {
         "path": "reports/skill-details.md",
         "bytes": 4474,
-        "sha256": "5603930775be94afc684d678698a595d58e0604c42079a88861d1bee4f32ea27"
+        "sha256": "9c56c37e45e216386d48899ab0ba6a37b6242478ee0e930c8d6db1bd84724953"
       },
       {
         "path": "reports/skill-inventory.json",
         "bytes": 32366,
-        "sha256": "4c76c656080c68fe4fffe45bde65b8e62e482cdbf9847c6190cd5a427aa03baa"
+        "sha256": "0f88a347af6e256c056218f4eabfdece0371e2197cc44feacb3a75b902e3ca1e"
       },
       {
         "path": "reports/skill-inventory.md",
         "bytes": 14059,
-        "sha256": "3fb17492747edae40a213cf92c557f277424e5dd518e1cdde07ce463f9a3df12"
+        "sha256": "9310d92ec310bff64864bfd50bfe2fa84cd4d461cb194fa1bffe16031243fe79"
       },
       {
         "path": "reports/workflow-completion.json",
@@ -1891,8 +1891,8 @@
       },
       {
         "path": "tests/live-chat-provider-adapter.test.mjs",
-        "bytes": 6806,
-        "sha256": "a816d3b037a0ac93452e60b597d80d94210310a50325e56d4e732d264789e573"
+        "bytes": 7963,
+        "sha256": "306899129cf5e312a49cffd3c58c777b21ab0b49c375cfb3fc9e0e4aedbf4058"
       },
       {
         "path": "tests/live-chat-security.test.mjs",
@@ -1936,8 +1936,8 @@
       },
       {
         "path": "tests/security-fuzz.test.mjs",
-        "bytes": 28652,
-        "sha256": "b336ab81c6d87c6039fe17f8fc06399e0860eb9e88b7a6bf327f3f13b977abc6"
+        "bytes": 30123,
+        "sha256": "6703d32c7e8f468a5a4681066a46c630a9e68c4e01d14cbf87d2d2f80f2f06e3"
       },
       {
         "path": "tests/skill-contracts.test.mjs",
@@ -3498,5 +3498,5 @@
   ],
   "limitations": [],
   "markdown": "reports/project-understanding.md",
-  "markdownSha256": "b4c1c0770c8209a6f66a4033b360720a07f3db6eb0926912cdb4b01ffaa3fc5e"
+  "markdownSha256": "640b172f4c52111a849beadfe812cbf26a56db5d7dd7dce4330b09531fa7ee93"
 }
