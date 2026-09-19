@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "1.0.0",
+  "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
+  "generatedAt": "2026-09-19T00:10:52.316Z",
+  "repository": {
+    "root": ".",
+    "rootResolved": true,
+    "head": "427fcae427a9c7246909c66b468e4c6f5c171c41",
+    "worktreeDirty": true,
+    "shallow": false,
+    "reachableCommitCount": 56,
+    "localBranchCount": 8,
+    "remoteTrackingRefCount": 6,
+    "tagCount": 1,
+    "remotes": [
+      {
+        "name": "origin",
+        "url": "https://github.com/QuyDu/Skills-Orchestrator.git",
+        "direction": "fetch",
+        "host": "github.com"
+      },
+      {
+        "name": "origin",
+        "url": "https://github.com/QuyDu/Skills-Orchestrator.git",
+        "direction": "push",
+        "host": "github.com"
+      }
+    ],
+    "trackedFileCount": 393,
+    "trackedReportCount": 100
+  },
+  "secretHistory": {
+    "status": "completed",
+    "pinnedScannerReady": true,
+    "pinnedBinaryInstalled": true,
+    "supplementalScannerAvailable": false,
+    "helperValidity": {
+      "metadata": true,
+      "checkpoint": true,
+      "scanDigest": true
+    },
+    "evidenceMaxAgeHours": 24,
+    "scanAgeHours": 0.003152777777777778,
+    "scanFresh": true,
+    "requiredScope": [
+      "worktree",
+      "staged",
+      "untracked-distributable",
+      "tracked-reports",
+      "all-local-refs",
+      "reachable-history"
+    ],
+    "scanners": [
+      {
+        "name": "gitleaks",
+        "status": "unavailable",
+        "version": null
+      },
+      {
+        "name": "trufflehog",
+        "status": "unavailable",
+        "version": null
+      },
+      {
+        "name": "gitleaks-pinned",
+        "status": "available",
+        "version": "gitleaks version 8.30.1"
+      }
+    ],
+    "scanEvidence": {
+      "path": "reports/gitleaks-scan.json",
+      "generatedAt": "2026-09-19T00:10:40.815Z",
+      "version": "8.30.1",
+      "configurationSha256": "e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4",
+      "worktreeDigest": "00c845baf0961009bdb97ebd58488e55f92ee99b0eb41b3ab0bf827774de7318",
+      "scanInputDigest": "6cfa94828c3c719c44b889b0a4939116375aaf2d8f03e9e1ffbbd1242ce60fa4"
+    },
+    "limitations": [
+      "Remote-only refs require approved hosted access or fetch.",
+      "Unreachable and pruned objects require an explicit forensic scope."
+    ]
+  },
+  "hostedGitHub": {
+    "required": true,
+    "status": "blocked",
+    "reason": "Current read-only GitHub evidence must be collected after explicit external-access approval."
+  },
+  "standardsProfiles": [
+    {
+      "id": "microsoft-sdl",
+      "title": "Microsoft Security Development Lifecycle Practices",
+      "publisher": "microsoft",
+      "version": "access-dated living guidance",
+      "stability": "current",
+      "resolutionRequired": true,
+      "url": "https://www.microsoft.com/securityengineering/sdl/practices",
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "microsoft-cloud-security-benchmark",
+      "title": "Microsoft Cloud Security Benchmark",
+      "publisher": "microsoft",
+      "version": "resolve-at-audit-time",
+      "stability": "resolve-at-audit-time",
+      "resolutionRequired": true,
+      "url": "https://learn.microsoft.com/security/benchmark/azure/overview",
+      "note": "Resolve the current stable and preview releases before selecting a normative baseline.",
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "azure-well-architected-security",
+      "title": "Azure Well-Architected Framework Security",
+      "publisher": "microsoft",
+      "version": "access-dated living guidance",
+      "stability": "current",
+      "resolutionRequired": true,
+      "url": "https://learn.microsoft.com/azure/well-architected/security/",
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "owasp-asvs",
+      "title": "OWASP Application Security Verification Standard",
+      "publisher": "industry",
+      "version": "5.0.0",
+      "stability": "stable",
+      "url": "https://owasp.github.io/www-project-application-security-verification-standard",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "owasp-top-10",
+      "title": "OWASP Top 10",
+      "publisher": "industry",
+      "version": "2025",
+      "stability": "stable",
+      "url": "https://top10.owasp.org/2025/",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "nist-ssdf",
+      "title": "NIST Secure Software Development Framework",
+      "publisher": "standard",
+      "version": "1.1",
+      "stability": "final",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "cis-controls",
+      "title": "CIS Critical Security Controls",
+      "publisher": "industry",
+      "version": "8.1",
+      "stability": "stable",
+      "url": "https://www.cisecurity.org/controls/v8-1",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "slsa",
+      "title": "Supply-chain Levels for Software Artifacts",
+      "publisher": "industry",
+      "version": "1.2",
+      "stability": "approved",
+      "url": "https://slsa.dev/spec/v1.2/",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "openssf-scorecard",
+      "title": "OpenSSF Scorecard",
+      "publisher": "industry",
+      "version": "access-dated current checks",
+      "stability": "current",
+      "resolutionRequired": true,
+      "url": "https://scorecard.dev/",
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "owasp-genai-llm-top-10",
+      "title": "OWASP GenAI LLM Top 10",
+      "publisher": "industry",
+      "version": "2026",
+      "stability": "current",
+      "conditional": true,
+      "resolutionRequired": true,
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "owasp-agentic-top-10",
+      "title": "OWASP Top 10 for Agentic Applications",
+      "publisher": "industry",
+      "version": "2026",
+      "stability": "current",
+      "conditional": true,
+      "resolutionRequired": true,
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "nist-ai-rmf",
+      "title": "NIST AI Risk Management Framework",
+      "publisher": "standard",
+      "version": "1.0",
+      "stability": "final",
+      "conditional": true,
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    },
+    {
+      "id": "nist-ai-600-1",
+      "title": "NIST AI 600-1 Generative AI Profile",
+      "publisher": "standard",
+      "version": "1.0",
+      "stability": "final",
+      "conditional": true,
+      "url": "https://doi.org/10.6028/NIST.AI.600-1",
+      "resolutionRequired": false,
+      "currencyVerificationRequired": true,
+      "applicabilityAssessmentRequired": true,
+      "profileDeclaredAt": "2026-09-19T00:10:52.316Z",
+      "lastVerifiedAt": null,
+      "status": "requires-applicability-assessment"
+    }
+  ],
+  "assurance": {
+    "status": "insufficient-evidence",
+    "allowedConclusions": [
+      "conformant",
+      "conformant-with-exceptions",
+      "non-conformant",
+      "insufficient-evidence"
+    ],
+    "prohibitedClaim": "The repository is secure or meets all best practices."
+  }
+}

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "2.1.0",
-  "auditRunId": "d343d673-dc11-4469-bce4-ccc0681608d1",
-  "sourceReviewSha256": "d0283d8d25e1d05347366aa5fc1f51cbaafebad480052fb3cfac3ec7887021c4",
-  "planId": "PLAN-2026-09-11-PSO-126",
-  "generatedAt": "2026-09-11T16:35:04.576Z",
+  "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
+  "sourceReviewSha256": "7ac5dd35f954f22143f4e37bdbb48eb89191dcc898d40e6861d74d9d16f7df5f",
+  "planId": "PLAN-2026-09-19-PSO-127",
+  "generatedAt": "2026-09-19T02:00:34.777Z",
   "sourceReview": "reports/code-audit-review.json",
   "prioritization": [
     "prerequisite",
@@ -15,168 +15,14 @@
     "complexity",
     "remediation-cost"
   ],
-  "milestones": [
-    {
-      "id": "P1-evidence-validation",
-      "title": "Close audit evidence trust gaps",
-      "itemIds": [
-        "REM-0301",
-        "REM-0302"
-      ]
-    },
-    {
-      "id": "P2-record-integrity",
-      "title": "Complete record and digest binding",
-      "itemIds": [
-        "REM-0303",
-        "REM-0304"
-      ]
-    }
-  ],
-  "items": [
-    {
-      "id": "REM-0301",
-      "title": "Validate immutable audit evidence content",
-      "findingIds": [
-        "AUD-0301"
-      ],
-      "securitySeverity": "medium",
-      "priority": 1,
-      "complexity": "medium",
-      "complexityRationale": "Requires schema integration, semantic checks, and adversarial fixtures.",
-      "ownerRole": "Audit framework maintainer",
-      "dependsOn": [],
-      "scope": ".github/skills/audit-code/scripts/audit-validate.mjs; schemas/audit-evidence.schema.json; tests/audit-assurance.test.mjs",
-      "implementationSteps": [
-        "Invoke the audit-evidence schema during findings validation.",
-        "Enforce scanner freshness, required scope, helper validity, hosted status, and standards-profile semantics.",
-        "Add correctly hashed malformed snapshot fixtures."
-      ],
-      "acceptanceCriteria": [
-        "Malformed or incomplete snapshots fail.",
-        "Valid current snapshots pass."
-      ],
-      "verification": [
-        "Run focused audit assurance and execution tests.",
-        "Run npm run check."
-      ],
-      "rollout": "Version contracts, update producers and templates, then validate current and historical fixtures.",
-      "rollback": "Revert schema, producer, validator, and fixture changes as one unit.",
-      "requiresApproval": true,
-      "approvalReason": "Modifies the governed audit-code skill and contract surfaces.",
-      "residualRisk": "Historical artifacts remain readable under their original schema versions.",
-      "parallelGroup": null
-    },
-    {
-      "id": "REM-0302",
-      "title": "Canonicalize and contain audit artifact paths",
-      "findingIds": [
-        "AUD-0302"
-      ],
-      "securitySeverity": "medium",
-      "priority": 2,
-      "complexity": "high",
-      "complexityRationale": "Requires command contract changes and cross-platform symlink fixtures.",
-      "ownerRole": "Audit framework maintainer",
-      "dependsOn": [],
-      "scope": ".github/skills/audit-code/scripts/audit-validate.mjs; .github/skills/audit-code/scripts/safe-path.mjs; tests/audit-assurance.test.mjs; tests/security-fuzz.test.mjs",
-      "implementationSteps": [
-        "Require repository root for findings and plan validation.",
-        "Canonicalize artifact and parent paths and reject symlinks and non-regular files.",
-        "Apply repository-owned report-directory containment.",
-        "Add Windows, Linux, and macOS boundary fixtures."
-      ],
-      "acceptanceCriteria": [
-        "Outside-root and redirected paths fail closed.",
-        "Normal repository paths pass on supported platforms."
-      ],
-      "verification": [
-        "Run focused audit assurance and execution tests.",
-        "Run npm run check."
-      ],
-      "rollout": "Version contracts, update producers and templates, then validate current and historical fixtures.",
-      "rollback": "Revert schema, producer, validator, and fixture changes as one unit.",
-      "requiresApproval": true,
-      "approvalReason": "Modifies the governed audit-code skill and contract surfaces.",
-      "residualRisk": "Historical artifacts remain readable under their original schema versions.",
-      "parallelGroup": null
-    },
-    {
-      "id": "REM-0303",
-      "title": "Bind verification records to immutable artifacts",
-      "findingIds": [
-        "AUD-0303"
-      ],
-      "securitySeverity": "medium",
-      "priority": 3,
-      "complexity": "high",
-      "complexityRationale": "Changes the current findings and review artifact contracts and all producers.",
-      "ownerRole": "Audit framework maintainer",
-      "dependsOn": [
-        "REM-0301",
-        "REM-0302"
-      ],
-      "scope": "schemas/code-audit-findings.schema.json; schemas/audit-findings-review.schema.json; .github/skills/audit-code/scripts/audit-validate.mjs; .github/skills/audit-code/scripts/audit-evidence.mjs; .github/skills/audit-code/scripts/gitleaks-scan.mjs; tests/audit-assurance.test.mjs; tests/adoption-rerun.test.mjs; tests/gitleaks-scan.test.mjs; tests/skill-contracts.test.mjs",
-      "implementationSteps": [
-        "Add a content-addressed evidence reference to each verification record.",
-        "Validate artifact bytes, digest, run, revision, tool, status, and scope.",
-        "Update producers, templates, schemas, and adoption fixtures."
-      ],
-      "acceptanceCriteria": [
-        "Arbitrary digest records fail.",
-        "Valid immutable records survive findings and review validation."
-      ],
-      "verification": [
-        "Run focused audit assurance and execution tests.",
-        "Run npm run check."
-      ],
-      "rollout": "Version contracts, update producers and templates, then validate current and historical fixtures.",
-      "rollback": "Revert schema, producer, validator, and fixture changes as one unit.",
-      "requiresApproval": true,
-      "approvalReason": "Modifies the governed audit-code skill and contract surfaces.",
-      "residualRisk": "Historical artifacts remain readable under their original schema versions.",
-      "parallelGroup": null
-    },
-    {
-      "id": "REM-0304",
-      "title": "Canonicalize digest encoding",
-      "findingIds": [
-        "AUD-0304"
-      ],
-      "securitySeverity": "none",
-      "priority": 4,
-      "complexity": "low",
-      "complexityRationale": "A small schema and comparison change needs compatibility fixtures.",
-      "ownerRole": "Audit framework maintainer",
-      "dependsOn": [
-        "REM-0301"
-      ],
-      "scope": "schemas/code-audit-findings.schema.json; schemas/audit-evidence.schema.json; schemas/gitleaks-scan.schema.json; .github/skills/audit-code/scripts/audit-validate.mjs; .github/skills/audit-code/scripts/audit-evidence.mjs; .github/skills/audit-code/scripts/gitleaks-scan.mjs; tests/audit-assurance.test.mjs; tests/gitleaks-scan.test.mjs",
-      "implementationSteps": [
-        "Select canonical lowercase digest encoding.",
-        "Align schema patterns, writers, and comparisons.",
-        "Add mixed-case regression fixtures."
-      ],
-      "acceptanceCriteria": [
-        "Schema and semantic validators agree.",
-        "Canonical writers emit lowercase digests."
-      ],
-      "verification": [
-        "Run focused audit assurance and execution tests.",
-        "Run npm run check."
-      ],
-      "rollout": "Version contracts, update producers and templates, then validate current and historical fixtures.",
-      "rollback": "Revert schema, producer, validator, and fixture changes as one unit.",
-      "requiresApproval": true,
-      "approvalReason": "Modifies the governed audit-code skill and contract surfaces.",
-      "residualRisk": "Historical artifacts remain readable under their original schema versions.",
-      "parallelGroup": null
-    }
-  ],
+  "milestones": [],
+  "items": [],
   "dispositions": [],
   "limitations": [
-    "This plan does not execute remediation.",
-    "Skill-update approval is required before changing audit-code.",
-    "External, destructive, deployment, publication, commit, and push actions remain separately approval-gated."
+    "No confirmed findings were available to schedule.",
+    "Hosted, advisory, cloud, and current external standards evidence was not approved.",
+    "Remote-only refs and unreachable objects remain excluded.",
+    "The full repository gate did not return a final result during this audit run.",
+    "No remediation, deployment, publication, commit, push, or destructive action was performed."
   ]
 }

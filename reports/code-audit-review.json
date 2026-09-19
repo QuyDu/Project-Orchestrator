@@ -1,17 +1,17 @@
 {
   "schemaVersion": "2.2.0",
-  "auditRunId": "d343d673-dc11-4469-bce4-ccc0681608d1",
+  "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
   "auditEvidence": {
-    "path": "reports/audit-evidence/2768cb96c6cf4e49d7137527757581496234b1d00b09805d75b05e3b9edcb444.json",
-    "sha256": "2768cb96c6cf4e49d7137527757581496234b1d00b09805d75b05e3b9edcb444"
+    "path": "reports/audit-evidence/bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b.json",
+    "sha256": "bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b"
   },
-  "reviewId": "REVIEW-2026-09-11-PSO-126",
-  "generatedAt": "2026-09-11T16:35:04.576Z",
+  "reviewId": "REVIEW-2026-09-19-PSO-127",
+  "generatedAt": "2026-09-19T02:00:34.777Z",
   "sourceReport": "reports/code-audit-findings.json",
-  "sourceAuditId": "AUDIT-2026-09-11-PSO-126",
+  "sourceAuditId": "AUDIT-2026-09-19-PSO-127",
   "summary": {
-    "total": 4,
-    "confirmed": 4,
+    "total": 0,
+    "confirmed": 0,
     "needsMoreEvidence": 0,
     "disputed": 0,
     "falsePositive": 0
@@ -19,10 +19,10 @@
   "repositoryEvidence": {
     "localGit": {
       "status": "completed",
-      "revision": "39c1b62b2cc48f032f5acddc60800572b1523ce9",
+      "revision": "427fcae427a9c7246909c66b468e4c6f5c171c41",
       "worktreeDirty": true,
       "shallow": false,
-      "reachableCommitCount": 39,
+      "reachableCommitCount": 56,
       "scannedRefs": [
         "refs/heads/*",
         "refs/remotes/*",
@@ -58,7 +58,7 @@
       "checkedAt": null,
       "controls": [],
       "limitations": [
-        "External hosted access requires separate approval and was not used."
+        "External hosted access was not approved for this audit."
       ]
     }
   },
@@ -69,18 +69,18 @@
       "publisher": "Microsoft",
       "version": "access-dated living guidance",
       "reference": "https://www.microsoft.com/securityengineering/sdl/practices",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "applicable",
       "stability": "current",
       "baselineRole": "informational",
-      "rationale": "Secure development controls apply.",
+      "rationale": "Secure engineering practices apply.",
       "controls": [
         {
           "id": "LOCAL-MSDL",
           "title": "Current SDL conformance",
           "status": "blocked",
           "evidence": [
-            "Local checks passed."
+            "Local checks and review completed as scoped."
           ],
           "limitations": [
             "Current external guidance was not retrieved."
@@ -94,18 +94,18 @@
       "publisher": "Microsoft",
       "version": "resolve-at-audit-time",
       "reference": "https://learn.microsoft.com/security/benchmark/azure/overview",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "partially-applicable",
       "stability": "current",
       "baselineRole": "informational",
-      "rationale": "Azure templates are shipped but no deployment was assessed.",
+      "rationale": "Azure templates are distributed but no deployment was assessed.",
       "controls": [
         {
           "id": "LOCAL-MCSB",
           "title": "Azure design-time posture",
           "status": "blocked",
           "evidence": [
-            "Template contract tests passed."
+            "Local template and contract checks are available."
           ],
           "limitations": [
             "Current guidance and deployed posture were not assessed."
@@ -119,21 +119,21 @@
       "publisher": "Microsoft",
       "version": "access-dated living guidance",
       "reference": "https://learn.microsoft.com/azure/well-architected/security/",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "partially-applicable",
       "stability": "current",
       "baselineRole": "informational",
-      "rationale": "Azure templates are distributed.",
+      "rationale": "Azure-facing templates are distributed.",
       "controls": [
         {
           "id": "LOCAL-WAF",
           "title": "Design-time security",
           "status": "blocked",
           "evidence": [
-            "Local contracts exist."
+            "Local contracts were inspected."
           ],
           "limitations": [
-            "Current checklist and deployed evidence were unavailable."
+            "Current guidance and deployed evidence were unavailable."
           ]
         }
       ]
@@ -144,7 +144,7 @@
       "publisher": "OWASP",
       "version": "5.0.0",
       "reference": "https://owasp.github.io/www-project-application-security-verification-standard",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "partially-applicable",
       "stability": "stable",
       "baselineRole": "informational",
@@ -155,10 +155,10 @@
           "title": "Applicable local controls",
           "status": "blocked",
           "evidence": [
-            "Traversal and recovery tests passed."
+            "Path, recovery, and provider-boundary paths were reviewed."
           ],
           "limitations": [
-            "No current external assessment."
+            "No current external assessment was retrieved."
           ]
         }
       ]
@@ -169,7 +169,7 @@
       "publisher": "OWASP",
       "version": "2025",
       "reference": "https://top10.owasp.org/2025/",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "partially-applicable",
       "stability": "stable",
       "baselineRole": "informational",
@@ -180,10 +180,10 @@
           "title": "Applicable weakness review",
           "status": "blocked",
           "evidence": [
-            "Security and fuzz checks passed."
+            "Local security and focused review produced no substantiated finding."
           ],
           "limitations": [
-            "No external advisory evidence."
+            "No external advisory evidence was retrieved."
           ]
         }
       ]
@@ -194,7 +194,7 @@
       "publisher": "NIST",
       "version": "1.1",
       "reference": "https://csrc.nist.gov/pubs/sp/800/218/final",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "applicable",
       "stability": "final",
       "baselineRole": "informational",
@@ -205,10 +205,10 @@
           "title": "Secure lifecycle evidence",
           "status": "blocked",
           "evidence": [
-            "Threat model, tests, and gates exist."
+            "Local tests, reports, and approval gates were inspected."
           ],
           "limitations": [
-            "Independent review and current mapping were unavailable."
+            "Independent review and current control mapping were unavailable."
           ]
         }
       ]
@@ -219,7 +219,7 @@
       "publisher": "Center for Internet Security",
       "version": "8.1",
       "reference": "https://www.cisecurity.org/controls/v8-1",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "partially-applicable",
       "stability": "stable",
       "baselineRole": "informational",
@@ -230,10 +230,10 @@
           "title": "Repository safeguards",
           "status": "blocked",
           "evidence": [
-            "Local security workflows exist."
+            "Local security workflows and path controls were inspected."
           ],
           "limitations": [
-            "Hosted controls were unavailable."
+            "Hosted-control evidence was unavailable."
           ]
         }
       ]
@@ -244,21 +244,21 @@
       "publisher": "OpenSSF",
       "version": "1.2",
       "reference": "https://slsa.dev/spec/v1.2/",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "applicable",
       "stability": "final",
       "baselineRole": "informational",
-      "rationale": "The repository builds artifacts.",
+      "rationale": "The repository builds release artifacts.",
       "controls": [
         {
           "id": "LOCAL-SLSA",
           "title": "Artifact provenance",
           "status": "blocked",
           "evidence": [
-            "Checksums and local provenance exist."
+            "Local release-candidate verification passed."
           ],
           "limitations": [
-            "Trusted signing was unavailable."
+            "Trusted signing and hosted provenance evidence were unavailable."
           ]
         }
       ]
@@ -269,7 +269,7 @@
       "publisher": "OpenSSF",
       "version": "access-dated current checks",
       "reference": "https://scorecard.dev/",
-      "accessedAt": "2026-09-11",
+      "accessedAt": "2026-09-19",
       "applicability": "applicable",
       "stability": "current",
       "baselineRole": "informational",
@@ -280,7 +280,7 @@
           "title": "Hosted posture",
           "status": "blocked",
           "evidence": [
-            "Actions are pinned locally."
+            "Local workflow pinning and permissions were inspected."
           ],
           "limitations": [
             "Hosted Scorecard evidence was not approved."
@@ -291,14 +291,12 @@
   ],
   "assurance": {
     "conclusion": "insufficient-evidence",
-    "rationale": "Local tests and secret scanning passed, but hosted, advisory, cloud, external-standards, signing, and independent-review evidence were not collected; four audit-chain defects remain.",
+    "rationale": "Local secret scanning and focused verification found no substantiated defect, but hosted controls, advisories, current external standards evidence, and a completed full-gate result for this audit run are unavailable.",
     "blockingEvidence": [
       "Hosted GitHub evidence blocked",
-      "Current external standards evidence blocked",
-      "AUD-0301",
-      "AUD-0302",
-      "AUD-0303",
-      "AUD-0304"
+      "External advisory and standards evidence blocked",
+      "Full repository gate did not complete during this audit run",
+      "Remote-only refs and unreachable objects excluded"
     ],
     "exceptionCount": 0,
     "expiredExceptionCount": 0
@@ -315,14 +313,14 @@
         "reachable-history"
       ],
       "evidence": [
-        "reports/gitleaks-scan.json passed with zero findings under the current audit run."
+        "reports/gitleaks-scan.json passed with zero findings under this audit run."
       ],
       "limitations": [
         "Remote-only refs and unreachable objects were excluded."
       ]
     },
     "analyzers": {
-      "status": "completed",
+      "status": "partial",
       "detectedLanguages": [
         "JavaScript",
         "PowerShell",
@@ -333,28 +331,28 @@
       "tools": [
         {
           "language": "JavaScript",
-          "tool": "Node.js syntax and test runner",
-          "version": "24.14.1",
+          "tool": "Node.js test runner",
+          "version": "current local runtime",
           "status": "passed",
           "configurationDigest": null
         },
         {
-          "language": "repository contracts",
-          "tool": "npm repository gate",
-          "version": "1.1.1",
+          "language": "repository",
+          "tool": "skills-orchestrator-security-check",
+          "version": "1.1.2",
           "status": "passed",
-          "configurationDigest": "7583acde428320bc4f4f63d9d277d8127c9d76bbfc7b86327a5e8b0ee99f5a10"
+          "configurationDigest": "3c7dbeb3b3fccf9fc86c412e6dabb7eb0110d65284c274daf97657884d8afdb8"
         }
       ],
       "evidence": [
-        "npm run check passed 133 tests with one skip."
+        "Security check passed and the isolated adoption suite passed."
       ],
       "limitations": [
-        "No separate PowerShell analyzer was available."
+        "The full repository gate did not complete; no separate PowerShell analyzer was available."
       ]
     },
     "resourceOwnership": {
-      "status": "completed",
+      "status": "partial",
       "ownershipModels": [
         "locally-owned",
         "borrowed",
@@ -369,15 +367,14 @@
       ],
       "pathsChecked": [
         "pso.mjs",
-        ".github/skills/audit-code/scripts",
         "scripts",
-        "tests"
+        "templates/project/.skills-orchestrator/live-chat"
       ],
       "evidence": [
-        "Ownership, cleanup, rollback, and recovery fixtures passed."
+        "Focused source inspection found deterministic cleanup and intentional staging preservation on publish failure."
       ],
       "limitations": [
-        "No process profiler was run."
+        "No process or memory profiler was run."
       ]
     },
     "aiQuality": {
@@ -389,7 +386,7 @@
         "agentic-security-applicability"
       ],
       "evidence": [
-        "Agent and skill contracts, prompts, ownership, and propagation passed verification."
+        "The local Live Chat and provider trust boundaries were inspected without a concrete harmful behavior finding."
       ],
       "limitations": [
         "No deployed model evaluation was in scope."
@@ -405,176 +402,61 @@
         "hosted-evidence"
       ],
       "evidence": [
-        "No critical or high finding was identified; local secret and analyzer gates passed."
+        "No critical or high finding was substantiated; the local secret gate passed."
       ],
       "limitations": [
-        "Standards and hosted gates remain blocked."
+        "Hosted, standards, advisory, and complete full-gate evidence remain unavailable."
       ]
     },
     "records": [
       {
-        "auditRunId": "d343d673-dc11-4469-bce4-ccc0681608d1",
+        "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
         "tool": "Gitleaks",
         "toolVersion": "8.30.1",
-        "command": "node .github/skills/audit-code/scripts/gitleaks-scan.mjs scan --root . --tool-root . --audit-run-id d343d673-dc11-4469-bce4-ccc0681608d1",
+        "command": "node .github/skills/audit-code/scripts/gitleaks-scan.mjs scan --root . --tool-root . --audit-run-id 5d90d44c-e613-40c6-8b1b-7ba9733377f3",
         "scope": "six approved local secret scopes",
         "configurationDigest": "e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4",
         "exitCode": 0,
         "status": "passed",
-        "executedAt": "2026-09-11T16:34:59.421Z",
-        "evidenceSha256": "b5b234bec1f7394bd22d97bb25a1dcf4b772612817ee8e60b53ea8e423d32872",
-        "repositoryRevision": "39c1b62b2cc48f032f5acddc60800572b1523ce9",
-        "worktreeDigest": "40d4450bc566f0bbf337d2096b7ab2fc85f937b19718601fb08d4d18d517fd09",
-        "inputDigest": "d3ccf08767df28d7354dda30c7c9ce937b4324b5e5b665eed9704d498e083376"
+        "executedAt": "2026-09-19T00:10:40.815Z",
+        "evidenceSha256": "bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b",
+        "repositoryRevision": "427fcae427a9c7246909c66b468e4c6f5c171c41",
+        "worktreeDigest": "00c845baf0961009bdb97ebd58488e55f92ee99b0eb41b3ab0bf827774de7318",
+        "inputDigest": "6cfa94828c3c719c44b889b0a4939116375aaf2d8f03e9e1ffbbd1242ce60fa4"
       },
       {
-        "auditRunId": "d343d673-dc11-4469-bce4-ccc0681608d1",
+        "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
         "tool": "audit-evidence.mjs",
         "toolVersion": "1.0.0",
-        "command": "node .github/skills/audit-code/scripts/audit-evidence.mjs --root . --audit-run-id d343d673-dc11-4469-bce4-ccc0681608d1",
-        "scope": "local repository, scanner, standards-profile, and hosted-evidence metadata",
+        "command": "node .github/skills/audit-code/scripts/audit-evidence.mjs --root . --audit-run-id 5d90d44c-e613-40c6-8b1b-7ba9733377f3",
+        "scope": "local repository and audit-readiness metadata",
         "configurationDigest": null,
         "exitCode": 0,
         "status": "passed",
-        "executedAt": "2026-09-11T16:35:04.576Z",
-        "evidenceSha256": "2768cb96c6cf4e49d7137527757581496234b1d00b09805d75b05e3b9edcb444",
-        "repositoryRevision": "39c1b62b2cc48f032f5acddc60800572b1523ce9"
+        "executedAt": "2026-09-19T00:10:52.316Z",
+        "evidenceSha256": "bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b",
+        "repositoryRevision": "427fcae427a9c7246909c66b468e4c6f5c171c41"
+      },
+      {
+        "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
+        "tool": "skills-orchestrator-security-check",
+        "toolVersion": "1.1.2",
+        "command": "node scripts/security-check.mjs",
+        "scope": "current worktree security patterns and package manifest",
+        "configurationDigest": "3c7dbeb3b3fccf9fc86c412e6dabb7eb0110d65284c274daf97657884d8afdb8",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-19T01:40:01.498Z",
+        "evidenceSha256": "3c7dbeb3b3fccf9fc86c412e6dabb7eb0110d65284c274daf97657884d8afdb8",
+        "repositoryRevision": "427fcae427a9c7246909c66b468e4c6f5c171c41"
       }
     ]
   },
-  "findings": [
-    {
-      "findingId": "AUD-0301",
-      "status": "confirmed",
-      "title": "Audit evidence content is accepted without schema validation",
-      "category": "security",
-      "bugType": "Improper evidence validation",
-      "securitySeverity": "medium",
-      "confidence": "high",
-      "context": "The binding routine hashes and parses the snapshot but checks only auditRunId and repository.head; it never validates schemas/audit-evidence.schema.json or material provenance fields.",
-      "riskExplanation": "A locally authored snapshot can retain the expected run ID and revision while omitting or fabricating material provenance.",
-      "rootCause": "Evidence binding was implemented as digest and identity checks without invoking the evidence schema.",
-      "resolution": {
-        "recommended": "Validate the snapshot against its schema and enforce required semantics; add malformed correctly-hashed fixtures.",
-        "alternatives": [],
-        "tradeoffs": [
-          "The artifact contract and fixtures must be versioned together to preserve historical readability."
-        ],
-        "rollout": "Add failing fixtures first, update schemas and validators, then regenerate shipped project templates.",
-        "rollback": "Restore the prior schema and validator together if compatibility validation fails."
-      },
-      "verification": [
-        "A correctly hashed malformed snapshot is rejected.",
-        "A valid current snapshot passes.",
-        "npm run check passes."
-      ],
-      "dependencies": [],
-      "containment": "Treat affected audit records as local assessment evidence, not independently tamper-evident proof, until remediation validates.",
-      "references": [],
-      "decisionRationale": "Confirmed by inspection of the controlling schema and validator path; the current focused tests do not exercise this adversarial case.",
-      "severityChangeRationale": null
-    },
-    {
-      "findingId": "AUD-0302",
-      "status": "confirmed",
-      "title": "Audit validators follow report paths without canonical containment checks",
-      "category": "security",
-      "bugType": "Path traversal through symbolic links",
-      "securitySeverity": "medium",
-      "confidence": "high",
-      "context": "Findings evidence and schema 2.1 sourceReview paths are resolved and read without a required root, canonical containment, regular-file, or symlink check.",
-      "riskExplanation": "A crafted workspace can make validation consume bytes outside the repository or through redirected report paths.",
-      "rootCause": "The newer execution validator received canonical boundary controls, but findings and plan validation retained direct path.resolve reads.",
-      "resolution": {
-        "recommended": "Require repository root, canonicalize paths, reject symlinks and non-files, and reuse containedPath.",
-        "alternatives": [],
-        "tradeoffs": [
-          "The artifact contract and fixtures must be versioned together to preserve historical readability."
-        ],
-        "rollout": "Add failing fixtures first, update schemas and validators, then regenerate shipped project templates.",
-        "rollback": "Restore the prior schema and validator together if compatibility validation fails."
-      },
-      "verification": [
-        "Outside-root and symlink fixtures fail.",
-        "Normal repository artifacts pass.",
-        "npm run check passes."
-      ],
-      "dependencies": [],
-      "containment": "Treat affected audit records as local assessment evidence, not independently tamper-evident proof, until remediation validates.",
-      "references": [],
-      "decisionRationale": "Confirmed by inspection of the controlling schema and validator path; the current focused tests do not exercise this adversarial case.",
-      "severityChangeRationale": null
-    },
-    {
-      "findingId": "AUD-0303",
-      "status": "confirmed",
-      "title": "Verification record digests are not bound to named artifacts",
-      "category": "security",
-      "bugType": "Unverifiable provenance record",
-      "securitySeverity": "medium",
-      "confidence": "high",
-      "context": "Schema 2.2 requires evidenceSha256 but no evidence path, while semantic validation checks only that the digest string exists.",
-      "riskExplanation": "A report can claim successful provenance using any syntactically valid digest.",
-      "rootCause": "Verification records model a digest as metadata rather than a reference to verifiable artifact bytes.",
-      "resolution": {
-        "recommended": "Add content-addressed evidence references and validate containment, bytes, digest, identity, and scope.",
-        "alternatives": [],
-        "tradeoffs": [
-          "The artifact contract and fixtures must be versioned together to preserve historical readability."
-        ],
-        "rollout": "Add failing fixtures first, update schemas and validators, then regenerate shipped project templates.",
-        "rollback": "Restore the prior schema and validator together if compatibility validation fails."
-      },
-      "verification": [
-        "Arbitrary digests and missing artifacts fail.",
-        "Valid immutable evidence passes.",
-        "Review and adoption fixtures pass."
-      ],
-      "dependencies": [],
-      "containment": "Treat affected audit records as local assessment evidence, not independently tamper-evident proof, until remediation validates.",
-      "references": [],
-      "decisionRationale": "Confirmed by inspection of the controlling schema and validator path; the current focused tests do not exercise this adversarial case.",
-      "severityChangeRationale": null
-    },
-    {
-      "findingId": "AUD-0304",
-      "status": "confirmed",
-      "title": "Digest equality contradicts the schema's case-insensitive format",
-      "category": "correctness",
-      "bugType": "Digest normalization mismatch",
-      "securitySeverity": "none",
-      "confidence": "high",
-      "context": "Schemas allow uppercase hexadecimal while the validator compares the reference, filename, and computed lowercase digest case-sensitively.",
-      "riskExplanation": "A schema-valid uppercase digest can be rejected, causing contract inconsistency and false failures.",
-      "rootCause": "Schema patterns permit mixed-case hexadecimal while semantic validation assumes lowercase writer output.",
-      "resolution": {
-        "recommended": "Require lowercase in schemas and writers, or normalize all digest comparisons; add uppercase fixtures.",
-        "alternatives": [],
-        "tradeoffs": [
-          "The artifact contract and fixtures must be versioned together to preserve historical readability."
-        ],
-        "rollout": "Add failing fixtures first, update schemas and validators, then regenerate shipped project templates.",
-        "rollback": "Restore the prior schema and validator together if compatibility validation fails."
-      },
-      "verification": [
-        "Schema and semantic validation agree for uppercase input.",
-        "Writers remain canonical.",
-        "npm run check passes."
-      ],
-      "dependencies": [],
-      "containment": "Treat affected audit records as local assessment evidence, not independently tamper-evident proof, until remediation validates.",
-      "references": [],
-      "decisionRationale": "Confirmed by inspection of the controlling schema and validator path; the current focused tests do not exercise this adversarial case.",
-      "severityChangeRationale": null
-    }
-  ],
+  "findings": [],
   "limitations": [
-    "All four findings were independently corroborated against controlling code and schema paths.",
-    "No severity or confidence was changed.",
-    "Hosted, advisory, cloud, and current standards evidence was not approved.",
+    "Hosted, advisory, cloud, and current external standards evidence was not approved.",
     "Remote-only refs and unreachable objects remain excluded.",
-    "No remediation, deployment, publication, commit, push, or destructive action was performed.",
-    "The dirty worktree contained approved prior changes; evidence is bound to the recorded HEAD and local snapshot.",
-    "This review does not execute remediation."
+    "The full repository gate did not return a final result during this audit run.",
+    "No remediation, deployment, publication, commit, push, or destructive action was performed."
   ]
 }
