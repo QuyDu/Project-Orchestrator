@@ -8,8 +8,8 @@ import { createHash, randomUUID } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 
-const VERSION = "1.1.2";
-const FRAMEWORK_VERSION = "9.0.0";
+const VERSION = "1.2.0";
+const FRAMEWORK_VERSION = "9.1.0";
 const RISK_ACCEPTANCE_VERSION = "1.0.0";
 const DIGEST_ALGORITHM = "sha256-normalized-text-v1";
 const PROJECT_MANIFEST_SCHEMA_VERSION = "1.1.0";
@@ -1775,12 +1775,10 @@ async function discoverSkills(root) {
 }
 
 function skillHelpPrompt(skill) {
-  const sections = ["Purpose", "Preconditions", "Inputs", "Approved Tools and Resources", "Read and Write Boundaries", "Procedure", "Validation", "Outputs", "Failure Behavior", "Approval Gates", "Composition and Dependencies", "Examples"];
-  const details = sections.map((heading) => {
-    const items = sectionItems(skill.source, heading);
-    return items.length ? `\n### ${heading}\n${items.map((item) => `- ${item}`).join("\n")}` : "";
-  }).join("");
-  return `---\nmode: agent\ndescription: Help for the ${skill.name} skill.\n---\n\n# ${skill.name} Help\n\n${skill.description}\n\nRead the complete contract at .github/skills/${skill.name}/SKILL.md before using this skill.${details}\n\n## Related commands\n\n- Run the skill with /${skill.name}.\n- Open this help with /${skill.name}-help.\n- Inspect the full contract with @.github/skills/${skill.name}/SKILL.md.\n`;
+  const contract = skill.source.replaceAll("\r\n", "\n")
+    .replace(/^---\n[\s\S]*?\n---(?:\n|$)/, "")
+    .replace(/^\s*# [^\n]*(?:\n|$)/, "").trim();
+  return `---\nmode: agent\ndescription: Help for the ${skill.name} skill.\n---\n\n# ${skill.name} Help\n\n${skill.description}\n\nExplain this contract as help only. Do not execute its procedures or treat examples as action approval.\nRead the complete contract at .github/skills/${skill.name}/SKILL.md before using this skill.\n\n${contract}\n\n## Related commands\n\n- Run the skill with /${skill.name}.\n- Open this help with /${skill.name}-help.\n- Inspect the full contract with @.github/skills/${skill.name}/SKILL.md.\n`;
 }
 
 async function installedSourceIdentity() {
@@ -4003,9 +4001,11 @@ async function plan(requestedRoot, intent) {
       const stepNumber = String(steps.length + 1).padStart(3, "0");
       const prerequisites = dependencyItems(skill.source).map((dependency) => skillStepIds.get(dependency)).filter(Boolean);
       const stepId = `STEP-${stepNumber}`;
+      const approvalClasses = skill.name === "agent-deployment" ? ["external", "publication"]
+        : skill.name === "visual-companion-builder" ? ["phase"] : [];
       steps.push({
         id: stepId, owner: { type: "skill", id: skill.name }, action: `Execute ${skill.name} for the clarified intent`, status: "planned",
-        inputs: ["STEP-001 routed intent"], outputs: [`${skill.name} outcome`], requiresApproval: false, approvalClasses: [], prerequisites: prerequisites.length ? prerequisites : ["STEP-001"],
+        inputs: ["STEP-001 routed intent"], outputs: [`${skill.name} outcome`], requiresApproval: approvalClasses.length > 0, approvalClasses, prerequisites: prerequisites.length ? prerequisites : ["STEP-001"],
         completionCriteria: [`${skill.name} completes its bounded contract or reports a blocked state.`], checkpoint: `CP-${skill.name.toUpperCase()}`,
         rollback: "Preserve prior valid artifacts.", recovery: "Correct the reported condition and rerun this bounded step.", onBlocked: "", onFailed: ""
       });
@@ -4129,14 +4129,13 @@ function reportLaunch({ launch, prompt, brief }) {
 function runAgentBuilder(options) {
   const action = options._[1];
   if (!action) throw new Error("Use agent build, agent validate, agent plan, or agent apply");
-  const script = path.join(SCRIPT_ROOT, ".github", "skills", "agent-builder", "scripts", "agent-builder.mjs");
-  if (!existsSync(script)) throw new Error("Distribution is missing the Agent Builder engine");
-  const args = [script, action];
+  const args = [action];
   const valueOptions = [
     "project", "blueprint", "plan", "agent", "type", "id", "name", "description", "purpose", "risk", "capabilities",
     "user-invocable", "model-invocable", "autonomy", "web-safety", "constraints", "approach", "output-format", "subagents", "handoffs-file",
     "azure-required", "cloud", "location", "environment-name", "authentication-method", "subscription-id",
-    "publication-targets", "version-policy", "microsoft365-audience", "chatgpt-visibility"
+    "publication-targets", "version-policy", "microsoft365-audience", "chatgpt-visibility",
+    "distribution-targets", "distribution-environment", "data-boundary"
   ];
   const flagOptions = ["accept-risk", "json"];
   for (const key of Object.keys(options).filter((item) => item !== "_")) {
@@ -4151,9 +4150,16 @@ function runAgentBuilder(options) {
   for (const key of flagOptions) {
     if (options[key] === true) args.push(`--${key}`);
   }
-  const result = spawnSync(process.execPath, args, { cwd: process.cwd(), stdio: "inherit", windowsHide: true });
-  if (result.error) throw new Error(`Agent Builder could not start: ${result.error.message}`);
-  if (result.status !== 0) throw new Error(`Agent Builder failed with exit code ${result.status}`);
+  return runSkillEngine("agent-builder", args, "Agent Builder");
+}
+
+function runSkillEngine(skill, args, label = skill) {
+  const script = path.join(SCRIPT_ROOT, ".github", "skills", skill, "scripts", `${skill}.mjs`);
+  if (!existsSync(script)) throw new Error(`Distribution is missing the ${label} engine`);
+  const result = spawnSync(process.execPath, [script, ...args], { cwd: process.cwd(), stdio: "inherit", windowsHide: true });
+  if (result.error) throw new Error(`${label} could not start: ${result.error.message}`);
+  if (result.signal) throw new Error(`${label} was terminated by ${result.signal}`);
+  if (result.status !== 0) throw new Error(`${label} failed with exit code ${result.status}`);
 }
 
 // Windows can refuse a directory rename while an indexer or scanner still holds a handle in the staging tree.
@@ -4332,6 +4338,12 @@ Usage:
   node .\\pso.mjs agent validate --project "C:\\repos\\my-project" --blueprint agent.json
   node .\\pso.mjs agent plan --project "C:\\repos\\my-project" --blueprint agent.json
   node .\\pso.mjs agent apply --project "C:\\repos\\my-project" --blueprint agent.json --plan reports/agent-builder-plan.json --accept-risk
+  node .\\pso.mjs agent deploy capabilities --json
+  node .\\pso.mjs agent package --project "C:\\repos\\my-project" --request deployment.json
+  node .\\pso.mjs agent deploy plan --project "C:\\repos\\my-project" --request deployment.json
+  node .\\pso.mjs agent deploy help
+  node .\\pso.mjs companion capabilities --json
+  node .\\pso.mjs companion help
   node .\\pso.mjs verify
   node .\\pso.mjs --version
 
@@ -4360,9 +4372,22 @@ Agent Builder:
   Foundry publication planning accepts --publication-targets, --version-policy,
   --microsoft365-audience, and --chatgpt-visibility. It records a review handoff
   but does not deploy, configure endpoints, publish channels, or create a GPT.
+  Portable schema 2.3 authoring uses --type portable --distribution-targets IDs,
+  --distribution-environment, and --data-boundary. It does not initialize Azure.
+  Legacy publication intent remains readable without rewriting existing blueprints.
   Foundry types or --azure-required true also resolve --cloud, --location,
   --environment-name, --authentication-method, and optional --subscription-id.
   Azure CLI authentication starts only when required. Credential values are never accepted.
+
+Agent deployment and visual companions:
+  agent package and agent deploy dispatch to the governed agent-deployment engine.
+  companion dispatches to visual-companion-builder for original sprites and
+  project-owned browser or VS Code extension packages. Run each engine's help
+  for its exact request, plan, approval, and verification options.
+  Capability discovery is read-only. A manual handoff is not a deployment.
+  Custom GPT editor/Store publication is not automated. Native plugin/MCP Apps UI
+  export is a separate, unimplemented integration; local sprites are not host overlays.
+  No command installs provider tooling or publishes without approval.
 
 Adoption:
   --force-templates installs framework templates even where an equivalent exists.
@@ -4388,7 +4413,11 @@ Clone setup:
 
 async function main() {
   assertSupportedRuntime();
-  const options = parseArgs(process.argv.slice(2));
+  const args = process.argv.slice(2);
+  if (args[0] === "agent" && args[1] === "package") return runSkillEngine("agent-deployment", args.slice(1));
+  if (args[0] === "agent" && args[1] === "deploy") return runSkillEngine("agent-deployment", args.slice(2));
+  if (args[0] === "companion") return runSkillEngine("visual-companion-builder", args.slice(1));
+  const options = parseArgs(args);
   const command = options._[0];
   if (options.version) return console.log(VERSION);
   if (options.help || command === "help") {

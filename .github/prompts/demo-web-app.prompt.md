@@ -64,7 +64,7 @@ Put the presenter details in a single configuration module, keeping each link's 
 | Role | Principal Cloud Solution Architect | - |
 | Email | anmarsig@microsoft.com | `mailto:anmarsig@microsoft.com` |
 | LinkedIn | anthony-marsiglia-045b30b2 | `https://www.linkedin.com/in/anthony-marsiglia-045b30b2` |
-| GitHub | QuyDu/Skills-Orchestrator | `https://github.com/QuyDu/Skills-Orchestrator` |
+| GitHub | QuyDu/Project-Orchestrator | `https://github.com/QuyDu/Project-Orchestrator` |
 
 Every URL must carry an explicit `https://` scheme; a scheme-less value such as `www.linkedin.com/...` resolves as a relative path and produces a broken link. Render outbound links with `rel="noopener noreferrer"`.
 

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0.0",
-  "runtimeVersion": "1.1.2",
-  "generatedAt": "2026-09-18T23:57:39.243Z",
+  "runtimeVersion": "1.2.0",
+  "generatedAt": "2026-09-22T23:47:55.574Z",
   "skills": [
     {
       "name": "agent-builder",
       "path": ".github/skills/agent-builder/SKILL.md",
-      "description": "Build, validate, preview, and transactionally install least-privilege custom agents, including governed publication handoffs for Foundry endpoints, Microsoft 365 Copilot and Teams, or ChatGPT actions. Use when creating, updating, or reviewing .agent.md files; do not use for cloud deployment, channel publication, or MCP installation.",
+      "description": "Build, validate, preview, and transactionally install least-privilege custom agents with portable distribution intent for Foundry, Microsoft 365, Copilot Studio, and OpenAI application or ChatGPT Action handoffs. Use when creating, updating, or reviewing agent blueprints and .agent.md files; do not use for deployment, channel publication, or MCP installation.",
       "lifecycle": "draft",
       "confidence": "low",
       "dependencies": [
@@ -19,6 +19,33 @@
         "reports/agent-builder-plan.md",
         "reports/agent-builder-result.json",
         "reports/agent-blueprints/<id>.json"
+      ]
+    },
+    {
+      "name": "agent-deployment",
+      "path": ".github/skills/agent-deployment/SKILL.md",
+      "description": "Package validated agents and applications, review provider-bound plans, and execute approved Foundry deployments, Microsoft 365 submissions, Copilot Studio ALM, or Agents Toolkit operations with durable evidence. Use for governed agent packaging, deployment, publication submission, verification, or recovery; never use to bypass identity, code-execution, or tenant-admin gates.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "clarify-the-ask",
+        "agent-builder",
+        "policy-engine",
+        "azure-discovery",
+        "architecture-review",
+        "security-review",
+        "deployment-review",
+        "workflow-state-manager",
+        "workflow-telemetry",
+        "project-handoff"
+      ],
+      "reports": [
+        "reports/agent-deployment-plan.json",
+        "reports/agent-deployment-result.json",
+        "reports/agent-deployment-state.json",
+        "reports/agent-deployment/<agent-id>/packages/<sha256>/",
+        "reports/agent-deployment/<agent-id>/runs/<plan-id>/",
+        "reports/agent-deployment/platform-work/<tool>/<package-sha>/"
       ]
     },
     {
@@ -638,6 +665,20 @@
       "confidence": "low",
       "dependencies": [],
       "reports": []
+    },
+    {
+      "name": "visual-companion-builder",
+      "path": ".github/skills/visual-companion-builder/SKILL.md",
+      "description": "Create original pixel-grid sprites or validate licensed local PNG atlases, then package accessible companions for owned local browser surfaces, standalone VS Code extension source, licensed VS Code Pets fork handoffs, or static icons. Use for sprite creation and companion packaging, not project diagrams or native host overlays.",
+      "lifecycle": "draft",
+      "confidence": "low",
+      "dependencies": [
+        "clarify-the-ask",
+        "policy-engine"
+      ],
+      "reports": [
+        "artifacts/visual-companions/<id>/<target>/"
+      ]
     },
     {
       "name": "workflow-planner",

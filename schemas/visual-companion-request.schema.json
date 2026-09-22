@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.local/schemas/visual-companion-request.schema.json",
+  "title": "Local Visual Companion Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "name", "target", "provenance", "frameWidth", "frameHeight", "anchor", "source", "animations", "defaultState", "altText", "accessibility"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "minLength": 1, "maxLength": 50 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100, "pattern": "^[^\\u0000-\\u001f\\u007f]+$" },
+    "target": { "enum": ["local-chat-webview", "standalone-vscode-extension", "vscode-pets-fork", "static-agent-icon"] },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "creator", "license", "redistributionAllowed", "rightsConfirmed", "attribution"],
+      "properties": {
+        "kind": { "enum": ["original", "licensed-local"] },
+        "creator": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "license": { "$ref": "#/$defs/license" },
+        "redistributionAllowed": { "const": true },
+        "rightsConfirmed": { "const": true },
+        "attribution": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "licenseFile": { "$ref": "#/$defs/path" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "licensed-local" } }, "required": ["kind"] }, "then": { "required": ["licenseFile"] } },
+        { "if": { "properties": { "license": { "pattern": "^LicenseRef-" } }, "required": ["license"] }, "then": { "required": ["licenseFile"] } }
+      ]
+    },
+    "frameWidth": { "type": "integer", "minimum": 1, "maximum": 256 },
+    "frameHeight": { "type": "integer", "minimum": 1, "maximum": 256 },
+    "anchor": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y"],
+      "properties": { "x": { "type": "integer", "minimum": 0, "maximum": 256 }, "y": { "type": "integer", "minimum": 0, "maximum": 256 } }
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "palette", "frames"],
+          "properties": {
+            "kind": { "const": "pixel-grid" },
+            "palette": {
+              "type": "object", "minProperties": 2, "maxProperties": 64,
+              "propertyNames": { "pattern": "^[.A-Za-z0-9_-]$" },
+              "additionalProperties": { "type": "string", "pattern": "^#[A-Fa-f0-9]{8}$" }
+            },
+            "frames": {
+              "type": "array", "minItems": 1, "maxItems": 64,
+              "items": { "type": "array", "minItems": 1, "maxItems": 256, "items": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[.A-Za-z0-9_-]+$" } }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "path", "columns", "frameCount"],
+          "properties": {
+            "kind": { "const": "png" },
+            "path": { "$ref": "#/$defs/path" },
+            "columns": { "type": "integer", "minimum": 1, "maximum": 64 },
+            "frameCount": { "type": "integer", "minimum": 1, "maximum": 64 }
+          }
+        }
+      ]
+    },
+    "animations": {
+      "type": "object", "required": ["idle"], "minProperties": 1, "maxProperties": 16,
+      "propertyNames": { "$ref": "#/$defs/stateName" },
+      "additionalProperties": { "$ref": "#/$defs/animation" }
+    },
+    "defaultState": { "$ref": "#/$defs/stateName" },
+    "altText": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "accessibility": {
+      "type": "object", "additionalProperties": false, "required": ["reducedMotion", "staticFrame"],
+      "properties": { "reducedMotion": { "const": "static" }, "staticFrame": { "type": "integer", "minimum": 0, "maximum": 63 } }
+    },
+    "fork": {
+      "type": "object", "additionalProperties": false, "required": ["license", "licenseFile", "redistributionAllowed", "rightsConfirmed"],
+      "properties": {
+        "license": { "$ref": "#/$defs/license" },
+        "licenseFile": { "$ref": "#/$defs/path" },
+        "redistributionAllowed": { "const": true },
+        "rightsConfirmed": { "const": true }
+      }
+    }
+  },
+  "allOf": [
+    { "if": { "properties": { "target": { "const": "vscode-pets-fork" } }, "required": ["target"] }, "then": { "required": ["fork"] }, "else": { "not": { "required": ["fork"] } } },
+    {
+      "if": { "properties": { "source": { "properties": { "kind": { "const": "pixel-grid" } }, "required": ["kind"] } }, "required": ["source"] },
+      "then": { "properties": { "provenance": { "properties": { "kind": { "const": "original" } } } } },
+      "else": { "properties": { "provenance": { "properties": { "kind": { "const": "licensed-local" } }, "required": ["licenseFile"] } } }
+    }
+  ],
+  "$defs": {
+    "path": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?![\\\\/])(?!.*(?:^|[\\\\/])\\.{1,2}(?:[\\\\/]|$))[^:%?*<>|\"~\\u0000-\\u001f\\u007f]+$" },
+    "license": { "type": "string", "maxLength": 100, "pattern": "^(?:CC0-1\\.0|CC-BY(?:-SA)?-4\\.0|MIT|Apache-2\\.0|BSD-[23]-Clause|ISC|MPL-2\\.0|GPL-[23]\\.0-(?:only|or-later)|LGPL-(?:2\\.1|3\\.0)-(?:only|or-later)|LicenseRef-[A-Za-z0-9.-]+)$" },
+    "stateName": { "type": "string", "minLength": 1, "maxLength": 32, "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+    "animation": {
+      "type": "object", "additionalProperties": false, "required": ["frames", "loop"],
+      "properties": {
+        "loop": { "type": "boolean" },
+        "frames": {
+          "type": "array", "minItems": 1, "maxItems": 64,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["index", "durationMs"],
+            "properties": { "index": { "type": "integer", "minimum": 0, "maximum": 63 }, "durationMs": { "type": "integer", "minimum": 100, "maximum": 60000 } }
+          }
+        }
+      }
+    }
+  }
+}

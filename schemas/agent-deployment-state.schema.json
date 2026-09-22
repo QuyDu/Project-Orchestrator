@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-skills.dev/schemas/agent-deployment-state/1.0.0",
+  "title": "Agent Deployment State",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "planId", "planSha256", "requestSha256", "packageSha256", "projectRoot", "target", "agentId", "release", "status", "previousVersion", "createdVersion", "activeVersion", "identityId", "baselineSha256", "observedRemoteSha256", "startedAt", "updatedAt", "journal", "verification", "code", "message"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "planId": { "type": "string", "pattern": "^DEP-[a-f0-9]{32}$" },
+    "planSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+    "requestSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+    "packageSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+    "projectRoot": { "type": "string", "minLength": 1, "maxLength": 1024 },
+    "target": { "$ref": "agent-deployment-request.schema.json#/$defs/target" },
+    "agentId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
+    "release": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$" },
+    "status": { "enum": ["applying", "verified", "partial", "rolled-back", "rollback-partial", "imported", "provisioned", "deployed", "packaged", "publication-submitted", "pending-admin-approval", "published", "verification-required"] },
+    "platformOutcome": { "anyOf": [{ "type": "null" }, { "$ref": "agent-deployment-result.schema.json#/$defs/platformOutcome" }] },
+    "platformReceipts": {
+      "type": "array", "maxItems": 16,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["operation", "outcome"],
+        "properties": {
+          "operation": { "$ref": "agent-deployment-plan.schema.json#/$defs/operation" },
+          "outcome": { "$ref": "agent-deployment-result.schema.json#/$defs/platformOutcome" }
+        }
+      }
+    },
+    "previousVersion": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+    "createdVersion": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+    "activeVersion": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+    "identityId": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableId" },
+    "baselineSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+    "observedRemoteSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableDigest" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "journal": {
+      "type": "array", "maxItems": 1000,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["sequence", "at", "operation", "status", "responseId", "version", "code"],
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 1 },
+          "at": { "type": "string", "format": "date-time" },
+          "operation": { "$ref": "agent-deployment-plan.schema.json#/$defs/operation" },
+          "status": { "enum": ["started", "accepted", "completed", "failed"] },
+          "responseId": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableId" },
+          "version": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+          "code": { "type": ["string", "null"], "pattern": "^[A-Z0-9_]{1,80}$" }
+        }
+      }
+    },
+    "verification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "at", "version", "responseId", "outputSha256"],
+      "properties": {
+        "status": { "enum": ["not-run", "passed", "failed"] },
+        "at": { "type": ["string", "null"], "format": "date-time" },
+        "version": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+        "responseId": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableId" },
+        "outputSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableDigest" }
+      }
+    },
+    "code": { "type": ["string", "null"], "pattern": "^[A-Z0-9_]{1,80}$" },
+    "message": { "type": "string", "minLength": 1, "maxLength": 1000 }
+  }
+}

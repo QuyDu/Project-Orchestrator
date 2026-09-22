@@ -1,5 +1,5 @@
-frameworkVersion: 9.0.0
-runtimeVersion: 1.1.2
+frameworkVersion: 9.1.0
+runtimeVersion: 1.2.0
 profile: core
 paths:
   skills: .github/skills

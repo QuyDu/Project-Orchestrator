@@ -1,67 +1,400 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-18T14:30:00.000Z",
+  "generatedAt": "2026-09-22T23:58:16.322Z",
   "status": "passed",
+  "snapshotPhase": "pre-commit",
   "boundary": {
-    "type": "working-tree-slice",
-    "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
-    "stepId": "STEP-012",
-    "sequence": 46,
-    "objective": "Review the five confirmed STEP-012 remediations for persisted fork recognition, runtime lock validation, update option rejection, exact fork restoration and rollback, and project-guide evidence consistency.",
+    "type": "working-tree",
+    "baseRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
+    "objective": "Reviewed governed agent deployment and visual companion implementation, repository rename links, and synchronized runtime/framework version/date metadata.",
     "paths": [
+      ".github/prompts/agent-builder-help.prompt.md",
+      ".github/prompts/agent-deployment-help.prompt.md",
+      ".github/prompts/demo-web-app.prompt.md",
+      ".github/prompts/skills-help.prompt.md",
+      ".github/prompts/visual-companion-builder-help.prompt.md",
+      ".github/skills/agent-builder/SKILL.md",
+      ".github/skills/agent-builder/scripts/agent-builder.mjs",
+      ".github/skills/agent-deployment/SKILL.md",
+      ".github/skills/agent-deployment/references/platform-provider-interface.md",
+      ".github/skills/agent-deployment/references/usage.md",
+      ".github/skills/agent-deployment/scripts/agent-deployment.mjs",
+      ".github/skills/agent-deployment/scripts/contracts.mjs",
+      ".github/skills/agent-deployment/scripts/files.mjs",
+      ".github/skills/agent-deployment/scripts/package.mjs",
+      ".github/skills/agent-deployment/scripts/platform-engine.mjs",
+      ".github/skills/agent-deployment/scripts/providers/atk.mjs",
+      ".github/skills/agent-deployment/scripts/providers/azure-cli.mjs",
+      ".github/skills/agent-deployment/scripts/providers/azure-cli.ps1",
+      ".github/skills/agent-deployment/scripts/providers/azure-http.mjs",
+      ".github/skills/agent-deployment/scripts/providers/enterprise-cli.mjs",
+      ".github/skills/agent-deployment/scripts/providers/enterprise-cli.ps1",
+      ".github/skills/agent-deployment/scripts/providers/foundry.mjs",
+      ".github/skills/agent-deployment/scripts/providers/microsoft365.mjs",
+      ".github/skills/agent-deployment/scripts/providers/pac.mjs",
+      ".github/skills/agent-deployment/scripts/providers/platform-contract.mjs",
+      ".github/skills/agent-deployment/scripts/providers/registry.mjs",
+      ".github/skills/visual-companion-builder/SKILL.md",
+      ".github/skills/visual-companion-builder/scripts/browser-runtime.js",
+      ".github/skills/visual-companion-builder/scripts/png.mjs",
+      ".github/skills/visual-companion-builder/scripts/visual-companion-builder.mjs",
+      "Demo/project-skills-orchestrator-animation.html",
+      "README.md",
+      "config/orchestrator.yaml",
+      "config/profiles.yaml",
+      "docs/PROJECT-GUIDE.md",
+      "docs/PROJECT-OVERVIEW.md",
+      "docs/THREAT-MODEL.md",
+      "package-lock.json",
+      "package.json",
       "pso.mjs",
-      "tests/adoption-rerun.test.mjs",
-      "tests/security-fuzz.test.mjs",
-      "tests/documentation-builder.test.mjs",
-      "reports/documentation-plan.json",
-      "reports/documentation-plan.md",
+      "reports/artifact-ownership.json",
+      "reports/change-review.json",
+      "reports/change-review.md",
+      "reports/current-work-state.json",
       "reports/project-guide.json",
+      "reports/project-handoff.json",
+      "reports/project-handoff.md",
       "reports/project-understanding.json",
       "reports/project-understanding.md",
       "reports/regression-test-result.json",
       "reports/regression-test-result.md",
-      "reports/change-review.json",
-      "reports/change-review.md"
+      "reports/security-check.json",
+      "reports/skill-dependency-graph.json",
+      "reports/skill-dependency-report.md",
+      "reports/skill-details.json",
+      "reports/skill-details.md",
+      "reports/skill-inventory.json",
+      "reports/skill-inventory.md",
+      "schemas/agent-blueprint.schema.json",
+      "schemas/agent-builder-plan.schema.json",
+      "schemas/agent-deployment-plan.schema.json",
+      "schemas/agent-deployment-request.schema.json",
+      "schemas/agent-deployment-result.schema.json",
+      "schemas/agent-deployment-state.schema.json",
+      "schemas/agent-provider-capabilities.schema.json",
+      "schemas/visual-companion-request.schema.json",
+      "schemas/visual-companion-result.schema.json",
+      "scripts/update-demo-speaker-notes.ps1",
+      "tests/adoption-rerun.test.mjs",
+      "tests/agent-builder.test.mjs",
+      "tests/agent-deployment-platforms.test.mjs",
+      "tests/agent-deployment.test.mjs",
+      "tests/production-gates.test.mjs",
+      "tests/security-fuzz.test.mjs",
+      "tests/skill-contracts.test.mjs",
+      "tests/visual-companion-builder.test.mjs"
     ]
   },
-  "findings": [],
-  "validation": [
+  "reviewMethod": "Retained independent feature correctness/security reviews and confirmed repairs, followed by direct review of the version/date delta and exact commit boundary.",
+  "sourceBindings": [
     {
-      "command": "Independent STEP-012 bounded review rerun",
-      "status": "passed",
-      "evidence": "The full updater working-tree boundary and all five prior findings were independently rechecked with no unresolved correctness, security, regression, or data-loss finding. Focused remediations passed 5 of 5 and adjacent adoption, security, and contract suites passed 96 of 96."
+      "path": ".github/prompts/agent-builder-help.prompt.md",
+      "sha256NormalizedText": "f1b12dc84bfd9b7aab212a19434cbe9cd877223a9d4b31a5631ea86499eb6a2d"
     },
     {
-      "command": "Bounded read-only review of the named STEP-012 runtime, tests, rollback paths, and report bindings",
-      "status": "passed",
-      "evidence": "No correctness, fail-closed, data-loss, rollback, compatibility, or test-sufficiency defect remains. Review-discovered generated-scope and framework-fork-reference gaps were repaired and added to the adversarial matrix before this no-findings result."
+      "path": ".github/prompts/agent-deployment-help.prompt.md",
+      "sha256NormalizedText": "1229806f01a459cdee06e3b9d62642d1bfee6b700c3a7f1f0093a675a9a17559"
     },
     {
-      "command": "Focused STEP-012 red-green tests",
-      "status": "passed",
-      "evidence": "All five confirmed defects reproduced before repair; the focused repaired selection passed 5 of 5, with additional adversarial scope and fork-reference cases passing afterward."
+      "path": ".github/prompts/demo-web-app.prompt.md",
+      "sha256NormalizedText": "32e9928ec5a8c50bf93d3fdd66f0649e1d80365031728b71a482ebce59377fe5"
     },
     {
-      "command": "node --test tests/adoption-rerun.test.mjs; node --test tests/security-fuzz.test.mjs; node --test tests/documentation-builder.test.mjs",
-      "status": "passed",
-      "evidence": "Three neighboring suites passed 80 of 80: 66 adoption/update, 12 security fuzz, and 2 documentation-builder tests."
+      "path": ".github/prompts/skills-help.prompt.md",
+      "sha256NormalizedText": "fa3d4cde0eaa807c022312ba0e8b570c0678ce360c2e2f1fbf356940aa275da7"
     },
     {
-      "command": "npm run check",
-      "status": "passed",
-      "evidence": "172 passed, 0 failed, 1 expected skip; 274 files security-scanned; 183 release files checksum-verified; all 47 skills inventoried, audited, and distribution-verified."
+      "path": ".github/prompts/visual-companion-builder-help.prompt.md",
+      "sha256NormalizedText": "fff1ae7e029214f7f3c9f399c84cc6c226b911d9ba5491e971368a9d1579e310"
     },
     {
-      "command": "Workflow-state boundary inspection",
-      "status": "passed",
-      "evidence": "Current execution state remains current step 12, last completed step 11, last sequence 46; execution-log.jsonl ends at the accepted STEP-011 sequence-46 event."
+      "path": ".github/skills/agent-builder/SKILL.md",
+      "sha256NormalizedText": "49d93db544ad824322bf6bce9b9783d7574314523df5cc69e10efea038f2ca69"
+    },
+    {
+      "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+      "sha256NormalizedText": "1c1e2ad718743cef6d65c70f591a3fd4ce209727cab19211c1170b666fadc633"
+    },
+    {
+      "path": ".github/skills/agent-deployment/SKILL.md",
+      "sha256NormalizedText": "b64d9293b5853e2f15fb17758436201e413428c8786c2fc7d1c9d1d966ecf7a2"
+    },
+    {
+      "path": ".github/skills/agent-deployment/references/platform-provider-interface.md",
+      "sha256NormalizedText": "0391f765089a3771a2910f31440bedf91129e50c1392643b6459d17f9c6c05dc"
+    },
+    {
+      "path": ".github/skills/agent-deployment/references/usage.md",
+      "sha256NormalizedText": "bb1bad15ab66d77f1cfce265db3825c698dc9225d512141bd14989b00d261e7a"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/agent-deployment.mjs",
+      "sha256NormalizedText": "346d6e6a5f05ef812e304ed335470e41bfee1ddadd1c1afdec2870d5863f5560"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/contracts.mjs",
+      "sha256NormalizedText": "648ed74c0c91ffe79eca163c2a1f78a93dd32b5c5f3e51ffebe4fb5cece1cd09"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/files.mjs",
+      "sha256NormalizedText": "7c45606d70cc0ec8a6ce98b086065107992129ff14c208450240062cb3e860a5"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/package.mjs",
+      "sha256NormalizedText": "6b9204f86a01d6ccd2fedd7ef00cd263ed2a4c92ebf3586d46562f49794b92d3"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/platform-engine.mjs",
+      "sha256NormalizedText": "4c5436ada86be47064875ae7c717a8218b3c5245dceaaefde913a18eaaed6280"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/atk.mjs",
+      "sha256NormalizedText": "69e33688534629bec8d51db784c82bb79668888394e5c88aaa2b351ffc11e9e4"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/azure-cli.mjs",
+      "sha256NormalizedText": "dae16c6a6024a2de613561ca0773d2f72081da761ebb71f353b4d75fd2ddb745"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/azure-cli.ps1",
+      "sha256NormalizedText": "3b1b45a5fae0b0cea3ac2ddcccb4c7291ca5d56d60b97426f0ba6364717e0b6c"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/azure-http.mjs",
+      "sha256NormalizedText": "d9445bf67814739ffc25e53cbfd64d6fc9377e5973d28211235f3c080d6b1c09"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/enterprise-cli.mjs",
+      "sha256NormalizedText": "1858987e2619628a2e0fa1150d556c576e4eb792facea4235c12106523b7fe6f"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/enterprise-cli.ps1",
+      "sha256NormalizedText": "8c4ed3f1f8ecc6ce9612ff49e41804c12a6963250ca8c3c7ba7b6d51b7b91d8b"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/foundry.mjs",
+      "sha256NormalizedText": "e94e4042fdeed69f93205b0efbe76b9d1afa4125ad1062ba00007c33884a5685"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/microsoft365.mjs",
+      "sha256NormalizedText": "91a1a9d98a9208fd3962b61bf67dd606e6d424accad1f07aa8bf99ba8885be6d"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/pac.mjs",
+      "sha256NormalizedText": "d459b36e8350118cd41e30625263f56a9a4e1a2db909db77737c6f50fe184d0a"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/platform-contract.mjs",
+      "sha256NormalizedText": "d0b41e002f4b51fda4bb5eb3b951b1b1683fcb9e99ea1bc003f8a45640da897f"
+    },
+    {
+      "path": ".github/skills/agent-deployment/scripts/providers/registry.mjs",
+      "sha256NormalizedText": "1e5dec986445b07dee61f08d010fd44a9931cde8e808266eb5bc095ff8d2aab8"
+    },
+    {
+      "path": ".github/skills/visual-companion-builder/SKILL.md",
+      "sha256NormalizedText": "94e3c74e1a2617d1bba6c1b4c32a062404b7c443dd43a44c72f23269205c6461"
+    },
+    {
+      "path": ".github/skills/visual-companion-builder/scripts/browser-runtime.js",
+      "sha256NormalizedText": "578c60016758460e0821f9bd74fc54ce2a8ca2f0504d48ee1d6a0e016d262f81"
+    },
+    {
+      "path": ".github/skills/visual-companion-builder/scripts/png.mjs",
+      "sha256NormalizedText": "a75ef8d287fa0d1fc861276e8c7c81d8916e9a6a07bed0f441408baa78c504ef"
+    },
+    {
+      "path": ".github/skills/visual-companion-builder/scripts/visual-companion-builder.mjs",
+      "sha256NormalizedText": "8d121ae1bb720e5d9d004354edea78be769bcef7d71c871378da98fc309c770f"
+    },
+    {
+      "path": "Demo/project-skills-orchestrator-animation.html",
+      "sha256NormalizedText": "f85f92bacac534f8aea109b8dd31274bfac7e378bbdfd0f17f1ba6073ec1cff5"
+    },
+    {
+      "path": "README.md",
+      "sha256NormalizedText": "a72170e2a0b6d1782c08448a5cc03964ddd54e8a6cf96897a6e5952d4ba54d37"
+    },
+    {
+      "path": "config/orchestrator.yaml",
+      "sha256NormalizedText": "a2fa50888bb6ec26f1cbcdc49f1a01ecc5b8d2b2145a66370d9f7bdb0325ed42"
+    },
+    {
+      "path": "config/profiles.yaml",
+      "sha256NormalizedText": "b976f7526fbeb8539eaa55dc62275867809ae917f5840f594bb09e090a991de7"
+    },
+    {
+      "path": "docs/PROJECT-OVERVIEW.md",
+      "sha256NormalizedText": "10b123217d74fcf55ec32e15aa507836b8eee2367479fd3f73d9e961da835451"
+    },
+    {
+      "path": "docs/THREAT-MODEL.md",
+      "sha256NormalizedText": "3382cf976168e72f04a10df3563f89a636cccf0d5281dd831dbb6e29baa662ff"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256NormalizedText": "6a5846f910816d341b57430be416a3f5a300bd4f12d9564690910a933dbc55b9"
+    },
+    {
+      "path": "package.json",
+      "sha256NormalizedText": "9f5b24d3768d61c005c07635554921b45a62da37e15b35851e5ec721a341ce38"
+    },
+    {
+      "path": "pso.mjs",
+      "sha256NormalizedText": "61d73196477bd4b31cc1fcb49c3f2b9d0c0c35f27a6617904674b8d7d9ca9bf5"
+    },
+    {
+      "path": "schemas/agent-blueprint.schema.json",
+      "sha256NormalizedText": "3cd834cb0283d1990400c9e55709851ff6015f7ee4b58220df59d16e03acb17e"
+    },
+    {
+      "path": "schemas/agent-builder-plan.schema.json",
+      "sha256NormalizedText": "93faeaa0330c778acc119e184c7b7106a06d6118438efb3eacc8e171e2a5ca77"
+    },
+    {
+      "path": "schemas/agent-deployment-plan.schema.json",
+      "sha256NormalizedText": "99d8312635eb06e812e9ce694c5097eabf1834ad10fabb29ed8e56791a21b635"
+    },
+    {
+      "path": "schemas/agent-deployment-request.schema.json",
+      "sha256NormalizedText": "1d9d324556d1a2fb3deead8d2cd0a0943a675654c258d3d8c3b337c71cfefc32"
+    },
+    {
+      "path": "schemas/agent-deployment-result.schema.json",
+      "sha256NormalizedText": "1cce66947aa3436f8d418268aefda71e528ed57cb7a7754a9c408facda515b54"
+    },
+    {
+      "path": "schemas/agent-deployment-state.schema.json",
+      "sha256NormalizedText": "353f4991628acee25ac2f1284ad143251dd0f08a178bccaf82abdd98b8bb1b12"
+    },
+    {
+      "path": "schemas/agent-provider-capabilities.schema.json",
+      "sha256NormalizedText": "203b0c8c11414bad7e4d1b8dd40ddddf41820f403bdf7775782194a126d116ee"
+    },
+    {
+      "path": "schemas/visual-companion-request.schema.json",
+      "sha256NormalizedText": "4e62819a26b55aec5995e6e214efab6dbd0a35ce2c967fd518417dc1139f6790"
+    },
+    {
+      "path": "schemas/visual-companion-result.schema.json",
+      "sha256NormalizedText": "72831e1e547a4ed130da73ee3815166d1b3d0b60b40352c6f642e2667552bc52"
+    },
+    {
+      "path": "scripts/update-demo-speaker-notes.ps1",
+      "sha256NormalizedText": "14c8a0ba7367bd4ff33bb0c82c3c8bfc9dd8bb1101fa24e321fd5948286fb2f8"
+    },
+    {
+      "path": "tests/adoption-rerun.test.mjs",
+      "sha256NormalizedText": "ae434566db91323505c88a1420e40fb0c2985a2a08f3181ec1f0e45c87ae82bd"
+    },
+    {
+      "path": "tests/agent-builder.test.mjs",
+      "sha256NormalizedText": "a577fbc544a40c529f5bf46ba71dcdea9b508cef4a4dcaa0f4a235a6f1edffe0"
+    },
+    {
+      "path": "tests/agent-deployment-platforms.test.mjs",
+      "sha256NormalizedText": "aa70c819323fbf84b9e371510aefe56cec35740832f0e23096a1f7c591887d0a"
+    },
+    {
+      "path": "tests/agent-deployment.test.mjs",
+      "sha256NormalizedText": "51b0a99b600b00b0f3a7f5b8bb14929872f6081d823398392acc0f58ceb97f15"
+    },
+    {
+      "path": "tests/production-gates.test.mjs",
+      "sha256NormalizedText": "08123aadf13e7882157fc9bf9a41df6995437fd408bd4a029352619884b2e349"
+    },
+    {
+      "path": "tests/security-fuzz.test.mjs",
+      "sha256NormalizedText": "969fa7eafd01e21825f5cead57e8204da3433d80d6d2ec9bf12698f63e174f72"
+    },
+    {
+      "path": "tests/skill-contracts.test.mjs",
+      "sha256NormalizedText": "56eb721e15f7e8351e54a50a9a0c55bc00189d939787e090f2e9934c17e77043"
+    },
+    {
+      "path": "tests/visual-companion-builder.test.mjs",
+      "sha256NormalizedText": "4f04ce1217993a0b648c8e7fcd140455e32fb482d968ebc2951198dea8c37cea"
     }
   ],
+  "findings": [],
+  "resolvedFindings": [
+    {
+      "id": "openapi-reference-policy",
+      "severity": "medium",
+      "status": "fixed-confirmed",
+      "paths": [
+        ".github/skills/agent-deployment/scripts/package.mjs"
+      ],
+      "evidence": "Two red-green cases; the independent security reviewer confirmed the reference-policy repair."
+    },
+    {
+      "id": "native-workspace-contract",
+      "severity": "high",
+      "status": "fixed-confirmed",
+      "paths": [
+        ".github/skills/agent-deployment/scripts/platform-engine.mjs"
+      ],
+      "evidence": "Three core/real-provider red-green cases with only CLI calls mocked; independently confirmed."
+    },
+    {
+      "id": "large-artifact-verification",
+      "severity": "medium",
+      "status": "fixed-confirmed",
+      "paths": [
+        ".github/skills/agent-deployment/scripts/files.mjs",
+        ".github/skills/agent-deployment/scripts/package.mjs"
+      ],
+      "evidence": "Greater-than-1-MiB ZIP creation, deterministic reuse and oversized-tampering regression; independently confirmed."
+    }
+  ],
+  "validation": {
+    "command": "npm run check",
+    "status": "passed",
+    "tests": {
+      "total": 341,
+      "passed": 340,
+      "failed": 0,
+      "skipped": 1
+    },
+    "skillsVerified": 50,
+    "securityFilesScanned": 323,
+    "packageDependencies": 0,
+    "unsignedCandidateFilesVerified": 226,
+    "checkOutputSha256": "1c51b31d55f583a2ee1808b79ad977f04fed8a2b87f3a74e02405f08b6bbee67",
+    "focusedMetadataTests": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "deploymentRegressionSuite": {
+      "passed": 119,
+      "failed": 0,
+      "basis": "Retained pre-version feature validation; all cases also included in the current full gate."
+    }
+  },
+  "historicalExecutionIssue": {
+    "path": "reports/execution-log.jsonl",
+    "line": 71,
+    "sourceRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
+    "issue": "Historical sequence-71 and sequence-72 objects are joined without a JSONL newline.",
+    "disposition": "Unchanged and outside this commit scope. Only the latest event was compared with the current snapshot; complete historical replay is not certified."
+  },
   "openQuestions": [],
   "residualRisks": [
-    "The working tree contains substantial approved pre-existing changes outside this STEP-012 remediation slice; they were preserved and excluded from this bounded no-findings conclusion.",
-    "The formal release remains blocked by its existing signing, independent-review, and operational-readiness gates.",
-    "No remote, Azure, deployment, publication, commit, push, or fetch validation was authorized or performed."
+    "Local tests and independent code/security reviews do not certify live tenant behavior, hosted performance, catalog acceptance, or production readiness.",
+    "The unsigned formal release remains blocked by trusted signing, candidate-bound independent release attestation, operational readiness and required cross-platform evidence.",
+    "No cloud deployment, tenant publication, package publication, VSIX installation, GitHub Release or tag is authorized by this version/commit/push request.",
+    "Native ChatGPT plugin/MCP Apps UI export and OpenAI Managed Agents API integration remain unimplemented; existing OpenAI delivery is an application export or manual Custom GPT Action handoff.",
+    "Azure Government agent-deployment execution remains blocked pending service qualification.",
+    "The unchanged historical execution log joins sequence-71 and sequence-72 JSON objects on one line. The latest event matches the execution snapshot, but full historical replay remains unverified.",
+    "This report is a pre-commit snapshot. Git HEAD and the remote branch, not this report's base revision, establish the containing commit and delivery status."
   ],
-  "recommendation": "STEP-012 passes with no findings. The validated change set is ready for STEP-013 commit preparation; commit and push remain separately prohibited."
+  "recommendation": "Proceed with the explicitly authorized normal commit and push to the existing tracking branch; no formal release or deployment.",
+  "previousReport": {
+    "sourceRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
+    "path": "reports/change-review.json",
+    "generatedAt": "2026-09-18T14:30:00.000Z",
+    "sha256": "126bd3648b2c3f5a997b6035cc10bc82800fb290bd0153c4c9d0f4de6e553912"
+  }
 }

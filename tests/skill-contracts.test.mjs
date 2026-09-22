@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFile, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { inflateRawSync } from "node:zlib";
@@ -44,6 +45,7 @@ function readZipEntry(archive, expectedName) {
 
 const expectedSkillIds = [
   "agent-builder",
+  "agent-deployment",
   "architecture-review",
   "artifact-upgrade",
   "audit-azure-environment",
@@ -85,6 +87,7 @@ const expectedSkillIds = [
   "skill-update",
   "systematic-debugging",
   "user-personalization",
+  "visual-companion-builder",
   "workflow-planner",
   "workflow-recovery",
   "workflow-scheduler",
@@ -840,7 +843,8 @@ test("every governed skill has deterministic help coverage", async () => {
     assert.ok(existsSync(path.join(root, relative)), `missing Agent Builder contract ${relative}`);
   }
   const agentBlueprint = JSON.parse(await readFile(path.join(root, "schemas", "agent-blueprint.schema.json"), "utf8"));
-  assert.deepEqual(agentBlueprint.properties.schemaVersion.enum, ["1.0.0", "2.0.0", "2.1.0", "2.2.0"]);
+  assert.deepEqual(agentBlueprint.properties.schemaVersion.enum, ["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0"]);
+  assert.ok(agentBlueprint.properties.agentType.enum.includes("portable"));
   assert.equal(agentBlueprint.properties.autonomy.additionalProperties, false);
   assert.deepEqual(agentBlueprint.properties.autonomy.required, ["mode", "approvalRequiredFor", "webSafety"]);
   assert.deepEqual(agentBlueprint.properties.autonomy.properties.mode.enum, ["guided", "autonomous-research"]);
@@ -858,9 +862,17 @@ test("every governed skill has deterministic help coverage", async () => {
     "microsoft-365-copilot-and-teams",
     "chatgpt-action"
   ]);
+  assert.equal(agentBlueprint.properties.distribution.$ref, "#/$defs/distribution");
+  assert.equal(agentBlueprint.$defs.distribution.additionalProperties, false);
+  assert.deepEqual(agentBlueprint.$defs.distribution.properties.targets.items.enum, [
+    "foundry-endpoint", "microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit",
+    "copilot-studio", "openai-api-application", "chatgpt-action-handoff"
+  ]);
   const agentBuilderPlan = JSON.parse(await readFile(path.join(root, "schemas", "agent-builder-plan.schema.json"), "utf8"));
-  assert.deepEqual(agentBuilderPlan.properties.schemaVersion.enum, ["1.0.0", "1.1.0"]);
+  assert.deepEqual(agentBuilderPlan.properties.schemaVersion.enum, ["1.0.0", "1.1.0", "1.2.0"]);
   assert.deepEqual(agentBuilderPlan.properties.publication.type, ["object", "null"]);
+  assert.equal(agentBuilderPlan.properties.deploymentInputSha256.$ref, "#/$defs/sha256");
+  assert.ok(agentBuilderPlan.properties.distribution.anyOf.some((option) => option.type === "null"));
   for (const agent of ["azure-architect", "security-reviewer", "documentation-writer"]) {
     const source = await readFile(path.join(templateRoot, ".github", "agents", `${agent}.agent.md`), "utf8");
     assert.doesNotMatch(source, /tools:.*(?:fetch|githubRepo|microsoft-learn|problems|azure)/);
@@ -892,6 +904,89 @@ test("profiles are dependency-closed", async () => {
     }
   }
   assert.ok(effective("core").has("agent-builder"), "core profile must include the governed Agent Builder");
+  assert.ok(effective("durable").has("agent-deployment"), "durable profile must include governed agent deployment");
+  assert.ok(effective("durable").has("visual-companion-builder"), "durable profile must include local companion packaging");
+});
+
+test("deployment and companion engines survive provisioning with read-only capability discovery", async () => {
+  const companion = (await loadSkills()).find((skill) => skill.metadata.name === "visual-companion-builder");
+  assert.ok(companion);
+  assert.ok(sectionItems(companion.source, "Outputs").includes("artifacts/visual-companions/<id>/<target>/"), "companion output ownership must be discoverable");
+  const destination = await mkdtemp(path.join(os.tmpdir(), "pso-agent-feature-contract-"));
+  const runtime = path.join(root, "pso.mjs");
+  try {
+    const created = spawnSync(process.execPath, [
+      runtime, "create-project", "--name", "Agent Feature Fixture", "--destination", destination,
+      "--profile", "durable", "--accept-risk"
+    ], { cwd: destination, encoding: "utf8" });
+    assert.equal(created.status, 0, `${created.stdout}\n${created.stderr}`);
+    const project = path.join(destination, "agent-feature-fixture");
+    const reportsBefore = await readdir(path.join(project, "reports"));
+    for (const [skill, command] of [
+      ["agent-deployment", ["agent", "deploy"]],
+      ["visual-companion-builder", ["companion"]]
+    ]) {
+      const discovered = spawnSync(process.execPath, [runtime, ...command, "capabilities", "--json"], { cwd: project, encoding: "utf8" });
+      assert.equal(discovered.status, 0, `${discovered.stdout}\n${discovered.stderr}`);
+      const capabilities = JSON.parse(discovered.stdout);
+      assert.ok(capabilities && typeof capabilities === "object");
+      assert.ok(Object.keys(capabilities).length > 0);
+      const engine = path.join(project, ".github", "skills", skill, "scripts", `${skill}.mjs`);
+      assert.ok(existsSync(engine));
+      const installed = spawnSync(process.execPath, [engine, "capabilities", "--json"], { cwd: project, encoding: "utf8" });
+      assert.equal(installed.status, 0, `${installed.stdout}\n${installed.stderr}`);
+      assert.deepEqual(JSON.parse(installed.stdout), capabilities);
+      const helpPath = path.join(project, ".github", "prompts", `${skill}-help.prompt.md`);
+      const help = await readFile(helpPath, "utf8");
+      for (const heading of ["Purpose", "Preconditions", "Inputs", "Approved Tools and Resources", "Read and Write Boundaries", "Procedure", "Validation", "Outputs", "Failure Behavior", "Approval Gates", "Composition and Dependencies", "Examples"]) {
+        assert.match(help, new RegExp(`^## ${heading}$`, "m"), `help must preserve ${heading}, including prose and numbered steps`);
+      }
+      assert.match(help, /Do not execute its procedures or treat examples as action approval/);
+      if (skill === "visual-companion-builder") {
+        assert.match(help, /```json\n/);
+        assert.match(help, /"frames": \[\["\.o\.", "oyo", "\.o\."\]/);
+      }
+    }
+    assert.deepEqual(await readdir(path.join(project, "reports")), reportsBefore, "capability discovery must not create execution reports");
+    const example = companion.source.match(/```json\r?\n([\s\S]*?)\r?\n```/);
+    assert.ok(example, "companion contract must contain a complete executable JSON example");
+    await writeFile(path.join(project, "sprite.json"), `${JSON.stringify(JSON.parse(example[1]), null, 2)}\n`, "utf8");
+    const installedCompanion = path.join(project, ".github", "skills", "visual-companion-builder", "scripts", "visual-companion-builder.mjs");
+    const invokeCompanion = (action, flags = []) => spawnSync(process.execPath, [
+      installedCompanion, action, "--project", project, "--request", "sprite.json", ...flags, "--json"
+    ], { cwd: project, encoding: "utf8" });
+    const companionPlan = invokeCompanion("plan");
+    assert.equal(companionPlan.status, 0, `${companionPlan.stdout}\n${companionPlan.stderr}`);
+    await writeFile(path.join(project, "sprite-plan.json"), companionPlan.stdout, "utf8");
+    const built = invokeCompanion("build", ["--plan", "sprite-plan.json", "--accept-risk"]);
+    assert.equal(built.status, 0, `${built.stdout}\n${built.stderr}`);
+    assert.equal(JSON.parse(built.stdout).status, "built");
+    const verified = invokeCompanion("verify");
+    assert.equal(verified.status, 0, `${verified.stdout}\n${verified.stderr}`);
+    assert.equal(JSON.parse(verified.stdout).verification.scope, "local-package-integrity-only");
+    for (const schema of [
+      "agent-deployment-request", "agent-deployment-plan", "agent-deployment-result", "agent-deployment-state",
+      "agent-provider-capabilities", "visual-companion-request", "visual-companion-result"
+    ]) {
+      const installed = JSON.parse(await readFile(path.join(project, "schemas", `${schema}.schema.json`), "utf8"));
+      assert.equal(installed.additionalProperties, false, `${schema} must reject unknown root fields`);
+    }
+    for (const [intent, owner, expectedApproval] of [
+      ["agent-deployment", "agent-deployment", "external"],
+      ["visual-companion-builder", "visual-companion-builder", "phase"]
+    ]) {
+      const planned = spawnSync(process.execPath, [runtime, "plan", "--root", project, "--intent", intent], { cwd: project, encoding: "utf8" });
+      assert.equal(planned.status, 0, `${planned.stdout}\n${planned.stderr}`);
+      const plan = JSON.parse(await readFile(path.join(project, "reports", "workflow-plan.json"), "utf8"));
+      const step = plan.steps.find((entry) => entry.owner.id === owner);
+      assert.ok(step, `workflow must route to ${owner}`);
+      assert.equal(step.requiresApproval, true);
+      assert.ok(step.approvalClasses.includes(expectedApproval));
+      assert.equal(step.status, "planned", "routing must not execute or authorize the new capability");
+    }
+  } finally {
+    await rm(destination, { recursive: true, force: true });
+  }
 });
 
 test("project visual storytelling requires one local profile owner", async () => {

@@ -1,6 +1,6 @@
 # Project Orchestrator: Complete Project Overview
 
-> **Evidence snapshot:** This overview describes Project Orchestrator runtime version `1.1.2` and framework version `9.0.0` as reviewed on 2026-09-12. It is grounded in the current runtime, configuration, tests, skill inventory, security policy, and release manifest. Current machine-readable evidence under `reports/` and current source/configuration take precedence if this document later becomes stale.
+> **Evidence snapshot:** This overview describes Project Orchestrator runtime version `1.2.0` and framework version `9.1.0` as reviewed on 2026-09-22. It is grounded in the current runtime, configuration, tests, skill inventory, security policy, and release manifest. Current machine-readable evidence under `reports/` and current source/configuration take precedence if this document later becomes stale.
 
 ## Executive Summary
 
@@ -9,7 +9,7 @@ Project Orchestrator turns a repository into a governed GitHub Copilot workspace
 The product has two main parts:
 
 1. A registry-free Node.js command-line runtime that creates a governed project, adopts an existing repository, updates an installed project, and verifies the resulting framework.
-2. A catalog of 47 governed skills that GitHub Copilot can use for planning, implementation support, audit, remediation, security review, documentation, personalized communication, Azure discovery, continuity, and other bounded workflows.
+2. A catalog of 50 governed skills that GitHub Copilot can use for planning, implementation support, audit, remediation, security review, documentation, personalized communication, Azure discovery, agent deployment, visual companions, continuity, and other bounded workflows.
 
 Its central value is not simply generating files. Its value is making AI-assisted work **repeatable, reviewable, recoverable, and evidence-based**:
 
@@ -25,7 +25,7 @@ Project Orchestrator is currently an **unsigned internal candidate** for authori
 
 ## The 30-Second Explanation
 
-Most teams can make Copilot useful in one repository. The harder problem is making it consistent, safe, maintainable, and auditable across many repositories. Project Orchestrator packages that operating model into a registry-free installer and 47 governed skills. It adapts to the target stack, preserves existing work, requires approval at consequential boundaries, records machine-readable evidence, and can roll back failed installation changes.
+Most teams can make Copilot useful in one repository. The harder problem is making it consistent, safe, maintainable, and auditable across many repositories. Project Orchestrator packages that operating model into a registry-free installer and 50 governed skills. It adapts to the target stack, preserves existing work, requires approval at consequential boundaries, records machine-readable evidence, and can roll back failed installation changes.
 
 ## Why This Project Exists
 
@@ -71,7 +71,7 @@ Project adoption uses canonical path checks, symbolic-link rejection, destinatio
 
 ### Reuse instead of reinvention
 
-The 47-skill catalog covers common engineering, governance, and personalized communication workflows. The inventory and dependency system helps teams reuse an existing skill before creating another overlapping capability.
+The 50-skill catalog covers common engineering, governance, deployment, visual-companion, and personalized communication workflows. The inventory and dependency system helps teams reuse an existing skill before creating another overlapping capability.
 
 ### Evidence instead of optimistic claims
 
@@ -103,7 +103,7 @@ Project Orchestrator is not:
 - a replacement for engineers, security reviewers, architects, or approvers;
 - a guarantee that code or configuration is free from defects or vulnerabilities;
 - a hosted agent runtime or model-serving platform;
-- an automatic deployment or publication service;
+- an ungated deployment or publication service;
 - a secret manager or identity provider;
 - an authorization to create Azure resources, publish agents, merge code, or release software;
 - a replacement for source control, independent backups, non-production testing, or organizational change management;
@@ -118,10 +118,10 @@ Project Orchestrator is not:
 | --- | --- |
 | Product name | Project Orchestrator |
 | Compatibility names | `pso`, `pso.mjs`, `project-skills-orchestrator`, and `.skills-orchestrator` remain stable interfaces |
-| Runtime version | `1.1.2` |
-| Source version date | September 12, 2026 |
-| Framework version | `9.0.0` |
-| Governed skills | 47 |
+| Runtime version | `1.2.0` |
+| Source version date | September 22, 2026 |
+| Framework version | `9.1.0` |
+| Governed skills | 50 |
 | Core runtime dependencies | 0 third-party packages |
 | Supported Node.js majors | 22, 24, and 26 |
 | Default new-project profile | `durable` |
@@ -144,7 +144,7 @@ flowchart TD
 
     J[Repository context] --> B
     J --> C
-    K[47 skill contracts] --> C
+    K[50 skill contracts] --> C
     L[Schemas and profiles] --> D
     L --> G
     M[Transaction journal and backups] --> F
@@ -487,7 +487,7 @@ All framework skills are copied into a standalone project. The selected profile 
 
 Profiles are dependency-closed and validated for cycles.
 
-## The 47 Governed Skills
+## The 50 Governed Skills
 
 The inventory below groups the current skill catalog by the problem each skill primarily owns. Lifecycle labels vary; a passing contract audit does not mean every skill is production-certified.
 
@@ -522,6 +522,9 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `skill-update` | Resolves one existing skill, presents a bounded update proposal, and edits only after explicit proceed approval. |
 | `skill-registry` | Governs skill provenance, lifecycle promotion, deprecation, retirement, and revocation proposals. |
 | `agent-builder` | Builds and transactionally installs least-privilege custom agents and non-executing publication handoff plans. |
+| `agent-deployment` | Packages validated agents and performs separately approved Foundry, Microsoft 365, Copilot Studio, and Agents Toolkit operations with digest-bound plans and durable recovery evidence. |
+| `visual-companion-builder` | Creates original or licensed sprites, accessible browser companions, standalone VS Code extension source, static icons, and licensed Pets-fork handoffs without native installation or publication. |
+| `live-chat-interaction` | Supplies provider-neutral local conversation state, approved grounding, credential-free session boundaries, and accessible guided/text fallbacks. |
 
 ### Audit, review, and assurance
 
@@ -618,13 +621,13 @@ Agent Builder turns a focused role into a portable, least-privilege `.agent.md` 
 
 It supports:
 
-- `copilot`, `foundry-prompt`, and `foundry-hosted` design types;
+- `copilot`, `foundry-prompt`, `foundry-hosted`, and `portable` design types;
 - explicit capabilities such as `read`, `search`, `web`, `edit`, `execute`, `agent`, and `todo`;
 - guided or read-only autonomous-research modes;
 - deterministic blueprint, plan, rendered-agent, and destination hashes;
 - invocation policy, subagent references, and handoffs;
 - atomic create/update with transaction backup;
-- non-executing publication intent for a Foundry endpoint, Microsoft 365 Copilot and Teams, or an indirect ChatGPT Action integration.
+- backward-compatible blueprint 2.3 distribution intent for Foundry, Microsoft 365 Copilot and Teams, Copilot Studio, Agents Toolkit, OpenAI applications, and a manual Custom GPT Action handoff.
 
 Agent Builder does **not** create a hosted agent, configure an endpoint, publish a channel, create a Custom GPT, install an extension, or configure MCP. Those are separate platform workflows with separate approvals.
 
@@ -665,6 +668,21 @@ node .\pso.mjs agent apply `
 
 Review the full plan before `apply`.
 
+### Governed deployment and visual companions
+
+The separate `agent-deployment` skill adds executable Azure Commercial preview adapters for
+Foundry prompt and prebuilt hosted agents, Microsoft 365/Teams bridge and publication submission,
+and reviewed PAC/Agents Toolkit operations. Packaging, import/deployment, publication, and
+tenant-admin approval remain distinct. The [deployment guide](../.github/skills/agent-deployment/references/usage.md)
+documents credentials, immutable inputs, approvals, verification limits, and manual recovery.
+No live tenant or hosted runtime is certified by local fake-provider tests.
+
+The `visual-companion-builder` skill creates accessible local browser bundles and VS Code
+extension source packages; it does not install a VSIX or register third-party pets with the stock
+VS Code Pets extension. Native ChatGPT plugin/MCP Apps UI export and OpenAI Managed Agents API
+integration are separate, unimplemented extensions. OpenAI supports those integration routes;
+the current Custom GPT handoff is not a claim that they are impossible.
+
 ## Azure and Sovereign Cloud Support
 
 Project Orchestrator includes Azure-aware scaffolding and workflows, but it does not silently deploy Azure resources.
@@ -686,7 +704,9 @@ The generated Azure scaffold is a starting point that must be reviewed and adapt
 
 `project-understanding` performs a complete repository scan and binds the result to source digests. `documentation-builder` uses that evidence to build and validate the canonical project guide. Other presentation workflows, including Project Video, depend on current versions of both artifacts.
 
-The current generated [PROJECT-GUIDE.md](PROJECT-GUIDE.md) and its Project Understanding inputs predate recent framework changes and fail the documentation-builder freshness check. This overview therefore uses current runtime/configuration and current inventory/security/release evidence instead. Refresh Project Understanding and the canonical guide before using them as inputs to a new Project Video or as current authoritative documentation.
+The generated [PROJECT-GUIDE.md](PROJECT-GUIDE.md) and its Project Understanding inputs are
+refreshed with this source update. Their digest-based validation remains the authority for
+freshness; rerun it after later source changes before using the guide for a new Project Video.
 
 ## Project Video
 
@@ -725,14 +745,14 @@ Reports are useful because they can be validated, compared, consumed by automati
 
 The most recent full gate associated with the current implementation snapshot reported:
 
-- 142 tests discovered;
-- 141 tests passed;
+- 341 tests discovered;
+- 340 tests passed;
 - 0 tests failed;
 - 1 platform-specific test skipped because the temporary directory had no filesystem alias;
-- 47 skills inventoried and audited;
-- 47 skill audits passed;
-- 236 files security-scanned with no findings and zero package dependencies;
-- 172 release-candidate files verified by checksum;
+- 50 skills inventoried and audited;
+- 50 skill audits passed;
+- 323 files security-scanned with no findings and zero package dependencies;
+- 226 release-candidate files verified by checksum;
 - distribution verification passed for skills, schemas, profiles, dependencies, ownership, and the audit pipeline.
 
 Run the current gate rather than relying indefinitely on these historical counts:
@@ -874,7 +894,10 @@ Yes. Azure discovery and environment automation distinguish Azure Commercial fro
 
 ### Does Agent Builder deploy agents?
 
-No. It creates and validates local agent definitions and can record governed publication intent. Hosted creation, endpoint configuration, channel publication, and Custom GPT operations belong to separate approved workflows.
+No. It creates and validates local agent definitions and records governed distribution intent.
+The separate `agent-deployment` skill owns supported, explicitly approved provider operations.
+Custom GPT Action publication remains a manual handoff; native ChatGPT plugin support is not
+implemented. None of these paths bypasses tenant approval or release gates.
 
 ### Is it production-ready?
 
@@ -911,7 +934,7 @@ Use current source, configuration, and machine-readable reports before relying o
 - [Runtime](../pso.mjs): implemented command behavior and safety controls.
 - [Profiles](../config/profiles.yaml): conformance profile definitions.
 - [Orchestrator configuration](../config/orchestrator.yaml): framework runtime and policy configuration.
-- [Current skill inventory](../reports/skill-inventory.json): the 47-skill catalog and dependencies.
+- [Current skill inventory](../reports/skill-inventory.json): the 50-skill catalog and dependencies.
 - [Artifact ownership](../reports/artifact-ownership.json): report producer ownership.
 - [Security policy](../SECURITY.md): operating requirements and release gates.
 - [Threat model](THREAT-MODEL.md): threats, controls, residual risks, and invariants.

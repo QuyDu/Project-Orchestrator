@@ -1,6 +1,6 @@
 ---
 name: agent-builder
-description: Build, validate, preview, and transactionally install least-privilege custom agents, including governed publication handoffs for Foundry endpoints, Microsoft 365 Copilot and Teams, or ChatGPT actions. Use when creating, updating, or reviewing .agent.md files; do not use for cloud deployment, channel publication, or MCP installation.
+description: Build, validate, preview, and transactionally install least-privilege custom agents with portable distribution intent for Foundry, Microsoft 365, Copilot Studio, and OpenAI application or ChatGPT Action handoffs. Use when creating, updating, or reviewing agent blueprints and .agent.md files; do not use for deployment, channel publication, or MCP installation.
 lifecycle: draft
 confidence: low
 ---
@@ -9,7 +9,7 @@ confidence: low
 
 ## Purpose
 
-Turn a focused agent idea into a portable, least-privilege custom-agent definition with deterministic validation, review evidence, rollback-safe installation, and an optional non-executing publication handoff.
+Turn a focused agent idea into a portable, least-privilege custom-agent definition with deterministic validation, review evidence, rollback-safe installation, and an optional digest-bound, non-executing distribution handoff.
 
 ## Preconditions
 
@@ -23,9 +23,12 @@ Turn a focused agent idea into a portable, least-privilege custom-agent definiti
 - Agent role, trigger conditions, purpose, prohibited behavior, approach, and output contract.
 - Optional explicit parameters for agent type, identity, risk, capabilities, invocation, constraints, approach, output, subagents, handoffs, and Azure environment.
 - Required portable capabilities: `read`, `search`, `web`, `edit`, `execute`, `agent`, or `todo`.
-- Schema 2.1 and 2.2 autonomy mode: `guided` (the new-build default) or `autonomous-research`. Autonomous research is restricted to read-only agents using only `read`, `search`, and `web`.
-- Schema 2.1 and 2.2 web-safety mode: `standard` (the default) or `threat-informed`. Threat-informed mode requires `web` and avoids security-flagged or credibly malicious infrastructure without treating geography alone as threat evidence.
+- Schema 2.1 through 2.3 autonomy mode: `guided` (the new-build default) or `autonomous-research`. Autonomous research is restricted to read-only agents using only `read`, `search`, and `web`.
+- Schema 2.1 through 2.3 web-safety mode: `standard` (the default) or `threat-informed`. Threat-informed mode requires `web` and avoids security-flagged or credibly malicious infrastructure without treating geography alone as threat evidence.
 - Optional schema 2.2 publication intent with one or more exact targets: `foundry-endpoint`, `microsoft-365-copilot-and-teams`, or `chatgpt-action`.
+- Optional schema 2.3 distribution intent with one or more exact targets: `foundry-endpoint`, `microsoft-365-copilot-and-teams`, `microsoft-365-agents-toolkit`, `copilot-studio`, `openai-api-application`, or `chatgpt-action-handoff`.
+- Schema 2.3 supports the `portable` design type without requiring an Azure binding. `copilot` continues to mean the existing GitHub Copilot custom-agent format, not Microsoft 365 or Copilot Studio.
+- Distribution environment: `development`, `staging`, or `production`. Data boundary: `project-local`, `organization`, or `external`; these are requirements to check, not authorization to transmit data.
 - Publication version policy: `latest` or `pinned`; use `pinned` for controlled production rollout unless automatic latest-version promotion is explicitly accepted.
 - Microsoft 365 audience when requested: `individual` or `tenant`. ChatGPT visibility when requested: `workspace`, `link`, or `gpt-store`.
 - Invocation policy, permitted subagents, and optional handoffs to existing workspace agents.
@@ -40,6 +43,7 @@ through chat.
 
 - Use read-only repository inspection while authoring and validating a blueprint.
 - Use `.github/skills/agent-builder/scripts/agent-builder.mjs` for validation, rendering, planning, and application.
+- Reuse its side-effect-free `validateBlueprint`, `renderAgent`, and `normalizeDistribution` exports when consuming blueprints. Normalization validates the source and never rewrites a legacy artifact.
 - Verify publication claims against the current Microsoft Foundry endpoint and Microsoft 365 publishing documentation and the current OpenAI GPT Actions and GPT sharing documentation.
 - Do not install extensions, MCP servers, models, packages, or hosted resources.
 
@@ -54,33 +58,37 @@ through chat.
 ## Procedure
 
 1. Decide whether the requested behavior belongs in an agent, skill, prompt, instruction, or hook, and stop if an agent is not the narrowest correct primitive.
-2. Resolve `agentType` as `copilot`, `foundry-prompt`, or `foundry-hosted`. Ask only when it was not supplied.
+2. Resolve `agentType` as `copilot`, `foundry-prompt`, `foundry-hosted`, or schema 2.3 `portable`. Ask only when it was not supplied.
 3. Define one focused role with concrete trigger language, explicit constraints, a bounded approach, and an output format. Reuse every supplied parameter and ask only for missing fields.
 4. Select the smallest portable capability set. A read-only agent must not receive `edit` or `execute`.
-5. For every schema 2.1 or 2.2 autonomy policy, require direct approval for purchases or payments, bookings or external commitments, provider contact or messages, account, identity, permission, or security changes, sensitive-data disclosure, and destructive or irreversible actions. When autonomous research is selected, also reject capabilities outside `read`, `search`, and `web`.
+5. For every schema 2.1 through 2.3 autonomy policy, require direct approval for purchases or payments, bookings or external commitments, provider contact or messages, account, identity, permission, or security changes, sensitive-data disclosure, and destructive or irreversible actions. When autonomous research is selected, also reject capabilities outside `read`, `search`, and `web`.
 6. Record invocation visibility, permitted subagents, and handoffs. Handoff targets must already exist, and self-handoffs are prohibited.
 7. When publication is requested, record schema 2.2 publication intent and preserve these distinctions:
 	- `foundry-endpoint` means the managed endpoint that is live when a Foundry agent is created. There is no separate endpoint-activation publish step. The publishing workflow selects `latest` or a pinned active version and configures required protocols and Microsoft Entra authorization; API-key authentication is not supported for the Foundry agent endpoint.
 	- `microsoft-365-copilot-and-teams` is Foundry's combined direct publication flow. Require a tested active version, agent identity, Activity Protocol, `BotServiceRbac` for individual/RBAC-scoped access or `BotServiceTenant` for tenant access, `Microsoft.BotService` provider readiness, permission to create and configure Azure Bot Service, compliant metadata, and tenant-admin approval for tenant publication.
 	- `chatgpt-action` is not direct Foundry publication. It requires a separately governed Custom GPT in an eligible ChatGPT workspace and an HTTPS/OpenAPI action boundary with supported authentication, workspace/domain policy, a privacy-policy URL for public sharing, and explicit cross-platform data-flow review.
+   For new cross-platform work, use `--distribution-targets` instead of `--publication-targets`. Distribution is schema 2.3, cannot coexist with legacy publication, and keeps the same version and audience approval requirements. `microsoft-365-agents-toolkit` and `copilot-studio` are different control planes, not aliases for Foundry. `openai-api-application` means a separately owned application, not a Custom GPT deployment. `chatgpt-action-handoff` is always a manual integration handoff.
 8. For `foundry-prompt`, `foundry-hosted`, an explicitly Azure-dependent Copilot agent, or any publication intent, resolve cloud, location, environment name, authentication method, and optional subscription from parameters or `.azure/environment.json`. Select the matching Azure CLI cloud and start the recorded device-code or managed-identity login only when the current session is absent or mismatched. Credentials stay in the terminal and never enter the blueprint or reports.
+   Portable distribution authoring alone must not initialize Azure, log in, or contact a provider. Target-specific identity, runtime tools, protocols, and environment readiness belong to the separately reviewed deployment request; portable capability labels never grant remote tool access.
 9. Run `azure-discovery` before recommending a Foundry project, model, region, Azure Bot Service dependency, or publication target. Do not infer Azure Commercial support in Azure Government or another national cloud; block the handoff when target-cloud, tenant, provider, policy, quota, capacity, identity, or channel support is unknown.
 10. Run `agent build` to write `reports/agent-blueprints/<id>.json` and the deterministic review plan, or save a supplied blueprint and run `agent validate` followed by `agent plan`.
-11. Review the plan's action, publication intent, warnings, hashes, and complete rendered agent. Publication metadata stays in the blueprint and plan and is not rendered as runtime agent instructions.
+11. Review the plan's action, publication or distribution intent, warnings, hashes, and complete rendered agent. Distribution metadata stays outside the rendered agent. Schema 2.3 emits plan 1.2 with normalized distribution and a deployment-input digest; older blueprints retain plan 1.1 behavior. Legacy `chatgpt-action` normalizes to `chatgpt-action-handoff` without modifying its source.
 12. Obtain explicit risk acceptance for any local create or update action.
-13. Run `agent apply` against the unchanged blueprint and plan. The engine revalidates hashes, publication intent, and destination state before an atomic write.
+13. Run `agent apply` against the unchanged blueprint and plan. The engine revalidates hashes, publication or distribution intent, the deployment-input digest when present, and destination state before an atomic write. A legacy plan cannot approve a schema 2.3 blueprint.
 14. Run `agent validate --agent` on the installed file and review `reports/agent-builder-result.json`.
-15. Hand Foundry creation, evaluation, version selection, endpoint configuration, deployment, and Microsoft 365 or Teams publication to the Microsoft Foundry workflow. Hand Custom GPT creation, action configuration, testing, sharing, and GPT Store review to an authorized ChatGPT workspace workflow. This skill performs neither handoff itself.
+15. Hand the validated blueprint to `agent-deployment` for provider capability checks, packaging, a separate deployment plan, explicit approval, execution where supported, verification, and recovery. Never claim that a manual-handoff or unavailable adapter has deployed anything. ChatGPT editor configuration, workspace sharing, tenant approval, and marketplace review remain external operator gates.
 
 ## Validation
 
 - The blueprint and plan validate against their schemas.
 - Agent ID, target path, description, capabilities, invocation policy, and body are deterministic.
 - Read-only agents have no mutating capability.
-- Schema 2.1 and 2.2 agents preserve all six consequential-action approval gates; autonomous-research agents are read-only, expose only research capabilities, and render the selected web-safety policy.
+- Schema 2.1 through 2.3 agents preserve all six consequential-action approval gates; autonomous-research agents are read-only, expose only research capabilities, and render the selected web-safety policy.
 - Schema 2.2 publication intent is accepted only for Foundry agents, records exact targets and version policy, and includes the target-specific audience or visibility field.
 - Publication plans state that Foundry endpoints are live at agent creation, Microsoft 365 and Teams use Foundry's Activity Protocol and Bot Service publication flow, and ChatGPT uses an indirect GPT Action integration.
 - Publication metadata remains outside the rendered `.agent.md` body and no external resource or listing is created.
+- Distribution plans are deterministic, bind source and intent digests, reject unsupported targets and inapplicable audience fields, and do not infer a remote runtime from local tool aliases.
+- Schema 1.0 through 2.2 source artifacts remain readable and unchanged. Importing the validation helpers performs no CLI, filesystem, authentication, or network action.
 - Selected-cloud discovery evidence is current before publication readiness is claimed, especially for Azure Government and other national clouds.
 - Subagent and handoff references are resolvable and non-self-referential.
 - Existing destination state matches the reviewed plan before application.
@@ -122,4 +130,5 @@ through chat.
 - Build a Foundry-aware prompt agent for Azure Government, establish its Azure CLI context, and emit the blueprint without deploying resources.
 - Plan a pinned Foundry endpoint and individual Microsoft 365 Copilot and Teams publication handoff without creating the agent, Bot Service resource, or catalog listing.
 - Plan a ChatGPT workspace integration as a separate Custom GPT with an HTTPS/OpenAPI action; reject a request to publish the Foundry agent directly into ChatGPT.
+- Build a `portable` schema 2.3 agent with `--distribution-targets copilot-studio,openai-api-application` and review its distribution digest without logging in or contacting either provider.
 - Reject a proposed read-only reviewer that requests `execute`, or a handoff to an agent that does not exist.

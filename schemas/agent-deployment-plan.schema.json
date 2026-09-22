@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-skills.dev/schemas/agent-deployment-plan/1.0.0",
+  "title": "Agent Deployment Plan",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "planId", "planSha256", "generatedAt", "expiresAt", "status", "projectRoot", "requestPath", "requestSha256", "blueprintSha256", "packagePath", "packageSha256", "registrySha256", "implementationSha256", "profileSha256", "target", "agentId", "release", "adapter", "remote", "remoteSha256", "steps", "requiredApprovals", "permissions", "blastRadius", "costAndQuota", "identityChanges", "verification", "rollback", "limitations", "reason"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "planId": { "type": "string", "pattern": "^DEP-[a-f0-9]{32}$" },
+    "planSha256": { "$ref": "#/$defs/sha256" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["review-required", "manual-handoff", "unavailable"] },
+    "projectRoot": { "type": "string", "minLength": 1, "maxLength": 1024 },
+    "requestPath": { "$ref": "agent-deployment-request.schema.json#/$defs/path" },
+    "requestSha256": { "$ref": "#/$defs/sha256" },
+    "blueprintSha256": { "$ref": "#/$defs/sha256" },
+    "packagePath": { "type": "string", "pattern": "^reports/agent-deployment/[a-z][a-z0-9-]*/packages/[a-f0-9]{64}$" },
+    "packageSha256": { "$ref": "#/$defs/sha256" },
+    "registrySha256": { "$ref": "#/$defs/sha256" },
+    "implementationSha256": { "$ref": "#/$defs/sha256" },
+    "profileSha256": { "$ref": "#/$defs/nullableDigest" },
+    "target": { "$ref": "agent-deployment-request.schema.json#/$defs/target" },
+    "agentId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
+    "release": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$" },
+    "adapter": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,79}$" },
+    "remote": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/remote" }, { "$ref": "#/$defs/platformSnapshot" }] },
+    "providerEvidenceSha256": { "$ref": "#/$defs/nullableDigest" },
+    "remoteSha256": { "$ref": "#/$defs/nullableDigest" },
+    "steps": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/step" } },
+    "requiredApprovals": { "type": "array", "maxItems": 12, "uniqueItems": true, "items": { "$ref": "#/$defs/approval" } },
+    "permissions": { "$ref": "#/$defs/strings" },
+    "blastRadius": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "costAndQuota": { "$ref": "#/$defs/strings" },
+    "identityChanges": { "$ref": "#/$defs/strings" },
+    "verification": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "rollback": {
+      "type": "object", "additionalProperties": false, "required": ["strategy", "previousVersion", "approval", "procedure"],
+      "properties": {
+        "strategy": { "enum": ["repin", "manual"] },
+        "previousVersion": { "$ref": "#/$defs/nullableVersion" },
+        "approval": { "const": "rollback-routing" },
+        "procedure": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "limitations": { "$ref": "#/$defs/strings" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["status", "remote"],
+        "properties": {
+          "status": { "const": "review-required" },
+          "remote": {
+            "type": "object", "required": ["exists", "selector"],
+            "properties": { "exists": { "const": true }, "selector": { "const": "pinned" } }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "rollback": {
+            "properties": { "strategy": { "const": "repin" }, "previousVersion": { "$ref": "agent-deployment-request.schema.json#/$defs/version" } }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "rollback": { "properties": { "strategy": { "const": "manual" }, "previousVersion": { "type": "null" } } }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "$ref": "agent-deployment-request.schema.json#/$defs/sha256" },
+    "nullableDigest": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "nullableVersion": { "anyOf": [{ "type": "null" }, { "$ref": "agent-deployment-request.schema.json#/$defs/version" }] },
+    "nullableId": { "type": ["string", "null"], "maxLength": 1024, "pattern": "^(?![a-zA-Z][a-zA-Z0-9+.-]*://)/?[a-zA-Z0-9][a-zA-Z0-9:._/-]{0,1023}$" },
+    "strings": { "type": "array", "maxItems": 16, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 1000 } },
+    "approval": { "enum": ["agent-version-create", "hosted-code-execution", "endpoint-configuration", "endpoint-routing", "endpoint-invocation", "rollback-routing", "bot-resource-change", "teams-channel-change", "endpoint-authorization", "public-activity-exposure", "publication-submission", "tenant-publication", "local-package-execution", "solution-import", "agent-publication", "solution-export", "toolkit-provision", "toolkit-deploy", "toolkit-package", "toolkit-publish", "toolkit-update", "reviewed-code-execution"] },
+    "operation": { "enum": ["create-version", "wait-version-active", "configure-endpoint", "pin-version", "invoke-probe", "rollback-pin", "m365-bot", "m365-channel", "m365-endpoint", "m365-publish", "pac-pack", "pac-import", "pac-publish", "pac-export", "atk-provision", "atk-deploy", "atk-package", "atk-publish", "atk-update", "platform-verify"] },
+    "platformSnapshot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["target", "cliVersion", "identitySha256", "configurationSha256", "resourceIds", "version", "phase"],
+      "properties": {
+        "target": { "enum": ["microsoft-365-copilot-and-teams", "copilot-studio", "microsoft-365-agents-toolkit"] },
+        "cliVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$" },
+        "identitySha256": { "$ref": "#/$defs/sha256" },
+        "configurationSha256": { "$ref": "#/$defs/sha256" },
+        "resourceIds": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "$ref": "#/$defs/nullableId", "type": "string" } },
+        "version": { "type": ["string", "null"], "maxLength": 128, "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._+-]*$" },
+        "phase": { "enum": ["missing", "ready", "imported", "provisioned", "deployed", "packaged", "publication-submitted", "pending-admin-approval", "published", "unknown"] }
+      }
+    },
+    "step": {
+      "type": "object", "additionalProperties": false, "required": ["operation", "approval", "executable", "description"],
+      "properties": {
+        "operation": { "$ref": "#/$defs/operation" },
+        "approval": { "$ref": "#/$defs/approval" },
+        "executable": { "const": true },
+        "description": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "remote": {
+      "type": "object", "additionalProperties": false,
+      "required": ["exists", "agentId", "identityId", "selector", "activeVersion", "protocols", "authorization", "endpointSha256", "endpointPolicySha256", "agentPropertiesSha256", "hostedSource", "versions", "apiVersion", "cliVersion"],
+      "properties": {
+        "exists": { "type": "boolean" },
+        "agentId": { "$ref": "#/$defs/nullableId" },
+        "identityId": { "$ref": "#/$defs/nullableId" },
+        "selector": { "enum": ["none", "latest", "pinned", "unknown"] },
+        "activeVersion": { "$ref": "#/$defs/nullableVersion" },
+        "protocols": { "$ref": "#/$defs/strings" },
+        "authorization": { "$ref": "#/$defs/strings" },
+        "endpointSha256": { "$ref": "#/$defs/nullableDigest" },
+        "endpointPolicySha256": { "$ref": "#/$defs/nullableDigest" },
+        "agentPropertiesSha256": { "$ref": "#/$defs/nullableDigest" },
+        "hostedSource": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["agentName", "version", "definitionSha256", "identitySha256", "status", "draft", "image"],
+              "properties": {
+                "agentName": { "type": "string", "maxLength": 63, "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+                "version": { "$ref": "agent-deployment-request.schema.json#/$defs/version" },
+                "definitionSha256": { "$ref": "#/$defs/sha256" },
+                "identitySha256": { "$ref": "#/$defs/sha256" },
+                "status": { "enum": ["creating", "active", "failed", "deleting", "deleted", "unknown"] },
+                "draft": { "type": "boolean" },
+                "image": { "type": "string", "maxLength": 512, "pattern": "^[a-z0-9.-]+\\.azurecr\\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$" }
+              }
+            }
+          ]
+        },
+        "apiVersion": { "const": "v1" },
+        "cliVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "versions": {
+          "type": "array", "maxItems": 500,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "version", "kind", "status", "draft", "definitionSha256", "packageSha256", "release"],
+            "properties": {
+              "id": { "$ref": "#/$defs/nullableId", "type": "string" },
+              "version": { "$ref": "agent-deployment-request.schema.json#/$defs/version" },
+              "kind": { "enum": ["prompt", "hosted", "unsupported"] },
+              "status": { "enum": ["creating", "active", "failed", "deleting", "deleted", "unknown"] },
+              "draft": { "type": "boolean" },
+              "definitionSha256": { "$ref": "#/$defs/sha256" },
+              "packageSha256": { "$ref": "#/$defs/nullableDigest" },
+              "release": { "type": ["string", "null"], "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

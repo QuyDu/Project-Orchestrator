@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -203,10 +204,10 @@ test("Agent Builder renders autonomous research with mandatory safety gates", as
   }
 });
 
-test("Agent Builder rejects schema 2.1 and 2.2 autonomy policies missing any consequential-action approval gate", async () => {
+test("Agent Builder rejects schema 2.1 through 2.3 autonomy policies missing any consequential-action approval gate", async () => {
   const { project, blueprintPath } = await fixture();
   try {
-    for (const schemaVersion of ["2.1.0", "2.2.0"]) {
+    for (const schemaVersion of ["2.1.0", "2.2.0", "2.3.0"]) {
       for (const omittedGate of approvalGates) {
         const candidate = blueprint({
           schemaVersion,
@@ -315,6 +316,162 @@ test("Agent Builder rejects invalid publication intent", async () => {
       assert.notEqual(rejected.status, 0);
       assert.match(rejected.stderr, expected);
     }
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("Agent Builder builds portable distribution intent without Azure login or publication", async () => {
+  const { project } = await fixture();
+  try {
+    const built = runRuntimeBuild(project, buildParameters([
+      "--type", "portable",
+      "--distribution-targets", "copilot-studio,openai-api-application,chatgpt-action-handoff",
+      "--version-policy", "pinned",
+      "--chatgpt-visibility", "workspace",
+      "--distribution-environment", "development",
+      "--data-boundary", "organization"
+    ]));
+    assert.equal(built.status, 0, built.stderr);
+    const candidate = JSON.parse(await readFile(path.join(project, "reports", "agent-blueprints", "accessibility-reviewer.json"), "utf8"));
+    assert.equal(candidate.schemaVersion, "2.3.0");
+    assert.equal(candidate.agentType, "portable");
+    assert.deepEqual(candidate.distribution, {
+      targets: ["copilot-studio", "openai-api-application", "chatgpt-action-handoff"],
+      versionPolicy: "pinned",
+      environment: "development",
+      dataBoundary: "organization",
+      chatgptVisibility: "workspace"
+    });
+    assert.equal(candidate.azure, undefined);
+    assert.equal(candidate.publication, undefined);
+    assert.equal(existsSync(path.join(project, ".azure", "environment.json")), false);
+    assert.equal(existsSync(path.join(project, ".github", "agents", `${candidate.id}.agent.md`)), false);
+    const plan = JSON.parse(await readFile(path.join(project, "reports", "agent-builder-plan.json"), "utf8"));
+    assert.equal(plan.schemaVersion, "1.2.0");
+    assert.match(plan.deploymentInputSha256, /^[a-f0-9]{64}$/);
+    assert.deepEqual(plan.distribution.targets, [...candidate.distribution.targets].sort());
+    assert.doesNotMatch(plan.renderedAgent, /copilot-studio|openai-api-application|Distribution Handoff/);
+    assert.match(plan.warnings.join("\n"), /does not deploy|does not publish/i);
+    assert.match(plan.warnings.join("\n"), /manual.handoff/i);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("Agent Builder exposes pure validated handoff normalization without running its CLI on import", async () => {
+  const imported = spawnSync(process.execPath, ["--input-type=module", "-e",
+    `const builder = await import(${JSON.stringify(pathToFileURL(builder).href)}); console.log(JSON.stringify(Object.keys(builder).sort()));`
+  ], { cwd: root, encoding: "utf8" });
+  assert.equal(imported.status, 0, imported.stderr);
+  assert.deepEqual(JSON.parse(imported.stdout), ["normalizeDistribution", "renderAgent", "validateBlueprint"]);
+  const { normalizeDistribution, validateBlueprint } = await import(pathToFileURL(builder).href);
+  const legacy = blueprint({
+    schemaVersion: "2.2.0",
+    agentType: "foundry-prompt",
+    autonomy: { mode: "guided", approvalRequiredFor: approvalGates, webSafety: "standard" },
+    azure: {
+      required: true, cloud: "AzureCloud", location: "eastus", environmentName: "development",
+      authenticationMethod: "interactive", subscriptionConfigured: false
+    },
+    publication: { targets: ["chatgpt-action", "foundry-endpoint"], versionPolicy: "pinned", chatgptVisibility: "workspace" }
+  });
+  const original = structuredClone(legacy);
+  assert.deepEqual(normalizeDistribution(legacy), {
+    targets: ["chatgpt-action-handoff", "foundry-endpoint"],
+    versionPolicy: "pinned",
+    environment: "development",
+    dataBoundary: "organization",
+    chatgptVisibility: "workspace"
+  });
+  assert.deepEqual(legacy, original, "legacy source evidence must not be rewritten during normalization");
+  assert.equal(normalizeDistribution(blueprint()), null);
+  assert.throws(() => normalizeDistribution({ ...legacy, schemaVersion: "9.0.0" }), /schemaVersion/);
+  const portable = {
+    ...legacy, schemaVersion: "2.3.0", agentType: "portable",
+    distribution: normalizeDistribution(legacy)
+  };
+  delete portable.publication;
+  delete portable.azure;
+  assert.equal(validateBlueprint(portable), portable);
+  assert.deepEqual(normalizeDistribution(portable), normalizeDistribution(legacy));
+});
+
+test("Agent Builder rejects invalid or ambiguous distribution intent", async () => {
+  const { project, blueprintPath } = await fixture();
+  const candidate = blueprint({
+    schemaVersion: "2.3.0",
+    agentType: "portable",
+    autonomy: { mode: "guided", approvalRequiredFor: approvalGates, webSafety: "standard" },
+    distribution: {
+      targets: ["copilot-studio"], versionPolicy: "pinned", environment: "development", dataBoundary: "organization"
+    }
+  });
+  try {
+    const cases = [
+      [{ ...candidate, schemaVersion: "2.2.0", agentType: "copilot" }, /distribution requires schemaVersion 2\.3\.0/],
+      [{ ...candidate, schemaVersion: "2.2.0", distribution: undefined }, /portable requires schemaVersion 2\.3\.0/],
+      [{ ...candidate, publication: { targets: ["foundry-endpoint"], versionPolicy: "pinned" } }, /publication.*distribution|distribution.*publication/],
+      [{ ...candidate, distribution: { ...candidate.distribution, targets: ["chatgpt-store"] } }, /Unsupported distribution target/],
+      [{ ...candidate, distribution: { ...candidate.distribution, targets: ["copilot-studio", "copilot-studio"] } }, /duplicates/],
+      [{ ...candidate, distribution: { ...candidate.distribution, versionPolicy: "implicit" } }, /versionPolicy/],
+      [{ ...candidate, distribution: { ...candidate.distribution, environment: "unknown" } }, /environment/],
+      [{ ...candidate, distribution: { ...candidate.distribution, dataBoundary: "anywhere" } }, /dataBoundary/],
+      [{ ...candidate, distribution: { ...candidate.distribution, targets: ["microsoft-365-agents-toolkit"] } }, /microsoft365Audience/],
+      [{ ...candidate, distribution: { ...candidate.distribution, targets: ["chatgpt-action-handoff"] } }, /chatgptVisibility/],
+      [{ ...candidate, distribution: { ...candidate.distribution, chatgptVisibility: "workspace" } }, /chatgptVisibility/],
+      [{ ...candidate, distribution: { ...candidate.distribution, approved: true } }, /Unknown distribution field/]
+    ];
+    for (const [invalid, expected] of cases) {
+      await writeFile(blueprintPath, `${JSON.stringify(invalid, null, 2)}\n`, "utf8");
+      const rejected = run(project, "plan", blueprintPath);
+      assert.notEqual(rejected.status, 0);
+      assert.match(rejected.stderr, expected);
+    }
+    assert.equal(existsSync(path.join(project, "reports", "agent-builder-plan.json")), false);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("Agent Builder binds distribution and deployment digests to the reviewed plan", async () => {
+  const { project, blueprintPath } = await fixture();
+  const candidate = blueprint({
+    schemaVersion: "2.3.0",
+    agentType: "portable",
+    autonomy: { mode: "guided", approvalRequiredFor: approvalGates, webSafety: "standard" },
+    distribution: { targets: ["copilot-studio"], versionPolicy: "pinned" }
+  });
+  try {
+    await writeFile(blueprintPath, `${JSON.stringify(candidate, null, 2)}\n`, "utf8");
+    const planned = run(project, "plan", blueprintPath);
+    assert.equal(planned.status, 0, planned.stderr);
+    const planPath = path.join(project, "reports", "agent-builder-plan.json");
+    const original = JSON.parse(await readFile(planPath, "utf8"));
+    assert.equal(original.schemaVersion, "1.2.0");
+    assert.equal(original.distribution.environment, "development");
+    assert.equal(original.distribution.dataBoundary, "organization");
+    const downgraded = { ...original, schemaVersion: "1.1.0" };
+    delete downgraded.distribution;
+    delete downgraded.deploymentInputSha256;
+    const cases = [
+      [{ ...original, distribution: { ...original.distribution, versionPolicy: "latest" } }, /distribution.*invalid or stale/i],
+      [{ ...original, deploymentInputSha256: "0".repeat(64) }, /deployment.*invalid or stale/i],
+      [downgraded, /cannot review distribution|requires.*1\.2\.0/i]
+    ];
+    for (const [invalid, expected] of cases) {
+      await writeFile(planPath, `${JSON.stringify(invalid, null, 2)}\n`, "utf8");
+      const rejected = run(project, "apply", blueprintPath, ["--plan", planPath, "--accept-risk"]);
+      assert.notEqual(rejected.status, 0);
+      assert.match(rejected.stderr, expected);
+    }
+    const target = path.join(project, ".github", "agents", `${candidate.id}.agent.md`);
+    assert.equal(existsSync(target), false);
+    await writeFile(planPath, `${JSON.stringify(original, null, 2)}\n`, "utf8");
+    const applied = run(project, "apply", blueprintPath, ["--plan", planPath, "--accept-risk"]);
+    assert.equal(applied.status, 0, applied.stderr);
+    assert.equal(await readFile(target, "utf8"), original.renderedAgent);
+    assert.equal(existsSync(path.join(project, "reports", "agent-deployment-result.json")), false);
   } finally {
     await rm(project, { recursive: true, force: true });
   }

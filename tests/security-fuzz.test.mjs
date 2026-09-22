@@ -69,7 +69,8 @@ test("update selection rejects unknown fields, duplicates, and unsafe exact path
     assert.equal(created.status, 0, created.stderr);
     const project = path.join(parent, "selection-fuzz");
     const selectionPath = path.join(parent, "selection.json");
-    const target = { projectName: "selection-fuzz", frameworkVersion: "9.0.0", runtimeVersion: "1.1.2" };
+    const installed = JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8"));
+    const target = { projectName: "selection-fuzz", frameworkVersion: installed.frameworkVersion, runtimeVersion: installed.runtimeVersion };
     const invalidSelections = [
       { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: [], assets: [], extra: true } },
       { schemaVersion: "1.0.0", expectedPlanDigest: "0".repeat(64), target, selectors: { skills: ["workflow-planner", "workflow-planner"], assets: [] } },
@@ -119,7 +120,7 @@ test("update rejects malformed, unsupported, and colliding manifest-lock baselin
       ["unsupported old lock", originalManifest, { ...originalLock, schemaVersion: "0.9.0" }, /Unsupported lock schemaVersion: 0\.9\.0.*compatible updater.*prior manifest and lock pair/is],
       ["unsupported new lock", originalManifest, { ...originalLock, schemaVersion: "2.0.0" }, /Unsupported lock schemaVersion: 2\.0\.0.*compatible updater.*prior manifest and lock pair/is],
       ["malformed minimum updater", { ...originalManifest, minimumUpdaterRuntimeVersion: "latest" }, originalLock, /valid minimumUpdaterRuntimeVersion/i],
-      ["newer minimum updater", { ...originalManifest, minimumUpdaterRuntimeVersion: "99.0.0" }, originalLock, /updater runtime 1\.1\.2 is older than required minimum 99\.0\.0.*compatible updater.*downgrade/is],
+      ["newer minimum updater", { ...originalManifest, minimumUpdaterRuntimeVersion: "99.0.0" }, originalLock, new RegExp(`updater runtime ${originalManifest.runtimeVersion.replaceAll(".", "\\.")} is older than required minimum 99\\.0\\.0.*compatible updater.*downgrade`, "is")],
       ["duplicate IDs", originalManifest, { ...originalLock, entries: [originalLock.entries[0], { ...originalLock.entries[1], assetId: originalLock.entries[0].assetId }] }, /duplicate asset IDs/i],
       ["duplicate paths", originalManifest, { ...originalLock, entries: [originalLock.entries[0], { ...originalLock.entries[0] }] }, /Duplicate baseline path/i],
       ["case-colliding paths", originalManifest, { ...originalLock, entries: [originalLock.entries[0], { ...originalLock.entries[1], assetId: `managed:${originalLock.entries[0].path.toUpperCase()}`, path: originalLock.entries[0].path.toUpperCase() }] }, /Case-collision baseline paths/i],

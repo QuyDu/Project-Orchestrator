@@ -10,6 +10,9 @@ import { classifyThreeWayAsset, digestManagedBuffer, digestManagedPath } from ".
 
 const root = path.resolve(import.meta.dirname, "..");
 const runtime = path.join(root, "pso.mjs");
+const runtimeVersion = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).version;
+const frameworkVersion = (await readFile(path.join(root, "config", "orchestrator.yaml"), "utf8"))
+  .match(/^frameworkVersion: (\d+\.\d+\.\d+)$/m)[1];
 const expectedSkillCount = (await readdir(path.join(root, ".github", "skills"), { withFileTypes: true }))
   .filter((entry) => entry.isDirectory()).length;
 const updateReportPaths = [
@@ -433,14 +436,14 @@ No approval is required for read-only work.
 
     const manifest = JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8"));
     assert.equal(manifest.schemaVersion, "1.1.0");
-    assert.equal(manifest.frameworkVersion, "9.0.0");
-    assert.equal(manifest.runtimeVersion, "1.1.2");
+    assert.equal(manifest.frameworkVersion, frameworkVersion);
+    assert.equal(manifest.runtimeVersion, runtimeVersion);
     assert.equal(manifest.lockPath, "project-orchestrator.lock.json");
     assert.equal(manifest.lockSchemaVersion, "1.0.0");
     assert.equal(manifest.digestAlgorithm, "sha256-normalized-text-v1");
-    assert.equal(manifest.minimumUpdaterRuntimeVersion, "1.1.2");
-    assert.equal(manifest.installedSource.framework.version, "9.0.0");
-    assert.equal(manifest.installedSource.runtime.version, "1.1.2");
+    assert.equal(manifest.minimumUpdaterRuntimeVersion, runtimeVersion);
+    assert.equal(manifest.installedSource.framework.version, frameworkVersion);
+    assert.equal(manifest.installedSource.runtime.version, runtimeVersion);
     const ownership = JSON.parse(await readFile(path.join(project, "reports", "artifact-ownership.json"), "utf8"));
     const runtimeOwned = new Set(ownership.artifacts.filter((item) => item.producer === "pso-runtime").map((item) => item.report));
     assert.deepEqual(runtimeOwned, new Set([
@@ -818,7 +821,7 @@ test("accepted project creation records the risk acknowledgment", async () => {
     assert.equal(manifest.lockPath, "project-orchestrator.lock.json");
     assert.equal(manifest.lockSchemaVersion, "1.0.0");
     assert.equal(manifest.digestAlgorithm, "sha256-normalized-text-v1");
-    assert.equal(manifest.minimumUpdaterRuntimeVersion, "1.1.2");
+    assert.equal(manifest.minimumUpdaterRuntimeVersion, runtimeVersion);
     const lock = JSON.parse(await readFile(path.join(created, manifest.lockPath), "utf8"));
     assert.equal(lock.schemaVersion, "1.0.0");
     assert.ok(lock.entries.some((entry) => entry.path === ".github/skills/project-skills-orchestrator/SKILL.md"));
@@ -2564,4 +2567,3 @@ test("created projects wire real continuous integration for a declared stack", a
     await rm(parent, { recursive: true, force: true });
   }
 });
-

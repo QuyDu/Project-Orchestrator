@@ -1,33 +1,33 @@
 # Project Orchestrator
 
-Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 48 governed skills — installed consistently, verified after every run, and safe to rerun.
+Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 50 governed skills — installed consistently, verified after every run, and safe to rerun.
 
 | Item | Value |
 | --- | --- |
-| Runtime version | `1.1.2` |
-| Source version date | September 12, 2026 |
-| Framework version | `9.0.0` |
-| Skill catalog | 48 governed skills |
+| Runtime version | `1.2.0` |
+| Source version date | September 22, 2026 |
+| Framework version | `9.1.0` |
+| Skill catalog | 50 governed skills |
 | Supported Node.js | 22, 24, 26 |
 | Dependencies | None |
 | Distribution | Authorized internal use only |
 
 > **Name compatibility.** The product is now **Project Orchestrator**. The `pso` command,
-> `project-skills-orchestrator` package and skill identifiers, repository URL, schema IDs, and
+> `project-skills-orchestrator` package and skill identifiers, schema IDs, and
 > `.skills-orchestrator` state directory remain stable compatibility interfaces for existing
 > projects and automation.
 
-> **Release status.** Version `1.1.2` is a source update dated September 12, 2026. No GitHub Release or package is published. The formal release remains blocked by trusted signing, independent review, and operational readiness evidence tracked in [release/release-manifest.json](release/release-manifest.json). See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+> **Release status.** Version `1.2.0` is a source update dated September 22, 2026. No GitHub Release or package is published. The formal release remains blocked by trusted signing, independent release-review evidence, and operational readiness evidence tracked in [release/release-manifest.json](release/release-manifest.json). The completed code/security reviews do not substitute for those release attestations. See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 > **Security and use notice.** Reasonable security efforts do not eliminate all risk. Before using this software, read [DISCLAIMER.md](DISCLAIMER.md), perform independent checks appropriate to your environment, and comply with the internal-use terms in [LICENSE](LICENSE).
 
 ## Repository Resources
 
-- [GitHub repository](https://github.com/QuyDu/Skills-Orchestrator)
-- [README](https://github.com/QuyDu/Skills-Orchestrator#readme-ov-file)
-- [License](https://github.com/QuyDu/Skills-Orchestrator#license-1-ov-file)
-- [Security policy](https://github.com/QuyDu/Skills-Orchestrator#security-ov-file)
-- [Activity](https://github.com/QuyDu/Skills-Orchestrator/activity)
+- [GitHub repository](https://github.com/QuyDu/Project-Orchestrator)
+- [README](https://github.com/QuyDu/Project-Orchestrator#readme-ov-file)
+- [License](https://github.com/QuyDu/Project-Orchestrator#license-1-ov-file)
+- [Security policy](https://github.com/QuyDu/Project-Orchestrator#security-ov-file)
+- [Activity](https://github.com/QuyDu/Project-Orchestrator/activity)
 
 ---
 
@@ -37,9 +37,9 @@ GitHub Copilot reads instruction files, prompt files, agent files, and skills fr
 
 It has two halves.
 
-**A command-line installer** (`pso.mjs`) that creates a new project or adopts an existing one. It runs entirely on Node.js built-ins — no packages to install, no registry access — and every change it makes is planned, journaled, and verified.
+**A command-line runtime** (`pso.mjs`) that creates or adopts projects and dispatches governed authoring and packaging workflows. Its core uses Node.js built-ins, with no runtime packages or registry access. Managed project changes are planned, journaled, and verified; provider workflows have their own explicit tooling and approval prerequisites.
 
-**A catalog of 48 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
+**A catalog of 50 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
 
 The `live-chat-interaction` skill ships a provider-neutral local conversation reducer, approved-manifest grounding, credential-free session boundary, and accessible text/guided fallback assets. Informational turns can submit after endpoint acceptance; consequential intent always requires explicit confirmation. No cloud provider or raw audio persistence is part of this local capability.
 
@@ -53,7 +53,7 @@ The `live-chat-interaction` skill ships a provider-neutral local conversation re
 
 ### What it does not do
 
-It does **not** generate application code. `create-project` produces a governed baseline — instructions, standards, skills, CI wiring — with empty `src/` and `tests/`. You bring the application.
+`create-project` does **not** generate a complete application. It produces a governed baseline — instructions, standards, skills, CI wiring — with empty `src/` and `tests/`. You bring the application. Optional builders can generate bounded artifacts, such as a visual companion, in an explicitly selected target project; that does not authorize deployment, host integration, or publication.
 
 ---
 
@@ -66,8 +66,8 @@ It does **not** generate application code. `create-project` produces a governed 
 ## Install
 
 ```powershell
-git clone https://github.com/QuyDu/Skills-Orchestrator.git
-cd Skills-Orchestrator
+git clone https://github.com/QuyDu/Project-Orchestrator.git
+cd Project-Orchestrator
 node .\pso.mjs verify
 ```
 
@@ -154,7 +154,7 @@ network fetch, inspect the trusted target and release notes, and integrate throu
 normal protected Git workflow:
 
 ```powershell
-Set-Location "C:\repos\Skills-Orchestrator"
+Set-Location "C:\repos\Project-Orchestrator"
 git status --short --branch
 
 # External network action: run only after explicit approval.
@@ -347,7 +347,7 @@ The first release intentionally supports only portable capabilities: `read`, `se
 `edit`, `execute`, `agent`, and `todo`. Environment-specific extension tools, hooks, MCP servers,
 and hosted Foundry agents require separate design and approval rather than being emitted silently.
 
-`agent build` accepts `copilot`, `foundry-prompt`, and `foundry-hosted` as design types. Omitted
+`agent build` accepts `copilot`, `foundry-prompt`, `foundry-hosted`, and `portable` as design types. Omitted
 parameters are requested interactively; supplied values are not requested again. Foundry types,
 or `--azure-required true`, resolve `--cloud`, `--location`, `--environment-name`,
 `--authentication-method`, and optional `--subscription-id` from explicit input or the ignored
@@ -355,6 +355,133 @@ or `--azure-required true`, resolve `--cloud`, `--location`, `--environment-name
 Passwords, secrets, tokens, keys, and connection strings are prohibited as parameters. A
 Foundry-aware blueprint records sanitized environment metadata but does not create or deploy a
 hosted agent; that remains a separate Microsoft Foundry workflow and approval boundary.
+
+For cross-platform authoring, use `--type portable` with `--distribution-targets`. This creates a
+schema `2.3.0` blueprint without logging in or initializing Azure. The existing `copilot` type
+still means a GitHub Copilot custom agent; Microsoft 365 Copilot and Copilot Studio are distinct
+distribution targets.
+
+| Distribution target | Meaning |
+| --- | --- |
+| `foundry-endpoint` | A Foundry runtime with a separately reviewed model, version, endpoint, and identity binding |
+| `microsoft-365-copilot-and-teams` | The Foundry Activity/Bot Service publication path |
+| `microsoft-365-agents-toolkit` | An independently built Microsoft 365 agent application |
+| `copilot-studio` | A Power Platform agent and solution lifecycle |
+| `openai-api-application` | An application owned by you, not a Custom GPT installed in ChatGPT |
+| `chatgpt-action-handoff` | A manual, eligibility-dependent HTTPS/OpenAPI integration handoff |
+
+Use `--version-policy pinned`, `--distribution-environment development|staging|production`, and
+`--data-boundary project-local|organization|external` to describe the intended release. Microsoft
+365 targets also need `--microsoft365-audience individual|tenant`; the ChatGPT handoff needs
+`--chatgpt-visibility workspace|link|gpt-store`. These are reviewed requirements, not permission
+to disclose data or publish anything.
+
+Schema `2.3.0` emits an Agent Builder plan `1.2.0` that binds normalized distribution intent and
+the source blueprint to a deployment-input digest. Distribution metadata never becomes runtime
+instructions. Schemas `1.0.0` through `2.2.0` and their local-install behavior remain supported;
+legacy `chatgpt-action` intent normalizes in memory to `chatgpt-action-handoff` without rewriting
+the original blueprint. An older plan cannot authorize a new schema `2.3.0` blueprint. Local
+`read`, `search`, and other capability labels never grant tools or permissions in a remote runtime.
+
+### Package and deploy a governed agent
+
+`/agent-deployment` consumes a validated blueprint and a separate, target-specific deployment
+request. It packages reviewed inputs, probes prerequisites, emits an expiring digest-bound plan,
+and requires the exact plan digest plus operation-specific approvals before execution. It never
+installs provider tooling, logs in, switches clouds/accounts, or interprets editable plan text as
+commands. The [deployment guide](.github/skills/agent-deployment/references/usage.md) contains the
+request, endpoint-allowlist, test-evidence, approval, and recovery contracts.
+
+| Adapter | Implemented boundary |
+| --- | --- |
+| Foundry prompt | Azure Commercial preview adapter for immutable versions, pinned routing, bounded invocation, and reviewed repin rollback |
+| Foundry hosted | Reviewed prebuilt ACR image digest, SBOM and tested source-version evidence; bounded readiness checks before pinning; no image build/push or role provisioning |
+| Microsoft 365 Copilot / Teams | Reviewed Bot/Teams bridge and Activity authorization, then publication submission; tenant results remain `pending-admin-approval` |
+| Copilot Studio / PAC | Separate pack, import, export, and publish operations; managed import by default, explicit unmanaged import only in development; publishing updates all connected channels |
+| Microsoft 365 Agents Toolkit | Separate provision, deploy, package, publish, and update operations using frozen inputs and a restricted literal lifecycle subset; no arbitrary scripts, hidden installs, or credential creation |
+| OpenAI application / Custom GPT Action | Local export or manual compatibility handoff, not an automatic hosted deployment or GPT Store publisher |
+
+These are implementation and local-test claims, not live-tenant certification. Azure Government
+execution remains unverified and blocked. Identity, tenant policy, quota, licensing, data
+residency, network access, and destination availability must be checked in the actual target
+project. CLI identity hashes bind operator-reviewed evidence; they are not automatic proof of
+tenant identity or catalog approval.
+
+```powershell
+$project = 'C:\repos\My-App'
+node .\pso.mjs agent deploy capabilities --json
+node .\pso.mjs agent package --project $project --request deployment-request.json --json
+if ($LASTEXITCODE -ne 0) { throw 'Deployment packaging failed.' }
+node .\pso.mjs agent deploy plan --project $project --request deployment-request.json --json
+if ($LASTEXITCODE -ne 0) { throw 'Deployment planning failed.' }
+
+# Review the full plan. Replace both placeholders with its exact reviewed values.
+node .\pso.mjs agent deploy apply --project $project `
+  --plan reports\agent-deployment-plan.json `
+  --plan-digest '<reviewed-plan-sha256>' `
+  --approve '<comma-separated-requiredApprovals>' --accept-risk --json
+```
+
+Planning does not authorize execution. Imports/deployments do not implicitly publish. A submitted
+listing is not an accepted catalog entry or a verified conversation. Unknown mutation outcomes
+remain partial and are not retried blindly. Foundry rollback restores a reviewed pinned route;
+PAC, Toolkit, and publication recovery require separate operator review rather than an invented
+atomic rollback or automatic deletion.
+
+OpenAI also supports [native plugins with skills, MCP and optional UI](https://developers.openai.com/plugins/concepts/plugins),
+and a [beta Managed Agents API](https://developers.openai.com/api/docs/guides/agents-api/overview).
+Those are separate, currently unimplemented integrations, not limitations of the OpenAI platform.
+The existing `chatgpt-action-handoff` target covers only the Custom GPT compatibility path.
+Any future plugin/MCP backend or application scaffold belongs in a separate target project, not
+inside this Launch Pad.
+
+### Create a local pet or visual companion
+
+`/visual-companion-builder` creates original pixel-grid sprites or validates licensed local RGBA
+PNG atlases. It generates packages only in an explicit target project, never in the Launch Pad.
+The request records asset rights, animation frames and timing, pixel geometry, an accessible
+description, and a static reduced-motion fallback. See the complete request example in
+[the skill contract](.github/skills/visual-companion-builder/SKILL.md) and the
+[request schema](schemas/visual-companion-request.schema.json).
+
+| Target | Delivered artifact |
+| --- | --- |
+| `local-chat-webview` | An embeddable browser bundle with keyboard controls, reduced-motion support, and a loopback-only preview server |
+| `standalone-vscode-extension` | Working extension **source** with an Extension Development Host launch configuration; not an installed extension or a VSIX |
+| `vscode-pets-fork` | A licensed-fork asset kit and manual integration guidance; not registration with stock VS Code Pets |
+| `static-agent-icon` | A static PNG to upload manually where the destination supports icons |
+
+ChatGPT-specific export and third-party registration with stock VS Code Pets are not implemented
+by this builder. OpenAI supports animated components inside a [plugin's MCP Apps UI](https://developers.openai.com/plugins/build/chatgpt-ui),
+but packaging that integration is separate from this local browser bundle; it is not a global
+ChatGPT avatar or overlay. A project-owned chat surface can embed the bundle. The builder does
+not modify an existing chat controller or host application.
+
+Save a request as `sprite.json` in your target project, then validate and review before building.
+The following preserves UTF-8 when saving the read-only plan in Windows PowerShell:
+
+```powershell
+$project = 'C:\repos\My-App'
+node .\pso.mjs companion validate --project $project --request sprite.json --json
+if ($LASTEXITCODE -ne 0) { throw 'Sprite validation failed.' }
+$plan = node .\pso.mjs companion plan --project $project --request sprite.json --json
+if ($LASTEXITCODE -ne 0) { throw 'Companion planning failed.' }
+$utf8 = New-Object -TypeName System.Text.UTF8Encoding -ArgumentList $false
+[System.IO.File]::WriteAllText((Join-Path $project 'companion-plan.json'), ($plan -join "`n"), $utf8)
+
+# Review companion-plan.json before approving this local write.
+node .\pso.mjs companion build --project $project --request sprite.json `
+  --plan companion-plan.json --accept-risk --json
+if ($LASTEXITCODE -ne 0) { throw 'Companion build failed.' }
+node .\pso.mjs companion verify --project $project --request sprite.json --json
+```
+
+Outputs are under `artifacts\visual-companions\<id>\<target>\` in the target project. For the
+browser target, run its `preview-server.mjs` with Node.js and open the printed loopback URL.
+For extension source, open that package in an Extension Development Host. Host integration,
+VSIX packaging, installation, and marketplace publication remain separate actions.
+Verification proves local package integrity, not host installation or publication; license
+declarations record operator attestations, not automated legal verification.
 
 ### Demo prompt
 
@@ -480,7 +607,7 @@ Clones into an isolated staging directory, provisions, verifies, and only then p
 | `.github/instructions/` | Scoped standards applied by glob — only the ones your stack needs |
 | `.github/prompts/` | Prompt-only commands such as `/create-adr`, `/project-blueprint`, `/review-architecture`, `/executive-summary`, and `/new-component`, plus skill help prompts; skill-owned names are not duplicated here |
 | `.github/agents/` | Azure Architect, Security Reviewer, Documentation Writer |
-| `.github/skills/` | The 47-skill catalog |
+| `.github/skills/` | The 50-skill catalog |
 | `.github/workflows/ci.yml` | Stack-aware pipeline, SHA-pinned actions (new projects only) |
 | `.github/workflows/copilot-setup-steps.yml` | Preinstalls dependencies for Copilot cloud agent and Copilot code review (new projects with a stack) |
 | `.vscode/tasks.json` | Build and test tasks for the stack — `Ctrl+Shift+B` and Test Explorer work immediately |

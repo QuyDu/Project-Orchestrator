@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-skills.dev/schemas/agent-deployment-request/1.0.0",
+  "title": "Agent Deployment Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "blueprint", "target", "release", "mode", "cloud", "environment", "audience", "data", "runtime", "verification", "rollback", "acceptPreview"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "blueprint": { "$ref": "#/$defs/file" },
+    "target": { "$ref": "#/$defs/target" },
+    "release": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$" },
+    "mode": { "enum": ["create", "update", "promote", "rollback"] },
+    "cloud": { "enum": ["AzureCloud", "AzureUSGovernment", "none"] },
+    "environment": { "enum": ["development", "staging", "production"] },
+    "audience": { "enum": ["individual", "tenant", "workspace", "link", "gpt-store", "private"] },
+    "data": {
+      "type": "object", "additionalProperties": false,
+      "required": ["classification", "boundary", "residency"],
+      "properties": {
+        "classification": { "enum": ["public", "internal", "confidential", "restricted"] },
+        "boundary": { "enum": ["project-local", "organization", "external"] },
+        "residency": { "type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" } }
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "tools", "acknowledgeLocalCapabilitiesOmitted"],
+      "properties": {
+        "kind": { "enum": ["prompt", "hosted", "application"] },
+        "tools": { "type": "array", "maxItems": 0 },
+        "acknowledgeLocalCapabilitiesOmitted": { "const": true }
+      }
+    },
+    "verification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["prompt", "expectedSubstring", "maxOutputTokens"],
+      "properties": {
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "expectedSubstring": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "maxOutputTokens": { "type": "integer", "minimum": 16, "maximum": 256 }
+      }
+    },
+    "rollback": {
+      "type": "object", "additionalProperties": false, "required": ["strategy", "version"],
+      "properties": {
+        "strategy": { "enum": ["repin", "manual"] },
+        "version": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/version" }] }
+      }
+    },
+    "acceptPreview": { "type": "boolean" },
+    "microsoft365": { "$ref": "#/$defs/microsoft365" },
+    "copilotStudio": { "$ref": "#/$defs/copilotStudio" },
+    "agentsToolkit": { "$ref": "#/$defs/agentsToolkit" },
+    "foundry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["projectEndpoint", "apiVersion", "location", "versionPolicy", "protocols", "authorization", "quotaReviewed", "costReviewed"],
+      "properties": {
+        "projectEndpoint": { "type": "string", "maxLength": 256, "pattern": "^https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.services\\.ai\\.azure\\.com/api/projects/[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" },
+        "apiVersion": { "const": "v1" },
+        "modelDeployment": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$" },
+        "location": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" },
+        "versionPolicy": { "const": "pinned" },
+        "protocols": { "const": ["responses"] },
+        "authorization": { "const": "Entra" },
+        "quotaReviewed": { "const": true },
+        "costReviewed": { "const": true },
+        "promoteVersion": { "$ref": "#/$defs/version" }
+      }
+    },
+    "hosted": {
+      "type": "object", "additionalProperties": false,
+      "required": ["image", "sbom", "testedAgentName", "testedVersion", "testEvidence", "cpu", "memory", "protocolVersion", "idleTimeoutSeconds", "startupTimeoutSeconds", "codeReviewed", "imageProvenanceReviewed"],
+      "properties": {
+        "image": { "type": "string", "maxLength": 512, "pattern": "^[a-z0-9.-]+\\.azurecr\\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$" },
+        "sbom": { "$ref": "#/$defs/file" },
+        "testedVersion": { "$ref": "#/$defs/version" },
+        "testedAgentName": { "type": "string", "maxLength": 63, "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+        "testEvidence": { "$ref": "#/$defs/file" },
+        "cpu": { "enum": ["0.5", "1", "2", "4"] },
+        "memory": { "enum": ["1Gi", "2Gi", "4Gi", "8Gi"] },
+        "protocolVersion": { "const": "2.0.0" },
+        "idleTimeoutSeconds": { "type": "integer", "minimum": 60, "maximum": 3600 },
+        "startupTimeoutSeconds": { "type": "integer", "minimum": 30, "maximum": 900 },
+        "registryConnectionId": { "type": "string", "maxLength": 256, "pattern": "^/?[a-zA-Z0-9][a-zA-Z0-9._/-]*$" },
+        "codeReviewed": { "const": true },
+        "imageProvenanceReviewed": { "const": true }
+      }
+    },
+    "openai": {
+      "type": "object", "additionalProperties": false, "required": ["model"],
+      "properties": { "model": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$" } }
+    },
+    "chatgpt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["openApi", "allowedHosts", "authentication", "workspacePolicyReviewed", "dataFlowReviewed"],
+      "properties": {
+        "openApi": { "$ref": "#/$defs/file" },
+        "allowedHosts": { "type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": { "type": "string", "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$" } },
+        "authentication": { "enum": ["none", "oauth"] },
+        "privacyPolicyUrl": { "type": "string", "maxLength": 1024, "pattern": "^https://[^\\s@?#]+$" },
+        "workspacePolicyReviewed": { "const": true },
+        "dataFlowReviewed": { "const": true }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["copilotStudio"],
+        "properties": {
+          "copilotStudio": {
+            "required": ["operation", "solutionType"],
+            "properties": {
+              "operation": { "const": "import" },
+              "solutionType": { "const": "unmanaged" }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": ["environment"],
+        "properties": { "environment": { "const": "development" } }
+      }
+    },
+    {
+      "if": { "required": ["copilotStudio"] },
+      "then": { "properties": { "target": { "const": "copilot-studio" }, "runtime": { "properties": { "kind": { "const": "application" } } }, "rollback": { "properties": { "strategy": { "const": "manual" }, "version": { "type": "null" } } } } }
+    },
+    {
+      "if": { "required": ["agentsToolkit"] },
+      "then": { "properties": { "target": { "const": "microsoft-365-agents-toolkit" }, "runtime": { "properties": { "kind": { "const": "application" } } }, "rollback": { "properties": { "strategy": { "const": "manual" }, "version": { "type": "null" } } } } }
+    },
+    {
+      "if": { "required": ["target"], "properties": { "target": { "const": "foundry-endpoint" } } },
+      "then": { "properties": { "runtime": { "properties": { "kind": { "enum": ["prompt", "hosted"] } } } } }
+    },
+    {
+      "if": { "required": ["microsoft365"] },
+      "then": {
+        "properties": {
+          "target": { "const": "microsoft-365-copilot-and-teams" },
+          "runtime": { "properties": { "kind": { "enum": ["prompt", "hosted"] } } },
+          "rollback": { "properties": { "strategy": { "const": "manual" }, "version": { "type": "null" } } }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["target", "runtime"],
+        "properties": {
+          "target": { "const": "foundry-endpoint" },
+          "runtime": { "required": ["kind"], "properties": { "kind": { "const": "prompt" } } }
+        }
+      },
+      "then": { "properties": { "foundry": { "required": ["modelDeployment"] } } },
+      "else": { "properties": { "foundry": { "not": { "required": ["modelDeployment"] } } } }
+    },
+    {
+      "if": { "properties": { "target": { "const": "foundry-endpoint" } }, "required": ["target"] },
+      "then": { "required": ["foundry"] },
+      "else": { "not": { "required": ["foundry"] } }
+    },
+    {
+      "if": { "properties": { "target": { "const": "openai-api-application" } }, "required": ["target"] },
+      "then": { "required": ["openai"] },
+      "else": { "not": { "required": ["openai"] } }
+    },
+    {
+      "if": { "properties": { "target": { "const": "chatgpt-action-handoff" } }, "required": ["target"] },
+      "then": { "required": ["chatgpt"] },
+      "else": { "not": { "required": ["chatgpt"] } }
+    },
+    {
+      "if": { "properties": { "target": { "const": "foundry-endpoint" }, "runtime": { "properties": { "kind": { "const": "hosted" } }, "required": ["kind"] } }, "required": ["runtime", "target"] },
+      "then": { "required": ["hosted"] },
+      "else": { "not": { "required": ["hosted"] } }
+    },
+    {
+      "if": { "properties": { "target": { "const": "chatgpt-action-handoff" }, "audience": { "enum": ["link", "gpt-store"] } }, "required": ["target", "audience"] },
+      "then": { "properties": { "chatgpt": { "required": ["privacyPolicyUrl"] } } }
+    }
+  ],
+  "$defs": {
+    "copilotStudio": {"oneOf":[
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","projectDirectory","sourceFiles","publisherPrefix","solutionName","solutionVersion","outputDirectory","outputFileName"],"properties":{"operation":{"const":"pack"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"projectDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sourceFiles":{"type":"array","minItems":1,"maxItems":2048,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}},"publisherPrefix":{"type":"string","pattern":"^[a-zA-Z][a-zA-Z0-9]{1,7}$"},"solutionName":{"type":"string","minLength":1,"maxLength":65,"pattern":"^[a-zA-Z][a-zA-Z0-9_]*$"},"solutionVersion":{"type":"string","pattern":"^[0-9]{1,5}(?:\\.[0-9]{1,5}){3}$"},"outputDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"outputFileName":{"type":"string","maxLength":100,"pattern":"^[a-zA-Z0-9][a-zA-Z0-9._-]*\\.zip$"}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","identityEvidence","solutionName","solutionVersion","solution"],"properties":{"operation":{"const":"import"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"anyOf":[{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"},{"type":"string","maxLength":256,"pattern":"^https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.crm[0-9]*\\.dynamics\\.com$"}]},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"solutionName":{"type":"string","minLength":1,"maxLength":65,"pattern":"^[a-zA-Z][a-zA-Z0-9_]*$"},"solutionVersion":{"type":"string","pattern":"^[0-9]{1,5}(?:\\.[0-9]{1,5}){3}$"},"solution":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"settings":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"solutionType":{"enum":["managed","unmanaged"]}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","identityEvidence","botId"],"properties":{"operation":{"const":"publish"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"anyOf":[{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"},{"type":"string","maxLength":256,"pattern":"^https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.crm[0-9]*\\.dynamics\\.com$"}]},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"botId":{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","identityEvidence","solutionName","solutionVersion","outputFile"],"properties":{"operation":{"const":"export"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"anyOf":[{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"},{"type":"string","maxLength":256,"pattern":"^https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.crm[0-9]*\\.dynamics\\.com$"}]},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"solutionName":{"type":"string","minLength":1,"maxLength":65,"pattern":"^[a-zA-Z][a-zA-Z0-9_]*$"},"solutionVersion":{"type":"string","pattern":"^[0-9]{1,5}(?:\\.[0-9]{1,5}){3}$"},"outputFile":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"}}}
+    ]},
+    "agentsToolkit": {"oneOf":[
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","projectDirectory","sourceFiles","identityEvidence","lifecycle"],"properties":{"operation":{"const":"provision"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,31}$"},"projectDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sourceFiles":{"type":"array","minItems":1,"maxItems":2048,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"lifecycle":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","projectDirectory","sourceFiles","identityEvidence","lifecycle"],"properties":{"operation":{"const":"deploy"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,31}$"},"projectDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sourceFiles":{"type":"array","minItems":1,"maxItems":2048,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"lifecycle":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","projectDirectory","sourceFiles","manifest","appId","appVersion","outputDirectory","outputFileName"],"properties":{"operation":{"const":"package"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,31}$"},"projectDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sourceFiles":{"type":"array","minItems":1,"maxItems":2048,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}},"manifest":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"appId":{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"},"appVersion":{"type":"string","pattern":"^[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}$"},"outputDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"outputFileName":{"type":"string","maxLength":100,"pattern":"^[a-zA-Z0-9][a-zA-Z0-9._-]*\\.zip$"}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","projectDirectory","sourceFiles","identityEvidence","manifest","appId","appVersion","package"],"properties":{"operation":{"const":"publish"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,31}$"},"projectDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sourceFiles":{"type":"array","minItems":1,"maxItems":2048,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"manifest":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"appId":{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"},"appVersion":{"type":"string","pattern":"^[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}$"},"package":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}}},
+      {"type":"object","additionalProperties":false,"required":["operation","expectedCliVersion","environment","projectDirectory","sourceFiles","identityEvidence","manifest","appId","appVersion","package"],"properties":{"operation":{"const":"update"},"expectedCliVersion":{"type":"string","maxLength":128,"pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$"},"environment":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,31}$"},"projectDirectory":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sourceFiles":{"type":"array","minItems":1,"maxItems":2048,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}},"identityEvidence":{"type":"object","additionalProperties":false,"required":["sha256"],"properties":{"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"manifest":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},"appId":{"type":"string","pattern":"^[a-fA-F0-9]{8}-(?:[a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}$"},"appVersion":{"type":"string","pattern":"^[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}$"},"package":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1,"maxLength":512,"pattern":"^[a-zA-Z0-9._ /\\\\-]+$"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}}}
+    ]},
+    "microsoft365": {
+      "type": "object", "additionalProperties": false,
+      "required": ["projectEndpoint", "apiVersion", "location", "agentVersion", "definitionSha256", "testEvidence", "bot", "publishScope", "appVersion", "agentDisplayName", "shortDescription", "fullDescription", "developerName", "developerWebsiteUrl", "privacyUrl", "termsOfUseUrl", "enableM365PublicEndpoint", "dataFlowReviewed", "workspacePolicyReviewed"],
+      "properties": {
+        "projectEndpoint": { "type": "string", "maxLength": 256, "pattern": "^https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.services\\.ai\\.azure\\.com/api/projects/[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" },
+        "apiVersion": { "const": "v1" },
+        "location": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" },
+        "agentVersion": { "$ref": "#/$defs/version" },
+        "definitionSha256": { "$ref": "#/$defs/sha256" },
+        "testEvidence": { "$ref": "#/$defs/file" },
+        "bot": {
+          "type": "object", "additionalProperties": false, "required": ["resourceGroup", "name", "mode"],
+          "properties": {
+            "resourceGroup": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" },
+            "name": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{1,63}$" },
+            "mode": { "enum": ["existing", "create-or-verify"] }
+          }
+        },
+        "publishScope": { "enum": ["Shared", "Personal", "Tenant"] },
+        "appVersion": { "type": "string", "pattern": "^[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}$" },
+        "agentDisplayName": { "type": "string", "minLength": 3, "maxLength": 30 },
+        "shortDescription": { "type": "string", "minLength": 10, "maxLength": 80 },
+        "fullDescription": { "type": "string", "minLength": 20, "maxLength": 4000 },
+        "developerName": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "developerWebsiteUrl": { "$ref": "#/$defs/publicUrl" },
+        "privacyUrl": { "$ref": "#/$defs/publicUrl" },
+        "termsOfUseUrl": { "$ref": "#/$defs/publicUrl" },
+        "enableM365PublicEndpoint": { "type": "boolean" },
+        "provisioningTimeoutSeconds": { "type": "integer", "minimum": 30, "maximum": 900 },
+        "dataFlowReviewed": { "const": true },
+        "workspacePolicyReviewed": { "const": true }
+      }
+    },
+    "publicUrl": {
+      "type": "string", "maxLength": 1024,
+      "pattern": "^https://(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z]{2,63}(?:/[a-zA-Z0-9._~/-]*)?$"
+    },
+    "publicationTestEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "projectEndpoint", "agentName", "version", "definitionSha256", "blueprintSha256", "verifiedAt", "expiresAt", "passed", "probeResponseSha256"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "projectEndpoint": { "type": "string", "maxLength": 256, "pattern": "^https://[a-z0-9-]+\\.services\\.ai\\.azure\\.com/api/projects/[a-zA-Z0-9_-]+$" },
+        "agentName": { "type": "string", "maxLength": 63, "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+        "version": { "$ref": "#/$defs/version" },
+        "definitionSha256": { "$ref": "#/$defs/sha256" },
+        "blueprintSha256": { "$ref": "#/$defs/sha256" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "passed": { "const": true },
+        "probeResponseSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "endpointAllowlist": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "cloud", "projectEndpoints"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "cloud": { "const": "AzureCloud" },
+        "projectEndpoints": {
+          "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true,
+          "items": { "type": "string", "maxLength": 256, "pattern": "^https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.services\\.ai\\.azure\\.com/api/projects/[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" }
+        },
+        "containerRegistries": {
+          "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*\\.azurecr\\.io$" }
+        },
+        "botResourceGroups": {
+          "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" }
+        }
+      }
+    },
+    "hostedTestEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "agentName", "version", "image", "blueprintSha256", "verifiedAt", "expiresAt", "passed", "probeResponseSha256"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "agentName": { "type": "string", "maxLength": 63, "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+        "version": { "$ref": "#/$defs/version" },
+        "image": { "type": "string", "maxLength": 512, "pattern": "^[a-z0-9.-]+\\.azurecr\\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$" },
+        "blueprintSha256": { "$ref": "#/$defs/sha256" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "passed": { "const": true },
+        "probeResponseSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "path": { "type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?![\\\\/])(?!.*[\\\\/]$)(?!.*[\\\\/]{2})(?!.*(?:^|[\\\\/])\\.{1,2}(?:[\\\\/]|$))(?!.*[. ](?:[\\\\/]|$))(?!.*(?:^|[\\\\/])(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][0-9]|[Ll][Pp][Tt][0-9])(?:\\.|[\\\\/]|$))[a-zA-Z0-9._ /\\\\-]+$" },
+    "version": { "type": "string", "pattern": "^[1-9][0-9]{0,15}$" },
+    "file": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+      "properties": { "path": { "$ref": "#/$defs/path" }, "sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "target": { "enum": ["foundry-endpoint", "microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit", "copilot-studio", "openai-api-application", "chatgpt-action-handoff"] }
+  }
+}

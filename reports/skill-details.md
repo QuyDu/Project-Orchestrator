@@ -1,10 +1,11 @@
 # Skill Details
 
-Generated: 2026-09-18T23:57:39.243Z
+Generated: 2026-09-22T23:47:55.574Z
 
 | Skill | Lifecycle | Confidence | Audit | Dependencies |
 | --- | --- | --- | --- | --- |
 | agent-builder | draft | low | passed | clarify-the-ask, policy-engine, azure-discovery |
+| agent-deployment | draft | low | passed | clarify-the-ask, agent-builder, policy-engine, azure-discovery, architecture-review, security-review, deployment-review, workflow-state-manager, workflow-telemetry, project-handoff |
 | architecture-review | draft | low | passed | clarify-the-ask |
 | artifact-upgrade | draft | low | passed | skill-inventory, skill-dependency-manager |
 | audit-azure-environment | draft | low | passed | None |
@@ -46,6 +47,7 @@ Generated: 2026-09-18T23:57:39.243Z
 | skill-update | draft | low | passed | skill-inventory, skill-dependency-manager, project-understanding, documentation-builder |
 | systematic-debugging | draft | low | passed | policy-engine, workflow-state-manager |
 | user-personalization | draft | low | passed | None |
+| visual-companion-builder | draft | low | passed | clarify-the-ask, policy-engine |
 | workflow-planner | draft | low | passed | clarify-the-ask, skill-inventory, skill-dependency-manager |
 | workflow-recovery | draft | low | passed | workflow-state-manager, project-handoff |
 | workflow-scheduler | draft | low | passed | workflow-state-manager, policy-engine |

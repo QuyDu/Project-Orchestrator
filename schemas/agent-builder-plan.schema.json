@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://project-skills.dev/schemas/agent-builder-plan/1.1.0",
+  "$id": "https://project-skills.dev/schemas/agent-builder-plan/1.2.0",
   "title": "Agent Builder Plan",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "generatedAt", "status", "projectRoot", "blueprintPath", "blueprintSha256", "targetPath", "targetState", "action", "renderedSha256", "renderedAgent", "warnings"],
   "properties": {
-    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0", "1.2.0"] },
     "generatedAt": { "type": "string", "format": "date-time" },
     "status": { "const": "review-required" },
     "projectRoot": { "type": "string", "minLength": 1 },
@@ -17,6 +17,18 @@
     "action": { "enum": ["create", "update", "unchanged"] },
     "renderedSha256": { "$ref": "#/$defs/sha256" },
     "renderedAgent": { "type": "string", "minLength": 1 },
+    "distribution": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "allOf": [
+            { "$ref": "agent-blueprint.schema.json#/$defs/distribution" },
+            { "required": ["environment", "dataBoundary"] }
+          ]
+        }
+      ]
+    },
+    "deploymentInputSha256": { "$ref": "#/$defs/sha256" },
     "publication": {
       "type": ["object", "null"],
       "additionalProperties": false,
@@ -56,9 +68,16 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+      "if": { "properties": { "schemaVersion": { "enum": ["1.1.0", "1.2.0"] } }, "required": ["schemaVersion"] },
       "then": { "required": ["publication"] },
       "else": { "not": { "required": ["publication"] } }
+    },
+    {
+      "if": { "properties": { "schemaVersion": { "const": "1.2.0" } }, "required": ["schemaVersion"] },
+      "then": { "required": ["distribution", "deploymentInputSha256"] },
+      "else": {
+        "not": { "anyOf": [{ "required": ["distribution"] }, { "required": ["deploymentInputSha256"] }] }
+      }
     }
   ],
   "$defs": { "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }

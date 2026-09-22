@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-orchestrator.local/schemas/visual-companion-result.schema.json",
+  "title": "Visual Companion Help, Capability, Validation, Reviewed Plan, Build, and Verification Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "command", "status", "extensionInstalled", "published", "limitations"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "command": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["ready", "validated", "approval-required", "built", "manual-handoff", "verified", "blocked"] },
+    "extensionInstalled": { "const": false },
+    "published": { "const": false },
+    "limitations": { "$ref": "#/$defs/limitations" },
+    "commands": {
+      "type": "array", "minItems": 6, "maxItems": 6, "uniqueItems": true,
+      "items": { "enum": ["capabilities", "validate", "plan", "build", "verify", "help"] }
+    },
+    "usage": { "type": "array", "minItems": 6, "maxItems": 6, "items": { "type": "string", "minLength": 1 } },
+    "options": {
+      "type": "object", "additionalProperties": false,
+      "required": ["--project", "--request", "--plan", "--accept-risk", "--json", "--help"],
+      "properties": {
+        "--project": { "type": "string", "minLength": 1 },
+        "--request": { "type": "string", "minLength": 1 },
+        "--plan": { "type": "string", "minLength": 1 },
+        "--accept-risk": { "type": "string", "minLength": 1 },
+        "--json": { "type": "string", "minLength": 1 },
+        "--help": { "type": "string", "minLength": 1 }
+      }
+    },
+    "targets": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "support", "artifactKind", "limitations"],
+        "properties": {
+          "id": { "enum": ["local-chat-webview", "standalone-vscode-extension", "vscode-pets-fork", "static-agent-icon", "chatgpt-animated-sprite", "vscode-pets"] },
+          "support": { "enum": ["supported", "manual", "unsupported"] },
+          "artifactKind": { "enum": ["browser-bundle", "source-package", "asset-kit", "static-icon", "none"] },
+          "limitations": { "$ref": "#/$defs/limitations" }
+        }
+      }
+    },
+    "limits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maxDimension", "maxPixels", "maxEncodedBytes", "maxChunks", "maxRequestBytes", "maxPlanBytes", "maxNoticeBytes", "maxFrameDimension", "maxFrames", "maxStates", "minDurationMs", "maxDurationMs", "maxPackageFiles", "maxPackageBytes"],
+      "properties": {
+        "maxDimension": { "const": 2048 }, "maxPixels": { "const": 1048576 },
+        "maxEncodedBytes": { "const": 8388608 }, "maxChunks": { "const": 512 },
+        "maxRequestBytes": { "const": 2097152 }, "maxPlanBytes": { "const": 524288 },
+        "maxNoticeBytes": { "const": 65536 }, "maxFrameDimension": { "const": 256 },
+        "maxFrames": { "const": 64 }, "maxStates": { "const": 16 },
+        "minDurationMs": { "const": 100 }, "maxDurationMs": { "const": 60000 },
+        "maxPackageFiles": { "const": 128 }, "maxPackageBytes": { "const": 33554432 }
+      }
+    },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 50 },
+    "target": { "$ref": "#/$defs/target" },
+    "targetSupport": { "enum": ["supported", "manual"] },
+    "artifactKind": { "enum": ["browser-bundle", "source-package", "asset-kit", "static-icon"] },
+    "destination": { "type": "string", "pattern": "^artifacts/visual-companions/[a-z][a-z0-9-]{0,49}/(?:local-chat-webview|standalone-vscode-extension|vscode-pets-fork|static-agent-icon)$" },
+    "project": { "type": "string", "minLength": 1 },
+    "requestPath": { "$ref": "#/$defs/path" },
+    "inputs": { "$ref": "#/$defs/files" },
+    "packageDigestSha256": { "$ref": "#/$defs/sha256" },
+    "manifestDigestSha256": { "$ref": "#/$defs/sha256" },
+    "planDigestSha256": { "$ref": "#/$defs/sha256" },
+    "manifest": { "$ref": "#/$defs/manifest" },
+    "artifacts": { "$ref": "#/$defs/files" },
+    "before": {
+      "type": "object", "additionalProperties": false, "required": ["exists", "files", "directories", "digestSha256"],
+      "properties": {
+        "exists": { "type": "boolean" }, "files": { "$ref": "#/$defs/files" },
+        "directories": { "$ref": "#/$defs/directories" }, "digestSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "expected": {
+      "type": "object", "additionalProperties": false, "required": ["packageDigestSha256", "treeDigestSha256", "files", "directories"],
+      "properties": {
+        "packageDigestSha256": { "$ref": "#/$defs/sha256" }, "treeDigestSha256": { "$ref": "#/$defs/sha256" },
+        "files": { "$ref": "#/$defs/files" }, "directories": { "$ref": "#/$defs/directories" }
+      }
+    },
+    "approval": {
+      "type": "object", "additionalProperties": false, "required": ["required", "classes"],
+      "properties": {
+        "required": { "const": true },
+        "classes": { "type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": { "enum": ["local-write", "replace-existing-package"] } }
+      }
+    },
+    "verification": {
+      "type": "object", "additionalProperties": false, "required": ["status", "fileCount", "scope"],
+      "properties": {
+        "status": { "const": "passed" }, "fileCount": { "type": "integer", "minimum": 1, "maximum": 128 },
+        "scope": { "const": "local-package-integrity-only" }
+      }
+    },
+    "unchanged": { "type": "boolean" },
+    "recovery": { "enum": ["none", "rolled-back", "finalized"] },
+    "code": { "type": "string", "minLength": 1 },
+    "error": { "type": "string", "minLength": 1 }
+  },
+  "oneOf": [
+    { "properties": { "command": { "const": "help" }, "status": { "const": "ready" } }, "required": ["commands", "usage", "options"] },
+    { "properties": { "command": { "const": "capabilities" }, "status": { "const": "ready" } }, "required": ["targets", "limits"] },
+    { "properties": { "command": { "const": "validate" }, "status": { "const": "validated" } }, "required": ["id", "target", "targetSupport", "artifactKind", "destination", "inputs", "packageDigestSha256", "manifest"] },
+    { "properties": { "command": { "const": "plan" }, "status": { "const": "approval-required" } }, "required": ["id", "target", "targetSupport", "artifactKind", "destination", "project", "requestPath", "inputs", "before", "expected", "approval", "planDigestSha256"] },
+    { "properties": { "command": { "const": "build" }, "status": { "enum": ["built", "manual-handoff"] } }, "required": ["id", "target", "targetSupport", "artifactKind", "destination", "packageDigestSha256", "manifestDigestSha256", "artifacts", "verification", "unchanged", "recovery"] },
+    { "properties": { "command": { "const": "verify" }, "status": { "const": "verified" } }, "required": ["id", "target", "targetSupport", "artifactKind", "destination", "packageDigestSha256", "manifestDigestSha256", "artifacts", "verification", "unchanged", "recovery"] },
+    { "properties": { "status": { "const": "blocked" } }, "required": ["code", "error"] }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "target": { "enum": ["local-chat-webview", "standalone-vscode-extension", "vscode-pets-fork", "static-agent-icon"] },
+    "path": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?![\\\\/])(?!.*(?:^|[\\\\/])\\.{1,2}(?:[\\\\/]|$))[^:%?*<>|\"~\\u0000-\\u001f\\u007f]+$" },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "files": {
+      "type": "array", "maxItems": 128,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["path", "size", "sha256"],
+        "properties": { "path": { "$ref": "#/$defs/path" }, "size": { "type": "integer", "minimum": 0, "maximum": 33554432 }, "sha256": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+    "directories": { "type": "array", "maxItems": 128, "uniqueItems": true, "items": { "$ref": "#/$defs/path" } },
+    "stateName": { "type": "string", "minLength": 1, "maxLength": 32, "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+    "animation": {
+      "type": "object", "additionalProperties": false, "required": ["frames", "loop"],
+      "properties": {
+        "loop": { "type": "boolean" },
+        "frames": {
+          "type": "array", "minItems": 1, "maxItems": 64,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["index", "durationMs"],
+            "properties": { "index": { "type": "integer", "minimum": 0, "maximum": 63 }, "durationMs": { "type": "integer", "minimum": 100, "maximum": 60000 } }
+          }
+        }
+      }
+    },
+    "sprite": {
+      "type": "object", "additionalProperties": false,
+      "required": ["atlas", "staticImage", "width", "height", "frameWidth", "frameHeight", "frameCount", "columns", "rows", "frames", "anchor"],
+      "properties": {
+        "atlas": { "const": "assets/sprite.png" }, "staticImage": { "const": "assets/static.png" },
+        "width": { "type": "integer", "minimum": 1, "maximum": 2048 }, "height": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "frameWidth": { "type": "integer", "minimum": 1, "maximum": 256 }, "frameHeight": { "type": "integer", "minimum": 1, "maximum": 256 },
+        "frameCount": { "type": "integer", "minimum": 1, "maximum": 64 }, "columns": { "type": "integer", "minimum": 1, "maximum": 64 }, "rows": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "frames": {
+          "type": "array", "minItems": 1, "maxItems": 64,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["index", "x", "y", "width", "height"],
+            "properties": {
+              "index": { "type": "integer", "minimum": 0, "maximum": 63 },
+              "x": { "type": "integer", "minimum": 0, "maximum": 2047 }, "y": { "type": "integer", "minimum": 0, "maximum": 2047 },
+              "width": { "type": "integer", "minimum": 1, "maximum": 256 }, "height": { "type": "integer", "minimum": 1, "maximum": 256 }
+            }
+          }
+        },
+        "anchor": {
+          "type": "object", "additionalProperties": false, "required": ["x", "y"],
+          "properties": { "x": { "type": "integer", "minimum": 0, "maximum": 256 }, "y": { "type": "integer", "minimum": 0, "maximum": 256 } }
+        }
+      }
+    },
+    "manifest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "name", "target", "artifactKind", "targetSupport", "generator", "provenance", "requestDigestSha256", "sprite", "animations", "defaultState", "accessibility", "extensionInstalled", "published", "files", "limitations", "packageDigestSha256"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 50 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "target": { "$ref": "#/$defs/target" },
+        "artifactKind": { "enum": ["browser-bundle", "source-package", "asset-kit", "static-icon"] },
+        "targetSupport": { "enum": ["supported", "manual"] },
+        "generator": {
+          "type": "object", "additionalProperties": false, "required": ["id", "version"],
+          "properties": { "id": { "const": "visual-companion-builder" }, "version": { "const": "1.0.0" } }
+        },
+        "provenance": {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "creator", "license", "redistributionAllowed", "rightsConfirmed", "attribution", "licenseFile", "sourceDigestSha256", "sourceKind"],
+          "properties": {
+            "kind": { "enum": ["original", "licensed-local"] }, "creator": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "license": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "redistributionAllowed": { "const": true }, "rightsConfirmed": { "const": true },
+            "attribution": { "type": "string", "minLength": 1, "maxLength": 1000 },
+            "licenseFile": { "const": "ASSET-LICENSE.txt" }, "sourceDigestSha256": { "$ref": "#/$defs/sha256" },
+            "sourceKind": { "enum": ["pixel-grid", "png"] }
+          }
+        },
+        "fork": {
+          "type": "object", "additionalProperties": false, "required": ["license", "licenseFile", "redistributionAllowed", "rightsConfirmed"],
+          "properties": {
+            "license": { "type": "string", "minLength": 1, "maxLength": 100 }, "licenseFile": { "const": "FORK-LICENSE.txt" },
+            "redistributionAllowed": { "const": true }, "rightsConfirmed": { "const": true }
+          }
+        },
+        "requestDigestSha256": { "$ref": "#/$defs/sha256" },
+        "sprite": { "$ref": "#/$defs/sprite" },
+        "animations": {
+          "type": "object", "required": ["idle"], "minProperties": 1, "maxProperties": 16,
+          "propertyNames": { "$ref": "#/$defs/stateName" }, "additionalProperties": { "$ref": "#/$defs/animation" }
+        },
+        "defaultState": { "$ref": "#/$defs/stateName" },
+        "accessibility": {
+          "type": "object", "additionalProperties": false, "required": ["reducedMotion", "staticFrame", "altText"],
+          "properties": {
+            "reducedMotion": { "const": "static" }, "staticFrame": { "type": "integer", "minimum": 0, "maximum": 63 },
+            "altText": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        },
+        "extensionInstalled": { "const": false }, "published": { "const": false },
+        "files": { "$ref": "#/$defs/files" }, "limitations": { "$ref": "#/$defs/limitations" },
+        "packageDigestSha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

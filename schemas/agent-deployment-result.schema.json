@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-skills.dev/schemas/agent-deployment-result/1.0.0",
+  "title": "Agent Deployment Result",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "action", "status", "target", "agentId", "planId", "planSha256", "packagePath", "packageSha256", "statePath", "activeVersion", "previousVersion", "identityId", "verifiedAt", "code", "message"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "action": { "enum": ["package", "apply", "verify", "rollback", "status"] },
+    "status": { "enum": ["packaged", "verified", "partial", "rolled-back", "rollback-partial", "unverified", "drifted", "manual-handoff", "unavailable", "imported", "provisioned", "deployed", "publication-submitted", "pending-admin-approval", "published", "verification-required"] },
+    "platformOutcome": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/platformOutcome" }] },
+    "target": { "anyOf": [{ "type": "null" }, { "$ref": "agent-deployment-request.schema.json#/$defs/target" }] },
+    "agentId": { "type": ["string", "null"], "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
+    "planId": { "type": ["string", "null"], "pattern": "^DEP-[a-f0-9]{32}$" },
+    "planSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableDigest" },
+    "packagePath": { "type": ["string", "null"], "pattern": "^reports/agent-deployment/[a-z][a-z0-9-]*/packages/[a-f0-9]{64}$" },
+    "packageSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableDigest" },
+    "statePath": { "type": ["string", "null"], "pattern": "^reports/agent-deployment/[a-z][a-z0-9-]*/runs/DEP-[a-f0-9]{32}/state\\.json$" },
+    "activeVersion": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+    "previousVersion": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },
+    "identityId": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableId" },
+    "verifiedAt": { "type": ["string", "null"], "format": "date-time" },
+    "code": { "type": ["string", "null"], "pattern": "^[A-Z0-9_]{1,80}$" },
+    "message": { "type": "string", "minLength": 1, "maxLength": 1000 }
+  },
+  "$defs": {
+    "platformOutcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "responseId", "resourceIds", "version", "mutationAccepted", "publicationVerified", "evidenceSha256", "messageCode"],
+      "properties": {
+        "status": { "enum": ["imported", "provisioned", "deployed", "packaged", "publication-submitted", "pending-admin-approval", "published", "verification-required", "rolled-back"] },
+        "responseId": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableId" },
+        "resourceIds": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableId", "type": "string" } },
+        "version": { "type": ["string", "null"], "maxLength": 128, "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._+-]*$" },
+        "mutationAccepted": { "type": "boolean" },
+        "publicationVerified": { "type": "boolean" },
+        "evidenceSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+        "messageCode": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,79}$" }
+      },
+      "allOf": [{
+        "if": { "properties": { "status": { "const": "published" } }, "required": ["status"] },
+        "then": { "properties": { "publicationVerified": { "const": true } } },
+        "else": { "properties": { "publicationVerified": { "const": false } } }
+      }]
+    }
+  }
+}

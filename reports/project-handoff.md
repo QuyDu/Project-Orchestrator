@@ -1,65 +1,55 @@
 # Project Handoff
 
+Generated: 2026-09-22T23:58:16.322Z
+
 ## Current Status
 
-`WF-SAFE-PROJECT-UPDATE-20260917` completed all 14 steps. `STEP-014` is the last completed step and sequence 49 is the latest accepted event. The validated candidate remains **waiting approval** for a separate local commit.
+Runtime **1.2.0**, framework **9.1.0**, source date **September 22, 2026**. Implementation is complete and locally validated. The user explicitly authorized version/date updates, commit and push to `release/1.1.2` at `QuyDu/Project-Orchestrator`.
 
-The provenance-safe updater implementation is complete and independently reviewed with no remaining findings. A 37-file candidate is unstaged and uncommitted on `release/1.1.2` at `ad3e73cb19a645bccdedfc0ffa781976d98b31a8`. The local `origin/release/1.1.2` tracking ref remains at that same old commit because no commit, push, fetch, or other network operation occurred.
+This is a pre-commit snapshot based on `83e6f053a0fa7aea212bcb76ee3532e755542e28`, not a claim about a future commit or push. Git history and the remote branch are authoritative for the containing commit's delivery status.
 
 ## Delivered
 
-- Manifest 1.1 and lock 1.0 with normalized per-asset provenance.
-- `all`, `additive`, and `select` planning with dependency and generated-companion closure.
-- `track`, `pin`, and `fork` policies with `keep`, `replace`, `fork`, and `remove` dispositions.
-- Exact, reviewed force behavior with no force-all option.
-- Transactional apply, exact rollback, and journaled recovery, including interruption handling.
-- Conservative legacy migration, fail-closed validation, security hardening, and synchronized operator documentation.
+- Backward-compatible Agent Builder blueprint 2.3 distribution intent and plan 1.2.
+- Digest-bound agent packaging, approval, provider dispatch, verification, replay protection, and constrained recovery.
+- Foundry Commercial prompt/prebuilt-hosted adapters, Microsoft 365/Teams submission, and restricted PAC/Agents Toolkit operations.
+- OpenAI application export and manual Custom GPT Action/OpenAPI handoff.
+- Original or licensed sprites, accessible browser companions, VS Code extension source, licensed Pets-fork handoff and static icons.
+- 50-skill catalog, dependency-closed profiles, help, schemas, contracts and current documentation.
+- Runtime 1.2.0 and framework 9.1.0, dated September 22, 2026, with package/configuration/documentation consistency coverage.
 
-The compatibility defect that accepted a manifest requiring a newer minimum updater runtime was fixed. Newer requirements now fail closed, while older compatible minimums remain accepted.
+## Validation and Review
 
-## Validation
-
-The bounded review found five defects. All five were repaired with focused red-green coverage for persisted fork recognition, runtime lock validation, unknown option rejection, exact fork restoration and rollback, and documentation evidence consistency. The independent rerun then reported no findings.
-
-The full `npm run check` gate completed 173 tests: 172 passed, 0 failed, and 1 expected skip. Security scanned 274 files, release verification checksum-verified 183 files, and all 47 skills were inventoried, audited, and distribution-verified.
-
-## Candidate Boundary
-
-The implementation boundary contains 37 files. Nothing is staged, committed, or pushed. The exact path list is recorded in `reports/project-handoff.json`. STEP-014 continuity and terminal state reports are recorded separately; all changes remain unstaged and uncommitted.
+- Full gate: **341 total, 340 passed, 0 failed, 1 skipped**.
+- Six focused version/compatibility tests passed; the full gate includes the deployment/core/provider regressions.
+- 323 files security-scanned; 0 package dependencies.
+- 226 unsigned-candidate files checksum-verified; 50 skills verified.
+- All three final feature-review findings were repaired and independently confirmed. The version/date delta was reviewed directly.
 
 ## Preserved Lineage
 
-P4 release assurance remains historical blocked lineage. Trusted signing, distinct independent review, restricted artifact distribution, installation-health evidence, tested revocation, and production verification remain incomplete; this workflow neither completes nor cancels that work.
+The accepted [execution state](current-execution-state.json) remains `WF-LIVE-CHAT-20260918`, step 20, sequence 79, completed. No accepted [event record](execution-log.jsonl) was changed or fabricated. The older safe-updater handoff is retained through its exact Git revision in [the JSON handoff](project-handoff.json). P4 release assurance remains blocked.
 
-`LIVE-CHAT-001` remains a separate planning-required initiative. It has not been implemented, and no Azure discovery, Azure resource operation, deployment, or cloud processing occurred.
+## Next Authorized Action
 
-## Pending Approvals
+Complete the authorized commit and normal push, then verify that the containing commit equals origin/release/1.1.2. If they already match, this delivery milestone has no remaining action.
 
-The first pending approval is creating the local commit `feat: add provenance-safe project updates`. Push is separately gated and is not included. Pull request, merge, release, publication, deployment, Azure work, and other external mutation each require later explicit approval.
+## Limitations and Separate Approvals
 
-## Next Eligible Action
-
-Exactly one action is eligible: the operator explicitly approves creating the local commit `feat: add provenance-safe project updates` after reviewing the 37-file candidate and current validation evidence.
+- Local tests and independent code/security reviews do not certify live tenant behavior, hosted performance, catalog acceptance, or production readiness.
+- The unsigned formal release remains blocked by trusted signing, candidate-bound independent release attestation, operational readiness and required cross-platform evidence.
+- No cloud deployment, tenant publication, package publication, VSIX installation, GitHub Release or tag is authorized by this version/commit/push request.
+- Native ChatGPT plugin/MCP Apps UI export and OpenAI Managed Agents API integration remain unimplemented; existing OpenAI delivery is an application export or manual Custom GPT Action handoff.
+- Azure Government agent-deployment execution remains blocked pending service qualification.
+- The unchanged historical execution log joins sequence-71 and sequence-72 JSON objects on one line. The latest event matches the execution snapshot, but full historical replay remains unverified.
+- This report is a pre-commit snapshot. Git HEAD and the remote branch, not this report's base revision, establish the containing commit and delivery status.
 
 ## Evidence
 
-- `reports/current-execution-state.json`
-- `reports/current-execution-state.md`
-- `reports/execution-log.jsonl`
-- `reports/workflow-plan.json`
-- `reports/artifact-upgrade-plan.json`
-- `reports/artifact-upgrade-report.md`
-- `reports/regression-test-result.json`
-- `reports/regression-test-result.md`
-- `reports/change-review.json`
-- `reports/change-review.md`
-- `reports/skill-dependency-graph.json`
-- `reports/skill-dependency-report.md`
-- `reports/documentation-plan.json`
-- `reports/documentation-plan.md`
-- `reports/security-check.json`
-- `pso.mjs`
-- `tests/adoption-rerun.test.mjs`
-- `tests/documentation-builder.test.mjs`
-- `tests/security-fuzz.test.mjs`
-- `tests/skill-contracts.test.mjs`
+- [Current work state](current-work-state.json)
+- [Change review](change-review.json)
+- [Regression results](regression-test-result.json)
+- [Security scan](security-check.json)
+- [Skill dependency graph](skill-dependency-graph.json)
+- [Project guide](../docs/PROJECT-GUIDE.md)
+- [Release gates](../release/release-manifest.json)

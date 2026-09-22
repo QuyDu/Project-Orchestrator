@@ -28,7 +28,7 @@ Establish is implemented by the create-project, adopt, and clone-setup paths in 
 The repository is the unit of governance. Instructions and workflows travel with branches and pull requests, can be reviewed as diffs, and remain available when the original chat session is gone. The runtime itself uses Node.js built-ins, supports Node.js 22, 24, and 26, and does not depend on an npm runtime package graph.
 
 EVIDENCE TO REFERENCE
-README.md states the current product scope and release limitations. package.json records runtime version 1.1.2, supported Node.js majors, and the full check command. config/profiles.yaml shows which skills each profile installs. reports/skill-inventory.json is the current catalog evidence.
+README.md states the current product scope and release limitations. package.json records the current runtime version, supported Node.js majors, and the full check command. config/profiles.yaml shows which skills each profile installs. reports/skill-inventory.json is the current catalog evidence.
 
 AUDIENCE PROMPT
 As you listen, think about one repository where Copilot is useful today but the team's expectations, approvals, or evidence still live mostly in people's heads.
@@ -47,7 +47,7 @@ Agents move fast. The project still has to carry the consequences after the conv
 
 WALK THE SLIDE
 Read the slide as a before-and-after comparison. On the left, each weakness is a missing project control: no explicit scope, inconsistent review, invisible authorization, and no durable record. On the right, each heading names the corresponding control surface: boundaries, gates, composition, and memory.
-reports/skill-inventory.json records the current 47-skill catalog. SECURITY.md defines the support and reporting posture. README.md states that no formal GitHub Release or package is published.
+reports/skill-inventory.json records the current skill catalog. SECURITY.md defines the support and reporting posture. README.md states that no formal GitHub Release or package is published.
 CORE STORY
 The left side is what happens when a team adopts AI one prompt at a time. Scope gets guessed. Review quality depends on who happens to be present. Approval is implied instead of recorded. Useful context and evidence disappear in chat history.
 

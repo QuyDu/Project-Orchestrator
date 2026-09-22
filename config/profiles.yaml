@@ -49,6 +49,8 @@ profiles:
       - linkedin-post
       - user-personalization
       - project-visual-storytelling
+      - agent-deployment
+      - visual-companion-builder
       - azure-cleanup
   distributed:
     extends: durable

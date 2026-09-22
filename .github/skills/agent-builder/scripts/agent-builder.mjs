@@ -13,6 +13,10 @@ const RESEARCH_CAPABILITIES = new Set(["read", "search", "web"]);
 const AUTONOMY_MODES = new Set(["guided", "autonomous-research"]);
 const WEB_SAFETY_MODES = new Set(["standard", "threat-informed"]);
 const PUBLICATION_TARGETS = new Set(["foundry-endpoint", "microsoft-365-copilot-and-teams", "chatgpt-action"]);
+const DISTRIBUTION_TARGETS = new Set([
+  "foundry-endpoint", "microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit",
+  "copilot-studio", "openai-api-application", "chatgpt-action-handoff"
+]);
 const VERSION_POLICIES = new Set(["latest", "pinned"]);
 const MICROSOFT_365_AUDIENCES = new Set(["individual", "tenant"]);
 const CHATGPT_VISIBILITIES = new Set(["workspace", "link", "gpt-store"]);
@@ -32,13 +36,14 @@ const APPROVAL_GATE_LABELS = {
   "sensitive-data-disclosure": "disclosing credentials, payment data, government identifiers, or other sensitive personal data",
   "destructive-or-irreversible-action": "deleting files, data, resources, or accounts, or another destructive or irreversible action"
 };
-const BLUEPRINT_FIELDS = ["schemaVersion", "agentType", "id", "name", "description", "purpose", "risk", "capabilities", "autonomy", "invocation", "instructions", "subagents", "handoffs", "azure", "publication"];
-const AGENT_TYPES = new Set(["copilot", "foundry-prompt", "foundry-hosted"]);
+const BLUEPRINT_FIELDS = ["schemaVersion", "agentType", "id", "name", "description", "purpose", "risk", "capabilities", "autonomy", "invocation", "instructions", "subagents", "handoffs", "azure", "publication", "distribution"];
+const AGENT_TYPES = new Set(["copilot", "foundry-prompt", "foundry-hosted", "portable"]);
 const COMMON_OPTIONS = new Set(["project", "blueprint", "plan", "agent", "json", "accept-risk"]);
 const BUILD_OPTIONS = new Set([
   "type", "id", "name", "description", "purpose", "risk", "capabilities", "user-invocable", "model-invocable",
   "autonomy", "web-safety", "constraints", "approach", "output-format", "subagents", "handoffs-file", "azure-required", "cloud", "location",
-  "environment-name", "authentication-method", "subscription-id", "publication-targets", "version-policy", "microsoft365-audience", "chatgpt-visibility"
+  "environment-name", "authentication-method", "subscription-id", "publication-targets", "version-policy", "microsoft365-audience", "chatgpt-visibility",
+  "distribution-targets", "distribution-environment", "data-boundary"
 ]);
 const FORBIDDEN_CREDENTIAL_OPTIONS = /^(?:password|client-secret|secret|token|api-key|access-key|connection-string)$/i;
 const SECRET_PATTERNS = [
@@ -256,9 +261,10 @@ async function readJson(file, location) {
 
 function validateBlueprint(blueprint) {
   rejectUnknown(blueprint, BLUEPRINT_FIELDS, "blueprint");
-  if (!["1.0.0", "2.0.0", "2.1.0", "2.2.0"].includes(blueprint.schemaVersion)) throw new Error("Unsupported blueprint schemaVersion");
+  if (!["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0"].includes(blueprint.schemaVersion)) throw new Error("Unsupported blueprint schemaVersion");
   const agentType = blueprint.agentType ?? (blueprint.schemaVersion === "1.0.0" ? "copilot" : undefined);
-  if (!AGENT_TYPES.has(agentType)) throw new Error("agentType must be copilot, foundry-prompt, or foundry-hosted");
+  if (!AGENT_TYPES.has(agentType)) throw new Error("agentType must be copilot, foundry-prompt, foundry-hosted, or portable");
+  if (agentType === "portable" && blueprint.schemaVersion !== "2.3.0") throw new Error("portable requires schemaVersion 2.3.0");
   requireString(blueprint.id, "id", 1, 64);
   if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(blueprint.id)) throw new Error("id must be lowercase kebab-case");
   requireString(blueprint.name, "name", 3, 80);
@@ -275,11 +281,11 @@ function validateBlueprint(blueprint) {
   if (blueprint.risk === "read-only" && blueprint.capabilities.some((item) => MUTATING_CAPABILITIES.has(item))) {
     throw new Error("read-only agents cannot use edit or execute");
   }
-  if (["2.1.0", "2.2.0"].includes(blueprint.schemaVersion) && blueprint.autonomy === undefined) {
+  if (["2.1.0", "2.2.0", "2.3.0"].includes(blueprint.schemaVersion) && blueprint.autonomy === undefined) {
     throw new Error(`schemaVersion ${blueprint.schemaVersion} requires an autonomy policy`);
   }
   if (blueprint.autonomy !== undefined) {
-    if (!["2.1.0", "2.2.0"].includes(blueprint.schemaVersion)) throw new Error("autonomy requires schemaVersion 2.1.0 or 2.2.0");
+    if (!["2.1.0", "2.2.0", "2.3.0"].includes(blueprint.schemaVersion)) throw new Error("autonomy requires schemaVersion 2.1.0, 2.2.0, or 2.3.0");
     rejectUnknown(blueprint.autonomy, ["mode", "approvalRequiredFor", "webSafety"], "autonomy");
     if (!AUTONOMY_MODES.has(blueprint.autonomy.mode)) throw new Error("autonomy.mode must be guided or autonomous-research");
     requireStringArray(blueprint.autonomy.approvalRequiredFor, "autonomy.approvalRequiredFor", {
@@ -345,33 +351,73 @@ function validateBlueprint(blueprint) {
   if (agentType.startsWith("foundry-") && blueprint.azure?.required !== true) {
     throw new Error(`${agentType} requires an Azure environment binding`);
   }
+  if (blueprint.publication !== undefined && blueprint.distribution !== undefined) {
+    throw new Error("Use distribution or legacy publication, not both");
+  }
   if (blueprint.publication !== undefined) {
     if (blueprint.schemaVersion !== "2.2.0") throw new Error("publication requires schemaVersion 2.2.0");
     if (!agentType.startsWith("foundry-")) throw new Error("publication is supported only for Foundry agents");
-    rejectUnknown(blueprint.publication, ["targets", "versionPolicy", "microsoft365Audience", "chatgptVisibility"], "publication");
-    requireStringArray(blueprint.publication.targets, "publication.targets", { minimum: 1, maximum: PUBLICATION_TARGETS.size, itemMaximum: 64 });
-    for (const target of blueprint.publication.targets) {
-      if (!PUBLICATION_TARGETS.has(target)) throw new Error(`Unsupported publication target: ${target}`);
-    }
-    if (!VERSION_POLICIES.has(blueprint.publication.versionPolicy)) throw new Error("publication.versionPolicy must be latest or pinned");
-    const publishesToMicrosoft365 = blueprint.publication.targets.includes("microsoft-365-copilot-and-teams");
-    if (publishesToMicrosoft365 && !MICROSOFT_365_AUDIENCES.has(blueprint.publication.microsoft365Audience)) {
-      throw new Error("publication.microsoft365Audience is required for Microsoft 365 Copilot and Teams");
-    }
-    if (!publishesToMicrosoft365 && blueprint.publication.microsoft365Audience !== undefined) {
-      throw new Error("publication.microsoft365Audience requires the Microsoft 365 Copilot and Teams target");
-    }
-    const integratesWithChatGpt = blueprint.publication.targets.includes("chatgpt-action");
-    if (integratesWithChatGpt && !CHATGPT_VISIBILITIES.has(blueprint.publication.chatgptVisibility)) {
-      throw new Error("publication.chatgptVisibility is required for the ChatGPT action target");
-    }
-    if (!integratesWithChatGpt && blueprint.publication.chatgptVisibility !== undefined) {
-      throw new Error("publication.chatgptVisibility requires the ChatGPT action target");
-    }
+    validateTargetIntent(blueprint.publication, "publication");
+  }
+  if (blueprint.distribution !== undefined) {
+    if (blueprint.schemaVersion !== "2.3.0") throw new Error("distribution requires schemaVersion 2.3.0");
+    validateTargetIntent(blueprint.distribution, "distribution");
   }
   const serialized = stableJson(blueprint);
   if (SECRET_PATTERNS.some((pattern) => pattern.test(serialized))) throw new Error("blueprint contains suspected secret material");
   return blueprint;
+}
+
+function validateTargetIntent(intent, field) {
+  const modern = field === "distribution";
+  const allowedTargets = modern ? DISTRIBUTION_TARGETS : PUBLICATION_TARGETS;
+  rejectUnknown(intent, [
+    "targets", "versionPolicy", "microsoft365Audience", "chatgptVisibility",
+    ...(modern ? ["environment", "dataBoundary"] : [])
+  ], field);
+  requireStringArray(intent.targets, `${field}.targets`, { minimum: 1, maximum: allowedTargets.size, itemMaximum: 64 });
+  for (const target of intent.targets) {
+    if (!allowedTargets.has(target)) throw new Error(`Unsupported ${field} target; expected one of ${[...allowedTargets].join(", ")}`);
+  }
+  if (!VERSION_POLICIES.has(intent.versionPolicy)) throw new Error(`${field}.versionPolicy must be latest or pinned`);
+  const publishesToMicrosoft365 = intent.targets.some((target) => ["microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit"].includes(target));
+  if (publishesToMicrosoft365 && !MICROSOFT_365_AUDIENCES.has(intent.microsoft365Audience)) {
+    throw new Error(`${field}.microsoft365Audience is required for Microsoft 365 Copilot and Teams`);
+  }
+  if (!publishesToMicrosoft365 && intent.microsoft365Audience !== undefined) {
+    throw new Error(`${field}.microsoft365Audience requires a Microsoft 365 target`);
+  }
+  const integratesWithChatGpt = intent.targets.includes(modern ? "chatgpt-action-handoff" : "chatgpt-action");
+  if (integratesWithChatGpt && !CHATGPT_VISIBILITIES.has(intent.chatgptVisibility)) {
+    throw new Error(`${field}.chatgptVisibility is required for the ChatGPT action target`);
+  }
+  if (!integratesWithChatGpt && intent.chatgptVisibility !== undefined) {
+    throw new Error(`${field}.chatgptVisibility requires the ChatGPT action target`);
+  }
+  if (modern && intent.environment !== undefined && !["development", "staging", "production"].includes(intent.environment)) {
+    throw new Error("distribution.environment must be development, staging, or production");
+  }
+  if (modern && intent.dataBoundary !== undefined && !["project-local", "organization", "external"].includes(intent.dataBoundary)) {
+    throw new Error("distribution.dataBoundary must be project-local, organization, or external");
+  }
+}
+
+function normalizeDistribution(blueprint) {
+  validateBlueprint(blueprint);
+  const intent = blueprint.distribution ?? blueprint.publication;
+  if (!intent) return null;
+  return {
+    targets: intent.targets.map((target) => target === "chatgpt-action" ? "chatgpt-action-handoff" : target).sort(),
+    versionPolicy: intent.versionPolicy,
+    environment: intent.environment ?? "development",
+    dataBoundary: intent.dataBoundary ?? "organization",
+    ...(intent.microsoft365Audience ? { microsoft365Audience: intent.microsoft365Audience } : {}),
+    ...(intent.chatgptVisibility ? { chatgptVisibility: intent.chatgptVisibility } : {})
+  };
+}
+
+function deploymentInputSha256(blueprintSha256, distribution) {
+  return sha256(stableJson({ schemaVersion: "1.0.0", blueprintSha256, distribution }));
 }
 
 async function existingAgentIds(root) {
@@ -500,8 +546,8 @@ async function loadBlueprint(file) {
 async function buildBlueprint(root, options) {
   const terminal = createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const agentType = await askMissing(terminal, options.type, "Agent type (copilot, foundry-prompt, or foundry-hosted)", "copilot");
-    if (!AGENT_TYPES.has(agentType)) throw new Error("Agent type must be copilot, foundry-prompt, or foundry-hosted");
+    const agentType = await askMissing(terminal, options.type, "Agent type (copilot, foundry-prompt, foundry-hosted, or portable)", "copilot");
+    if (!AGENT_TYPES.has(agentType)) throw new Error("Agent type must be copilot, foundry-prompt, foundry-hosted, or portable");
     const id = await askMissing(terminal, options.id, "Agent ID (lowercase kebab-case)");
     const name = await askMissing(terminal, options.name, "Agent display name");
     const description = await askMissing(terminal, options.description, "Agent discovery description");
@@ -520,38 +566,57 @@ async function buildBlueprint(root, options) {
     const handoffs = handoffsPath === "none" ? [] : await readJson(handoffsPath, "handoffs-file");
     if (!Array.isArray(handoffs)) throw new Error("handoffs-file must contain a JSON array");
 
-    const publicationTargets = parseList(await askMissing(terminal, options["publication-targets"], "Publication targets separated by commas, or none", "none"));
-    if (!publicationTargets.length && [options["version-policy"], options["microsoft365-audience"], options["chatgpt-visibility"]].some((value) => value !== undefined)) {
-      throw new Error("Publication options require at least one --publication-targets value");
+    if (options["publication-targets"] !== undefined && options["distribution-targets"] !== undefined) {
+      throw new Error("Use --distribution-targets or --publication-targets, not both");
     }
-    let publication;
-    if (publicationTargets.length) {
-      const versionPolicy = await askMissing(terminal, options["version-policy"], "Foundry endpoint version policy (latest or pinned)", "pinned");
-      const publishesToMicrosoft365 = publicationTargets.includes("microsoft-365-copilot-and-teams");
-      const integratesWithChatGpt = publicationTargets.includes("chatgpt-action");
+    const modern = options["distribution-targets"] !== undefined || agentType === "portable";
+    if (agentType === "portable" && options["publication-targets"] !== undefined) {
+      throw new Error("Portable agents use --distribution-targets, not --publication-targets");
+    }
+    if (!modern && [options["distribution-environment"], options["data-boundary"]].some((value) => value !== undefined)) {
+      throw new Error("--distribution-environment and --data-boundary require --distribution-targets");
+    }
+    const intentField = modern ? "distribution" : "publication";
+    const targets = parseList(await askMissing(terminal, options[`${intentField}-targets`], `${intentField} targets separated by commas, or none`, "none"));
+    if (!targets.length && [
+      options["version-policy"], options["microsoft365-audience"], options["chatgpt-visibility"],
+      options["distribution-environment"], options["data-boundary"]
+    ].some((value) => value !== undefined)) {
+      throw new Error(`${intentField} options require at least one --${intentField}-targets value`);
+    }
+    let intent;
+    if (targets.length) {
+      const versionPolicy = await askMissing(terminal, options["version-policy"], "Version policy (latest or pinned)", "pinned");
+      const publishesToMicrosoft365 = targets.some((target) => ["microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit"].includes(target));
+      const integratesWithChatGpt = targets.includes(modern ? "chatgpt-action-handoff" : "chatgpt-action");
       const microsoft365Audience = publishesToMicrosoft365
         ? await askMissing(terminal, options["microsoft365-audience"], "Microsoft 365 audience (individual or tenant)", "individual")
-        : undefined;
+        : options["microsoft365-audience"];
       const chatgptVisibility = integratesWithChatGpt
         ? await askMissing(terminal, options["chatgpt-visibility"], "ChatGPT visibility (workspace, link, or gpt-store)", "workspace")
-        : undefined;
-      publication = {
-        targets: publicationTargets,
+        : options["chatgpt-visibility"];
+      intent = {
+        targets,
         versionPolicy,
-        ...(microsoft365Audience ? { microsoft365Audience } : {}),
-        ...(chatgptVisibility ? { chatgptVisibility } : {})
+        ...(modern ? {
+          environment: options["distribution-environment"] ?? "development",
+          dataBoundary: options["data-boundary"] ?? "organization"
+        } : {}),
+        ...(microsoft365Audience !== undefined ? { microsoft365Audience } : {}),
+        ...(chatgptVisibility !== undefined ? { chatgptVisibility } : {})
       };
+      validateTargetIntent(intent, intentField);
     }
 
     const azureRequired = agentType.startsWith("foundry-") || parseBoolean(options["azure-required"] ?? false, "azure-required");
     const azure = azureRequired ? { required: true, ...await resolveAzureContext(root, options, terminal) } : undefined;
     const candidate = {
-      schemaVersion: publication ? "2.2.0" : "2.1.0", agentType, id, name, description, purpose, risk, capabilities,
+      schemaVersion: modern ? "2.3.0" : intent ? "2.2.0" : "2.1.0", agentType, id, name, description, purpose, risk, capabilities,
       autonomy: { mode: autonomyMode, approvalRequiredFor: APPROVAL_GATES, webSafety },
       invocation: { userInvocable, modelInvocable },
       instructions: { constraints, approach, outputFormat }, subagents, handoffs,
       ...(azure ? { azure } : {}),
-      ...(publication ? { publication } : {})
+      ...(intent ? { [intentField]: intent } : {})
     };
     validateBlueprint(candidate);
     await validateReferences(root, candidate);
@@ -593,9 +658,20 @@ async function createPlan(root, blueprintFile) {
       warnings.push("AzureUSGovernment publication requires fresh target availability and sovereign data boundary validation before any Foundry, Microsoft 365, Teams, or ChatGPT handoff.");
     }
   }
+  const modern = blueprint.schemaVersion === "2.3.0";
+  const distribution = normalizeDistribution(blueprint);
+  if (blueprint.distribution) {
+    warnings.push("Agent Builder records distribution intent only and does not deploy or publish. Use agent-deployment to package, review, and separately approve supported provider operations.");
+    warnings.push("Portable read/search/web/edit/execute/agent/todo labels are not remote tool grants; every target needs its own validated runtime and authentication mapping.");
+    if (distribution.targets.includes("chatgpt-action-handoff")) {
+      warnings.push("ChatGPT Actions are a manual-handoff target; no Custom GPT management or GPT Store publication API is assumed.");
+    }
+    if (distribution.versionPolicy === "latest") warnings.push("The latest version policy may expose newly created versions immediately; use pinned for controlled promotion.");
+    if (blueprint.azure?.cloud === "AzureUSGovernment") warnings.push("AzureUSGovernment requires separately verified sovereign availability; Commercial adapters must not silently change the cloud.");
+  }
   const relativeBlueprint = path.relative(root, path.resolve(blueprintFile)).replaceAll("\\", "/");
   const plan = {
-    schemaVersion: "1.1.0",
+    schemaVersion: modern ? "1.2.0" : "1.1.0",
     generatedAt: new Date().toISOString(),
     status: "review-required",
     projectRoot: root,
@@ -607,6 +683,7 @@ async function createPlan(root, blueprintFile) {
     renderedSha256,
     renderedAgent,
     publication: blueprint.publication ?? null,
+    ...(modern ? { distribution, deploymentInputSha256: deploymentInputSha256(blueprintSha256, distribution) } : {}),
     warnings
   };
   const reports = await safeRelativeTarget(root, "reports");
@@ -634,6 +711,19 @@ async function createPlan(root, blueprintFile) {
       `- ChatGPT visibility: ${blueprint.publication.chatgptVisibility ?? "not requested"}`,
       "- Execution owner: Microsoft Foundry or the separately authorized target-platform workflow; Agent Builder does not publish."
     ] : ["- None requested."]),
+    ...(modern ? [
+      "",
+      "## Distribution Handoff",
+      "",
+      ...(distribution ? [
+        `- Targets: ${distribution.targets.join(", ")}`,
+        `- Version policy: ${distribution.versionPolicy}`,
+        `- Environment: ${distribution.environment}`,
+        `- Data boundary: ${distribution.dataBoundary}`,
+        "- Execution owner: agent-deployment; this plan authorizes no remote mutation."
+      ] : ["- None requested."]),
+      `- Deployment input SHA-256: \`${plan.deploymentInputSha256}\``
+    ] : []),
     "",
     "## Warnings",
     "",
@@ -654,8 +744,8 @@ async function createPlan(root, blueprintFile) {
 async function applyPlan(root, blueprintFile, planFile, accepted) {
   if (!accepted) throw new Error("Use --accept-risk after reviewing the Agent Builder plan");
   const plan = await readJson(planFile, "plan");
-  rejectUnknown(plan, ["schemaVersion", "generatedAt", "status", "projectRoot", "blueprintPath", "blueprintSha256", "targetPath", "targetState", "action", "renderedSha256", "renderedAgent", "publication", "warnings"], "plan");
-  if (!["1.0.0", "1.1.0"].includes(plan.schemaVersion) || plan.status !== "review-required") throw new Error("Unsupported Agent Builder plan");
+  rejectUnknown(plan, ["schemaVersion", "generatedAt", "status", "projectRoot", "blueprintPath", "blueprintSha256", "targetPath", "targetState", "action", "renderedSha256", "renderedAgent", "publication", "distribution", "deploymentInputSha256", "warnings"], "plan");
+  if (!["1.0.0", "1.1.0", "1.2.0"].includes(plan.schemaVersion) || plan.status !== "review-required") throw new Error("Unsupported Agent Builder plan");
   if (plan.projectRoot !== root) throw new Error("Plan project root does not match --project");
   const { blueprint, sha256: blueprintSha256 } = await loadBlueprint(blueprintFile);
   await validateReferences(root, blueprint);
@@ -663,9 +753,20 @@ async function applyPlan(root, blueprintFile, planFile, accepted) {
   if (plan.schemaVersion === "1.0.0" && (plan.publication !== undefined || blueprint.publication !== undefined)) {
     throw new Error("Agent Builder plan 1.0.0 cannot review publication intent; create a new plan");
   }
-  if (plan.schemaVersion === "1.1.0") {
-    if (!Object.hasOwn(plan, "publication")) throw new Error("Agent Builder plan 1.1.0 requires publication review state");
+  if (plan.schemaVersion !== "1.0.0") {
+    if (!Object.hasOwn(plan, "publication")) throw new Error(`Agent Builder plan ${plan.schemaVersion} requires publication review state`);
     if (stableJson(plan.publication) !== stableJson(blueprint.publication ?? null)) throw new Error("Plan publication intent is invalid or stale");
+  }
+  if (plan.schemaVersion === "1.2.0") {
+    const distribution = normalizeDistribution(blueprint);
+    if (!Object.hasOwn(plan, "distribution") || stableJson(plan.distribution) !== stableJson(distribution)) {
+      throw new Error("Plan distribution intent is invalid or stale");
+    }
+    if (plan.deploymentInputSha256 !== deploymentInputSha256(blueprintSha256, distribution)) {
+      throw new Error("Plan deployment input digest is invalid or stale");
+    }
+  } else if (blueprint.schemaVersion === "2.3.0" || plan.distribution !== undefined || plan.deploymentInputSha256 !== undefined) {
+    throw new Error("This plan cannot review distribution intent; create an Agent Builder plan 1.2.0");
   }
   const renderedAgent = renderAgent(blueprint);
   if (sha256(renderedAgent) !== plan.renderedSha256 || renderedAgent !== plan.renderedAgent) throw new Error("Plan rendered content is invalid or stale");
@@ -760,6 +861,15 @@ Usage:
   agent-builder.mjs plan --project PATH --blueprint FILE
   agent-builder.mjs apply --project PATH --blueprint FILE --plan FILE --accept-risk
 
+Cross-platform authoring:
+  build --type portable --distribution-targets TARGETS [other blueprint parameters]
+  --version-policy pinned|latest --distribution-environment development|staging|production
+  --data-boundary project-local|organization|external
+  Microsoft 365 targets require --microsoft365-audience individual|tenant.
+  chatgpt-action-handoff requires --chatgpt-visibility workspace|link|gpt-store.
+  Distribution records intent only; it does not log in, deploy, or publish.
+  Legacy --publication-targets remains supported for schema 2.2 Foundry blueprints.
+
 The blueprint is authoritative. Plan before apply; application fails if the blueprint or destination changes.`);
 }
 
@@ -792,4 +902,8 @@ async function main() {
   throw new Error(`Unknown Agent Builder command: ${command}`);
 }
 
-main().catch((error) => fail(error.message));
+export { normalizeDistribution, renderAgent, validateBlueprint };
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => fail(error.message));
+}

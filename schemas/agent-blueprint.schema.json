@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://project-skills.dev/schemas/agent-blueprint/2.2.0",
+  "$id": "https://project-skills.dev/schemas/agent-blueprint/2.3.0",
   "title": "Governed Agent Blueprint",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "name", "description", "purpose", "risk", "capabilities", "invocation", "instructions", "subagents", "handoffs"],
   "properties": {
-    "schemaVersion": { "enum": ["1.0.0", "2.0.0", "2.1.0", "2.2.0"] },
-    "agentType": { "enum": ["copilot", "foundry-prompt", "foundry-hosted"] },
+    "schemaVersion": { "enum": ["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0"] },
+    "agentType": { "enum": ["copilot", "foundry-prompt", "foundry-hosted", "portable"] },
     "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
     "name": { "type": "string", "minLength": 3, "maxLength": 80 },
     "description": { "type": "string", "minLength": 40, "maxLength": 500 },
@@ -103,6 +103,7 @@
         "subscriptionConfigured": { "type": "boolean" }
       }
     },
+    "distribution": { "$ref": "#/$defs/distribution" },
     "publication": {
       "type": "object",
       "additionalProperties": false,
@@ -141,16 +142,16 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "schemaVersion": { "enum": ["2.0.0", "2.1.0", "2.2.0"] } }, "required": ["schemaVersion"] },
+      "if": { "properties": { "schemaVersion": { "enum": ["2.0.0", "2.1.0", "2.2.0", "2.3.0"] } }, "required": ["schemaVersion"] },
       "then": { "required": ["agentType"] }
     },
     {
-      "if": { "properties": { "schemaVersion": { "enum": ["2.1.0", "2.2.0"] } }, "required": ["schemaVersion"] },
+      "if": { "properties": { "schemaVersion": { "enum": ["2.1.0", "2.2.0", "2.3.0"] } }, "required": ["schemaVersion"] },
       "then": { "required": ["autonomy"] }
     },
     {
       "if": { "required": ["autonomy"] },
-      "then": { "properties": { "schemaVersion": { "enum": ["2.1.0", "2.2.0"] } } }
+      "then": { "properties": { "schemaVersion": { "enum": ["2.1.0", "2.2.0", "2.3.0"] } } }
     },
     {
       "if": {
@@ -179,6 +180,17 @@
       }
     },
     {
+      "if": { "properties": { "agentType": { "const": "portable" } }, "required": ["agentType"] },
+      "then": { "properties": { "schemaVersion": { "const": "2.3.0" } } }
+    },
+    {
+      "if": { "required": ["distribution"] },
+      "then": {
+        "properties": { "schemaVersion": { "const": "2.3.0" } },
+        "not": { "required": ["publication"] }
+      }
+    },
+    {
       "if": { "required": ["publication"] },
       "then": {
         "required": ["agentType", "azure"],
@@ -189,5 +201,51 @@
         }
       }
     }
-  ]
+  ],
+  "$defs": {
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "versionPolicy"],
+      "properties": {
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "foundry-endpoint", "microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit",
+              "copilot-studio", "openai-api-application", "chatgpt-action-handoff"
+            ]
+          }
+        },
+        "versionPolicy": { "enum": ["latest", "pinned"] },
+        "environment": { "enum": ["development", "staging", "production"] },
+        "dataBoundary": { "enum": ["project-local", "organization", "external"] },
+        "microsoft365Audience": { "enum": ["individual", "tenant"] },
+        "chatgptVisibility": { "enum": ["workspace", "link", "gpt-store"] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "targets": { "contains": { "enum": ["microsoft-365-copilot-and-teams", "microsoft-365-agents-toolkit"] } }
+            },
+            "required": ["targets"]
+          },
+          "then": { "required": ["microsoft365Audience"] },
+          "else": { "not": { "required": ["microsoft365Audience"] } }
+        },
+        {
+          "if": {
+            "properties": { "targets": { "contains": { "const": "chatgpt-action-handoff" } } },
+            "required": ["targets"]
+          },
+          "then": { "required": ["chatgptVisibility"] },
+          "else": { "not": { "required": ["chatgptVisibility"] } }
+        }
+      ]
+    }
+  }
 }

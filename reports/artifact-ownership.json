@@ -1,10 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-18T23:57:39.243Z",
+  "generatedAt": "2026-09-22T23:47:55.574Z",
   "artifacts": [
     {
       "report": "artifacts/project-visual-storytelling/<run-id>/",
       "producer": "project-visual-storytelling"
+    },
+    {
+      "report": "artifacts/visual-companions/<id>/<target>/",
+      "producer": "visual-companion-builder"
     },
     {
       "report": "project-orchestrator.json",
@@ -29,6 +33,30 @@
     {
       "report": "reports/agent-builder-result.json",
       "producer": "agent-builder"
+    },
+    {
+      "report": "reports/agent-deployment-plan.json",
+      "producer": "agent-deployment"
+    },
+    {
+      "report": "reports/agent-deployment-result.json",
+      "producer": "agent-deployment"
+    },
+    {
+      "report": "reports/agent-deployment-state.json",
+      "producer": "agent-deployment"
+    },
+    {
+      "report": "reports/agent-deployment/<agent-id>/packages/<sha256>/",
+      "producer": "agent-deployment"
+    },
+    {
+      "report": "reports/agent-deployment/<agent-id>/runs/<plan-id>/",
+      "producer": "agent-deployment"
+    },
+    {
+      "report": "reports/agent-deployment/platform-work/<tool>/<package-sha>/",
+      "producer": "agent-deployment"
     },
     {
       "report": "reports/architecture-review.json",

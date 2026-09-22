@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-18T23:11:49.751Z",
+  "generatedAt": "2026-09-22T23:58:20.704Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "38ae20889f746bd7755725580207818ce332c92b340767ab17323b28cd43f696",
+    "jsonSha256": "e94450270d1491ead0ce1a6115019af88906a7264099688541226f452ec500a3",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "640b172f4c52111a849beadfe812cbf26a56db5d7dd7dce4330b09531fa7ee93"
+    "markdownSha256": "94e96426fe4db10ccf77e8170c7ae5f78679bd5995289fe2ea7f9925b3ec79c1"
   },
   "guide": "docs/PROJECT-GUIDE.md",
-  "guideSha256": "4f620baa06b5321147c771708b2364a4d2c824132b0e291658dd0124c16eabfc",
+  "guideSha256": "aa0ec0fb126c31d98d902e0c6f52785da98578822852f4e7495f361745f6269f",
   "claims": [
     {
       "id": "claim-01-azure",
@@ -23,7 +23,7 @@
       "id": "claim-02-github",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 88 scanned files.",
+      "statement": "Top-level project boundary containing 114 scanned files.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -86,7 +86,7 @@
       "id": "claim-09-reports",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 97 scanned files.",
+      "statement": "Top-level project boundary containing 99 scanned files.",
       "evidence": [
         "reports/adoption-rerun-evidence.json"
       ]
@@ -95,7 +95,7 @@
       "id": "claim-10-schemas",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 58 scanned files.",
+      "statement": "Top-level project boundary containing 65 scanned files.",
       "evidence": [
         "schemas/adoption-transaction.schema.json"
       ]
@@ -122,7 +122,7 @@
       "id": "claim-13-tests",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 23 scanned files.",
+      "statement": "Top-level project boundary containing 26 scanned files.",
       "evidence": [
         "tests/adoption-rerun.test.mjs"
       ]
@@ -131,7 +131,7 @@
       "id": "claim-14-md",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "141 scanned files use this extension.",
+      "statement": "148 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -140,7 +140,7 @@
       "id": "claim-15-json",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "130 scanned files use this extension.",
+      "statement": "139 scanned files use this extension.",
       "evidence": [
         ".azure/environment.json"
       ]
@@ -149,7 +149,7 @@
       "id": "claim-16-mjs",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "47 scanned files use this extension.",
+      "statement": "66 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/agent-builder.mjs"
       ]
@@ -167,7 +167,7 @@
       "id": "claim-18-ps1",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "11 scanned files use this extension.",
+      "statement": "13 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/azure-context.ps1"
       ]
@@ -239,7 +239,7 @@
       "id": "claim-26-npm-run-check",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
+      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ]
@@ -329,7 +329,7 @@
       "id": "claim-36-npm-run-test",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
+      "statement": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
       "evidence": [
         "package.json"
       ]
@@ -356,26 +356,26 @@
       "id": "claim-39-governed-skill-workflows",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "48 installed skills provide bounded project actions.",
+      "statement": "50 installed skills provide bounded project actions.",
       "evidence": [
         ".github/skills/agent-builder/SKILL.md",
+        ".github/skills/agent-deployment/SKILL.md",
         ".github/skills/architecture-review/SKILL.md",
         ".github/skills/artifact-upgrade/SKILL.md",
-        ".github/skills/audit-azure-environment/SKILL.md",
-        ".github/skills/audit-code/SKILL.md"
+        ".github/skills/audit-azure-environment/SKILL.md"
       ]
     },
     {
       "id": "claim-40-reusable-prompt-workflows",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "11 prompt files provide user-invoked workflows.",
+      "statement": "14 prompt files provide user-invoked workflows.",
       "evidence": [
+        ".github/prompts/agent-builder-help.prompt.md",
+        ".github/prompts/agent-deployment-help.prompt.md",
         ".github/prompts/azure-cleanup-help.prompt.md",
         ".github/prompts/demo-create-project.prompt.md",
-        ".github/prompts/demo-web-app.prompt.md",
-        ".github/prompts/environment-update-help.prompt.md",
-        ".github/prompts/live-chat-interaction-help.prompt.md"
+        ".github/prompts/demo-web-app.prompt.md"
       ]
     },
     {
@@ -400,7 +400,7 @@
       "id": "claim-43-npm-run-check",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
+      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ]
@@ -454,7 +454,7 @@
       "id": "claim-49-npm-run-test",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
+      "statement": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
       "evidence": [
         "package.json"
       ]

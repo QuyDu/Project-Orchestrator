@@ -17,6 +17,21 @@ test("production scripts and release metadata are present", async () => {
   const version = spawnSync(process.execPath, [path.join(root, "pso.mjs"), "--version"], { cwd: root, encoding: "utf8" });
   assert.equal(version.status, 0, version.stderr);
   assert.equal(version.stdout.trim(), manifest.version);
+  const orchestrator = await readFile(path.join(root, "config", "orchestrator.yaml"), "utf8");
+  const frameworkVersion = orchestrator.match(/^frameworkVersion: (\d+\.\d+\.\d+)$/m)?.[1];
+  assert.ok(frameworkVersion);
+  assert.equal(orchestrator.match(/^runtimeVersion: (\d+\.\d+\.\d+)$/m)?.[1], manifest.version);
+  const runtimeSource = await readFile(path.join(root, "pso.mjs"), "utf8");
+  assert.equal(runtimeSource.match(/const FRAMEWORK_VERSION = "([^"]+)";/)?.[1], frameworkVersion);
+  const readme = await readFile(path.join(root, "README.md"), "utf8");
+  const overview = await readFile(path.join(root, "docs", "PROJECT-OVERVIEW.md"), "utf8");
+  const sourceDate = readme.match(/^\| Source version date \| ([^|]+) \|$/m)?.[1];
+  assert.ok(sourceDate && Number.isFinite(Date.parse(sourceDate)));
+  for (const document of [readme, overview]) {
+    assert.ok(document.includes(`| Runtime version | \`${manifest.version}\` |`));
+    assert.ok(document.includes(`| Framework version | \`${frameworkVersion}\` |`));
+    assert.ok(document.includes(`| Source version date | ${sourceDate} |`));
+  }
   const help = spawnSync(process.execPath, [path.join(root, "pso.mjs"), "--help"], { cwd: root, encoding: "utf8" });
   assert.equal(help.status, 0, help.stderr);
   assert.match(help.stdout, /^Project Orchestrator /);
@@ -116,6 +131,7 @@ test("npm supply-chain policy is reproducible and automated", async () => {
 
   const lock = JSON.parse(await readFile(path.join(root, "package-lock.json"), "utf8"));
   assert.equal(lock.lockfileVersion, 3);
+  assert.equal(lock.version, manifest.version);
   assert.equal(lock.packages[""].name, manifest.name);
   assert.equal(lock.packages[""].version, manifest.version);
   assert.equal(lock.packages[""].engines.node, manifest.engines.node);

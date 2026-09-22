@@ -21,7 +21,7 @@ Use the owning skill's `Composition and Dependencies` section to identify prereq
 
 ## CLI help
 
-From the Skills-Orchestrator repository, run:
+From the Project-Orchestrator repository, run:
 
 ```text
 node .\\pso.mjs help <skill-name>
