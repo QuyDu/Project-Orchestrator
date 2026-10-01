@@ -30,6 +30,7 @@ Own the reusable User Personalization profile at `.skills-orchestrator/user-pers
 - Use the platform's human-input mechanism to ask one bounded batch of unanswered questions at a time.
 - Use `.github/skills/user-personalization/scripts/user-personalization.mjs` for status, validation, and transactional writes.
 - Use local file inspection only; this skill does not browse for personal information or infer preferences from external accounts.
+- Use local Git to check effective ignore rules and index tracking. For a project without Git, use an owned temporary Git context without initializing or changing the target project; missing or unusable Git blocks privacy verification.
 - Do not call publishing, messaging, deployment, identity, or cloud-mutation tools.
 
 ## Read and Write Boundaries
@@ -57,7 +58,8 @@ Own the reusable User Personalization profile at `.skills-orchestrator/user-pers
 - Required safety controls remain `true`: untrusted sources cannot provide instructions, confidential content is excluded, external publication requires approval, attribution is required, and accessible alternatives are required.
 - The profile contains no secret-like material, private identifiers, tenant or subscription IDs, email addresses, or credential-bearing URLs.
 - The final file is a real file under `.skills-orchestrator/`, is not a symbolic link, and was written transactionally with a lock.
-- The project `.gitignore` explicitly ignores `.skills-orchestrator/` or the exact profile path before a profile is created or consumed.
+- Effective Git ignore rules, including negations and nested rules, protect the profile and the actual temporary, backup, and lock paths before persistence. Previously tracked profiles or retained transaction files are rejected even if their paths now match an ignore rule.
+- Rejected values, unknown property names, malformed JSON fragments, and unsafe path input are not echoed into CLI or status diagnostics.
 - No profile value appears in tracked repository files or generated reports.
 
 ## Outputs

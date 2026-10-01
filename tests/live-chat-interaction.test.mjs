@@ -94,3 +94,68 @@ test("half-duplex speaking pauses capture and deterministic adapters resume afte
   assert.equal(adapters.response.complete, true);
   assert.equal(adapters.speech.capture, true);
 });
+
+test("final transcript payload matches the displayed text with or without an interim", async () => {
+  const { createInitialState, reduceConversation } = await import(pathToFileURL(path.join(liveChatRoot, "conversation-state.mjs")));
+  for (const interim of [null, "Remove the old record"]) {
+    let state = reduceConversation(createInitialState({ consent: true }), { type: "START_LISTENING" });
+    if (interim) state = reduceConversation(state, { type: "TRANSCRIPT_INTERIM", text: interim });
+    state = reduceConversation(state, { type: "TRANSCRIPT_FINAL", text: "Keep the old record", intent: "consequential" });
+    state = reduceConversation(state, { type: "ENDPOINT_ACCEPTED" });
+    assert.equal(state.status, "confirming");
+    assert.equal(state.pendingSubmission.text, state.transcript);
+    state = reduceConversation(state, { type: "CONFIRM_ACTION" });
+    assert.equal(state.pendingSubmission.text, "Keep the old record");
+    assert.equal(state.pendingSubmission.submitCount, 1);
+  }
+});
+
+test("new conversation turns have an independent response buffer", async () => {
+  const { createInitialState, reduceConversation } = await import(pathToFileURL(path.join(liveChatRoot, "conversation-state.mjs")));
+  let state = createInitialState({ consent: true });
+  for (const answer of ["First answer.", "Second answer."]) {
+    state = reduceConversation(state, { type: "START_LISTENING" });
+    assert.equal(state.response, "");
+    state = reduceConversation(state, { type: "TRANSCRIPT_FINAL", text: "Question" });
+    state = reduceConversation(state, { type: "ENDPOINT_ACCEPTED" });
+    state = reduceConversation(state, { type: "RESPONSE_DELTA", text: answer });
+    assert.equal(state.response, answer);
+    state = reduceConversation(state, { type: "RESPONSE_COMPLETE" });
+  }
+});
+
+test("late microphone completion cannot undo cancellation or a newer request", async () => {
+  const { createBrowserController } = await import(pathToFileURL(path.join(liveChatRoot, "browser-controller.mjs")));
+  const { createInitialState, reduceConversation } = await import(pathToFileURL(path.join(liveChatRoot, "conversation-state.mjs")));
+  for (const denied of [false, true]) {
+    let state = createInitialState();
+    let resolve, reject;
+    let stopped = 0;
+    const controller = createBrowserController({
+      speech: { getUserMedia: () => new Promise((yes, no) => { resolve = yes; reject = no; }) },
+      dispatch: (event) => { state = reduceConversation(state, event); }
+    });
+    const permission = controller.requestPermission();
+    controller.cancel();
+    if (denied) reject(new Error("denied"));
+    else resolve({ getTracks: () => [{ stop() { stopped++; } }] });
+    assert.deepEqual(await permission, { status: "cancelled" });
+    assert.equal(state.status, "cancelled");
+    assert.equal(stopped, denied ? 0 : 1);
+  }
+  const pending = [];
+  const events = [];
+  let stopped = 0;
+  const controller = createBrowserController({
+    speech: { getUserMedia: () => new Promise((resolve) => pending.push(resolve)) },
+    dispatch: (event) => events.push(event.type)
+  });
+  const older = controller.requestPermission();
+  const newer = controller.requestPermission();
+  pending[1]({ getTracks: () => [{ stop() { stopped++; } }] });
+  assert.deepEqual(await newer, { status: "granted" });
+  pending[0]({ getTracks: () => [{ stop() { stopped++; } }] });
+  assert.deepEqual(await older, { status: "cancelled" });
+  assert.deepEqual(events, ["GRANT_CONSENT"]);
+  assert.equal(stopped, 2);
+});

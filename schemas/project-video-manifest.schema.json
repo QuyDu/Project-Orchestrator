@@ -100,7 +100,7 @@
       "properties": {
         "codec": { "const": "aac" },
         "provider": { "const": "azure-neural" },
-        "profile": { "enum": ["ava-hd-warm", "aria-hd-warm", "aria-professional"] },
+        "profile": { "enum": ["ava-hd-warm", "aria-hd-warm", "jenny-professional", "aria-professional"], "description": "Current generation supports jenny-professional; historical aria-professional evidence remains readable without rewriting its voice identity." },
         "selectionSha256": { "$ref": "#/$defs/sha256" },
         "azureDiscoverySha256": { "$ref": "#/$defs/sha256" },
         "azureDiscoveryAt": { "type": "string", "format": "date-time" },

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { deflateRawSync } from "node:zlib";
 import test from "node:test";
 import { digest, DeploymentError } from "../.github/skills/agent-deployment/scripts/contracts.mjs";
@@ -97,11 +98,12 @@ function solutionZip({ managed = true, name = "ReviewedAgent", version = "1.0.0.
 }
 
 async function fixture(t, target = "copilot-studio") {
-  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "pso-platform-")));
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "pso-platform-fixture-")));
+  assert.ok(!root.startsWith(`${repo}${path.sep}`), "platform fixtures must not enter repository evidence scans");
   await mkdir(path.join(root, "source"), { recursive: true });
   await mkdir(path.join(root, "run"), { recursive: true });
   t.after(async () => {
-    await rm(root, { recursive: true, force: true });
+    await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
   const sourceFiles = [];
   const put = async (relative, bytes, source = false) => {
@@ -314,7 +316,7 @@ test("platform configurations are strict self-contained and reject irrelevant op
   assert.throws(() => validateAtk({ ...atk.request.agentsToolkit, identityEvidence: atk.identity("atk", "dev") }), DeploymentError);
 });
 
-test("PAC import uses reviewed managed ZIP and settings, never publishes implicitly", async (t) => {
+test("PAC import uses a reviewed non-agent ZIP and settings without requesting publication", async (t) => {
   const f = await pacFixture(t);
   f.request.copilotStudio.settings = await f.put("input/settings.json", JSON.stringify({ EnvironmentVariables: [{ SchemaName: "rev_greeting", Value: "Hello" }], ConnectionReferences: [] }));
   const provider = await createPacProvider(f.context, f.deps);
@@ -332,6 +334,256 @@ test("PAC import uses reviewed managed ZIP and settings, never publishes implici
   assert(f.calls.every(({ args }) => !args.some((arg) => /publish|force|skip|stage-and|--json/.test(arg))));
   assert.equal((await provider.verify(receipt)).status, "verification-required");
   await assert.rejects(provider.rollback(receipt), throwsCode("RECOVERY_REQUIRED"));
+});
+
+function studioSolution({ configuration = '{"publishOnImport":false}', component = "rev_topic", bot = "rev_agent" } = {}) {
+  return zip({
+    "solution.xml": '<?xml version="1.0"?><ImportExportXml><SolutionManifest><UniqueName>ReviewedAgent</UniqueName><Version>1.0.0.0</Version><Managed>1</Managed><Publisher><CustomizationPrefix>rev</CustomizationPrefix></Publisher></SolutionManifest></ImportExportXml>',
+    "customizations.xml": `<ImportExportXml><bots><bot schemaname="${bot}" botid="${botId}"><configuration>${configuration.replaceAll("&", "&amp;").replaceAll("<", "&lt;")}</configuration></bot></bots><botcomponents><botcomponent schemaname="${component}"/></botcomponents></ImportExportXml>`,
+    "[Content_Types].xml": "<Types />"
+  });
+}
+
+for (const configuration of [
+  '{"publishOnImport":true}', '{"publishOnImport":"false"}',
+  '{"publishOnImport":true,"publishOnImport":false}', '{}',
+  '{"configuration":{"publishOnImport":true}}'
+]) {
+  test(`PAC rejects unsupported or ambiguous import publication configuration ${configuration}`, async (t) => {
+    const f = await pacFixture(t);
+    f.request.copilotStudio.solution = await f.put("input/solution.zip", studioSolution({ configuration }));
+    const provider = await createPacProvider(f.context, f.deps);
+    await assert.rejects(provider.execute("import"), /publication|publishOnImport|configuration/i);
+    assert.equal(f.calls.length, 0, "hidden publication must block even version/auth calls");
+  });
+}
+
+test("PAC connected authoring content is preserved and routed to solution ALM before pack", async (t) => {
+  const f = await pacFixture(t, "pack");
+  const content = "kind: TaskDialog\ntriggerCondition: =false\n";
+  await f.put("source/actions/reader.mcs.yml", content, true);
+  const provider = await createPacProvider(f.context, f.deps);
+  await assert.rejects(provider.execute("pack"), /connected|workspace|solution ALM/i);
+  assert.equal(f.calls.length, 0);
+  assert.equal(await readFile(path.join(f.root, "source/actions/reader.mcs.yml"), "utf8"), content);
+});
+
+test("Studio solution evidence rejects incomplete membership and ambiguous configuration", async () => {
+  const { inspectStudioSolution } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const files = inspectZip(studioSolution()).files;
+  assert.equal(inspectStudioSolution(files, { requiredComponents: ["rev_agent", "rev_topic"], nativeMode: true }).publishOnImport, false);
+  assert.throws(() => inspectStudioSolution(files, { requiredComponents: ["rev_agent", "missing_topic"], nativeMode: true }), /membership|component/i);
+  assert.throws(() => inspectStudioSolution(files, { requiredComponents: [], nativeMode: true }), /membership|component/i);
+});
+
+test("native import rejects hidden security changes extra component types and a different bot identity", async () => {
+  const { inspectStudioSolution } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const options = { requiredComponents: ["rev_agent", "rev_topic"], nativeMode: true, expectedBotId: botId };
+  for (const configuration of [
+    '{"publishOnImport":false,"authenticationMode":"none"}',
+    '{"publishOnImport":false,"audience":"external"}',
+    '{"publishOnImport":false,"connectionProperties":{"mode":"Maker"}}',
+    '{"publishOnImport":false,"dlpBypass":true}'
+  ]) {
+    assert.throws(() => inspectStudioSolution(inspectZip(studioSolution({ configuration })).files, options), /security|ownership|scope/i);
+  }
+  const files = inspectZip(studioSolution()).files;
+  const original = files.get("customizations.xml").toString("utf8");
+  files.set("customizations.xml", Buffer.from(original.replace("</ImportExportXml>", "<Roles><Role id=\"unreviewed\"/></Roles></ImportExportXml>")));
+  assert.throws(() => inspectStudioSolution(files, options), /roles|component/i);
+  files.set("customizations.xml", Buffer.from(original.replace(botId, tenantId)));
+  assert.throws(() => inspectStudioSolution(files, options), /identity|target/i);
+  files.set("customizations.xml", Buffer.from(original.replace(botId, `{${botId}}`)));
+  assert.equal(inspectStudioSolution(files, options).publishOnImport, false);
+});
+
+const studioTarget = {
+  cloud: "AzureCloud", tenantId, environmentId: "66666666-6666-4666-8666-666666666666", dataverseUrl: environment, botId
+};
+function evaluationSpec() {
+  const toolsConnections = [{
+    botId, botSchemaName: "rev_agent", connections: [
+      { connectionId: "reviewed-user-connection", connectionReferenceName: "rev_records", connectorId: "shared_records" }
+    ]
+  }];
+  return {
+    target: studioTarget, testSetId: "77777777-7777-4777-8777-777777777777", testSetSha256: "a".repeat(64),
+    definitionSha256: "b".repeat(64), version: { kind: "draft", id: "reviewed-draft" },
+    requiredToolBindings: toolsConnections,
+    body: { evaluationRunName: "reviewed-run-1", mcsConnectionId: "reviewed-profile", runOnPublishedBot: false, toolsConnections },
+    cases: [{ id: "question-1", expectedSubstring: "The total is 42", requiresSideEffect: false }]
+  };
+}
+
+function completedEvaluation(spec = evaluationSpec()) {
+  return {
+    target: spec.target, runId: "88888888-8888-4888-8888-888888888888", evaluationRunName: spec.body.evaluationRunName,
+    testSetId: spec.testSetId, testSetSha256: spec.testSetSha256, definitionSha256: spec.definitionSha256,
+    version: spec.version, mcsConnectionId: spec.body.mcsConnectionId, toolsConnections: spec.body.toolsConnections,
+    state: "Completed", executionState: "Completed",
+    cases: [{ id: "question-1", responseText: "The total is 42 units.", graderResult: "Pass", quality: "relevant" }]
+  };
+}
+
+test("Studio target resolution requires one vetted environment and never a hosting subscription", async () => {
+  const { resolveStudioEnvironment } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const candidate = { ...studioTarget, displayName: "Reviewed Environment", evidenceSha256: "a".repeat(64) };
+  delete candidate.botId;
+  const scope = { tenantId, cloud: "AzureCloud" };
+  assert.deepEqual(resolveStudioEnvironment("Reviewed Environment", [candidate], scope), candidate);
+  assert.equal(Object.hasOwn(candidate, "subscriptionId"), false);
+  assert.throws(() => resolveStudioEnvironment("Reviewed Environment", [
+    candidate, { ...candidate, environmentId: botId }
+  ], scope), /ambiguous/i);
+  assert.throws(() => resolveStudioEnvironment("Unknown", [candidate], scope), /missing/i);
+  assert.throws(() => resolveStudioEnvironment(candidate.environmentId, [candidate], { ...scope, cloud: "AzureUSGovernment" }), /cloud/i);
+});
+
+test("Studio approvals reuse only the same operation target identity audience mutation and lifetime", async () => {
+  const { validateStudioApproval } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const scope = { operation: "import", targetSha256: "a".repeat(64), identitySha256: "b".repeat(64), audienceSha256: "c".repeat(64), mutationSha256: "d".repeat(64) };
+  const approval = { scope, approved: true, grantedAt: "2026-09-30T08:00:00Z", expiresAt: "2026-09-30T09:00:00Z" };
+  const options = { now: "2026-09-30T08:30:00Z" };
+  assert.equal(validateStudioApproval(approval, scope, options), approval);
+  for (const key of Object.keys(scope)) {
+    const changed = { ...scope, [key]: key === "operation" ? "publish" : "f".repeat(64) };
+    assert.throws(() => validateStudioApproval(approval, changed, options), /scope|differs/i);
+  }
+  assert.throws(() => validateStudioApproval(approval, scope, { now: approval.expiresAt }), /expired/i);
+});
+
+test("Studio evaluation rejects null profiles missing tool bindings and invented API version fields", async () => {
+  const { validateEvaluationRequest } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const original = evaluationSpec();
+  assert.equal(validateEvaluationRequest(original), original);
+  for (const mutate of [
+    (spec) => { spec.body.mcsConnectionId = null; },
+    (spec) => { spec.body.toolsConnections = []; },
+    (spec) => { spec.body.version = "invented-version-property"; },
+    (spec) => { spec.body.runOnPublishedBot = true; }
+  ]) {
+    const spec = structuredClone(original);
+    mutate(spec);
+    assert.throws(() => validateEvaluationRequest(spec), /contract|binding|version/i);
+  }
+});
+
+test("Studio HTTP 200 and 202 admit but never complete evaluations or repeat an ambiguous POST", async () => {
+  const { recordEvaluationAdmission, reconcileEvaluationRun } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const spec = evaluationSpec();
+  const run = completedEvaluation(spec);
+  const callbackUri = `https://api.powerplatform.com/copilotstudio/environments/${studioTarget.environmentId}/bots/${botId}/api/makerevaluation/testruns/${run.runId}?api-version=2024-10-01`;
+  for (const status of [200, 202]) {
+    const attempt = recordEvaluationAdmission(null, { status, body: { runId: run.runId, state: "Completed", callbackUri } }, spec);
+    assert.equal(attempt.status, "pending");
+    assert.equal(attempt.runId, run.runId);
+    assert.equal(attempt.retryAllowed, false);
+    assert.throws(() => recordEvaluationAdmission(attempt, { status, body: run }, spec), /reconcile/i);
+  }
+  const ambiguous = recordEvaluationAdmission(null, { status: 500 }, spec);
+  assert.equal(ambiguous.status, "unknown");
+  assert.equal(reconcileEvaluationRun(ambiguous, [], spec).retryAllowed, false);
+  const reconciled = reconcileEvaluationRun(ambiguous, [run], spec);
+  assert.equal(reconciled.runId, run.runId);
+  assert.equal(reconciled.status, "pending");
+  assert.equal(reconcileEvaluationRun(ambiguous, [run, { ...run, runId: botId }], spec).status, "unknown");
+});
+
+test("Studio callback rejects other hosts targets query tokens and redirects while retaining admitted run IDs", async () => {
+  const { recordEvaluationAdmission, validateEvaluationCallback } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const spec = evaluationSpec();
+  const run = completedEvaluation(spec);
+  const route = `/copilotstudio/environments/${studioTarget.environmentId}/bots/${botId}/api/makerevaluation/testruns/${run.runId}?api-version=2024-10-01`;
+  const valid = `https://api.powerplatform.com${route}`;
+  assert.equal(validateEvaluationCallback(valid, studioTarget, run.runId), valid);
+  for (const uri of [
+    `http://api.powerplatform.com${route}`, `https://api.powerplatform.com.attacker.invalid${route}`,
+    `https://attacker.invalid${route}`, valid.replace(studioTarget.environmentId, tenantId),
+    `${valid}&code=private-oauth-code`, valid.replace("testruns/", "testruns/%2e%2e/")
+  ]) {
+    assert.throws(() => validateEvaluationCallback(uri, studioTarget, run.runId), /callback/i);
+    const result = recordEvaluationAdmission(null, { status: 202, body: { runId: run.runId, callbackUri: uri } }, spec);
+    assert.equal(result.runId, run.runId);
+    assert.equal(result.status, "blocked");
+    assert.equal(result.callbackUri, null);
+    assert.doesNotMatch(JSON.stringify(result), /private-oauth-code|attacker/);
+  }
+});
+
+test("Studio functional gate rejects connection boilerplate NA grades stale sets and draft mismatches", async () => {
+  const { assessEvaluationRun } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const spec = evaluationSpec();
+  const run = completedEvaluation(spec);
+  assert.equal(assessEvaluationRun(spec, run).status, "verified");
+  for (const mutate of [
+    (value) => { value.cases[0].responseText = "Let's get you connected first. The total is 42"; },
+    (value) => { value.cases[0].quality = "NA"; },
+    (value) => { value.cases = []; },
+    (value) => { value.mcsConnectionId = null; },
+    (value) => { value.version.kind = "published"; },
+    (value) => { value.testSetSha256 = "f".repeat(64); }
+  ]) {
+    const changed = structuredClone(run);
+    mutate(changed);
+    assert.notEqual(assessEvaluationRun(spec, changed).status, "verified");
+  }
+});
+
+test("Studio source no-op publication labels and off-channel errors never prove layered delivery", async () => {
+  const { assessStudioEvidence, assessStudioDiagnostics, verifyStudioSetting, assertStudioSecurityInvariant } =
+    await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const supplied = { authoredSha256: "a".repeat(64), operation: "publish",
+    publication: { componentstate: "Published", status: "Provisioned", exitCode: 0 } };
+  const evidence = assessStudioEvidence(supplied);
+  assert.equal(evidence.authored.status, "verified");
+  for (const key of ["synchronized", "imported", "provisioned", "evaluated", "published", "channelVerified"]) {
+    assert.notEqual(evidence[key].status, "verified");
+  }
+  const expected = { target: studioTarget, property: "description", value: "Reviewed description" };
+  assert.equal(verifyStudioSetting(expected, { exitCode: 0, noChanges: true }).status, "pending");
+  assert.equal(verifyStudioSetting(expected, { ...expected, value: "Old description", source: "provider-readback", observedAt: "2026-09-30T08:30:00Z" }).status, "failed");
+  const unsafe = { ...expected, property: "authenticationmode", value: "none" };
+  assert.equal(verifyStudioSetting(unsafe, { ...unsafe, source: "provider-readback", observedAt: "2026-09-30T08:30:00Z" }).status, "blocked");
+  const diagnostics = assessStudioDiagnostics({ accessPath: "teams", issues: [
+    { accessPath: "direct-engine", severity: "Blocking", code: "DLP_VIOLATION" },
+    { accessPath: "teams", severity: "Warning", code: "FIRST_CHANNEL_NOT_CONNECTED" }
+  ] });
+  assert.equal(diagnostics.status, "pending");
+  assert.deepEqual(diagnostics.blocking, []);
+  const before = { authenticationMode: "microsoft-single-tenant", authenticationTrigger: "always", audience: "tenant",
+    channels: ["teams"], toolIdentity: "Invoker", audienceSha256: "c".repeat(64), dlpPolicySha256: "a".repeat(64) };
+  assert.equal(assertStudioSecurityInvariant(before, structuredClone(before)), true);
+  for (const field of ["authenticationMode", "audience", "toolIdentity", "audienceSha256", "dlpPolicySha256"]) {
+    assert.throws(() => assertStudioSecurityInvariant(before, { ...before, [field]: "unsafe-workaround" }), /scope|unsupported|plan-bound/i);
+  }
+});
+
+test("PAC known bad status query blocks explicitly and never alters schema or prints provider credentials", async (t) => {
+  const f = await pacFixture(t, "publish");
+  const normal = f.deps.runCli;
+  f.deps.runCli = async (tool, args, options) => args[1] === "status"
+    ? { exitCode: 1, stdout: "", stderr: "Invalid componentstate_Property; Bearer this-private-token-must-never-escape" }
+    : normal(tool, args, options);
+  const provider = await createPacProvider(f.context, f.deps);
+  await assert.rejects(provider.probe(), (error) => {
+    assert.equal(error.code, "PAC_STATUS_QUERY_UNSUPPORTED");
+    assert.doesNotMatch(error.message, /this-private-token|Bearer/);
+    return true;
+  });
+
+  test("PAC accepts an exact reviewed Power Platform target without an Azure hosting profile", async (t) => {
+    const f = await pacFixture(t);
+    f.context.profile = null;
+    f.context.studioTarget = studioTarget;
+    const provider = await createPacProvider(f.context, f.deps);
+    const receipt = await provider.execute("import");
+    assert.equal(receipt.status, "imported");
+    assert.equal(receipt.publicationVerified, false);
+    assert.equal(f.calls.some(({ args }) => args.includes("subscription") || args.includes("login")), false);
+    f.context.profile = { cloud: "AzureUSGovernment" };
+    await assert.rejects(createPacProvider(f.context, f.deps), /conflicts|cloud/i);
+  });
+  assert.equal(f.calls.some(({ args }) => ["publish", "update", "import"].includes(args[1])), false);
 });
 
 test("PAC development pack output can be imported explicitly as unmanaged without publication", async (t) => {
@@ -883,4 +1135,465 @@ test("purely local package probes permit an absent target authentication profile
     assert.equal(snapshot.phase, "ready");
     assert(!f.calls.some(({ args }) => args[0] === "auth"));
   }
+});
+
+async function nativeStudioFixture(t, { prepared = false } = {}) {
+  const f = await pacFixture(t);
+  const core = await centralFixture(f);
+  await rm(path.join(f.root, ".azure"), { recursive: true, force: true });
+  f.request.schemaVersion = "1.1.0";
+  f.request.runtime.kind = "native-copilot-studio";
+  f.request.mode = "update";
+  const observation = (state = "unknown", evidence = []) => ({ state, evidence, detail: "Synthetic offline review evidence; no live operation." });
+  const directory = "copilot-studio/reviewed-agent";
+  const guide = await f.put(".github/instructions/copilot-studio.instructions.md", '---\nname: "Studio"\ndescription: "Native Studio operator guide"\napplyTo: "copilot-studio/**,**/*.mcs.yml,**/*.mcs.yaml,scripts/*studio*.ts,tests/studio-*.test.ts"\n---\n# Native Studio\nKeep authentication and scope unchanged.\n');
+  const metadata = await f.put(`${directory}/agent.mcs.yml`, 'kind: GptComponentMetadata\nmcs.metadata:\n  componentName: Reviewed Agent\n  description: A static reviewed agent.\ninstructions: Reply only using the reviewed static topic.\n');
+  const topic = await f.put(`${directory}/topics/topic.mcs.yml`, 'kind: AdaptiveDialog\nmodelDescription: Explain the reviewed total.\nbeginDialog:\n  kind: OnRecognizedIntent\n  id: main\n  intent:\n    triggerQueries:\n      - What is the total\n  actions:\n    - kind: SendActivity\n      id: reply\n      activity: The total is 42 units.\n');
+  const agent = { id: "reviewed-agent", name: "Reviewed Agent", schemaName: "rev_agent", publisherPrefix: "rev" };
+  const origin = prepared ? { agent: "new", operation: "prepare" } : { agent: "existing", operation: "import" };
+  const security = { authentication: "microsoft-single-tenant", audience: "tenant", channels: ["teams"], toolIdentity: "invoker", requirements: ["Preserve Microsoft authentication and approved audience."] };
+  const specification = {
+    schemaVersion: "1.0.0", runtime: "native-copilot-studio",
+    intent: { ...origin }, agent, target: { cloud: "Public", solutionUniqueName: "ReviewedAgent" },
+    security, tooling: { pacVersion: cliVersion },
+    source: { directory, files: [{ path: "authored/topic.mcs.yml", target: "topics/topic.mcs.yml" }] },
+    capabilities: [{ id: "static-response", scope: "required", description: "Return the reviewed static answer.",
+      sourcePaths: ["topics/topic.mcs.yml"], acceptanceCriteria: ["The answer contains The total is 42."], persistence: { mode: "none", operations: [] } }]
+  };
+  const spec = await f.put("native-spec.json", JSON.stringify(specification));
+  const targetReview = {
+    schemaVersion: "1.0.0", kind: "studio-target-review", source: "operator-reviewed",
+    observedAt: "2026-09-22T13:55:00Z", expiresAt: "2026-09-22T14:55:00Z", cloud: "AzureCloud", tenantId,
+    environmentSelector: "Reviewed Environment",
+    environments: [{ displayName: "Reviewed Environment", environmentId: studioTarget.environmentId, dataverseUrl: environment,
+      tenantId, cloud: "AzureCloud", evidenceSha256: "a".repeat(64) }],
+    botId, agentSchemaName: "rev_agent", solutionName: "ReviewedAgent",
+    identitySha256: f.request.copilotStudio.identityEvidence.sha256,
+    security: { authenticationMode: "microsoft-single-tenant", authenticationTrigger: "always", audience: "tenant",
+      channels: ["teams"], toolIdentity: "Invoker", audienceSha256: "c".repeat(64), dlpPolicySha256: "b".repeat(64) }
+  };
+  const targetRef = await f.put("reviews/target.json", JSON.stringify(targetReview));
+  const archive = studioSolution();
+  f.request.copilotStudio.solution = await f.put("input/solution.zip", archive);
+  const recovery = await f.put("recovery/prior.zip", archive);
+  const membership = {
+    schemaVersion: "1.0.0", kind: "studio-solution-membership", solutionName: "ReviewedAgent",
+    solutionSha256: f.request.copilotStudio.solution.sha256,
+    components: [{ path: metadata.path, schemaName: "rev_agent" }, { path: topic.path, schemaName: "rev_topic" }],
+    recoverySha256: recovery.sha256
+  };
+  const membershipRef = await f.put("reviews/membership.json", JSON.stringify(membership));
+  const handoff = {
+    schemaVersion: "1.0.0", runtime: "native-copilot-studio",
+    intent: { ...origin, owner: "agent-deployment" }, agent,
+    target: {
+      cloud: "Public", ...Object.fromEntries(["tenant", "environment", "dataverse", "bot"].map((name) => [name, observation("verified", [targetRef])])),
+      solution: { uniqueName: "ReviewedAgent", readiness: observation("verified", [targetRef]) }
+    },
+    security: { ...security, policy: observation("verified", [targetRef]) },
+    capabilities: [{
+      id: "static-response", scope: "required", description: specification.capabilities[0].description,
+      sourcePaths: [topic.path], implementation: observation("verified", [topic]),
+      acceptance: { ...observation(), criteria: specification.capabilities[0].acceptanceCriteria },
+      persistence: { ...observation("not-requested"), mode: "none", operations: [] }, gaps: ["Runtime acceptance is pending."]
+    }],
+    artifacts: {
+      guide, spec, authored: [metadata, topic], connectedDirectory: null,
+      solutionMembership: { ...observation("verified", [membershipRef]), components: [metadata.path, topic.path], missing: [] },
+      recovery: { ...observation("verified", [recovery]), artifacts: [recovery], procedure: ["Review compatible restoration separately; no destructive automatic rollback."] }
+    },
+    approvals: Object.fromEntries(["localMutation", "draft", "publication", "sharing", "cost", "security", "destructive"].map((key) => [key, observation("not-requested")])),
+    evidence: Object.fromEntries(["authored", "localValidation", "synchronized", "imported", "provisioned", "evaluated", "publicationSubmitted", "serverPublished", "channelVerified"]
+      .map((key) => [key, observation(["authored", "localValidation"].includes(key) ? "verified" : "not-requested", ["authored", "localValidation"].includes(key) ? [metadata, topic] : [])])),
+    complete: false, gaps: ["Cloud, evaluation, publication and channel behavior remain unverified."]
+  };
+  f.request.blueprint = await f.put("native-blueprint.json", JSON.stringify({
+    schemaVersion: "3.0.0", agentType: "copilot-studio", id: agent.id, name: agent.name, nativeSpec: spec, guide
+  }));
+  const save = async () => {
+    f.request.nativeStudioHandoff = await f.put("native-handoff.json", JSON.stringify(handoff));
+    await f.put("native-request.json", JSON.stringify(f.request));
+  };
+  await save();
+  return { f, core, handoff, targetReview, membership, observation, specification, save };
+}
+
+test("native 1.1 handoff is consumed through package plan apply verify without an Azure subscription", async (t) => {
+  const { f, core, save } = await nativeStudioFixture(t);
+  const packaged = await runDeployment("package", core.options, core.dependencies);
+  assert.equal(packaged.schemaVersion, "1.1.0");
+  assert.equal(packaged.studioEvidence.authored.status, "verified");
+  const names = await readdir(path.join(f.root, packaged.packagePath));
+  assert(names.includes("native-studio-handoff.json"));
+  assert(!names.includes("instructions.txt") && !names.includes("agent.md"), "the native guide is not a remote business-agent prompt");
+  const plan = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(plan.status, "review-required", plan.reason);
+  assert.equal(plan.schemaVersion, "1.1.0");
+  assert.deepEqual(plan.requiredApprovals, ["solution-import"]);
+  assert.equal(plan.nativeStudioHandoffSha256, f.request.nativeStudioHandoff.sha256);
+  f.calls.length = 0;
+  await assert.rejects(runDeployment("apply", { ...core.approved(plan), approve: [] }, core.dependencies), /approval/i);
+  assert.equal(f.calls.length, 0, "rejected consent must not even run PAC version/auth");
+  const result = await runDeployment("apply", core.approved(plan), core.dependencies);
+  assert.equal(result.status, "imported", result.message);
+  assert.equal(result.studioEvidence.imported.status, "pending");
+  assert.equal(result.studioEvidence.published.status, "unknown");
+  assert.equal(result.studioEvidence.channelVerified.status, "unknown");
+  assert.equal(result.platformOutcome.publicationVerified, false);
+  const verified = await runDeployment("verify", { project: f.root, plan: "reports/agent-deployment-plan.json" }, core.dependencies);
+  assert.equal(verified.status, "verification-required");
+  assert.equal(verified.verifiedAt, null);
+  await runDeployment("apply", core.approved(plan), core.dependencies);
+  assert.equal(f.calls.filter(({ args }) => args[0] === "solution" && args[1] === "import").length, 1);
+  const statePath = path.join(f.root, result.statePath);
+  const state = JSON.parse(await readFile(statePath, "utf8"));
+  state.studioEvidence.published = { status: "verified", code: "LOCAL_ATTESTATION", evidenceSha256: "a".repeat(64) };
+  await writeFile(statePath, JSON.stringify(state));
+  await assert.rejects(runDeployment("verify", { project: f.root, plan: "reports/agent-deployment-plan.json" }, core.dependencies), /contract|attestation|evidence/i);
+  await save();
+});
+
+test("native pending target unsupported operations and source drift stop before provider calls", async (t) => {
+  const { f, core, handoff, observation, save } = await nativeStudioFixture(t);
+  handoff.target.environment = observation("unknown");
+  await save();
+  const blocked = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(blocked.status, "unavailable");
+  assert.equal(f.calls.length, 0);
+  handoff.intent.operation = "evaluate";
+  delete f.request.copilotStudio;
+  await save();
+  const manual = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(manual.status, "unavailable");
+  assert.match(manual.reason, /manual|adapter/i);
+  assert.equal(f.calls.length, 0);
+  await writeFile(path.join(f.root, handoff.artifacts.authored[0].path), "changed source");
+  await assert.rejects(runDeployment("package", core.options, core.dependencies), /digest|changed/i);
+});
+
+test("native reused approval is exact scoped and expired approval produces no CLI calls", async (t) => {
+  const { nativeStudioApprovalScope } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const { f, core, handoff, observation, save } = await nativeStudioFixture(t);
+  const approval = {
+    scope: nativeStudioApprovalScope(f.request, handoff, studioTarget), approved: true,
+    grantedAt: "2026-09-22T13:50:00Z", expiresAt: "2026-09-22T14:50:00Z"
+  };
+  const ref = await f.put("reviews/approval.json", JSON.stringify({ schemaVersion: "1.0.0", kind: "studio-operation-approval", approval }));
+  handoff.approvals.draft = observation("verified", [ref]);
+  await save();
+  const plan = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(plan.status, "review-required", plan.reason);
+  f.calls.length = 0;
+  await assert.rejects(runDeployment("apply", { ...core.approved(plan), planDigest: "f".repeat(64) }, core.dependencies), /digest/i);
+  assert.equal(f.calls.length, 0);
+  core.dependencies.now = () => new Date("2026-09-22T14:51:00Z");
+  await assert.rejects(runDeployment("apply", core.approved(plan), core.dependencies), /expired|approval/i);
+  assert.equal(f.calls.length, 0);
+});
+
+test("native solution membership omitted components and automatic publication block the real PAC adapter", async (t) => {
+  const { f, core, handoff, membership, observation, save } = await nativeStudioFixture(t);
+  const archive = studioSolution({ configuration: '{"publishOnImport":true}' });
+  f.request.copilotStudio.solution = await f.put("input/solution.zip", archive);
+  membership.solutionSha256 = f.request.copilotStudio.solution.sha256;
+  handoff.artifacts.solutionMembership.evidence = [await f.put("reviews/membership.json", JSON.stringify(membership))];
+  await save();
+  const plan = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(plan.status, "unavailable");
+  assert.match(plan.reason, /publishOnImport|publication/i);
+  assert.equal(f.calls.length, 0);
+  handoff.artifacts.solutionMembership = { ...observation("unknown"), components: [], missing: [handoff.artifacts.authored[1].path] };
+  await save();
+  const missing = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(missing.status, "unavailable");
+  assert.match(missing.reason, /membership/i);
+  assert.equal(f.calls.length, 0);
+});
+
+test("native publication consumes profile functional and source read-back gates without circular channel warnings", async (t) => {
+  const { f, core, handoff, observation, save } = await nativeStudioFixture(t);
+  const common = f.request.copilotStudio;
+  f.request.copilotStudio = { operation: "publish", expectedCliVersion: common.expectedCliVersion,
+    environment: common.environment, identityEvidence: common.identityEvidence, botId };
+  handoff.intent.operation = "publish";
+  const spec = evaluationSpec();
+  spec.definitionSha256 = digest(handoff.artifacts.authored);
+  const run = completedEvaluation(spec);
+  run.cases[0].responseText = "Let's get you connected first. The total is 42";
+  const evaluationReview = { schemaVersion: "1.0.0", kind: "studio-evaluation-review", spec, run };
+  const evaluationRef = await f.put("reviews/evaluation.json", JSON.stringify(evaluationReview));
+  handoff.evidence.evaluated = observation("verified", [evaluationRef]);
+  handoff.capabilities[0].acceptance = { ...observation("verified", [evaluationRef]), criteria: handoff.capabilities[0].acceptance.criteria };
+  handoff.capabilities[0].gaps = [];
+  const expected = { target: studioTarget, property: "description", value: "A static reviewed agent." };
+  const settingReview = {
+    schemaVersion: "1.0.0", kind: "studio-setting-review", definitionSha256: spec.definitionSha256, expected,
+    readBack: { source: "provider-readback", observedAt: "2026-09-22T13:59:00Z", ...expected }
+  };
+  handoff.evidence.synchronized = observation("verified", [await f.put("reviews/setting.json", JSON.stringify(settingReview))]);
+  const diagnostics = { schemaVersion: "1.0.0", kind: "studio-diagnostics-review", target: studioTarget, issues: [
+    { severity: "Blocking", accessPath: "direct-engine", code: "DLP_VIOLATION" },
+    { severity: "Warning", accessPath: "teams", code: "FIRST_CHANNEL_NOT_CONNECTED" }
+  ] };
+  handoff.security.policy.evidence.push(await f.put("reviews/diagnostics.json", JSON.stringify(diagnostics)));
+  await save();
+  const blocked = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(blocked.status, "unavailable");
+  assert.equal(blocked.studioEvidence.evaluated.status, "failed");
+  assert.equal(f.calls.length, 0, "functional failure must not call the provider, even when graders Pass");
+  evaluationReview.run = completedEvaluation(spec);
+  const passingRef = await f.put("reviews/evaluation.json", JSON.stringify(evaluationReview));
+  handoff.evidence.evaluated.evidence = [passingRef];
+  handoff.capabilities[0].acceptance.evidence = [passingRef];
+  settingReview.readBack.value = "Old description";
+  handoff.evidence.synchronized.evidence = [await f.put("reviews/setting.json", JSON.stringify(settingReview))];
+  await save();
+  const sourceNoOp = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(sourceNoOp.status, "unavailable");
+  assert.equal(sourceNoOp.studioEvidence.synchronized.status, "failed");
+  assert.equal(f.calls.length, 0);
+  settingReview.readBack.value = expected.value;
+  handoff.evidence.synchronized.evidence = [await f.put("reviews/setting.json", JSON.stringify(settingReview))];
+  await save();
+  const ready = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(ready.status, "review-required", ready.reason);
+  assert.equal(ready.studioEvidence.evaluated.status, "pending", "reviewed local evidence is not live validation");
+  assert.deepEqual(ready.requiredApprovals, ["agent-publication"]);
+  const result = await runDeployment("apply", core.approved(ready), core.dependencies);
+  assert.equal(result.status, "publication-submitted", result.message);
+  assert.equal(result.platformOutcome.publicationVerified, false);
+  assert.equal(result.studioEvidence.published.status, "pending");
+  assert.equal(result.studioEvidence.channelVerified.status, "unknown");
+  assert.equal(result.verifiedAt, null);
+});
+
+test("native independent publication evidence must advance and a channel needs actual fresh responses", async () => {
+  const { assessStudioEvidence } = await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const binding = { target: studioTarget, definitionSha256: "a".repeat(64), securitySha256: "b".repeat(64) };
+  const publication = {
+    source: "provider-readback",
+    expected: { ...binding, previousPublishedOn: "2026-09-22T13:00:00Z", operationStartedAt: "2026-09-22T14:00:00Z" },
+    actual: { ...binding, publishedOn: "2026-09-22T14:01:00Z", observedAt: "2026-09-22T14:02:00Z" }
+  };
+  const observations = { publication, audienceSha256: "c".repeat(64), intendedChannels: ["teams"] };
+  const published = assessStudioEvidence(observations);
+  assert.equal(published.published.status, "verified", "pure supplied-readback checks are separate from the live PAC provider contract");
+  assert.equal(published.channelVerified.status, "unknown");
+  const channel = {
+    source: "channel-observation", target: studioTarget, name: "teams", freshConversation: true,
+    audienceSha256: observations.audienceSha256, publishedEvidenceSha256: published.published.evidenceSha256,
+    cases: [{ passed: true, responseText: "The total is 42 units.", expectedSubstring: "The total is 42", requiresSideEffect: false }]
+  };
+  assert.equal(assessStudioEvidence({ ...observations, channel }).channelVerified.status, "verified");
+  channel.cases[0].responseText = "Let's get you connected first. The total is 42";
+  assert.equal(assessStudioEvidence({ ...observations, channel }).channelVerified.status, "unknown");
+  for (const publishedOn of [null, publication.expected.previousPublishedOn, "2026-09-22T13:30:00Z"]) {
+    assert.notEqual(assessStudioEvidence({ ...observations,
+      publication: { ...publication, actual: { ...publication.actual, publishedOn } } }).published.status, "verified");
+  }
+});
+
+test("installed native consumer has no source-repository dependency and new helper or guide drift invalidates approval", async (t) => {
+  const { f, core, handoff } = await nativeStudioFixture(t);
+  const scripts = path.join(f.root, ".github", "skills", "agent-deployment", "scripts");
+  await cp(path.join(repo, ".github", "skills", "agent-deployment", "scripts"), scripts, { recursive: true });
+  const builder = path.join(f.root, ".github", "skills", "agent-builder", "scripts");
+  await mkdir(builder, { recursive: true });
+  for (const name of ["agent-builder.mjs", "native-studio.mjs"]) {
+    await copyFile(path.join(repo, ".github", "skills", "agent-builder", "scripts", name), path.join(builder, name));
+  }
+  await mkdir(path.join(f.root, "schemas"));
+  for (const name of ["agent-deployment-request", "agent-deployment-plan", "agent-deployment-state", "agent-deployment-result",
+    "agent-provider-capabilities", "agent-blueprint", "copilot-studio-handoff"]) {
+    await copyFile(path.join(repo, "schemas", `${name}.schema.json`), path.join(f.root, "schemas", `${name}.schema.json`));
+  }
+  const installed = await import(pathToFileURL(path.join(scripts, "agent-deployment.mjs")));
+  const deps = { now: core.dependencies.now, runCli: f.deps.runCli };
+  const plan = await installed.runDeployment("plan", core.options, deps);
+  assert.equal(plan.status, "review-required", plan.reason);
+  f.calls.length = 0;
+  const guide = path.join(f.root, handoff.artifacts.guide.path);
+  const priorGuide = await readFile(guide);
+  await writeFile(guide, Buffer.concat([priorGuide, Buffer.from("\nchanged guidance\n")]));
+  await assert.rejects(installed.runDeployment("apply", core.approved(plan), deps), /digest|changed/i);
+  assert.equal(f.calls.length, 0);
+  await writeFile(guide, priorGuide);
+  const helper = path.join(scripts, "providers", "studio-evidence.mjs");
+  await writeFile(helper, `${await readFile(helper, "utf8")}\n`);
+  await assert.rejects(installed.runDeployment("apply", core.approved(plan), deps), /implementation|changed/i);
+  assert.equal(f.calls.length, 0);
+});
+
+test("native export cannot claim complete retained recovery when the output omits a reviewed component", async (t) => {
+  const { f, core, handoff, save } = await nativeStudioFixture(t);
+  const prior = f.request.copilotStudio;
+  f.request.copilotStudio = {
+    operation: "export", expectedCliVersion: prior.expectedCliVersion, environment: prior.environment,
+    identityEvidence: prior.identityEvidence, solutionName: prior.solutionName, solutionVersion: prior.solutionVersion,
+    outputFile: "output/recovery.zip"
+  };
+  handoff.intent.operation = "troubleshoot";
+  await save();
+  const archive = studioSolution({ component: "omitted_topic" });
+  let retained;
+  f.effect(async (_tool, args) => {
+    retained = args[args.indexOf("--path") + 1];
+    await writeFile(retained, archive);
+    return success("Export accepted.");
+  });
+  const plan = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(plan.status, "review-required", plan.reason);
+  const result = await runDeployment("apply", core.approved(plan), core.dependencies);
+  assert.equal(result.status, "partial");
+  assert.equal(result.code, "STUDIO_COMPONENT_MEMBERSHIP");
+  assert.deepEqual(await readFile(retained), archive, "unsupported/incomplete output stays available for operator recovery review");
+  await assert.rejects(runDeployment("apply", core.approved(plan), core.dependencies), /partial|reconcile/i);
+});
+
+function prepareOperationConfig(prior, handoff, operation) {
+  const common = { operation, expectedCliVersion: prior.expectedCliVersion };
+  if (operation === "pack") return {
+    ...common, projectDirectory: `copilot-studio/${handoff.agent.id}`, sourceFiles: handoff.artifacts.authored,
+    publisherPrefix: handoff.agent.publisherPrefix, solutionName: handoff.target.solution.uniqueName,
+    solutionVersion: "1.0.0.0", outputDirectory: "output", outputFileName: "ReviewedAgent.zip"
+  };
+  const remote = { ...common, environment: prior.environment, identityEvidence: prior.identityEvidence };
+  if (operation === "publish") return { ...remote, botId };
+  if (operation === "export") return {
+    ...remote, solutionName: handoff.target.solution.uniqueName, solutionVersion: "1.0.0.0", outputFile: "output/ReviewedAgent.zip"
+  };
+  return { ...prior, operation };
+}
+
+for (const operation of ["pack", "import", "publish", "export"]) {
+  test(`immutable prepare provenance supports independently approved ${operation} request and update mode`, async (t) => {
+    const { f, core, handoff, observation, save } = await nativeStudioFixture(t, { prepared: true });
+    f.request.copilotStudio = prepareOperationConfig(f.request.copilotStudio, handoff, operation);
+    if (operation === "publish") {
+      const spec = evaluationSpec();
+      spec.definitionSha256 = digest(handoff.artifacts.authored);
+      const ref = await f.put("reviews/evaluation.json", JSON.stringify({
+        schemaVersion: "1.0.0", kind: "studio-evaluation-review", spec, run: completedEvaluation(spec)
+      }));
+      handoff.evidence.evaluated = observation("verified", [ref]);
+      handoff.capabilities[0].acceptance = { ...observation("verified", [ref]), criteria: handoff.capabilities[0].acceptance.criteria };
+      handoff.capabilities[0].gaps = [];
+      const expected = { target: studioTarget, property: "description", value: "A static reviewed agent." };
+      handoff.evidence.synchronized = observation("verified", [await f.put("reviews/setting.json", JSON.stringify({
+        schemaVersion: "1.0.0", kind: "studio-setting-review", definitionSha256: spec.definitionSha256, expected,
+        readBack: { ...expected, source: "provider-readback", observedAt: "2026-09-22T13:59:00Z" }
+      }))]);
+    }
+    await save();
+    const frozen = await readFile(path.join(f.root, f.request.nativeStudioHandoff.path));
+    const frozenSpec = await readFile(path.join(f.root, handoff.artifacts.spec.path));
+    assert.equal(handoff.intent.operation, "prepare");
+    assert.equal(handoff.intent.agent, "new");
+    assert.equal(f.request.mode, "update");
+    f.effect(async (_tool, args) => {
+      if (operation === "pack") {
+        await writeFile(path.join(args[args.indexOf("--output-path") + 1], "ReviewedAgent.zip"), solutionZip({ managed: false }));
+      } else if (operation === "export") {
+        await writeFile(args[args.indexOf("--path") + 1], studioSolution());
+      }
+      return success("Synthetic approved operation accepted.");
+    });
+    const packaged = await runDeployment("package", core.options, core.dependencies);
+    assert.equal(packaged.schemaVersion, "1.1.0");
+    const plan = await runDeployment("plan", core.options, core.dependencies);
+    assert.equal(plan.status, "review-required", plan.reason);
+    const required = { pack: "local-package-execution", import: "solution-import", publish: "agent-publication", export: "solution-export" }[operation];
+    assert.deepEqual(plan.requiredApprovals, [required]);
+    f.calls.length = 0;
+    await assert.rejects(runDeployment("apply", { ...core.approved(plan), approve: [] }, core.dependencies), /approval/i);
+    assert.equal(f.calls.length, 0, "preparation provenance cannot grant downstream consent");
+    await assert.rejects(runDeployment("apply", { ...core.approved(plan), planDigest: "f".repeat(64) }, core.dependencies), /digest/i);
+    assert.equal(f.calls.length, 0);
+    const result = await runDeployment("apply", core.approved(plan), core.dependencies);
+    assert.equal(result.status, operation === "import" ? "imported" : operation === "publish" ? "publication-submitted" : "packaged", result.message);
+    const verified = await runDeployment("verify", { project: f.root, plan: "reports/agent-deployment-plan.json" }, core.dependencies);
+    assert.notEqual(verified.status, "published");
+    assert.equal(verified.verifiedAt, null);
+    assert.equal(verified.platformOutcome.publicationVerified, false);
+    assert.deepEqual(await readFile(path.join(f.root, f.request.nativeStudioHandoff.path)), frozen);
+    assert.deepEqual(await readFile(path.join(f.root, handoff.artifacts.spec.path)), frozenSpec);
+    assert.equal(f.request.nativeStudioHandoff.sha256, digest(frozen));
+    f.calls.length = 0;
+    await f.put("native-request.json", JSON.stringify({ ...f.request, release: "unreviewed-release" }));
+    await assert.rejects(runDeployment("apply", core.approved(plan), core.dependencies), /changed|drift/i);
+    assert.equal(f.calls.length, 0, "provenance compatibility must not reuse approval for a changed current request");
+  });
+}
+
+test("real builder prepare handoff is consumed unchanged with readiness and downstream approval boundaries intact", async (t) => {
+  const { f, core, handoff: seed, specification } = await nativeStudioFixture(t, { prepared: true });
+  const directory = specification.source.directory;
+  const metadata = await readFile(path.join(f.root, seed.artifacts.authored[0].path), "utf8");
+  const topic = await readFile(path.join(f.root, seed.artifacts.authored[1].path));
+  await f.put(specification.source.files[0].path, topic);
+  await rm(path.join(f.root, directory), { recursive: true });
+  specification.tooling.pacVersion = "2.12.2";
+  await f.put("native-spec.json", JSON.stringify(specification));
+  const log = path.join(f.root, "preparation-commands.jsonl");
+  const fake = path.join(f.root, "local-pac.cjs");
+  await writeFile(fake, `const fs=require("node:fs"),path=require("node:path");
+const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(log)},JSON.stringify(args)+"\\n");
+if(args.includes("--environment")||["auth","env","solution"].includes(args[0]))process.exit(90);
+if(args.join(" ")==="--version"){console.log("Microsoft PowerPlatform CLI Version: 2.12.2");process.exit(0);}
+if(args.join(" ")==="copilot init help"){console.log("--name --publisher-prefix --schema-name --project-dir");process.exit(0);}
+if(args[0]!=="copilot"||args[1]!=="init")process.exit(91);
+const out=args[args.indexOf("--project-dir")+1];fs.mkdirSync(out,{recursive:true});
+fs.writeFileSync(path.join(out,"agent.mcs.yml"),${JSON.stringify(metadata)});
+`);
+  const builder = path.join(repo, ".github", "skills", "agent-builder", "scripts", "agent-builder.mjs");
+  const run = (command, args) => {
+    const result = spawnSync(process.execPath, [builder, command, "--project", f.root, ...args, "--accept-risk", "--json"], {
+      cwd: f.root, encoding: "utf8", env: { ...process.env, PSO_PAC_PATH: fake }, timeout: 30_000
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    return JSON.parse(result.stdout);
+  };
+  const built = run("build", ["--type", "copilot-studio", "--native-spec", "native-spec.json"]);
+  const installed = run("apply", ["--blueprint", built.blueprintPath, "--plan", "reports/agent-builder-plan.json"]);
+  const bytes = await readFile(path.join(f.root, installed.handoff.path));
+  const prepared = JSON.parse(bytes);
+  assert.deepEqual(prepared.intent, { agent: "new", operation: "prepare", owner: "agent-deployment" });
+  f.request.blueprint = { path: built.blueprintPath, sha256: digest(await readFile(path.join(f.root, built.blueprintPath))) };
+  f.request.nativeStudioHandoff = installed.handoff;
+  const importConfig = f.request.copilotStudio;
+  for (const operation of ["pack", "import", "publish", "export"]) {
+    f.request.copilotStudio = prepareOperationConfig(importConfig, prepared, operation);
+    await f.put("native-request.json", JSON.stringify(f.request));
+    const packaged = await runDeployment("package", core.options, core.dependencies);
+    assert.equal(packaged.status, "packaged");
+    assert.deepEqual(await readFile(path.join(f.root, packaged.packagePath, "native-studio-handoff.json")), bytes);
+    const plan = await runDeployment("plan", core.options, core.dependencies);
+    assert.equal(plan.status, "unavailable", "unknown targets or unsupported canonical pack shape must not become executable");
+    assert.doesNotMatch(plan.reason, /handoff operation|new\/existing intent/i);
+    assert.equal(f.calls.length, 0, "no deployment CLI calls are authorized by the local builder receipt");
+    await assert.rejects(runDeployment("apply", core.approved(plan), core.dependencies), /cannot execute|unavailable|Manual/i);
+    assert.deepEqual(await readFile(path.join(f.root, installed.handoff.path)), bytes);
+  }
+  const commands = (await readFile(log, "utf8")).trim().split("\n").map(JSON.parse);
+  assert(commands.every((args) => args[0] === "--version" || (args[0] === "copilot" && args[1] === "init")));
+});
+
+test("prepare provenance cannot bypass current scoped approval expiry or source identity", async (t) => {
+  const { bindNativeStudioHandoff, nativeStudioApprovalScope } =
+    await import("../.github/skills/agent-deployment/scripts/providers/studio-evidence.mjs");
+  const { f, core, handoff, observation, save } = await nativeStudioFixture(t, { prepared: true });
+  f.request.copilotStudio = prepareOperationConfig(f.request.copilotStudio, handoff, "pack");
+  const approval = {
+    scope: nativeStudioApprovalScope(f.request, handoff, null), approved: true,
+    grantedAt: "2026-09-22T13:00:00Z", expiresAt: "2026-09-22T14:00:00Z"
+  };
+  handoff.approvals.localMutation = observation("verified", [await f.put("reviews/pack-approval.json", JSON.stringify({
+    schemaVersion: "1.0.0", kind: "studio-operation-approval", approval
+  }))]);
+  await save();
+  const plan = await runDeployment("plan", core.options, core.dependencies);
+  assert.equal(plan.status, "unavailable");
+  assert.match(plan.reason, /expired/i);
+  assert.equal(f.calls.length, 0);
+  assert.throws(() => bindNativeStudioHandoff(f.request, { id: "different-source" }, handoff, new Map()), /source identity/i);
 });

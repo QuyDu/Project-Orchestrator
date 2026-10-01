@@ -4,7 +4,7 @@ The Foundry execution adapters are **preview prompt agents and reviewed prebuilt
 
 ## Prepare a target project
 
-Use a separate project directory. Never select the framework root or its descendants. The existing `.azure/environment.json` must record `AzureCloud`, the intended subscription and tenant, the requested location/environment, an `interactive` or `managed-identity` authentication method, and `mutationPolicy: "approval-required"`. The script never logs in or switches accounts/clouds. It checks the current `az account show` and token account against this profile, obtains an Entra token for `https://ai.azure.com`, and keeps it in memory only.
+Use a separate project directory. Never select the framework root or its descendants. For Foundry and its Microsoft 365 bridge, the existing `.azure/environment.json` must record `AzureCloud`, the intended subscription and tenant, the requested location/environment, an `interactive` or `managed-identity` authentication method, and `mutationPolicy: "approval-required"`. The script never logs in or switches accounts/clouds. It checks the current `az account show` and token account against this profile, obtains an Entra token for `https://ai.azure.com`, and keeps it in memory only. New Power Platform-only native Studio requests instead consume reviewed target evidence; they do not require an Azure hosting subscription or create Azure resources.
 
 On Windows, an absolute `az.exe` or `az.cmd` is resolved from installed PATH locations and called through the shipped Windows PowerShell `-File` bridge. Only fixed read-only argument vectors are allowed: version, current cloud, current account, and token acquisition for the fixed Foundry or ARM audience. Executable paths are passed as data, dangerous launcher-path metacharacters are rejected, and no command-string evaluation, execution-policy override, `shell:true`, user arguments, or provider bodies enter the bridge. Non-Windows hosts execute the resolved Azure CLI directly with `shell:false`. Launcher/authentication failures are redacted and never trigger login or installation.
 
@@ -167,17 +167,71 @@ byte length. Binary inputs are not restricted by the smaller JSON/read-default l
 archive and aggregate input-size limits still apply.
 
 - `copilotStudio.operation`: `pack`, `import`, `publish`, or `export`. Its central schema fragment is identical to `pac.mjs`'s exported `requestSchema`.
-- PAC import optionally selects `solutionType: "managed" | "unmanaged"`; omission remains **managed** for backward compatibility. `unmanaged` is accepted only when the common request `environment` is explicitly `development`. Staging, production and missing stage are rejected before provider/CLI calls, and the exact ZIP `Managed` state must match the selected type. This supports development pack-to-import without implicit publication; export remains managed.
+- PAC import optionally selects `solutionType: "managed" | "unmanaged"`; omission remains **managed** for backward compatibility. `unmanaged` is accepted only when the common request `environment` is explicitly `development`. Staging, production and missing stage are rejected before provider/CLI calls, and the exact ZIP `Managed` state must match the selected type. Export remains managed. Import is **not inherently draft-only**: the adapter inspects actual solution configuration, rejecting `publishOnImport: true`, missing/ambiguous native flags and incomplete reviewed agent membership before any CLI call. Combined import/publication is an explicit unsupported operation, not something `solution-import` approves.
 - **PAC publish updates all connected channels.** It is not a single-channel deployment. Review every connected channel, its audience, authentication and data exposure before approving `agent-publication`; an import or successful package does not perform this publication.
 - `agentsToolkit.operation`: `provision`, `deploy`, `package`, `publish`, or `update`. Its central schema fragment is identical to `atk.mjs`'s exported `requestSchema`.
-- Every configuration pins `expectedCliVersion`; remote operations bind the explicit environment and operator-reviewed CLI identity evidence. `identityEvidence` contains only `sha256`; the tenant binding comes from the local profile, not copied request identifiers.
+- Every configuration pins `expectedCliVersion`; remote operations bind the explicit environment and operator-reviewed CLI identity evidence. `identityEvidence` contains only `sha256`. Legacy application requests use their recorded profile; the new native branch takes the tenant from its separately reviewed target record, without inventing an Azure subscription.
 - File references are `{ "path": "<target-relative path>", "sha256": "<exact file hash>" }`. Source-tree arrays must cover the full consumed tree. The core packages/revalidates references; leaf adapters stage and recheck native source, manifests, solution ZIPs and settings. A changed request, file, profile, tool evidence, package or implementation invalidates mutation approval.
 - Native plan/apply is one explicit operation. PAC uses separate `local-package-execution`, `solution-import`, `agent-publication`, and `solution-export` approvals. Toolkit uses `toolkit-provision`, `toolkit-deploy`, `toolkit-package`, `toolkit-publish`, or `toolkit-update`; only the provision/deploy lifecycle operations additionally require **`reviewed-code-execution`**.
 - Toolkit publish/update uses a reviewed retained ZIP through the current direct package handlers, not `models/publish.ts` lifecycle execution. These commands pass `--package-file` without `--manifest-file`, which the vendor treats as conflicting options. The manifest reference still binds and validates package identity; it is not a conflicting command argument.
 - The supported lifecycle subset rejects arbitrary scripts, credential-producing actions and installation stages. Any raw `typeSpec/compile` marker in consumed YAML, including a comment, is rejected before CLI calls because the SDK's project-type detector can invoke `npm install`. There is no hidden TypeSpec installation exception. CLI arguments are fixed, noninteractive and safely launched; neither CLI is given an invented general `--json` flag.
 - Imported/provisioned/deployed/packaged outcomes are not publication. Native status/launch-information evidence does not invent catalog approval. Retained artifacts and source-stage approval remain available for separately reviewed recovery; there is no atomic rollback, automatic downgrade, forced import or uninstall.
 
+### Native evidence and unsupported operations
+
+`providers/studio-evidence.mjs` supplies bounded, pure validators used by the native consumer and PAC input guards. It never reads credential caches, starts an evaluation, acquires a token or performs network I/O. The current PAC adapter still returns `publication-submitted`/`verification-required`, never `published`; helper results supplied by local records cannot promote that status.
+
+- The seven evidence layers are authored, synchronized, imported, provisioned, evaluated, published and channel-verified. Missing evidence is unknown/pending, not success. A source no-op needs exact server property read-back. Publication needs an advanced server `publishedon`, intended definitions and unchanged security; channel readiness needs a fresh conversation in the approved client/audience.
+- A connected `.mcs` workspace rejected by pack is left intact. Use separately reviewed supported solution ALM; never delete actions, settings or references to pass packaging.
+- `validateEvaluationRequest(spec)` accepts a local evidence envelope with target, test-set/definition digests, `version: {kind,id}`, required tool bindings, functional cases, and the **documented** body (`evaluationRunName`, `mcsConnectionId`, `runOnPublishedBot`, `toolsConnections`). The envelope's version is not an invented REST-body property.
+- `recordEvaluationAdmission(null, {status: 200|202, body}, spec)` returns a pending attempt with retained `runId` and `retryAllowed: false`. A 500/ambiguous result stays unknown; `reconcileEvaluationRun(attempt, boundedRuns, spec)` only accepts a uniquely matching original run and never authorizes another POST. Invalid callbacks keep the run ID but block following the callback.
+- `assessEvaluationRun(spec, run)` requires completed execution, exact profile/tool/test-set/version binding and actual functional responses. Pass grades on connection boilerplate, empty responses or unexplained `NA` are insufficient. Supplied normalized read-back is evidence to review, not a credential or execution grant.
+- The known `componentstate_Property` PAC status-query failure blocks explicitly with `PAC_STATUS_QUERY_UNSUPPORTED`. No fallback alters Dataverse schema or authentication. An operator can separately review documented `pac env fetch` with supported bot attributes; that transport is not automatically dispatched here.
+- DLP/SDK diagnostics stay scoped to their tested access path. A Warning is not a Blocking issue; initial publication need not wait for a channel that can only connect afterward. No diagnostic permits anonymous auth, maker credentials, broader audience or DLP weakening.
+
+Current official reference: [evaluation body and response contract](https://learn.microsoft.com/en-us/rest/api/power-platform/copilotstudio/bots/run-maker-evaluation-test-set), checked 2026-09-30. It documents 200 admission and the four body fields above; defensive 202 handling does not claim a new provider contract. Live evaluation transport, clone/pull/push, sensitive server-setting changes, channel configuration/tests and combined import/publication remain manual/blocked, not fake successful adapters.
+
 Existing requests without an execution configuration remain explicit nonexecuting compatibility handoffs. They do not silently execute new provider operations. Supply the appropriate strict configuration to enable the supported branch.
+
+### Versioned native Studio request
+
+Keep the common deployment request fields, then explicitly select:
+
+```json
+{
+  "schemaVersion": "1.1.0",
+  "target": "copilot-studio",
+  "runtime": {
+    "kind": "native-copilot-studio",
+    "tools": [],
+    "acknowledgeLocalCapabilitiesOmitted": true
+  },
+  "nativeStudioHandoff": {
+    "path": "copilot-studio/reviewed-agent/native-handoff.json",
+    "sha256": "<reviewed file SHA-256>"
+  },
+  "rollback": { "strategy": "manual", "version": null }
+}
+```
+
+This is an **overlay**, not a complete executable request. `blueprint` can reference the builder's native `3.0.0` blueprint or a compatible validated portable blueprint with matching identity. The handoff uses the shared `copilot-studio-handoff.schema.json` contract and the builder's pure validator; deployment never imports its remote authoring instructions into an agent prompt. Old `1.0.0` requests remain readable, but native agent ZIPs without complete reviewed handoff membership fail closed. Minimal known legacy non-agent archives remain supported.
+
+The shared handoff deliberately stores observations and `{path,sha256}` references, not copied tenant/connection identifiers. The deployment consumer supports these **target-project, nonsecret operator-review records**:
+
+| Record `kind` | Required binding |
+| --- | --- |
+| `studio-target-review` | `schemaVersion: "1.0.0"`, `source: "operator-reviewed"`, `observedAt`, `expiresAt`, Commercial `cloud`, `tenantId`, `environmentSelector`, bounded `environments`, `botId`, `agentSchemaName`, `solutionName`, `identitySha256`, and `security`. Exported `studioTargetReviewSchema` is authoritative. |
+| `studio-solution-membership` | Solution name/SHA, exact `{path,schemaName}` components matching all canonical authored paths, and `recoverySha256` matching a retained artifact. |
+| `studio-operation-approval` | `{schemaVersion,kind,approval}` where approval has an exact `scope`, `approved: true`, `grantedAt` and `expiresAt`. Scope is derived by `nativeStudioApprovalScope(request,handoff,target)`. |
+| `studio-evaluation-review` | `{schemaVersion,kind,spec,run}` with the normalized evaluation envelope and actual case responses. Its definition digest must match the authored-file manifest; pre-publication checks require the draft, not a relabeled published run. |
+| `studio-setting-review` | `{schemaVersion,kind,definitionSha256,expected,readBack}` for the same source/target and exact nonsecurity server property. No-op/mismatched read-back blocks publication. |
+| `studio-diagnostics-review` | `{schemaVersion,kind,target,issues}` with exact access paths and severity. Only Blocking issues on the intended path block it; off-path SDK failures and first-channel Warnings do not. |
+
+The target's tenant/environment/Dataverse/bot/solution readiness and security-policy observations must reference the same target review. Each environment record contains `displayName`, `environmentId`, `dataverseUrl`, `tenantId`, `cloud` and a read-only discovery evidence digest. A name/ID/URL must resolve uniquely; collisions, foreign tenants, unsupported clouds, expired reviews and any request/identity/audience mismatch block before CLI access. Records are operator-reviewed inputs, **not** locally manufactured live attestations. Target evidence must be no older than 24 hours and remain unexpired.
+
+`security` preserves Microsoft single-tenant authentication, Always sign-in, the exact private/tenant audience, Teams/Microsoft 365 channel set, Invoker identity and the reviewed `audienceSha256` and `dlpPolicySha256`. The audience digest binds the operator-reviewed allowed-user/group scope, not merely the word "private"; it is never an inferred grant. The bounded importer refuses serialized security/ownership/channel/publication-metadata controls it cannot prove unchanged; this includes otherwise legitimate complex exports. Keep these artifacts and use separately reviewed supported ALM rather than deleting controls. It likewise rejects extra component types and missing/ambiguous bot identity. Export verification checks actual retained membership; missing components yield a durable partial result with the output preserved.
+
+Prior approval records are reusable **only** for their original operation, target, identity, audience and mutation digests/lifetime. They never replace fresh `--accept-risk --plan-digest ... --approve ...` gates. A builder's local preparation receipt is not an import/publication grant. Native plan/result/state records use `1.1.0`, bind the handoff and helper/schema implementation digests, and reject fabricated verified remote layers. The current provider can report accepted import or publication submission, not independently verified native runtime delivery.
 
 ## Operator and unsupported boundaries
 

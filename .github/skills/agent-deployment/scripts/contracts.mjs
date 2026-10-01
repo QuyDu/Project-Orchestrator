@@ -46,10 +46,12 @@ export function jsonBytes(value) {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
-export function implementationDigest() {
-  const scripts = ["agent-deployment.mjs", "contracts.mjs", "files.mjs", "package.mjs", "platform-engine.mjs", "providers/foundry.mjs", "providers/registry.mjs", "providers/azure-cli.mjs", "providers/azure-cli.ps1", "providers/azure-http.mjs", "providers/microsoft365.mjs", "providers/platform-contract.mjs", "providers/pac.mjs", "providers/atk.mjs", "providers/enterprise-cli.mjs", "providers/enterprise-cli.ps1"]
+export function implementationDigest({ nativeStudio = false } = {}) {
+  const scripts = ["agent-deployment.mjs", "contracts.mjs", "files.mjs", "package.mjs", "platform-engine.mjs", "providers/foundry.mjs", "providers/registry.mjs", "providers/azure-cli.mjs", "providers/azure-cli.ps1", "providers/azure-http.mjs", "providers/microsoft365.mjs", "providers/platform-contract.mjs", "providers/pac.mjs", "providers/atk.mjs", "providers/enterprise-cli.mjs", "providers/enterprise-cli.ps1", "providers/studio-evidence.mjs"]
     .map((name) => `.github/skills/agent-deployment/scripts/${name}`);
   const inputs = [...scripts, ...Object.values(schemaFiles).map((name) => `schemas/${name}`)].sort();
+  if (nativeStudio) inputs.push(".github/skills/agent-builder/scripts/agent-builder.mjs", ".github/skills/agent-builder/scripts/native-studio.mjs",
+    "schemas/agent-blueprint.schema.json", "schemas/copilot-studio-handoff.schema.json");
   return digest(Object.fromEntries(inputs.map((name) => [name, digest(readFileSync(path.join(frameworkRoot, ...name.split("/"))))])));
 }
 
@@ -61,6 +63,7 @@ export function rejectSecrets(value) {
     /\b(?:password|api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token)\s*[:=]\s*["']?[^\s"'\\,;]{4,}/i,
     /\b(?:AccountKey|SharedAccessKey|SharedAccessSignature|sig)\s*=\s*[^\s;&"']{8,}/i,
     /\bBearer\s+[a-z0-9._~+/-]{8,}/i,
+    /[?&](?:code|access_token|refresh_token|id_token|client_secret|sig)=[^&#\s]{4,}/i,
     /\beyJ[a-z0-9_-]{8,}\.[a-z0-9_-]{8,}\.[a-z0-9_-]{8,}/i,
     /\bgh[oprsu]_[a-z0-9]{20,}\b/i,
     /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/,

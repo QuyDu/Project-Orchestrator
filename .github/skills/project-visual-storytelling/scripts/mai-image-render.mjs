@@ -3,10 +3,10 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { inspectCachedDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
+import { readImageResponse } from "./azure-openai-image-render.mjs";
 
-const DISCOVERY_PATH = "reports/azure-discovery.json";
 const ENVIRONMENT_PATH = ".azure/environment.json";
-const MAX_DISCOVERY_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 const MAI_MODEL_PATTERN = /^MAI-Image-(?:2\.5(?:-Pro|-Flash)?|2\.6(?:-Flash)?)$/u;
 const GOVERNMENT_ENDPOINT_PATTERN = /^https:\/\/[a-z0-9-]+\.services\.ai\.azure\.us$/u;
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -17,9 +17,9 @@ function sha256(value) {
 
 async function readJson(root, relativePath) {
   try {
-    return JSON.parse(await readFile(path.join(root, ...relativePath.split("/")), "utf8"));
+    return JSON.parse((await readFile(path.join(root, ...relativePath.split("/")), "utf8")).replace(/^\uFEFF/u, ""));
   } catch (error) {
-    return { error: error.code === "ENOENT" ? `${relativePath} is missing` : `${relativePath} is invalid: ${error.message}` };
+    return { error: error.code === "ENOENT" ? `${relativePath} is missing` : error instanceof SyntaxError ? `${relativePath} contains invalid JSON` : `${relativePath} is unreadable: ${error.message}` };
   }
 }
 
@@ -33,6 +33,7 @@ export async function inspectMaiImage(root) {
   const endpoint = (process.env.PROJECT_VISUAL_MAI_ENDPOINT || "").replace(/\/$/u, "");
   const deployment = process.env.PROJECT_VISUAL_MAI_DEPLOYMENT || "";
   const deploymentModel = process.env.PROJECT_VISUAL_MAI_MODEL || "";
+  const unavailable = (reason, refreshRequired = false) => ({ available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason, refreshRequired });
   const environment = await readJson(root, ENVIRONMENT_PATH);
   if (environment.error) return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: environment.error };
   if (environment.cloud !== "AzureUSGovernment") return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: "MAI-Image is restricted to AzureUSGovernment for this project" };
@@ -40,12 +41,11 @@ export async function inspectMaiImage(root) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u.test(deployment)) return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: "PROJECT_VISUAL_MAI_DEPLOYMENT is missing or invalid" };
   if (!MAI_MODEL_PATTERN.test(deploymentModel)) return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: "PROJECT_VISUAL_MAI_MODEL is missing or unsupported" };
 
-  const discovery = await readJson(root, DISCOVERY_PATH);
-  if (discovery.error) return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: discovery.error };
-  const discoveredAt = Date.parse(discovery.discoveredAt || "");
-  if (discovery.cloud !== "AzureUSGovernment" || !Number.isFinite(discoveredAt) || Date.now() - discoveredAt > MAX_DISCOVERY_AGE_MS) {
-    return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: "Azure Government discovery evidence is missing, mismatched, or older than 14 days" };
-  }
+  let state;
+  try { state = await inspectCachedDiscovery(root); }
+  catch (error) { return unavailable(`Azure discovery is blocked: ${error.message}`); }
+  if (state.status !== "fresh") return unavailable(`Azure discovery requires refresh: ${state.reason}; run azure-discovery.`, true);
+  const discovery = state.report;
   if (!discoveredImageModel(discovery, deploymentModel, environment.location)) {
     return { available: false, rendererClass: "bitmap-generation", provider: "mai-image", reason: `${deploymentModel} is not confirmed in current Azure Government discovery evidence` };
   }
@@ -103,8 +103,7 @@ export async function generateMaiImage({ capability, prompt, width, height, outp
     body: JSON.stringify({ model: capability.deployment, prompt, width, height, web_grounding: false }),
     signal: AbortSignal.timeout(120_000)
   });
-  if (!response.ok) throw new Error(`MAI-Image request failed with HTTP ${response.status}: ${(await response.text()).slice(0, 800)}`);
-  const result = await response.json();
+  const result = await readImageResponse(response, "MAI-Image");
   const encoded = result?.data?.[0]?.b64_json;
   if (typeof encoded !== "string" || encoded.length < 100 || encoded.length > 32 * 1024 * 1024) throw new Error("MAI-Image response does not contain one bounded base64 PNG");
   const image = Buffer.from(encoded, "base64");

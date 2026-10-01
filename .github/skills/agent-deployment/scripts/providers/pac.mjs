@@ -2,6 +2,7 @@ import path from "node:path";
 import { digest, rejectSecrets, stop, validateShape } from "../contracts.mjs";
 import { checkedPath, immutableFile, makeDirectory, readBytes, relativePath } from "../files.mjs";
 import { validatePlatformOutcome, validatePlatformSnapshot } from "./platform-contract.mjs";
+import { inspectStudioSolution, inspectStudioWorkspace } from "./studio-evidence.mjs";
 import {
   checkedContext, cliPreflight, cliVersionSchema, fileSchema, filesSchema, guardedProvider, guidSchema, identitySchema,
   inspectZip, invokeCli, outputPath, pathSchema, reviewedFile, sourceTree, stageSource, verifyStaged, zipNameSchema
@@ -137,6 +138,9 @@ function outcome(config, status, evidenceSha256, mutationAccepted, messageCode) 
 
 export async function createPacProvider(rawContext, dependencies = {}) {
   const config = structuredClone(validateConfig(rawContext.request?.copilotStudio));
+  if (rawContext.request.runtime?.kind === "native-copilot-studio" && !rawContext.nativeStudioHandoff) {
+    stop("STUDIO_HANDOFF_REQUIRED", "The new native runtime requires a validated, digest-bound handoff before any PAC operation.");
+  }
   if (config.solutionType === "unmanaged" && rawContext.request.environment !== "development") {
     stop("UNMANAGED_IMPORT_NOT_ALLOWED", "Unmanaged solution import must be explicitly selected for a development request; staging and production require managed artifacts.");
   }
@@ -146,13 +150,27 @@ export async function createPacProvider(rawContext, dependencies = {}) {
   }, dependencies, "pac", config.operation === "pack");
   let attempted = false;
   const outputRelative = config.outputFile ?? (config.outputDirectory ? `${relativePath(config.outputDirectory)}/${config.outputFileName}` : null);
+  function inspectNative(bytes) {
+    return inspectStudioSolution(inspectZip(bytes).files, {
+      nativeMode: Boolean(context.nativeStudioHandoff),
+      requiredComponents: context.studioMembership?.components.map((item) => item.schemaName) ?? [],
+      expectedBotId: context.studioTarget?.botId ?? null
+    });
+  }
 
   async function inputs() {
     const result = {};
-    if (config.operation === "pack") result.tree = await sourceTree(context, config.projectDirectory, config.sourceFiles);
+    if (config.operation === "pack") {
+      result.tree = await sourceTree(context, config.projectDirectory, config.sourceFiles);
+      inspectStudioWorkspace(result.tree.files, {
+        nativeMode: Boolean(context.nativeStudioHandoff),
+        workspaceKind: context.nativeStudioHandoff?.artifacts.connectedDirectory === null ? "local-init" : "connected"
+      });
+    }
     if (config.solution) {
       result.solution = await reviewedFile(context.root, config.solution);
       solutionIdentity(result.solution, config);
+      result.studio = inspectNative(result.solution);
     }
     if (config.settings) {
       result.settings = await reviewedFile(context.root, config.settings, 1_048_576);
@@ -232,18 +250,21 @@ export async function createPacProvider(rawContext, dependencies = {}) {
       const result = await invokeCli("pac", args, { cwd: context.work, timeoutMs: 120_000 }, dependencies);
       if (outputRelative) {
         const bytes = await readBytes(context.root, outputRelative, { maximum: 33_554_432 });
+        if (context.nativeStudioHandoff && operation === "export") inspectNative(bytes);
         return outcome(config, "packaged", solutionIdentity(bytes, config), false,
           operation === "pack" ? "PAC_PACKAGE_VALIDATED" : "PAC_MANAGED_EXPORT_VALIDATED");
       }
       return outcome(config, operation === "import" ? "imported" : "publication-submitted",
         digest({ operation, inputs: reviewed.sha256, response: result }), true,
-        operation === "import" ? "PAC_IMPORT_ACCEPTED_NOT_PUBLISHED" : "PAC_PUBLICATION_ACCEPTED_UNVERIFIED");
+        operation === "import" ? "PAC_IMPORT_ACCEPTED_READBACK_REQUIRED" : "PAC_PUBLICATION_ACCEPTED_UNVERIFIED");
     },
     async verify(receipt) {
       validatePlatformOutcome(receipt);
       const { reviewed } = await preflight();
       if (outputRelative) {
-        const actual = solutionIdentity(await readBytes(context.root, outputRelative, { maximum: 33_554_432 }), config);
+        const bytes = await readBytes(context.root, outputRelative, { maximum: 33_554_432 });
+        if (context.nativeStudioHandoff && config.operation === "export") inspectNative(bytes);
+        const actual = solutionIdentity(bytes, config);
         if (receipt.status !== "packaged" || receipt.evidenceSha256 !== actual) stop("ARTIFACT_DRIFT", "The retained solution ZIP differs from accepted artifact evidence.");
         return outcome(config, "packaged", actual, false, "PAC_RETAINED_ARTIFACT_VERIFIED");
       }

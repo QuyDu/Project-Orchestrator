@@ -4,12 +4,14 @@ Project Orchestrator follows the [Microsoft Security Development Lifecycle](http
 
 Last reviewed: September 12, 2026.
 
+Supported source-version metadata updated: October 1, 2026. This metadata update does not replace the policy review or formal release evidence.
+
 ## Supported Source Versions
 
 | Version | Source date | Status |
 | --- | --- | --- |
-| `1.1.2` | September 12, 2026 | Current source version; formal release remains blocked |
-| `1.1.1` and earlier | Before September 12, 2026 | Superseded; update before reporting a new issue |
+| `1.3.0` | October 1, 2026 | Current source version; formal release remains blocked |
+| `1.2.x` and earlier | Before October 1, 2026 | Superseded; update before reporting a new issue |
 
 No tool can guarantee that it will introduce no defects or vulnerabilities. This project fails closed where trust cannot be established and does not claim production security assurance until every release gate below has current evidence.
 

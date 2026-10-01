@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-skills.dev/schemas/copilot-studio-handoff/1.0.0",
+  "title": "Native Copilot Studio Preparation Handoff",
+  "description": "Local preparation is not deployment. Evidence references require separate byte, target, scope, approval and provenance validation by the deployment owner. Raw tenant, environment, Dataverse, bot and connection identifiers belong in private operator configuration, not this portable contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runtime", "intent", "agent", "target", "security", "capabilities", "artifacts", "approvals", "evidence", "complete", "gaps"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "runtime": { "const": "native-copilot-studio" },
+    "intent": {
+      "type": "object", "additionalProperties": false, "required": ["agent", "operation", "owner"],
+      "properties": {
+        "agent": { "enum": ["new", "existing"] },
+        "operation": { "enum": ["prepare", "clone", "pull", "push", "import", "evaluate", "troubleshoot", "publish"] },
+        "owner": { "const": "agent-deployment" }
+      }
+    },
+    "agent": { "$ref": "#/$defs/agent" },
+    "target": { "$ref": "#/$defs/target" },
+    "security": { "$ref": "#/$defs/security" },
+    "capabilities": { "type": "array", "minItems": 1, "maxItems": 512, "uniqueItems": true, "items": { "$ref": "#/$defs/capability" } },
+    "artifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["guide", "spec", "authored", "connectedDirectory", "solutionMembership", "recovery"],
+      "properties": {
+        "guide": {
+          "allOf": [
+            { "$ref": "#/$defs/reference" },
+            { "properties": { "path": { "const": ".github/instructions/copilot-studio.instructions.md" } } }
+          ]
+        },
+        "spec": { "$ref": "#/$defs/reference" },
+        "authored": { "$ref": "#/$defs/references" },
+        "connectedDirectory": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/path" }] },
+        "solutionMembership": {
+          "allOf": [{ "$ref": "#/$defs/observationFields" }],
+          "type": "object", "unevaluatedProperties": false,
+          "required": ["components", "missing"],
+          "properties": { "components": { "$ref": "#/$defs/paths" }, "missing": { "$ref": "#/$defs/paths" } },
+          "if": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+          "then": { "properties": { "missing": { "maxItems": 0 } } }
+        },
+        "recovery": {
+          "allOf": [{ "$ref": "#/$defs/observationFields" }],
+          "type": "object", "unevaluatedProperties": false,
+          "required": ["artifacts", "procedure"],
+          "properties": {
+            "artifacts": { "$ref": "#/$defs/references" },
+            "procedure": { "allOf": [{ "$ref": "#/$defs/texts" }, { "minItems": 1 }] }
+          }
+        }
+      }
+    },
+    "approvals": {
+      "type": "object", "additionalProperties": false,
+      "required": ["localMutation", "draft", "publication", "sharing", "cost", "security", "destructive"],
+      "properties": {
+        "localMutation": { "$ref": "#/$defs/observation" },
+        "draft": { "$ref": "#/$defs/observation" },
+        "publication": { "$ref": "#/$defs/observation" },
+        "sharing": { "$ref": "#/$defs/observation" },
+        "cost": { "$ref": "#/$defs/observation" },
+        "security": { "$ref": "#/$defs/observation" },
+        "destructive": { "$ref": "#/$defs/observation" }
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authored", "localValidation", "synchronized", "imported", "provisioned", "evaluated", "publicationSubmitted", "serverPublished", "channelVerified"],
+      "properties": {
+        "authored": { "$ref": "#/$defs/observation" },
+        "localValidation": { "$ref": "#/$defs/observation" },
+        "synchronized": { "$ref": "#/$defs/observation" },
+        "imported": { "$ref": "#/$defs/observation" },
+        "provisioned": { "$ref": "#/$defs/observation" },
+        "evaluated": { "$ref": "#/$defs/observation" },
+        "publicationSubmitted": { "$ref": "#/$defs/observation" },
+        "serverPublished": { "$ref": "#/$defs/observation" },
+        "channelVerified": { "$ref": "#/$defs/observation" }
+      }
+    },
+    "complete": { "type": "boolean" },
+    "gaps": { "$ref": "#/$defs/texts" }
+  },
+  "allOf": [{
+    "if": {
+      "properties": { "evidence": { "properties": { "authored": { "properties": { "state": { "const": "verified" } }, "required": ["state"] } }, "required": ["authored"] } },
+      "required": ["evidence"]
+    },
+    "then": { "properties": { "artifacts": { "properties": { "authored": { "minItems": 1 } } } } }
+  }, {
+    "if": { "properties": { "complete": { "const": true } }, "required": ["complete"] },
+    "then": {
+      "properties": {
+        "gaps": { "maxItems": 0 },
+        "target": {
+          "properties": {
+            "cloud": { "not": { "const": "unknown" } },
+            "tenant": { "$ref": "#/$defs/verified" }, "environment": { "$ref": "#/$defs/verified" },
+            "dataverse": { "$ref": "#/$defs/verified" }, "bot": { "$ref": "#/$defs/verified" }
+          }
+        },
+        "security": {
+          "properties": {
+            "policy": { "$ref": "#/$defs/verified" },
+            "authentication": { "not": { "const": "unknown" } },
+            "audience": { "not": { "const": "unknown" } },
+            "toolIdentity": { "not": { "const": "unknown" } },
+            "channels": { "minItems": 1 }
+          }
+        },
+        "approvals": { "properties": { "localMutation": { "$ref": "#/$defs/verified" }, "publication": { "$ref": "#/$defs/verified" } } },
+        "artifacts": {
+          "properties": {
+            "recovery": { "allOf": [{ "$ref": "#/$defs/verified" }], "properties": { "artifacts": { "minItems": 1 } } }
+          }
+        },
+        "evidence": {
+          "properties": {
+            "authored": { "$ref": "#/$defs/verified" }, "localValidation": { "$ref": "#/$defs/verified" },
+            "evaluated": { "$ref": "#/$defs/verified" }, "publicationSubmitted": { "$ref": "#/$defs/verified" },
+            "serverPublished": { "$ref": "#/$defs/verified" },
+            "channelVerified": { "$ref": "#/$defs/verified" }
+          },
+          "anyOf": [
+            { "properties": { "synchronized": { "$ref": "#/$defs/verified" } } },
+            { "properties": { "imported": { "$ref": "#/$defs/verified" } } }
+          ]
+        },
+        "capabilities": {
+          "contains": { "properties": { "scope": { "const": "required" } }, "required": ["scope"] },
+          "items": {
+            "if": { "properties": { "scope": { "const": "required" } }, "required": ["scope"] },
+            "then": {
+              "properties": {
+                "implementation": { "$ref": "#/$defs/verified" }, "acceptance": { "$ref": "#/$defs/verified" },
+                "gaps": { "maxItems": 0 },
+                "persistence": {
+                  "properties": { "mode": { "not": { "const": "unknown" } } },
+                  "if": { "properties": { "mode": { "enum": ["session", "durable"] } }, "required": ["mode"] },
+                  "then": { "$ref": "#/$defs/verified" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "intent": { "properties": { "operation": { "const": "push" } }, "required": ["operation"] } },
+            "required": ["intent"]
+          },
+          "then": { "properties": { "approvals": { "properties": { "draft": { "$ref": "#/$defs/verified" } } } } }
+        },
+        {
+          "if": { "properties": { "intent": { "properties": { "agent": { "const": "new" } } } } },
+          "then": { "properties": { "evidence": { "properties": { "provisioned": { "$ref": "#/$defs/verified" } } } } }
+        },
+        {
+          "if": { "properties": { "security": { "properties": { "audience": { "const": "external" } } } } },
+          "then": { "properties": { "approvals": { "properties": { "sharing": { "$ref": "#/$defs/verified" } } } } }
+        },
+        {
+          "if": { "properties": { "security": { "anyOf": [
+            { "properties": { "authentication": { "enum": ["none", "multitenant"] } } },
+            { "properties": { "toolIdentity": { "const": "maker" } } }
+          ] } } },
+          "then": { "properties": { "approvals": { "properties": { "security": { "$ref": "#/$defs/verified" } } } } }
+        },
+        {
+          "if": { "properties": { "target": { "properties": { "solution": { "properties": { "uniqueName": { "type": "string" } } } } } } },
+          "then": { "properties": {
+            "target": { "properties": { "solution": { "properties": { "readiness": { "$ref": "#/$defs/verified" } } } } },
+            "artifacts": { "properties": { "solutionMembership": { "$ref": "#/$defs/verified" } } }
+          } }
+        }
+      ]
+    }
+  }],
+  "$defs": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "texts": { "type": "array", "uniqueItems": true, "maxItems": 512, "items": { "$ref": "#/$defs/text" } },
+    "path": { "type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\\\<>:\"|?*\\u0000-\\u001f])(?!.*//)(?!.*[. ](?:/|$))[^/]+(?:/[^/]+)*$" },
+    "paths": { "type": "array", "uniqueItems": true, "maxItems": 512, "items": { "$ref": "#/$defs/path" } },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reference": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+      "properties": { "path": { "$ref": "#/$defs/path" }, "sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "references": { "type": "array", "uniqueItems": true, "maxItems": 512, "items": { "$ref": "#/$defs/reference" } },
+    "state": { "enum": ["not-requested", "pending", "blocked", "failed", "unknown", "verified"] },
+    "verified": { "properties": { "state": { "const": "verified" }, "evidence": { "minItems": 1 } }, "required": ["state", "evidence"] },
+    "observationFields": {
+      "type": "object", "required": ["state", "evidence", "detail"],
+      "properties": { "state": { "$ref": "#/$defs/state" }, "evidence": { "$ref": "#/$defs/references" }, "detail": { "$ref": "#/$defs/text" } },
+      "if": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+      "then": { "properties": { "evidence": { "minItems": 1 } } }
+    },
+    "observation": { "allOf": [{ "$ref": "#/$defs/observationFields" }], "unevaluatedProperties": false },
+    "agent": {
+      "type": "object", "additionalProperties": false, "required": ["id", "name", "schemaName", "publisherPrefix"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[^\\s@/\\-][^\\r\\n\\t]*$" },
+        "schemaName": { "type": "string", "pattern": "^[a-z][a-z0-9]{1,7}_[A-Za-z][A-Za-z0-9_]{0,99}$" },
+        "publisherPrefix": { "type": "string", "pattern": "^[a-z][a-z0-9]{1,7}$" }
+      }
+    },
+    "target": {
+      "type": "object", "additionalProperties": false, "required": ["cloud", "tenant", "environment", "dataverse", "bot", "solution"],
+      "properties": {
+        "cloud": { "enum": ["unknown", "Public", "GCC", "GCCHigh", "DoD"] },
+        "tenant": { "$ref": "#/$defs/observation" }, "environment": { "$ref": "#/$defs/observation" },
+        "dataverse": { "$ref": "#/$defs/observation" }, "bot": { "$ref": "#/$defs/observation" },
+        "solution": {
+          "type": "object", "additionalProperties": false, "required": ["uniqueName", "readiness"],
+          "properties": {
+            "uniqueName": { "type": ["string", "null"], "pattern": "^[A-Za-z][A-Za-z0-9_]{0,99}$" },
+            "readiness": { "$ref": "#/$defs/observation" }
+          }
+        }
+      },
+      "if": { "properties": { "cloud": { "const": "unknown" } }, "required": ["cloud"] },
+      "then": {
+        "properties": {
+          "tenant": { "properties": { "state": { "not": { "const": "verified" } } } },
+          "environment": { "properties": { "state": { "not": { "const": "verified" } } } },
+          "dataverse": { "properties": { "state": { "not": { "const": "verified" } } } },
+          "bot": { "properties": { "state": { "not": { "const": "verified" } } } }
+        }
+      }
+    },
+    "security": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authentication", "audience", "channels", "toolIdentity", "policy", "requirements"],
+      "properties": {
+        "authentication": { "enum": ["unknown", "microsoft-single-tenant", "manual", "none", "multitenant"] },
+        "audience": { "enum": ["unknown", "private", "tenant", "external"] },
+        "channels": { "type": "array", "uniqueItems": true, "maxItems": 512, "items": { "enum": ["teams", "microsoft365", "studio-test-chat", "direct-line", "direct-engine", "custom-website"] } },
+        "toolIdentity": { "enum": ["unknown", "invoker", "maker", "not-requested"] },
+        "policy": { "$ref": "#/$defs/observation" }, "requirements": { "$ref": "#/$defs/texts" }
+      },
+      "if": { "properties": { "audience": { "enum": ["private", "tenant"] } }, "required": ["audience"] },
+      "then": { "properties": { "authentication": { "not": { "enum": ["none", "multitenant"] } } } }
+    },
+    "capability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "scope", "description", "sourcePaths", "implementation", "acceptance", "persistence", "gaps"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
+        "scope": { "enum": ["required", "excluded"] },
+        "description": { "$ref": "#/$defs/text" },
+        "sourcePaths": { "$ref": "#/$defs/paths" },
+        "implementation": { "$ref": "#/$defs/observation" },
+        "acceptance": {
+          "allOf": [{ "$ref": "#/$defs/observationFields" }], "unevaluatedProperties": false,
+          "required": ["criteria"], "properties": { "criteria": { "allOf": [{ "$ref": "#/$defs/texts" }, { "minItems": 1 }] } }
+        },
+        "persistence": {
+          "allOf": [{ "$ref": "#/$defs/observationFields" }], "unevaluatedProperties": false,
+          "required": ["mode", "operations"],
+          "properties": { "mode": { "enum": ["none", "session", "durable", "unknown"] }, "operations": { "$ref": "#/$defs/texts" } },
+          "if": { "properties": { "mode": { "const": "durable" }, "state": { "const": "verified" } }, "required": ["mode", "state"] },
+          "then": { "properties": { "operations": { "minItems": 1 } } }
+        },
+        "gaps": { "$ref": "#/$defs/texts" }
+      },
+      "if": { "properties": { "implementation": { "properties": { "state": { "const": "verified" } }, "required": ["state"] } }, "required": ["implementation"] },
+      "then": { "properties": { "sourcePaths": { "minItems": 1 } } }
+    }
+  }
+}

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import { createHash, randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
-import { lstat, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createReadStream, existsSync } from "node:fs";
+import { lstat, mkdir, open, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { gunzipSync, inflateRawSync } from "node:zlib";
 import { assertSafeRelativePath } from "./safe-path.mjs";
 
 const VERSION = "8.30.1";
@@ -51,9 +52,9 @@ function toolPaths(root) {
 }
 
 function run(binary, args, options = {}) {
-  const result = spawnSync(binary, args, { cwd: options.cwd, encoding: "utf8", windowsHide: true, shell: false });
+  const result = spawnSync(binary, args, { cwd: options.cwd, encoding: "utf8", windowsHide: true, shell: false, env: { ...process.env, GIT_NO_LAZY_FETCH: "1" } });
   if (result.error || result.status !== 0) {
-    throw new Error(`${path.basename(binary)} failed: ${result.error?.message || result.stderr.trim() || `exit ${result.status}`}`);
+    throw new Error(`${path.basename(binary)} failed (${result.error?.code || result.signal || `exit ${result.status}`}); subprocess output withheld`);
   }
   return result.stdout.trim();
 }
@@ -97,6 +98,84 @@ async function install(root) {
   return { binary, key, archiveSha256: expectedArchiveSha256 };
 }
 
+function archiveExecutable(archive, name) {
+  const limit = 64 * 1024 * 1024;
+  if (process.platform !== "win32") {
+    const tar = gunzipSync(archive, { maxOutputLength: limit });
+    for (let offset = 0; offset + 512 <= tar.length;) {
+      const header = tar.subarray(offset, offset + 512);
+      const archiveName = header.subarray(0, 100).toString("utf8").split("\0")[0];
+      const filename = archiveName.replace(/^\.\//, "");
+      const sizeText = header.subarray(124, 136).toString("ascii").replace(/\0.*$/, "").trim();
+      if (!archiveName) break;
+      if (!/^[0-7]+$/.test(sizeText)) throw new Error("Invalid cached Gitleaks archive entry");
+      const size = Number.parseInt(sizeText, 8);
+      if (size > limit || offset + 512 + size > tar.length) throw new Error("Invalid cached Gitleaks archive size");
+      if (filename === name && [0, 48].includes(header[156])) return tar.subarray(offset + 512, offset + 512 + size);
+      offset += 512 + Math.ceil(size / 512) * 512;
+    }
+  } else {
+    let end = archive.length - 22;
+    while (end >= Math.max(0, archive.length - 65_557) && archive.readUInt32LE(end) !== 0x06054b50) end--;
+    if (end < Math.max(0, archive.length - 65_557)) throw new Error("Invalid cached Gitleaks ZIP directory");
+    const entries = archive.readUInt16LE(end + 10);
+    let offset = archive.readUInt32LE(end + 16);
+    for (let index = 0; index < entries; index++) {
+      if (offset + 46 > archive.length || archive.readUInt32LE(offset) !== 0x02014b50) throw new Error("Invalid cached Gitleaks ZIP entry");
+      const flags = archive.readUInt16LE(offset + 8);
+      const method = archive.readUInt16LE(offset + 10);
+      const compressedSize = archive.readUInt32LE(offset + 20);
+      const expandedSize = archive.readUInt32LE(offset + 24);
+      const nameLength = archive.readUInt16LE(offset + 28);
+      const extraLength = archive.readUInt16LE(offset + 30);
+      const commentLength = archive.readUInt16LE(offset + 32);
+      const local = archive.readUInt32LE(offset + 42);
+      const filename = archive.subarray(offset + 46, offset + 46 + nameLength).toString("utf8");
+      if (filename === name) {
+        if ((flags & 1) || expandedSize > limit || local + 30 > archive.length || archive.readUInt32LE(local) !== 0x04034b50) throw new Error("Unsupported cached Gitleaks ZIP executable");
+        const start = local + 30 + archive.readUInt16LE(local + 26) + archive.readUInt16LE(local + 28);
+        if (start + compressedSize > archive.length) throw new Error("Invalid cached Gitleaks ZIP size");
+        const compressed = archive.subarray(start, start + compressedSize);
+        const bytes = method === 0 ? compressed : method === 8 ? inflateRawSync(compressed, { maxOutputLength: limit }) : null;
+        if (!bytes || bytes.length !== expandedSize) throw new Error("Invalid cached Gitleaks executable size");
+        return bytes;
+      }
+      offset += 46 + nameLength + extraLength + commentLength;
+    }
+  }
+  throw new Error("Authenticated Gitleaks archive does not contain the expected executable");
+}
+
+async function cachedTool(root) {
+  if (!existsSync(root)) throw new Error("Verified cached Gitleaks is unavailable; explicit approved install is required (scan never downloads or installs)");
+  const key = platformKey();
+  const [suffix, archiveSha256] = ASSETS[key];
+  const { directory, binary } = toolPaths(root);
+  const archiveName = `gitleaks_${VERSION}_${suffix}`;
+  const names = [`gitleaks_${VERSION}_checksums.txt`, archiveName, path.basename(binary)];
+  const bytes = [];
+  for (const name of names) {
+    const relative = path.relative(root, path.join(directory, name));
+    const file = await assertSafeRelativePath(root, relative);
+    if (!existsSync(file)) throw new Error("Verified cached Gitleaks is unavailable; explicit approved install is required (scan never downloads or installs)");
+    const details = await lstat(file);
+    if (!details.isFile() || details.nlink !== 1 || details.size > 64 * 1024 * 1024) {
+      throw new Error("Cached Gitleaks inputs must be regular unlinked files no larger than 64 MiB");
+    }
+    bytes.push(await readFile(file));
+  }
+  if (sha256(bytes[0]) !== CHECKSUMS_SHA256 || sha256(bytes[1]) !== archiveSha256) {
+    throw new Error("Cached Gitleaks checksum manifest or archive does not match its pinned digest");
+  }
+  const escapedName = archiveName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const entry = new RegExp(`^([a-f0-9]{64})\\s+\\*?${escapedName}$`, "mi").exec(bytes[0].toString("utf8"));
+  if (entry?.[1].toLowerCase() !== archiveSha256 || !archiveExecutable(bytes[1], path.basename(binary)).equals(bytes[2])) {
+    throw new Error("Cached Gitleaks executable does not match the authenticated archive");
+  }
+  if (run(binary, ["version"], { cwd: root }) !== VERSION) throw new Error("Cached Gitleaks version does not match the pinned version");
+  return { binary, key, archiveSha256 };
+}
+
 function sanitized(findings, root) {
   return findings.map((finding) => ({
     ruleId: finding.RuleID,
@@ -121,8 +200,39 @@ function configurationPath(root, projectPath, fallbackPath) {
   return existsSync(projectConfig) ? projectConfig : path.join(skillRoot, "config", fallbackPath);
 }
 
-async function scanInputDigest(root) {
+async function gitStateDigest(root, args) {
   const digest = createHash("sha256");
+  const child = spawn("git", args, { cwd: root, windowsHide: true, shell: false, stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, GIT_NO_LAZY_FETCH: "1" } });
+  let failure;
+  child.on("error", (error) => { failure ??= error; });
+  const closed = new Promise((resolve) => child.once("close", (status, signal) => resolve({ status, signal })));
+  try {
+    for await (const chunk of child.stdout) digest.update(chunk);
+  } catch (error) {
+    failure ??= error;
+    child.stdout?.destroy();
+    if (child.pid && child.exitCode === null && child.signalCode === null) child.kill();
+  }
+  const result = await closed;
+  child.stdout?.destroy();
+  if (failure || result.status !== 0) throw new Error(`Git ${args[0]} input inspection failed; output withheld`);
+  return digest.digest("hex");
+}
+
+async function scanInputs(root) {
+  const configuration = await renderScannerConfig(root);
+  const probe = spawnSync("git", ["rev-parse", "--is-inside-work-tree"], {
+    cwd: root, encoding: "utf8", windowsHide: true, shell: false, stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, GIT_NO_LAZY_FETCH: "1" }
+  });
+  if (probe.error) throw new Error("Git is unavailable for scan input inspection");
+  const inRepository = probe.status === 0 && probe.stdout.trim() === "true";
+  const localRefsDigest = inRepository ? await gitStateDigest(root, ["for-each-ref", "--format=%(refname)%00%(objectname)%00%(objecttype)"]) : null;
+  const indexDigest = inRepository ? await gitStateDigest(root, ["ls-files", "--stage", "-z"]) : null;
+  const historyDigest = inRepository ? await gitStateDigest(root, [
+    "rev-list", "--all", "--full-history", "--topo-order", "--parents", "--boundary", "--objects", "--no-object-names"
+  ]) : null;
+  const digest = createHash("sha256").update("audit-scan-input-v3\0").update(configuration.sha256).update("\0")
+    .update(localRefsDigest ?? "not-a-git-worktree").update("\0").update(indexDigest ?? "").update("\0").update(historyDigest ?? "").update("\0");
   const excludedDirectories = new Set([".git", ".skills-orchestrator", "node_modules"]);
   async function walk(directory, relative = "") {
     const entries = (await readdir(directory, { withFileTypes: true })).sort((left, right) => left.name.localeCompare(right.name));
@@ -138,7 +248,9 @@ async function scanInputDigest(root) {
         await walk(child, childRelative);
       } else if (details.isFile()) {
         digest.update(childRelative).update("\0");
-        digest.update("file\0").update(await readFile(child)).update("\0");
+        digest.update("file\0");
+        for await (const chunk of createReadStream(child)) digest.update(chunk);
+        digest.update("\0");
       } else {
         digest.update(childRelative).update("\0");
         digest.update(`other:${details.mode}\0`);
@@ -146,14 +258,18 @@ async function scanInputDigest(root) {
     }
   }
   await walk(root);
-  return digest.digest("hex");
+  return {
+    scanInputDigest: digest.digest("hex"), configurationSha256: configuration.sha256,
+    allowlistCount: configuration.allowlistCount, localRefsDigest, indexDigest, historyDigest
+  };
 }
 
-async function scannerConfig(root, directory) {
+async function renderScannerConfig(root) {
   const base = await readFile(configurationPath(root, ".gitleaks.toml", "gitleaks.toml"), "utf8");
   const policyPath = configurationPath(root, path.join("config", "gitleaks-allowlist.json"), "gitleaks-allowlist.json");
-  const policy = JSON.parse(await readFile(policyPath, "utf8"));
-  if (policy.schemaVersion !== "1.0.0" || !Array.isArray(policy.entries)) throw new Error("Invalid Gitleaks allowlist policy");
+  let policy;
+  try { policy = JSON.parse(await readFile(policyPath, "utf8")); } catch { throw new Error("Gitleaks allowlist policy is missing or invalid JSON"); }
+  if (policy?.schemaVersion !== "1.0.0" || !Array.isArray(policy.entries)) throw new Error("Invalid Gitleaks allowlist policy");
   const sections = [];
   const ids = new Set();
   const broadPatterns = new Set([".*", "^.*$", "^.+$", "(?:^|/).*$"]);
@@ -186,35 +302,76 @@ async function scannerConfig(root, directory) {
     ].join("\n"));
   }
   const content = `${base.trimEnd()}\n\n${sections.join("\n\n")}\n`;
-  const config = path.join(directory, "generated.gitleaks.toml");
-  await writeFile(config, content, "utf8");
-  return { config, sha256: sha256(Buffer.from(content)), allowlistCount: policy.entries.length };
+  return { content, sha256: sha256(Buffer.from(content)), allowlistCount: policy.entries.length };
 }
 
 function checkpoint(root) {
   const validator = path.join(scriptRoot, "audit-validate.mjs");
-  const value = JSON.parse(run(process.execPath, [validator, "checkpoint", root], { cwd: root }));
-  if (!/^[a-f0-9]{40,64}$/.test(value?.repositoryRevision ?? "") || !/^[a-f0-9]{64}$/.test(value?.worktreeDigest ?? "")) {
-    throw new Error("Audit checkpoint output is missing a valid revision or worktree digest");
+  let value;
+  try { value = JSON.parse(run(process.execPath, [validator, "checkpoint", root], { cwd: root })); }
+  catch { throw new Error("Audit checkpoint helper failed or returned invalid JSON; output withheld"); }
+  if (value?.status !== "valid" || value.command !== "checkpoint"
+    || !/^[a-f0-9]{40,64}$/.test(value?.repositoryRevision ?? "") || !/^[a-f0-9]{64}$/.test(value?.worktreeDigest ?? "")) {
+    throw new Error("Audit checkpoint output is missing a valid revision or worktree digest (successful checkpoint status is required)");
   }
   return value;
 }
 
 async function readFindings(reportPath) {
-  return existsSync(reportPath) ? JSON.parse(await readFile(reportPath, "utf8")) : [];
+  if (!existsSync(reportPath)) throw new Error("Gitleaks did not produce every required scan report");
+  const details = await lstat(reportPath);
+  if (!details.isFile() || details.isSymbolicLink() || details.nlink !== 1) throw new Error("Gitleaks scan reports must be regular files without links");
+  let value;
+  try { value = JSON.parse(await readFile(reportPath, "utf8")); } catch { throw new Error("Gitleaks produced invalid report JSON"); }
+  if (!Array.isArray(value) || value.some((finding) => !finding || typeof finding.RuleID !== "string" || typeof finding.File !== "string")) {
+    throw new Error("Gitleaks produced an invalid findings array");
+  }
+  return value;
 }
 
-async function scan(root, toolRoot, auditRunId) {
-  const { binary, key, archiveSha256 } = await install(toolRoot);
+async function scan(root, toolRoot, auditRunId, jsonOutput) {
+  const { binary, key, archiveSha256 } = await cachedTool(toolRoot);
   const { directory } = toolPaths(toolRoot);
-  const generated = await scannerConfig(root, directory);
-  const worktreeReport = path.join(directory, "worktree.json");
-  const stagedReport = path.join(directory, "staged.json");
-  const historyReport = path.join(directory, "history.json");
+  const generated = await renderScannerConfig(root);
+  const prefix = `scan-${randomUUID()}`;
+  generated.config = path.join(directory, `${prefix}.gitleaks.toml`);
+  const worktreeReport = path.join(directory, `${prefix}-worktree.json`);
+  const stagedReport = path.join(directory, `${prefix}-staged.json`);
+  const historyReport = path.join(directory, `${prefix}-history.json`);
   const common = ["--config", generated.config, "--report-format", "json", "--redact=100", "--exit-code", "0", "--no-banner", "--no-color", "--timeout", "300"];
-  const before = checkpoint(root);
-  const beforeScanInputDigest = await scanInputDigest(root);
+  const owned = new Set();
+  const recovery = new Set();
+  const createOutput = async (file, content = "", owners = owned, flush = false) => {
+    const handle = await open(file, "wx", 0o600);
+    owners.add(file);
+    try {
+      await handle.writeFile(content, "utf8");
+      if (flush) await handle.sync();
+    }
+    finally { await handle.close(); }
+  };
+  const requireRegular = async (file) => {
+    const details = await lstat(file);
+    if (!details.isFile() || details.isSymbolicLink() || details.nlink !== 1) throw new Error("Gitleaks certificate must be a regular file without links");
+  };
+  const code = (error) => /^[A-Z][A-Z0-9_]*$/.test(error?.code ?? "") ? error.code : "FAILED";
+  let outcome;
+  let summary;
+  let output;
+  let previous;
+  let candidate;
+  let candidateRelative;
+  let reportBytes;
+  let failure;
+  let phase = "scan";
   try {
+    await createOutput(generated.config, generated.content);
+    for (const file of [worktreeReport, stagedReport, historyReport]) await createOutput(file);
+    const before = checkpoint(root);
+    const beforeInputs = await scanInputs(root);
+    if (!beforeInputs.localRefsDigest || !beforeInputs.indexDigest || !beforeInputs.historyDigest || generated.sha256 !== beforeInputs.configurationSha256) {
+      throw new Error("Scanner configuration or repository inputs changed before scanning");
+    }
     run(binary, ["dir", root, ...common, "--report-path", worktreeReport], { cwd: root });
     run(binary, ["git", "--staged", root, ...common, "--report-path", stagedReport], { cwd: root });
     run(binary, ["git", root, "--log-opts=--all --full-history", ...common, "--report-path", historyReport], { cwd: root });
@@ -222,8 +379,8 @@ async function scan(root, toolRoot, auditRunId) {
     const staged = await readFindings(stagedReport);
     const history = await readFindings(historyReport);
     const after = checkpoint(root);
-    const afterScanInputDigest = await scanInputDigest(root);
-    if (before.repositoryRevision !== after.repositoryRevision || before.worktreeDigest !== after.worktreeDigest || beforeScanInputDigest !== afterScanInputDigest) {
+    const afterInputs = await scanInputs(root);
+    if (before.repositoryRevision !== after.repositoryRevision || before.worktreeDigest !== after.worktreeDigest || beforeInputs.scanInputDigest !== afterInputs.scanInputDigest) {
       throw new Error("Repository changed during Gitleaks scan; discard stale evidence and retry");
     }
     const report = {
@@ -235,7 +392,7 @@ async function scan(root, toolRoot, auditRunId) {
       allowlistCount: generated.allowlistCount,
       repositoryRevision: after.repositoryRevision,
       worktreeDigest: after.worktreeDigest,
-      scanInputDigest: afterScanInputDigest,
+      scanInputDigest: afterInputs.scanInputDigest,
       scopes: ["worktree", "staged", "untracked-distributable", "tracked-reports", "all-local-refs", "reachable-history"],
       commands: [
         { scope: "worktree", command: "gitleaks dir <repository> --redact=100 --report-format=json", exitCode: 0 },
@@ -248,23 +405,72 @@ async function scan(root, toolRoot, auditRunId) {
         staged: sanitized(staged, root),
         history: sanitized(history, root)
       },
-      limitations: ["Remote-only refs and unreachable or pruned objects were not scanned."]
+      limitations: [
+        "Remote-only refs and unreachable or pruned objects were not scanned.",
+        "The newly issued reports/gitleaks-scan.json is a certificate output, not an input scanned before its publication; retain the exact SHA256 receipt."
+      ]
     };
-    const output = await assertSafeRelativePath(root, "reports/gitleaks-scan.json");
+    phase = "candidate-prepare";
+    output = await assertSafeRelativePath(root, "reports/gitleaks-scan.json");
     await mkdir(path.dirname(output), { recursive: true });
-    await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, "utf8");
-    if (report.status === "failed") {
-      console.error(`Gitleaks found ${worktree.length} worktree, ${staged.length} staged, and ${history.length} reachable-history finding(s); values are fully redacted.`);
-      process.exitCode = 1;
+    if (existsSync(output)) {
+      await requireRegular(output);
+      previous = await readFile(output);
     } else {
-      console.log(`Gitleaks ${VERSION} passed: worktree, staged index, reports, all local refs, and reachable history scanned.`);
+      previous = null;
     }
-  } finally {
-    await rm(worktreeReport, { force: true });
-    await rm(stagedReport, { force: true });
-    await rm(historyReport, { force: true });
-    await rm(generated.config, { force: true });
+    reportBytes = Buffer.from(`${JSON.stringify(report, null, 2)}\n`);
+    candidateRelative = `reports/.gitleaks-${prefix}.candidate.json`;
+    candidate = await assertSafeRelativePath(root, candidateRelative);
+    phase = "candidate-write";
+    await createOutput(candidate, reportBytes, recovery, true);
+    phase = "candidate-verify";
+    await requireRegular(candidate);
+    if (!(await readFile(candidate)).equals(reportBytes)) {
+      throw new Error("Gitleaks candidate failed byte verification");
+    }
+    outcome = {
+      status: report.status, command: "scan", auditRunId,
+      certificate: { path: "reports/gitleaks-scan.json", sha256: sha256(reportBytes) }
+    };
+    summary = report.status === "failed"
+      ? `Gitleaks found ${worktree.length} worktree, ${staged.length} staged, and ${history.length} reachable-history finding(s); values are fully redacted.`
+      : `Gitleaks ${VERSION} passed: worktree, staged index, reports, all local refs, and reachable history scanned.`;
+  } catch (error) {
+    failure = error;
   }
+  const cleanup = await Promise.allSettled([...owned].map(async (file) => rm(file, { force: true })));
+  const cleanupFailures = cleanup.filter((result) => result.status === "rejected").map((result) => code(result.reason));
+  if (failure || cleanupFailures.length) {
+    if (failure && !recovery.size && !cleanupFailures.length) throw failure;
+    const details = [
+      ...(failure ? [`${phase} (${code(failure)})`] : []),
+      ...cleanupFailures.map((value) => `owned-output cleanup (${value})`)
+    ].join("; ");
+    const retained = recovery.size ? `; uncommitted candidate retained at ${candidateRelative}` : "; no candidate was created";
+    throw new Error(`Gitleaks publication failed before commit: ${details}; canonical certificate unchanged${retained}. Resolve retained evidence before an explicit retry.`);
+  }
+  try {
+    await assertSafeRelativePath(root, candidateRelative);
+    await requireRegular(candidate);
+    if (!(await readFile(candidate)).equals(reportBytes)) throw new Error("Candidate changed before commit");
+    await assertSafeRelativePath(root, "reports/gitleaks-scan.json");
+    if (existsSync(output)) {
+      await requireRegular(output);
+      if (previous === null || !(await readFile(output)).equals(previous)) throw new Error("Canonical certificate changed before commit");
+    } else if (previous !== null) {
+      throw new Error("Canonical certificate disappeared before commit");
+    }
+    // The same-directory rename is the commit point; no fallible file cleanup follows it.
+    await rename(candidate, output);
+  } catch (error) {
+    throw new Error(`Gitleaks publication commit failed (${code(error)}); canonical certificate unchanged; uncommitted candidate retained at ${candidateRelative}. Resolve retained evidence before an explicit retry.`);
+  }
+  if (outcome.status === "failed") {
+    console.error(summary);
+    process.exitCode = 1;
+  } else if (!jsonOutput) console.log(summary);
+  if (jsonOutput) console.log(JSON.stringify(outcome));
 }
 
 function option(args, name, fallback) {
@@ -292,12 +498,12 @@ if (command === "metadata") {
   console.log(JSON.stringify(metadata()));
 } else if (command === "digest") {
   const root = option(args, "--root", frameworkRoot);
-  console.log(JSON.stringify({ scanInputDigest: await scanInputDigest(root) }));
+  console.log(JSON.stringify(await scanInputs(root)));
 } else if (command === "install" || command === "scan") {
   const root = option(args, "--root", frameworkRoot);
   const toolRoot = option(args, "--tool-root", frameworkRoot);
   if (command === "install") console.log(JSON.stringify(await install(toolRoot)));
-  else await scan(root, toolRoot, resolveAuditRunId(args));
+  else await scan(root, toolRoot, resolveAuditRunId(args), args.includes("--json"));
 } else {
-  throw new Error("Use metadata|digest|install|scan [--root PATH] [--tool-root PATH] [--audit-run-id UUID]");
+  throw new Error("Use metadata|digest|install|scan [--root PATH] [--tool-root PATH] [--audit-run-id UUID]; scan is cache-only and supports --offline --json");
 }

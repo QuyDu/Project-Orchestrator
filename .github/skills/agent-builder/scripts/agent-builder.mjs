@@ -38,7 +38,7 @@ const APPROVAL_GATE_LABELS = {
 };
 const BLUEPRINT_FIELDS = ["schemaVersion", "agentType", "id", "name", "description", "purpose", "risk", "capabilities", "autonomy", "invocation", "instructions", "subagents", "handoffs", "azure", "publication", "distribution"];
 const AGENT_TYPES = new Set(["copilot", "foundry-prompt", "foundry-hosted", "portable"]);
-const COMMON_OPTIONS = new Set(["project", "blueprint", "plan", "agent", "json", "accept-risk"]);
+const COMMON_OPTIONS = new Set(["project", "blueprint", "plan", "agent", "json", "accept-risk", "native-spec"]);
 const BUILD_OPTIONS = new Set([
   "type", "id", "name", "description", "purpose", "risk", "capabilities", "user-invocable", "model-invocable",
   "autonomy", "web-safety", "constraints", "approach", "output-format", "subagents", "handoffs-file", "azure-required", "cloud", "location",
@@ -55,7 +55,10 @@ const SECRET_PATTERNS = [
 ];
 
 function fail(message) {
-  console.error(`Agent Builder stopped: ${message}`);
+  const detail = SECRET_PATTERNS.some((pattern) => pattern.test(message))
+    ? "Diagnostic contains suspected secret material; input values are suppressed."
+    : message;
+  console.error(`Agent Builder stopped: ${detail}`);
   process.exitCode = 1;
 }
 
@@ -73,10 +76,14 @@ function parseArgs(values) {
       continue;
     }
     const next = values[index + 1];
-    if (!next || next.startsWith("--")) throw new Error(`Missing value for --${key}`);
+    if (!next || next.startsWith("--")) {
+      const parameter = COMMON_OPTIONS.has(key) || BUILD_OPTIONS.has(key) ? `--${key}` : "an unrecognized Agent Builder parameter";
+      throw new Error(`Missing value for ${parameter}`);
+    }
     result[key] = next;
     index += 1;
   }
+  if (result._.length > 1) throw new Error("Use one Agent Builder command only; --accept-risk and --json are flags without values");
   return result;
 }
 
@@ -85,7 +92,7 @@ function validateOptions(options, command) {
   if (command === "build") for (const option of BUILD_OPTIONS) allowed.add(option);
   for (const key of Object.keys(options).filter((item) => item !== "_")) {
     if (FORBIDDEN_CREDENTIAL_OPTIONS.test(key)) throw new Error(`Credential parameter --${key} is prohibited; authenticate directly through the Azure CLI session`);
-    if (!allowed.has(key)) throw new Error(`Unknown Agent Builder parameter: --${key}`);
+    if (!allowed.has(key)) throw new Error("Unknown Agent Builder parameter; inspect the supported options");
   }
 }
 
@@ -167,7 +174,7 @@ function isRecord(value) {
 function rejectUnknown(value, allowed, location) {
   if (!isRecord(value)) throw new Error(`${location} must be an object`);
   const unknown = Object.keys(value).filter((key) => !allowed.includes(key));
-  if (unknown.length) throw new Error(`Unknown ${location} field: ${unknown.join(", ")}`);
+  if (unknown.length) throw new Error(`Unknown ${location} field; field names and values are suppressed`);
 }
 
 function requireString(value, location, minimum, maximum) {
@@ -189,7 +196,7 @@ function requireStringArray(value, location, {
   if (new Set(value).size !== value.length) throw new Error(`${location} must not contain duplicates`);
   for (const [index, item] of value.entries()) {
     requireString(item, `${location}[${index}]`, itemMinimum, itemMaximum);
-    if (pattern && !pattern.test(item)) throw new Error(`${location}[${index}] is invalid: ${item}`);
+    if (pattern && !pattern.test(item)) throw new Error(`${location}[${index}] is invalid`);
   }
 }
 
@@ -203,14 +210,23 @@ function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-async function writeAtomic(target, content) {
+async function writeAtomic(target, content, expectedState) {
   await mkdir(path.dirname(target), { recursive: true });
   const temporary = `${target}.${randomUUID()}.tmp`;
-  await writeFile(temporary, content, { encoding: "utf8", flag: "wx", mode: 0o600 });
+  const handle = await open(temporary, "wx", 0o600);
   try {
+    try { await handle.writeFile(content, "utf8"); }
+    finally { await handle.close(); }
+    if (expectedState !== undefined && await fileState(target) !== expectedState) {
+      throw new Error("Managed destination changed before atomic replacement; preserve current files and review again");
+    }
     await rename(temporary, target);
   } catch (error) {
-    await rm(temporary, { force: true });
+    try { await rm(temporary, { force: true }); }
+    catch (cleanupError) {
+      throw Object.assign(new AggregateError([error, cleanupError], "Atomic write failed and its pending file requires local recovery", { cause: error }),
+        { code: "ATOMIC_CLEANUP_FAILED" });
+    }
     throw error;
   }
 }
@@ -224,17 +240,17 @@ async function safeProjectRoot(requestedRoot) {
 }
 
 async function safeRelativeTarget(root, relative) {
-  if (!relative || path.isAbsolute(relative) || relative.includes("\\")) throw new Error(`Unsafe managed path: ${relative || "empty"}`);
+  if (!relative || path.isAbsolute(relative) || relative.includes("\\")) throw new Error("Unsafe managed path; use a project-relative managed destination");
   const segments = relative.split("/");
   if (segments.some((segment) => !segment || segment === "." || segment === ".." || segment.includes(":"))) {
-    throw new Error(`Unsafe managed path: ${relative}`);
+    throw new Error("Unsafe managed path; use a project-relative managed destination");
   }
   let current = root;
   for (const segment of segments) {
     current = path.join(current, segment);
     try {
       const details = await lstat(current);
-      if (details.isSymbolicLink()) throw new Error(`Symbolic links are not allowed in managed paths: ${relative}`);
+      if (details.isSymbolicLink()) throw new Error("Symbolic links are not allowed in managed paths");
     } catch (error) {
       if (error.code === "ENOENT") break;
       throw error;
@@ -245,7 +261,7 @@ async function safeRelativeTarget(root, relative) {
 
 async function safeTarget(root, relative) {
   if (!/^\.github\/agents\/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.agent\.md$/.test(relative)) {
-    throw new Error(`Unsafe agent target: ${relative}`);
+    throw new Error("Unsafe agent target; use the blueprint's managed agent destination");
   }
   return safeRelativeTarget(root, relative);
 }
@@ -254,12 +270,50 @@ async function readJson(file, location) {
   if (!file) throw new Error(`Use --${location} with a JSON file`);
   try {
     return JSON.parse(await readFile(path.resolve(file), "utf8"));
-  } catch (error) {
-    throw new Error(`Invalid ${location} JSON: ${error.message}`);
+  } catch {
+    throw new Error(`Invalid ${location} JSON; inspect syntax, path and access locally. Input values are suppressed.`);
   }
 }
 
+function validateNativeStudioBlueprint(value) {
+  const fields = ["schemaVersion", "agentType", "id", "name", "nativeSpec", "guide"];
+  rejectUnknown(value, fields, "native blueprint");
+  for (const field of fields) {
+    if (!Object.hasOwn(value, field)) throw new Error(`native blueprint.${field} is required`);
+  }
+  if (value.schemaVersion !== "3.0.0") throw new Error("native blueprint.schemaVersion must be 3.0.0");
+  if (value.agentType !== "copilot-studio") throw new Error("native blueprint.agentType must be copilot-studio");
+  if (typeof value.id !== "string" || value.id.length > 64 || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value.id)) {
+    throw new Error("native blueprint.id is invalid");
+  }
+  const nativeText = (input, location, minimum, maximum) => {
+    requireString(input, location, minimum, maximum);
+    if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(input)) throw new Error(`${location} contains unsupported control characters`);
+    if (/-----BEGIN [\w ]*PRIVATE KEY-----|\bBearer\s+\S+|\b(?:password|client[_-]?secret|access[_-]?token|api[_-]?key|AccountKey|SharedAccessKey)\s*[:=]\s*["']?[A-Za-z0-9_+/.=-]{8,}|\bgh[oprsu]_[A-Za-z0-9]{20,}/i.test(input)) {
+      throw new Error(`${location} contains suspected credential material`);
+    }
+  };
+  nativeText(value.name, "native blueprint.name", 3, 80);
+  if (/^[\s@/-]|[\r\n\t]/.test(value.name)) throw new Error("native blueprint.name must be a single-line display name, not a CLI argument");
+  for (const field of ["nativeSpec", "guide"]) {
+    const reference = value[field];
+    const location = `native blueprint.${field}`;
+    rejectUnknown(reference, ["path", "sha256"], location);
+    if (!Object.hasOwn(reference, "path") || !Object.hasOwn(reference, "sha256")) throw new Error(`${location} requires path and sha256`);
+    nativeText(reference.path, `${location}.path`, 1, 512);
+    if (reference.path.includes("\\") || reference.path.split("/").some((part) =>
+      !part || part === "." || part === ".." || /[<>:"|?*\u0000-\u001f]/.test(part) ||
+      /[. ]$/.test(part) || /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part))) {
+      throw new Error(`${location}.path must be a safe project-relative path`);
+    }
+    if (typeof reference.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(reference.sha256)) throw new Error(`${location}.sha256 must be a SHA-256 digest`);
+  }
+  if (value.guide.path !== ".github/instructions/copilot-studio.instructions.md") throw new Error("native blueprint.guide must reference the exact native guide");
+  return value;
+}
+
 function validateBlueprint(blueprint) {
+  if (blueprint?.schemaVersion === "3.0.0" || blueprint?.agentType === "copilot-studio") return validateNativeStudioBlueprint(blueprint);
   rejectUnknown(blueprint, BLUEPRINT_FIELDS, "blueprint");
   if (!["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0"].includes(blueprint.schemaVersion)) throw new Error("Unsupported blueprint schemaVersion");
   const agentType = blueprint.agentType ?? (blueprint.schemaVersion === "1.0.0" ? "copilot" : undefined);
@@ -275,8 +329,8 @@ function validateBlueprint(blueprint) {
   requireString(blueprint.purpose, "purpose", 20, 1000);
   if (!new Set(["read-only", "mutating"]).has(blueprint.risk)) throw new Error("risk must be read-only or mutating");
   requireStringArray(blueprint.capabilities, "capabilities", { minimum: 1, maximum: CAPABILITY_ORDER.length });
-  for (const capability of blueprint.capabilities) {
-    if (!CAPABILITY_ORDER.includes(capability)) throw new Error(`Unsupported portable capability: ${capability}`);
+  for (const [index, capability] of blueprint.capabilities.entries()) {
+    if (!CAPABILITY_ORDER.includes(capability)) throw new Error(`Unsupported portable capability at capabilities[${index}]`);
   }
   if (blueprint.risk === "read-only" && blueprint.capabilities.some((item) => MUTATING_CAPABILITIES.has(item))) {
     throw new Error("read-only agents cannot use edit or execute");
@@ -291,8 +345,8 @@ function validateBlueprint(blueprint) {
     requireStringArray(blueprint.autonomy.approvalRequiredFor, "autonomy.approvalRequiredFor", {
       minimum: APPROVAL_GATES.length, maximum: APPROVAL_GATES.length, itemMaximum: 64
     });
-    for (const gate of blueprint.autonomy.approvalRequiredFor) {
-      if (!APPROVAL_GATES.includes(gate)) throw new Error(`Unsupported approval gate: ${gate}`);
+    for (const [index, gate] of blueprint.autonomy.approvalRequiredFor.entries()) {
+      if (!APPROVAL_GATES.includes(gate)) throw new Error(`Unsupported approval gate at autonomy.approvalRequiredFor[${index}]`);
     }
     for (const gate of APPROVAL_GATES) {
       if (!blueprint.autonomy.approvalRequiredFor.includes(gate)) throw new Error(`autonomy must require direct approval for ${gate}`);
@@ -332,7 +386,7 @@ function validateBlueprint(blueprint) {
     requireString(handoff.agent, `handoffs[${index}].agent`, 1, 64);
     if (!idPattern.test(handoff.agent)) throw new Error(`handoffs[${index}].agent is invalid`);
     if (handoff.agent === blueprint.id) throw new Error("self-handoffs are not allowed");
-    if (handoffAgents.has(handoff.agent)) throw new Error(`duplicate handoff target: ${handoff.agent}`);
+    if (handoffAgents.has(handoff.agent)) throw new Error(`duplicate handoff target at handoffs[${index}].agent`);
     handoffAgents.add(handoff.agent);
     requireString(handoff.prompt, `handoffs[${index}].prompt`, 10, 1000);
     if (handoff.send !== false) throw new Error("handoffs must require user review with send set to false");
@@ -430,12 +484,93 @@ async function existingAgentIds(root) {
 }
 
 function frontmatterReferences(source) {
-  const block = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  const block = source.replace(/^\uFEFF/, "").match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!block) return [];
+  const unsupported = () => { throw new Error("Unsupported agent reference syntax; use explicit agent ID lists and block handoffs"); };
+  const withoutComment = (value) => value.replace(/[ \t]+#.*$/, "").trim();
+  const property = (line) => {
+    const match = /^([A-Za-z_][A-Za-z0-9_.-]*|"[A-Za-z_][A-Za-z0-9_.-]*"|'[A-Za-z_][A-Za-z0-9_.-]*')[ \t]*:(?:[ \t]+(.*))?$/.exec(line);
+    if (!match) unsupported();
+    const name = /^["']/.test(match[1]) ? match[1].slice(1, -1) : match[1];
+    const raw = match[2] ?? "";
+    return { name, value: raw.trimStart().startsWith("#") ? "" : withoutComment(raw), lines: [] };
+  };
+  const agentId = (raw) => {
+    let value = withoutComment(raw);
+    if (value.startsWith('"')) {
+      try { value = JSON.parse(value); } catch { unsupported(); }
+    } else if (value.startsWith("'")) {
+      if (!/^'(?:[^']|'')*'$/.test(value)) unsupported();
+      value = value.slice(1, -1).replaceAll("''", "'");
+    } else if (/^(?:true|false|null|yes|no|on|off|y|n)$/i.test(value)) unsupported();
+    if (typeof value !== "string" || value.length > 64 || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value)) unsupported();
+    return value;
+  };
+  const sections = [];
+  let section;
+  for (const line of block[1].split(/\r?\n/)) {
+    if (!line.trim() || line.trimStart().startsWith("#")) continue;
+    if (/^[ \t-]/.test(line)) {
+      if (!section) unsupported();
+      section.lines.push(line);
+    } else {
+      section = property(line);
+      sections.push(section);
+    }
+  }
   const references = [];
-  const agents = block[1].match(/^agents:\s*\[(.*)\]\s*$/m)?.[1] ?? "";
-  for (const match of agents.matchAll(/["']([a-z][a-z0-9]*(?:-[a-z0-9]+)*)["']/g)) references.push(match[1]);
-  for (const match of block[1].matchAll(/^\s+agent:\s*["']?([a-z][a-z0-9]*(?:-[a-z0-9]+)*)["']?\s*$/gm)) references.push(match[1]);
+  const seen = new Set();
+  for (const entry of sections) {
+    if (!["agents", "handoffs"].includes(entry.name)) continue;
+    if (seen.has(entry.name)) unsupported();
+    seen.add(entry.name);
+    if (entry.name === "agents") {
+      if (entry.value) {
+        const list = /^\[(.*)\]$/.exec(entry.value);
+        if (!list || entry.lines.length) unsupported();
+        if (list[1].trim()) {
+          const items = list[1].split(",");
+          if (!items.at(-1).trim()) items.pop();
+          references.push(...items.map(agentId));
+        }
+      } else {
+        if (!entry.lines.length) unsupported();
+        let indent;
+        for (const line of entry.lines) {
+          const item = /^( *)- +(.+)$/.exec(line);
+          if (!item || (indent !== undefined && indent !== item[1].length)) unsupported();
+          indent = item[1].length;
+          references.push(agentId(item[2]));
+        }
+      }
+      continue;
+    }
+    if (/^\[\s*\]$/.test(entry.value) && !entry.lines.length) continue;
+    if (entry.value || !entry.lines.length) unsupported();
+    let itemIndent;
+    let hasAgent = false;
+    for (const line of entry.lines) {
+      const item = /^( *)- +(.+)$/.exec(line);
+      let field;
+      if (item && (itemIndent === undefined || item[1].length === itemIndent)) {
+        if (itemIndent !== undefined && !hasAgent) unsupported();
+        itemIndent = item[1].length;
+        hasAgent = false;
+        field = property(item[2]);
+      } else {
+        const indent = line.match(/^ */)[0].length;
+        if (itemIndent === undefined || indent < itemIndent + 2) unsupported();
+        if (indent > itemIndent + 2) continue;
+        field = property(line.slice(indent));
+      }
+      if (field.name === "agent") {
+        if (hasAgent) unsupported();
+        references.push(agentId(field.value));
+        hasAgent = true;
+      }
+    }
+    if (!hasAgent) unsupported();
+  }
   return [...new Set(references)];
 }
 
@@ -453,7 +588,7 @@ async function assertAcyclicReferences(root, blueprint) {
   const visiting = new Set();
   const visited = new Set();
   function visit(id, trail = []) {
-    if (visiting.has(id)) throw new Error(`Agent invocation cycle: ${[...trail, id].join(" -> ")}`);
+    if (visiting.has(id)) throw new Error("Agent invocation cycle detected; inspect workspace agent references");
     if (visited.has(id)) return;
     visiting.add(id);
     for (const referenced of graph.get(id) ?? []) {
@@ -469,11 +604,12 @@ async function validateReferences(root, blueprint) {
   const existing = await existingAgentIds(root);
   const unresolved = [...new Set([...blueprint.subagents, ...blueprint.handoffs.map((item) => item.agent)])]
     .filter((id) => id !== blueprint.id && !existing.has(id));
-  if (unresolved.length) throw new Error(`Referenced agents do not exist: ${unresolved.join(", ")}`);
+  if (unresolved.length) throw new Error("Referenced agents do not exist; inspect subagents and handoffs");
   await assertAcyclicReferences(root, blueprint);
 }
 
 function renderAgent(blueprint) {
+  if (blueprint?.schemaVersion === "3.0.0" || blueprint?.agentType === "copilot-studio") throw new Error("Native Copilot Studio source cannot be rendered as a local .agent.md; use its explicit native preparation plan");
   const capabilities = [...blueprint.capabilities].sort((left, right) => CAPABILITY_ORDER.indexOf(left) - CAPABILITY_ORDER.indexOf(right));
   const lines = [
     "---",
@@ -515,7 +651,14 @@ function renderAgent(blueprint) {
   }
   lines.push("", "## Approach", "");
   lines.push(...blueprint.instructions.approach.map((item, index) => `${index + 1}. ${item}`));
-  lines.push("", "## Output Format", "", blueprint.instructions.outputFormat, "");
+  lines.push("", "## Output Format", "", blueprint.instructions.outputFormat);
+  lines.push("", "## Deployment Guidance", "",
+    "- Creating or installing this local agent does not deploy or publish it and does not grant tools, credentials, or permission to mutate external systems. Retain the role and tool limits above.",
+    "- When deployment is requested, read `.github/skills/agent-builder/references/deployment-handoff.md` from the owning project root. For native Copilot Studio work, load its native-delivery section before requirements, scaffolding, or handoff.",
+    "- Use `.github/skills/agent-deployment/SKILL.md` as the execution owner: identify the target, check current capabilities and prerequisites, package, review a separate plan, obtain operation-specific approval, execute only supported operations, and verify. Do not self-deploy or delegate around tool limits.",
+    "- Keep chosen targets and environment identifiers in reviewed blueprints, deployment requests, and local configuration, not in this reusable guidance. Keep credentials out of these artifacts.",
+    "- If the guide or deployment owner is missing, report the handoff as blocked. Manual or unsupported targets need an explicit operator handoff; authored, imported, submitted, published, and channel-verified are different states.",
+    "");
   return lines.join("\n");
 }
 
@@ -525,12 +668,12 @@ async function fileState(file) {
     handle = await open(file, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   } catch (error) {
     if (error.code === "ENOENT") return "missing";
-    if (error.code === "ELOOP") throw new Error(`Agent destination is not a regular file: ${file}`);
+    if (error.code === "ELOOP") throw new Error("Agent destination is not a regular file");
     throw error;
   }
   try {
     const details = await handle.stat();
-    if (!details.isFile()) throw new Error(`Agent destination is not a regular file: ${file}`);
+    if (!details.isFile()) throw new Error("Agent destination is not a regular file");
     return `file:sha256:${sha256(await handle.readFile())}`;
   } finally {
     await handle.close();
@@ -777,62 +920,140 @@ async function applyPlan(root, blueprintFile, planFile, accepted) {
   const expectedAction = plan.targetState === "missing" ? "create" : plan.targetState === `file:sha256:${plan.renderedSha256}` ? "unchanged" : "update";
   if (plan.action !== expectedAction) throw new Error("Plan action does not match destination state");
 
-  const transactionId = plan.action === "unchanged" ? null : `AGT-${randomUUID()}`;
-  const transactionRoot = transactionId
-    ? await safeRelativeTarget(root, `.skills-orchestrator/agent-builder/${transactionId}`)
-    : null;
+  const transactionId = `AGT-${randomUUID()}`;
+  const transactionRoot = await safeRelativeTarget(root, `.skills-orchestrator/agent-builder/${transactionId}`);
+  const journalPath = path.join(transactionRoot, "transaction.json");
+  const resultRelative = "reports/agent-builder-result.json";
+  const resultPath = await safeRelativeTarget(root, resultRelative);
   const lockPath = await safeRelativeTarget(root, ".skills-orchestrator/agent-builder.lock");
   await mkdir(path.dirname(lockPath), { recursive: true });
+  let lock;
   try {
-    await writeFile(lockPath, `${JSON.stringify({ processId: process.pid, targetPath: plan.targetPath }, null, 2)}\n`, { encoding: "utf8", flag: "wx", mode: 0o600 });
+    lock = await open(lockPath, "wx", 0o600);
   } catch (error) {
     if (error.code === "EEXIST") throw new Error("Another Agent Builder apply operation holds the project lock");
     throw error;
   }
 
   let backup = null;
-  try {
-    if (await fileState(target) !== plan.targetState) throw new Error("Agent destination changed while acquiring the project lock");
-    if (transactionRoot) {
-      await mkdir(transactionRoot, { recursive: true });
-      if (plan.targetState !== "missing") {
-        backup = path.join(transactionRoot, "agent.backup.md");
-        await copyFile(target, backup);
-      }
-      await writeAtomic(path.join(transactionRoot, "transaction.json"), `${JSON.stringify({
-        schemaVersion: "1.0.0", transactionId, status: "prepared", targetPath: plan.targetPath,
-        originalState: plan.targetState, blueprintSha256, renderedSha256: plan.renderedSha256
-      }, null, 2)}\n`);
-      await writeAtomic(target, renderedAgent);
-      if (await fileState(target) !== `file:sha256:${plan.renderedSha256}`) throw new Error("Installed agent hash does not match the reviewed plan");
-      await writeAtomic(path.join(transactionRoot, "transaction.json"), `${JSON.stringify({
-        schemaVersion: "1.0.0", transactionId, status: "applied", targetPath: plan.targetPath,
-        originalState: plan.targetState, blueprintSha256, renderedSha256: plan.renderedSha256
-      }, null, 2)}\n`);
-    }
-  } catch (error) {
-    if (transactionRoot) {
-      await rm(target, { force: true });
-      if (backup) await copyFile(backup, target);
-    }
-    throw error;
-  } finally {
-    await rm(lockPath, { force: true });
-  }
-
-  const result = {
-    schemaVersion: "1.0.0",
-    completedAt: new Date().toISOString(),
-    status: "applied",
-    action: plan.action,
-    targetPath: plan.targetPath,
-    blueprintSha256,
-    renderedSha256: plan.renderedSha256,
-    transactionId
+  let resultBackup = null;
+  let installed = false;
+  let resultWritten = false;
+  let transactionReady = false;
+  let committed = false;
+  let originalResultState;
+  let resultState;
+  let journalState = "missing";
+  let operationError;
+  const installedState = `file:sha256:${plan.renderedSha256}`;
+  const writeJournal = async (status, recovery) => {
+    const content = `${JSON.stringify({
+      schemaVersion: "1.0.0", transactionId, status, action: plan.action,
+      targetPath: plan.targetPath, originalState: plan.targetState,
+      blueprintSha256, renderedSha256: plan.renderedSha256,
+      resultPath: resultRelative, originalResultState,
+      resultSha256: resultState?.slice("file:sha256:".length) ?? null,
+      backups: { agent: backup ? "agent.backup.md" : null, result: resultBackup ? "result.backup.json" : null },
+      ...(recovery ? { recovery } : {})
+    }, null, 2)}\n`;
+    await writeAtomic(journalPath, content, journalState);
+    journalState = `file:sha256:${sha256(content)}`;
   };
-  const resultPath = await safeRelativeTarget(root, "reports/agent-builder-result.json");
-  await writeAtomic(resultPath, `${JSON.stringify(result, null, 2)}\n`);
-  return result;
+  try {
+    await lock.writeFile(`${JSON.stringify({ processId: process.pid, targetPath: plan.targetPath }, null, 2)}\n`, "utf8");
+    if (await fileState(target) !== plan.targetState) throw new Error("Agent destination changed while acquiring the project lock");
+    originalResultState = await fileState(resultPath);
+    await mkdir(path.dirname(transactionRoot), { recursive: true });
+    await mkdir(transactionRoot, { mode: 0o700 });
+    transactionReady = true;
+    if (plan.action !== "unchanged") {
+      if (plan.targetState !== "missing") {
+        const backupPath = path.join(transactionRoot, "agent.backup.md");
+        await copyFile(target, backupPath, constants.COPYFILE_EXCL);
+        if (await fileState(backupPath) !== plan.targetState) throw new Error("Agent changed while its backup was being prepared");
+        backup = backupPath;
+      }
+    }
+    if (originalResultState !== "missing") {
+      const backupPath = path.join(transactionRoot, "result.backup.json");
+      await copyFile(resultPath, backupPath, constants.COPYFILE_EXCL);
+      if (await fileState(backupPath) !== originalResultState) throw new Error("Result changed while its backup was being prepared");
+      resultBackup = backupPath;
+    }
+    await writeJournal("prepared");
+    if (plan.action !== "unchanged") {
+      await writeAtomic(target, renderedAgent, plan.targetState);
+      installed = true;
+    }
+    if (await fileState(target) !== installedState) throw new Error("Installed agent hash does not match the reviewed plan");
+    const result = {
+      schemaVersion: "1.0.0", completedAt: new Date().toISOString(),
+      status: "applied", action: plan.action, targetPath: plan.targetPath,
+      blueprintSha256, renderedSha256: plan.renderedSha256,
+      transactionId: plan.action === "unchanged" ? null : transactionId
+    };
+    const resultContent = `${JSON.stringify(result, null, 2)}\n`;
+    resultState = `file:sha256:${sha256(resultContent)}`;
+    await safeRelativeTarget(root, resultRelative);
+    await writeAtomic(resultPath, resultContent, originalResultState);
+    resultWritten = true;
+    if (await fileState(resultPath) !== resultState || await fileState(target) !== installedState) {
+      throw new Error("Agent or result changed before the transaction outcome could be committed");
+    }
+    await writeJournal("applied");
+    committed = true;
+    return result;
+  } catch (error) {
+    operationError = error;
+    if (transactionReady) {
+      const recovery = error.code === "ATOMIC_CLEANUP_FAILED" ? { pending: "cleanup-failed" } : {};
+      const failures = [];
+      const restore = async (name, relative, written, ownedState, previousState, backupPath) => {
+        try {
+          const file = await safeRelativeTarget(root, relative);
+          const current = await fileState(file);
+          if (written && current === ownedState) {
+            if (previousState === "missing") await rm(file, { force: true });
+            else {
+              if (!backupPath) throw new Error("A completed backup is required for restoration");
+              const bytes = await readFile(backupPath);
+              if (`file:sha256:${sha256(bytes)}` !== previousState) throw new Error("Recovery backup changed; preserve it for local review");
+              await writeAtomic(file, bytes, ownedState);
+            }
+            if (await fileState(file) !== previousState) throw new Error("Restored destination could not be verified");
+            recovery[name] = "restored";
+          } else {
+            recovery[name] = current === previousState ? "unchanged" : "preserved-concurrent-change";
+          }
+        } catch (restoreError) {
+          recovery[name] = "failed";
+          failures.push(restoreError);
+        }
+      };
+      await restore("agent", plan.targetPath, installed, installedState, plan.targetState, backup);
+      await restore("result", resultRelative, resultWritten, resultState, originalResultState, resultBackup);
+      const status = failures.length || Object.values(recovery).some((state) => ["preserved-concurrent-change", "cleanup-failed"].includes(state))
+        ? "recovery-required" : "rolled-back";
+      try { await writeJournal(status, recovery); }
+      catch (journalError) { failures.push(journalError); }
+      if (failures.length) {
+        operationError = new AggregateError([error, ...failures],
+          `Agent Builder apply failed; recovery is incomplete. Preserve transaction ${transactionId} and its backups for local recovery.`,
+          { cause: error });
+      }
+    }
+    throw operationError;
+  } finally {
+    const cleanupErrors = [];
+    try { await lock.close(); } catch (error) { cleanupErrors.push(error); }
+    try { await rm(lockPath, { force: true }); } catch (error) { cleanupErrors.push(error); }
+    if (cleanupErrors.length) {
+      throw new AggregateError([...(operationError ? [operationError] : []), ...cleanupErrors],
+        committed ? "Agent and result committed, but lock cleanup failed; inspect the transaction before retrying."
+          : "Agent Builder failed and lock cleanup needs local recovery; preserve transaction evidence and backups.",
+        { cause: operationError ?? cleanupErrors[0] });
+    }
+  }
 }
 
 async function validateInstalled(root, blueprintFile, agentFile) {
@@ -848,7 +1069,7 @@ async function validateInstalled(root, blueprintFile, agentFile) {
     if (!matchesTarget) throw new Error("--agent must match the blueprint target inside the project");
   }
   const actual = await readFile(target, "utf8");
-  if (actual !== expected) throw new Error(`Installed agent does not match blueprint: ${path.relative(root, target)}`);
+  if (actual !== expected) throw new Error("Installed agent does not match the blueprint target");
   return { status: "valid", id: blueprint.id, sha256: sha256(actual) };
 }
 
@@ -870,6 +1091,15 @@ Cross-platform authoring:
   Distribution records intent only; it does not log in, deploy, or publish.
   Legacy --publication-targets remains supported for schema 2.2 Foundry blueprints.
 
+Native Copilot Studio preparation:
+  build --type copilot-studio --native-spec FILE --accept-risk
+  plan --blueprint FILE --accept-risk
+  apply --blueprint FILE --plan FILE --accept-risk
+  The target project must contain the scoped .github/instructions/copilot-studio.instructions.md.
+  An installed pinned PAC prepares a local preview without --environment; apply installs only
+  that reviewed source into a new destination. No Azure subscription, login or deployment occurs.
+  Native generation is incomplete local preparation, never a .agent.md or remote tool grant.
+
 The blueprint is authoritative. Plan before apply; application fails if the blueprint or destination changes.`);
 }
 
@@ -879,6 +1109,24 @@ async function main() {
   if (!command || command === "help") return usage();
   validateOptions(options, command);
   const root = await safeProjectRoot(options.project);
+  let native = command === "build" && options.type === "copilot-studio";
+  if (command !== "build" && options.blueprint) {
+    const headerPath = !path.isAbsolute(options.blueprint) && !existsSync(path.resolve(options.blueprint))
+      ? path.resolve(root, options.blueprint) : options.blueprint;
+    let header;
+    try { header = await readJson(headerPath, "blueprint"); }
+    catch { throw new Error("Invalid blueprint JSON; inspect the supplied file locally. Input values are suppressed."); }
+    native = header?.agentType === "copilot-studio" || header?.schemaVersion === "3.0.0";
+  }
+  if (native) {
+    const { runNativeStudioBuilder } = await import("./native-studio.mjs");
+    const result = await runNativeStudioBuilder(command, root, options, validateNativeStudioBlueprint);
+    if (result.status === "blocked") process.exitCode = 1;
+    return console.log(options.json ? JSON.stringify(result, null, 2)
+      : [`Native Studio ${result.status ?? result.plan?.status ?? "preparation"}: ${result.targetPath ?? result.plan?.targetPath ?? result.id}; no deployment performed.`,
+        ...(result.diagnostics ?? []).map((item) => `${item.code}: ${item.message}`)].join("\n"));
+  }
+  if (options["native-spec"] !== undefined) throw new Error("--native-spec requires explicit --type copilot-studio or a native Studio blueprint");
   if (command === "build") {
     const result = await buildBlueprint(root, options);
     return console.log(options.json ? JSON.stringify(result, null, 2) : `Agent blueprint and plan ready: ${result.blueprintPath}`);
@@ -899,11 +1147,13 @@ async function main() {
     const result = await applyPlan(root, options.blueprint, options.plan, options["accept-risk"] === true);
     return console.log(options.json ? JSON.stringify(result, null, 2) : `Agent ${result.action}: ${result.targetPath}`);
   }
-  throw new Error(`Unknown Agent Builder command: ${command}`);
+  throw new Error("Unknown Agent Builder command; expected build, validate, plan or apply");
 }
 
 export { normalizeDistribution, renderAgent, validateBlueprint };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((error) => fail(error.message));
+  main().catch((error) => fail(error.syscall
+    ? "Local filesystem or process operation failed; inspect project paths and permissions. Input values are suppressed."
+    : error.message));
 }

@@ -5,7 +5,9 @@
   "type": "object", "additionalProperties": false,
   "required": ["schemaVersion", "planId", "planSha256", "requestSha256", "packageSha256", "projectRoot", "target", "agentId", "release", "status", "previousVersion", "createdVersion", "activeVersion", "identityId", "baselineSha256", "observedRemoteSha256", "startedAt", "updatedAt", "journal", "verification", "code", "message"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
+    "nativeStudioHandoffSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+    "studioEvidence": { "$ref": "agent-deployment-plan.schema.json#/$defs/studioDeploymentEvidence" },
     "planId": { "type": "string", "pattern": "^DEP-[a-f0-9]{32}$" },
     "planSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
     "requestSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
@@ -23,7 +25,12 @@
         "properties": {
           "operation": { "$ref": "agent-deployment-plan.schema.json#/$defs/operation" },
           "outcome": { "$ref": "agent-deployment-result.schema.json#/$defs/platformOutcome" }
-        }
+        },
+        "allOf": [{
+          "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+          "then": { "required": ["nativeStudioHandoffSha256", "studioEvidence"], "properties": { "target": { "const": "copilot-studio" } } },
+          "else": { "not": { "anyOf": [{ "required": ["nativeStudioHandoffSha256"] }, { "required": ["studioEvidence"] }] } }
+        }]
       }
     },
     "previousVersion": { "$ref": "agent-deployment-plan.schema.json#/$defs/nullableVersion" },

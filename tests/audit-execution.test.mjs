@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -9,6 +9,27 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const validator = path.join(root, ".github", "skills", "audit-code", "scripts", "audit-validate.mjs");
 const fixtureAuditRunId = "123e4567-e89b-42d3-a456-426614174000";
+const oneMiB = 1024 * 1024;
+const checkpointStatePaths = [
+  "reports/audit-remediation-execution.json",
+  "reports/audit-remediation-execution.md",
+  "reports/current-execution-state.json",
+  "reports/current-execution-state.md",
+  "reports/execution-log.jsonl",
+  "reports/project-handoff.json",
+  "reports/project-handoff.md",
+  "reports/current-work-state.json",
+  "reports/change-review.json",
+  "reports/change-review.md",
+  "reports/policy-evaluation.json",
+  "reports/policy-evaluation.md",
+  "reports/policy-decision-log.jsonl",
+  "reports/gitleaks-scan.json"
+];
+const checkpointDiffArguments = [
+  "diff", "--binary", "--no-ext-diff", "HEAD", "--", ".",
+  ...checkpointStatePaths.map((file) => `:(exclude)${file}`)
+];
 
 function run(...args) {
   return spawnSync(process.execPath, [validator, ...args], { cwd: root, encoding: "utf8" });
@@ -19,6 +40,166 @@ function git(cwd, ...args) {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.trim();
 }
+
+async function withCheckpointRepository(action) {
+  const repository = await mkdtemp(path.join(os.tmpdir(), "pso-checkpoint-"));
+  const environment = {
+    ...process.env,
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_CONFIG_GLOBAL: path.join(repository, "absent-global-config"),
+    GIT_CONFIG_COUNT: "6",
+    GIT_CONFIG_KEY_0: "core.autocrlf", GIT_CONFIG_VALUE_0: "false",
+    GIT_CONFIG_KEY_1: "user.name", GIT_CONFIG_VALUE_1: "Audit Test",
+    GIT_CONFIG_KEY_2: "user.email", GIT_CONFIG_VALUE_2: "audit@example.invalid",
+    GIT_CONFIG_KEY_3: "commit.gpgsign", GIT_CONFIG_VALUE_3: "false",
+    GIT_CONFIG_KEY_4: "core.hooksPath", GIT_CONFIG_VALUE_4: path.join(repository, "absent-hooks"),
+    GIT_CONFIG_KEY_5: "core.longpaths", GIT_CONFIG_VALUE_5: "true"
+  };
+  delete environment.GIT_CONFIG_PARAMETERS;
+  const gitBytes = (args) => {
+    const result = spawnSync("git", args, {
+      cwd: repository, env: environment, encoding: null, windowsHide: true,
+      maxBuffer: 16 * oneMiB
+    });
+    assert.equal(result.error, undefined, "complete-byte fixture Git command must not truncate");
+    assert.equal(result.status, 0, "complete-byte fixture Git command must succeed");
+    return result.stdout;
+  };
+  const checkpoint = (env = environment) => spawnSync(process.execPath, [validator, "checkpoint", repository], {
+    cwd: repository, env, encoding: "utf8", windowsHide: true, timeout: 30_000, maxBuffer: 16 * oneMiB
+  });
+  try {
+    await mkdir(path.join(repository, "reports"));
+    await mkdir(path.join(repository, "src"));
+    await writeFile(path.join(repository, ".gitignore"), "ignored.txt\n", "utf8");
+    await writeFile(path.join(repository, "reports", "tracked.txt"), "baseline\n", "utf8");
+    await writeFile(path.join(repository, "reports", "tracked.bin"), Buffer.from([0, 1, 2, 3]));
+    await writeFile(path.join(repository, "src", "tracked.mjs"), "export const value = 1;\n", "utf8");
+    gitBytes(["init", "--quiet"]);
+    gitBytes(["add", "."]);
+    gitBytes(["commit", "--quiet", "-m", "checkpoint fixture"]);
+    await action({ repository, environment, gitBytes, checkpoint });
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+}
+
+async function completeByteCheckpoint(repository, gitBytes) {
+  const revision = gitBytes(["rev-parse", "HEAD"]).toString("utf8").trim();
+  const diff = gitBytes(checkpointDiffArguments);
+  const files = gitBytes(["ls-files", "--others", "--exclude-standard", "-z"])
+    .toString("utf8").split("\0").filter((file) => file && !checkpointStatePaths.includes(file)).sort();
+  const bytes = [
+    Buffer.from(`${revision}\0`), diff,
+    Buffer.from(`\0${files.join("\0")}${files.length ? "\0" : ""}`)
+  ];
+  for (const file of files) {
+    bytes.push(Buffer.from(`\0${file}\0`), await readFile(path.join(repository, file)));
+  }
+  return {
+    diff,
+    value: {
+      status: "valid", command: "checkpoint", repositoryRevision: revision,
+      worktreeDigest: createHash("sha256").update(Buffer.concat(bytes)).digest("hex")
+    }
+  };
+}
+
+for (const kind of ["textual", "binary"]) {
+  for (const diffBytes of [oneMiB - 1, oneMiB, oneMiB + 1, 4 * oneMiB + 1]) {
+    test(`checkpoint hashes the complete ${kind} diff at ${diffBytes} bytes`, async () => {
+      await withCheckpointRepository(async ({ repository, gitBytes, checkpoint }) => {
+        await writeFile(path.join(repository, "reports", "tracked.txt"), "x\n", "utf8");
+        await writeFile(path.join(repository, "src", "tracked.mjs"), "export const value = 2;\n", "utf8");
+        if (kind === "binary") {
+          const payload = Buffer.alloc(oneMiB / 2);
+          let state = 0x12345678;
+          for (let index = 0; index < payload.length; index++) {
+            state ^= state << 13;
+            state ^= state >>> 17;
+            state ^= state << 5;
+            payload[index] = state & 0xff;
+          }
+          payload[0] = 0;
+          await writeFile(path.join(repository, "reports", "tracked.bin"), payload);
+          gitBytes(["add", "reports/tracked.bin"]);
+        }
+        // A tracked text line sizes the complete diff exactly, including binary patch framing.
+        const padding = diffBytes - gitBytes(checkpointDiffArguments).length + 1;
+        assert.ok(padding > 0);
+        await writeFile(path.join(repository, "reports", "tracked.txt"), `${"x".repeat(padding)}\n`, "utf8");
+        const expected = await completeByteCheckpoint(repository, gitBytes);
+        assert.equal(expected.diff.length, diffBytes);
+        assert.equal(expected.diff.includes(Buffer.from("GIT binary patch")), kind === "binary");
+        const result = checkpoint();
+        assert.equal(result.status, 0, `${kind} diff (${diffBytes} bytes) must produce a complete checkpoint`);
+        assert.deepEqual(JSON.parse(result.stdout), expected.value);
+        assert.equal(result.stderr, "");
+      });
+    });
+  }
+}
+
+test("checkpoint preserves untracked source, report, binary, Unicode and workflow-state semantics", async () => {
+  await withCheckpointRepository(async ({ repository, gitBytes, checkpoint }) => {
+    const source = path.join(repository, "src", "évidence-λ.mjs");
+    const report = path.join(repository, "reports", "code-audit-findings.json");
+    const state = path.join(repository, "reports", "current-execution-state.json");
+    await writeFile(source, "export const untracked = 1;\n", "utf8");
+    await writeFile(report, '{"findings":[]}\n', "utf8");
+    await writeFile(path.join(repository, "z-untracked.bin"), Buffer.alloc(oneMiB + 17, 0xa5));
+    await writeFile(path.join(repository, "ignored.txt"), "ignored input\n", "utf8");
+    await writeFile(state, '{"status":"running"}\n', "utf8");
+    const check = async () => {
+      const result = checkpoint();
+      assert.equal(result.status, 0, "untracked inputs must produce a checkpoint");
+      const expected = await completeByteCheckpoint(repository, gitBytes);
+      const actual = JSON.parse(result.stdout);
+      assert.deepEqual(actual, expected.value);
+      return actual.worktreeDigest;
+    };
+    const original = await check();
+    await writeFile(state, '{"status":"completed"}\n', "utf8");
+    await writeFile(path.join(repository, "ignored.txt"), "updated ignored input\n", "utf8");
+    assert.equal(await check(), original);
+    await writeFile(source, "export const untracked = 2;\n", "utf8");
+    const sourceChanged = await check();
+    assert.notEqual(sourceChanged, original);
+    await writeFile(report, '{"findings":[{"id":"AUD-0146"}]}\n', "utf8");
+    assert.notEqual(await check(), sourceChanged);
+  });
+});
+
+test("checkpoint fails closed with sanitized Git subprocess diagnostics", async () => {
+  await withCheckpointRepository(async ({ repository, environment, checkpoint }) => {
+    const marker = "private-git-diagnostic-fixture";
+    const env = {
+      ...environment, GIT_CONFIG_COUNT: "7",
+      GIT_CONFIG_KEY_6: "diff.context", GIT_CONFIG_VALUE_6: marker
+    };
+    const control = spawnSync("git", checkpointDiffArguments, { cwd: repository, env, encoding: "utf8" });
+    assert.notEqual(control.status, 0, "the real Git diff subprocess must fail");
+    assert.equal(control.stderr.includes(marker), true, "the control must emit the sensitive diagnostic");
+    const result = checkpoint(env);
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr.includes(marker), false, "checkpoint must not echo Git output");
+    assert.match(result.stderr, /could not inspect resume repository: git diff exited with status \d+/);
+    assert.equal(checkpoint().status, 0, "failed subprocess handling must not affect the next checkpoint");
+  });
+});
+
+test("checkpoint reports unavailable Git without masking its spawn error", async () => {
+  await withCheckpointRepository(async ({ repository, environment, checkpoint }) => {
+    const env = Object.fromEntries(Object.entries(environment).filter(([key]) => key.toLowerCase() !== "path"));
+    env.PATH = path.join(repository, "absent-executables");
+    const result = checkpoint(env);
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /could not inspect resume repository: git rev-parse could not start \(ENOENT\)/);
+    assert.doesNotMatch(result.stderr, /TypeError|reading 'trim'/);
+  });
+});
 
 function plan() {
   return {

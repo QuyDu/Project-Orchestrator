@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
+import { assertSafeRelativePath } from "./safe-path.mjs";
 
 const args = process.argv.slice(2);
+const mode = ["capture", "verify"].includes(args[0]) ? args.shift() : "capture";
 const SECRET_EVIDENCE_MAX_AGE_HOURS = 24;
 function argument(name, fallback) {
   const index = args.indexOf(name);
@@ -14,25 +16,50 @@ function argument(name, fallback) {
   return args[index + 1];
 }
 
-const unknownArguments = args.filter((value, index) => !["--root", "--audit-run-id"].includes(value) && !["--root", "--audit-run-id"].includes(args[index - 1]));
-if (unknownArguments.length) throw new Error("Use --root PATH and optional --audit-run-id UUID");
-const auditRunId = argument("--audit-run-id", randomUUID());
+const options = ["--root", "--audit-run-id", "--context", "--scan-sha256"];
+const unknownArguments = args.filter((value, index) => !options.includes(value) && !options.includes(args[index - 1]));
+if (unknownArguments.length) throw new Error("Use [capture|verify] --root PATH --audit-run-id UUID; verify requires --context reports/audit-evidence/<sha256>.json --scan-sha256 SHA256");
+const contextPath = argument("--context", null)?.replaceAll("\\", "/");
+const certificateSha256 = argument("--scan-sha256", null)?.toLowerCase();
+if (mode === "capture" && (contextPath || certificateSha256)) throw new Error("Context and scan receipt options require verify mode");
+if (mode === "verify" && (!/^reports\/audit-evidence\/[a-f0-9]{64}\.json$/.test(contextPath ?? "") || !/^[a-f0-9]{64}$/.test(certificateSha256 ?? ""))) {
+  throw new Error("verify requires one owned content-addressed --context and the exact owner --scan-sha256 receipt");
+}
+const auditRunId = argument("--audit-run-id", mode === "verify" ? null : randomUUID());
 if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(auditRunId)) throw new Error("--audit-run-id must be a UUID");
 const requestedRoot = path.resolve(argument("--root", process.cwd()));
 if (!existsSync(requestedRoot)) throw new Error(`Audit root does not exist: ${requestedRoot}`);
 const root = realpathSync(requestedRoot);
+
+async function ownedArtifact(relative, expectedDigest) {
+  const file = await assertSafeRelativePath(root, relative);
+  if (!existsSync(file)) throw new Error("Referenced audit artifact is missing");
+  const details = lstatSync(file);
+  if (!details.isFile() || details.nlink !== 1) throw new Error("Audit artifact must be a regular file without links");
+  const bytes = readFileSync(file);
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  if (expectedDigest && sha256 !== expectedDigest) throw new Error("Audit artifact does not match its content digest");
+  let value;
+  try { value = JSON.parse(bytes.toString("utf8")); } catch { throw new Error("Audit artifact is not valid JSON"); }
+  return { bytes, sha256, value };
+}
+
+const contextArtifact = mode === "verify" ? await ownedArtifact(contextPath, path.basename(contextPath, ".json")) : null;
+const initialContext = contextArtifact?.value;
+if (contextArtifact && (!initialContext || initialContext.schemaVersion !== "1.0.0" || initialContext.auditRunId !== auditRunId || initialContext.repository?.root !== ".")) {
+  throw new Error("Initial audit context has an incompatible schema, run, or repository identity");
+}
 
 function run(command, commandArgs, { allowFailure = false } = {}) {
   const result = spawnSync(command, commandArgs, {
     cwd: root,
     encoding: "utf8",
     windowsHide: true,
-    shell: false
+    shell: false,
+    env: { ...process.env, GIT_NO_LAZY_FETCH: "1" }
   });
-  if (result.error && !allowFailure) throw result.error;
-  if (result.status !== 0 && !allowFailure) {
-    const message = result.stderr.trim() || result.stdout.trim() || `exit code ${result.status}`;
-    throw new Error(`${command} ${commandArgs.join(" ")} failed: ${message}`);
+  if ((result.error || result.status !== 0) && !allowFailure) {
+    throw new Error(`${path.basename(command)} inspection failed (${result.error?.code || result.signal || `exit ${result.status}`}); subprocess output withheld`);
   }
   return {
     status: result.status,
@@ -82,6 +109,7 @@ function successfulJson(result) {
 
 const insideWorkTree = git("rev-parse", "--is-inside-work-tree") === "true";
 if (!insideWorkTree) throw new Error(`Audit root is not a Git worktree: ${root}`);
+const repositoryRevision = git("rev-parse", "HEAD");
 
 const remoteEntries = lines(git("remote", "-v")).map((entry) => {
   const match = entry.match(/^(\S+)\s+(\S+)\s+\((fetch|push)\)$/);
@@ -101,8 +129,13 @@ const scannerRunner = path.join(path.dirname(fileURLToPath(import.meta.url)), "g
 const metadataResult = run(process.execPath, [scannerRunner, "metadata"], { allowFailure: true });
 const metadataState = successfulJson(metadataResult);
 const scannerMetadata = metadataState.value;
-const metadataValid = metadataState.valid;
-const pinnedGitleaks = scannerMetadata
+const metadataValid = metadataState.valid && scannerMetadata?.name === "gitleaks"
+  && /^\d+\.\d+\.\d+$/.test(scannerMetadata.version ?? "")
+  && /^(darwin|linux|win32)-(arm64|x64)$/.test(scannerMetadata.platform ?? "")
+  && scannerMetadata.releaseUrl === `https://github.com/gitleaks/gitleaks/releases/download/v${scannerMetadata.version}/`
+  && /^[a-f0-9]{64}$/.test(scannerMetadata.archiveSha256 ?? "")
+  && /^[a-f0-9]{64}$/.test(scannerMetadata.checksumsSha256 ?? "");
+const pinnedGitleaks = metadataValid
   ? path.join(root, ".skills-orchestrator", "tools", "audit-code", "gitleaks", scannerMetadata.version, scannerMetadata.platform, process.platform === "win32" ? "gitleaks.exe" : "gitleaks")
   : "";
 const specialistScanners = ["gitleaks", "trufflehog"].map((name) => inspectTool(name));
@@ -122,45 +155,55 @@ const pinnedScannerReady = Boolean(
   && /^[a-fA-F0-9]{64}$/.test(scannerMetadata.checksumsSha256 ?? "")
 );
 const requiredScopes = ["worktree", "staged", "untracked-distributable", "tracked-reports", "all-local-refs", "reachable-history"];
-const scanReportPath = path.join(root, "reports", "gitleaks-scan.json");
 let scanReport = null;
-try { scanReport = JSON.parse(readFileSync(scanReportPath, "utf8")); } catch { scanReport = null; }
+let certificateIssue = null;
+if (mode === "verify") {
+  try { scanReport = (await ownedArtifact("reports/gitleaks-scan.json", certificateSha256)).value; }
+  catch (error) { certificateIssue = error.message; }
+}
 const checkpointScript = path.join(root, ".github", "skills", "audit-code", "scripts", "audit-validate.mjs");
 const checkpointResult = run(process.execPath, [checkpointScript, "checkpoint", root], { allowFailure: true });
 const checkpointState = successfulJson(checkpointResult);
 const checkpoint = checkpointState.value;
-const checkpointValid = checkpointState.valid;
+const checkpointValid = checkpointState.valid && checkpoint?.status === "valid" && checkpoint.command === "checkpoint"
+  && /^[a-f0-9]{40,64}$/.test(checkpoint.repositoryRevision ?? "") && /^[a-f0-9]{64}$/.test(checkpoint.worktreeDigest ?? "");
 const scanDigestResult = run(process.execPath, [scannerRunner, "digest", "--root", root], { allowFailure: true });
 const scanDigestState = successfulJson(scanDigestResult);
 const scanDigest = scanDigestState.value;
-const scanDigestValid = scanDigestState.valid;
+const scanDigestValid = scanDigestState.valid
+  && ["scanInputDigest", "configurationSha256", "localRefsDigest", "indexDigest", "historyDigest"].every((key) => /^[a-f0-9]{64}$/.test(scanDigest?.[key] ?? ""))
+  && Number.isInteger(scanDigest.allowlistCount) && scanDigest.allowlistCount >= 0;
 const requiredCommandScopes = ["worktree", "staged", "history"];
+const requiredCommands = [
+  "gitleaks dir <repository> --redact=100 --report-format=json",
+  "gitleaks git --staged <repository> --redact=100 --report-format=json",
+  "gitleaks git <repository> --log-opts='--all --full-history' --redact=100 --report-format=json"
+];
 const requiredFindingBuckets = ["worktree", "staged", "history"];
 const noSecretFindings = requiredFindingBuckets.every((scope) => Array.isArray(scanReport?.findings?.[scope]) && scanReport.findings[scope].length === 0);
 const scanGeneratedAt = Date.parse(scanReport?.generatedAt ?? "");
 const scanAgeHours = Number.isFinite(scanGeneratedAt) ? (Date.now() - scanGeneratedAt) / 3_600_000 : null;
 const scanFresh = scanAgeHours !== null && scanAgeHours >= 0 && scanAgeHours <= SECRET_EVIDENCE_MAX_AGE_HOURS;
-const specialistCompleted = Boolean(
-  metadataValid
-  && checkpointValid
-  && scanDigestValid
-  && scanFresh
-  && scanReport?.status === "passed"
-  && scanReport.auditRunId === auditRunId
-  && scanReport.scanner?.name === scannerMetadata?.name
-  && scanReport.scanner?.version === scannerMetadata?.version
-  && scanReport.scanner?.releaseUrl === scannerMetadata?.releaseUrl
-  && scanReport.scanner?.platform === scannerMetadata?.platform
-  && scanReport.scanner?.archiveSha256 === scannerMetadata?.archiveSha256
-  && scanReport.scanner?.checksumsSha256 === scannerMetadata?.checksumsSha256
-  && /^[a-fA-F0-9]{64}$/.test(scanReport.configurationSha256 ?? "")
-  && requiredScopes.every((scope) => scanReport.scopes?.includes(scope))
-  && requiredCommandScopes.every((scope) => scanReport.commands?.some((command) => command.scope === scope && command.exitCode === 0 && command.command?.includes("--redact=100")))
-  && scanReport.repositoryRevision === git("rev-parse", "HEAD")
-  && scanReport.worktreeDigest === checkpoint?.worktreeDigest
-  && scanReport.scanInputDigest === scanDigest?.scanInputDigest
-  && noSecretFindings
-);
+const verificationIssues = [];
+if (mode === "verify") {
+  if (!metadataValid || !checkpointValid || !scanDigestValid) verificationIssues.push("Required metadata, checkpoint, or scan-input helper is missing, failed, or invalid.");
+  if (!["worktreeDigest", "scanInputDigest"].every((key) => /^[a-f0-9]{64}$/.test(initialContext?.repository?.[key] ?? ""))
+    || initialContext?.secretHistory?.phase !== "capture") verificationIssues.push("Legacy or incomplete initial context lacks pre-publication input binding; capture and scan a new context.");
+  if (initialContext?.repository?.head !== repositoryRevision) verificationIssues.push("Initial context repository revision changed.");
+  if (certificateIssue) verificationIssues.push(certificateIssue);
+  if (scanReport?.schemaVersion !== "1.1.0" || scanReport?.auditRunId !== auditRunId || scanReport?.status !== "passed") verificationIssues.push("A passed current-format certificate for this exact audit run is required.");
+  if (!scanFresh || !Number.isFinite(Date.parse(initialContext?.generatedAt ?? "")) || scanGeneratedAt < Date.parse(initialContext.generatedAt)) verificationIssues.push("Certificate is stale, future-dated, or predates its initial context.");
+  if (!["name", "version", "releaseUrl", "platform", "archiveSha256", "checksumsSha256"].every((key) => scanReport?.scanner?.[key] === scannerMetadata?.[key])) verificationIssues.push("Pinned scanner identity does not match.");
+  if (!scanDigestValid || scanReport?.configurationSha256 !== scanDigest.configurationSha256 || scanReport?.allowlistCount !== scanDigest.allowlistCount) verificationIssues.push("Effective scanner configuration does not match.");
+  if (!Array.isArray(scanReport?.scopes) || scanReport.scopes.length !== requiredScopes.length || !requiredScopes.every((scope) => scanReport.scopes.includes(scope))) verificationIssues.push("The complete unique scan scope is required.");
+  if (!Array.isArray(scanReport?.commands) || scanReport.commands.length !== requiredCommandScopes.length || !requiredCommandScopes.every((scope, index) =>
+    scanReport.commands.some((command) => command?.scope === scope && command.exitCode === 0 && command.command === requiredCommands[index]))) verificationIssues.push("All three exact redacted owner commands must succeed.");
+  if (!checkpointValid || scanReport?.repositoryRevision !== repositoryRevision || checkpoint.repositoryRevision !== repositoryRevision
+    || scanReport?.worktreeDigest !== checkpoint.worktreeDigest) verificationIssues.push("Repository revision or worktree inputs changed.");
+  if (!scanDigestValid || scanReport?.scanInputDigest !== scanDigest.scanInputDigest) verificationIssues.push("Complete scan inputs, local refs, staged index, or effective reachable history changed.");
+  if (!noSecretFindings) verificationIssues.push("Every required finding bucket must exist and be empty.");
+}
+const specialistCompleted = mode === "verify" && verificationIssues.length === 0;
 
 const generatedAt = new Date().toISOString();
 const standardsProfileGeneratedAt = generatedAt;
@@ -195,7 +238,9 @@ const evidence = {
   repository: {
     root: ".",
     rootResolved: true,
-    head: git("rev-parse", "HEAD"),
+    head: repositoryRevision,
+    worktreeDigest: checkpointValid ? checkpoint.worktreeDigest : null,
+    scanInputDigest: scanDigestValid ? scanDigest.scanInputDigest : null,
     worktreeDirty: Boolean(git("status", "--porcelain")),
     shallow: git("rev-parse", "--is-shallow-repository") === "true",
     reachableCommitCount: Number(git("rev-list", "--all", "--count")),
@@ -207,7 +252,15 @@ const evidence = {
     trackedReportCount: trackedReports.length
   },
   secretHistory: {
-    status: specialistCompleted ? "completed" : pinnedScannerReady ? "ready" : "blocked",
+    status: specialistCompleted ? "completed" : mode === "capture" && pinnedScannerReady ? "ready" : "blocked",
+    phase: mode === "capture" ? "capture" : "verification",
+    context: contextArtifact ? {
+      path: contextPath, sha256: contextArtifact.sha256, generatedAt: initialContext.generatedAt,
+      repositoryRevision: initialContext.repository.head,
+      worktreeDigest: initialContext.repository.worktreeDigest ?? null,
+      scanInputDigest: initialContext.repository.scanInputDigest ?? null
+    } : null,
+    verificationIssues,
     pinnedScannerReady,
     pinnedBinaryInstalled,
     supplementalScannerAvailable,
@@ -219,6 +272,7 @@ const evidence = {
     scanners: specialistScanners,
     scanEvidence: specialistCompleted ? {
       path: "reports/gitleaks-scan.json",
+      sha256: certificateSha256,
       generatedAt: scanReport.generatedAt,
       version: scanReport.scanner.version,
       configurationSha256: scanReport.configurationSha256,
@@ -242,20 +296,27 @@ const evidence = {
   }
 };
 
-const evidenceBytes = Buffer.from(`${JSON.stringify(evidence, null, 2)}\n`, "utf8");
-const evidenceSha256 = createHash("sha256").update(evidenceBytes).digest("hex");
-const evidenceDirectory = path.join(root, "reports", "audit-evidence");
-mkdirSync(evidenceDirectory, { recursive: true });
-const canonicalEvidenceDirectory = realpathSync(evidenceDirectory);
-if (canonicalEvidenceDirectory !== evidenceDirectory) throw new Error("Audit evidence directory must not redirect through a symbolic link");
-const evidencePath = path.join(evidenceDirectory, `${evidenceSha256}.json`);
-try {
-  writeFileSync(evidencePath, evidenceBytes, { flag: "wx", mode: 0o600 });
-} catch (error) {
-  if (error.code !== "EEXIST") throw error;
-  if (!readFileSync(evidencePath).equals(evidenceBytes)) throw new Error("Existing audit evidence snapshot does not match its content digest");
+if (mode === "verify") {
+  console.log(JSON.stringify(evidence, null, 2));
+  if (!specialistCompleted) process.exitCode = 1;
+} else {
+  const evidenceBytes = Buffer.from(`${JSON.stringify(evidence, null, 2)}\n`, "utf8");
+  const evidenceSha256 = createHash("sha256").update(evidenceBytes).digest("hex");
+  const evidenceRelative = `reports/audit-evidence/${evidenceSha256}.json`;
+  const evidencePath = await assertSafeRelativePath(root, evidenceRelative);
+  const evidenceDirectory = path.dirname(evidencePath);
+  mkdirSync(evidenceDirectory, { recursive: true });
+  const canonicalEvidenceDirectory = realpathSync(evidenceDirectory);
+  if (canonicalEvidenceDirectory !== evidenceDirectory) throw new Error("Audit evidence directory must not redirect through a symbolic link");
+  try {
+    writeFileSync(evidencePath, evidenceBytes, { flag: "wx", mode: 0o600 });
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    if (!(await ownedArtifact(evidenceRelative, evidenceSha256)).bytes.equals(evidenceBytes)) throw new Error("Existing audit evidence snapshot does not match its content digest");
+  }
+  await ownedArtifact(evidenceRelative, evidenceSha256);
+  console.log(JSON.stringify({
+    ...evidence,
+    artifact: { path: evidenceRelative, sha256: evidenceSha256 }
+  }, null, 2));
 }
-console.log(JSON.stringify({
-  ...evidence,
-  artifact: { path: `reports/audit-evidence/${evidenceSha256}.json`, sha256: evidenceSha256 }
-}, null, 2));

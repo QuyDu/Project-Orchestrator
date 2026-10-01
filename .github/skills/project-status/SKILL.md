@@ -37,6 +37,7 @@ Produce one current, evidence-backed project status report. When `.azure/environ
 2. Inspect `.azure/environment.json`. When it has a subscription and endpoint catalog, use its cloud context for read-only Azure resource inventory and App Service state checks.
 3. Discover project resource names from Azure deployment reports, IaC outputs, and Azure resource-group naming metadata. Report no deployment evidence when none exists.
 4. Read sync reports, event streams, and heartbeat records when present. Mark a sync `failed` on its latest failure; mark it `stale` when its latest success or heartbeat is older than the declared interval plus grace period; otherwise report `unknown` when no observable evidence exists.
+   Future success timestamps, including sub-second clock skew, are `unknown` with an explicit diagnostic rather than healthy. An explicitly reported failure remains failed.
 5. Compare local Git `HEAD`, the latest validated CI artifact when recorded, and a deployed build/version marker when observable. Never report current when the deployed marker is absent.
 6. Publish the report and classify each unavailable evidence source as `unknown`.
 

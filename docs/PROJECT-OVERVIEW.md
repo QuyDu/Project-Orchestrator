@@ -1,6 +1,6 @@
 # Project Orchestrator: Complete Project Overview
 
-> **Evidence snapshot:** This overview describes Project Orchestrator runtime version `1.2.0` and framework version `9.1.0` as reviewed on 2026-09-22. It is grounded in the current runtime, configuration, tests, skill inventory, security policy, and release manifest. Current machine-readable evidence under `reports/` and current source/configuration take precedence if this document later becomes stale.
+> **Source metadata:** Runtime version `1.3.0`, framework version `9.2.0`, dated 2026-10-01. The architecture narrative retains its prior review baseline; current verified capabilities and limitations are recorded in [PROJECT-GUIDE.md](PROJECT-GUIDE.md) and the machine-readable artifacts under `reports/`. A version/date update is not a new hosted-security or formal-release attestation.
 
 ## Executive Summary
 
@@ -118,9 +118,9 @@ Project Orchestrator is not:
 | --- | --- |
 | Product name | Project Orchestrator |
 | Compatibility names | `pso`, `pso.mjs`, `project-skills-orchestrator`, and `.skills-orchestrator` remain stable interfaces |
-| Runtime version | `1.2.0` |
-| Source version date | September 22, 2026 |
-| Framework version | `9.1.0` |
+| Runtime version | `1.3.0` |
+| Source version date | October 1, 2026 |
+| Framework version | `9.2.0` |
 | Governed skills | 50 |
 | Core runtime dependencies | 0 third-party packages |
 | Supported Node.js majors | 22, 24, and 26 |

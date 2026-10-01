@@ -72,7 +72,13 @@
       "properties": {
         "frameworkVersion": { "$ref": "#/$defs/version" },
         "runtimeVersion": { "$ref": "#/$defs/version" },
-        "installedSource": { "$ref": "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" },
+        "installedSource": {
+          "description": "Known installed identity, or null when a legacy manifest did not record source provenance.",
+          "anyOf": [
+            { "$ref": "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" },
+            { "type": "null" }
+          ]
+        },
         "lockDigest": { "$ref": "#/$defs/sha256" }
       }
     },

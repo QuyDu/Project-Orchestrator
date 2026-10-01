@@ -1,7 +1,10 @@
+import path from "node:path";
 import { validateBlueprint, renderAgent, normalizeDistribution } from "../../agent-builder/scripts/agent-builder.mjs";
-import { digest, jsonBytes, rejectSecrets, stableJson, stop, validateContractPart, validateRequest } from "./contracts.mjs";
+import { digest, jsonBytes, rejectSecrets, safeError, stableJson, stop, validateContractPart, validateRequest } from "./contracts.mjs";
 import { immutableFile, readBytes, readJson, relativePath, verifyDirectory } from "./files.mjs";
 import { capabilityFor } from "./providers/registry.mjs";
+import { bindNativeStudioHandoff, inspectStudioSolution, parseStudioJson } from "./providers/studio-evidence.mjs";
+import { inspectZip, rejectPrivateFile, sourceTree } from "./providers/enterprise-cli.mjs";
 
 function httpsUrl(value, allowedHosts) {
   let url;
@@ -136,25 +139,32 @@ export async function loadContext(root, requestPath) {
   if (request.agentsToolkit) (await import("./providers/atk.mjs")).validateConfig(request.agentsToolkit);
   const source = await boundInput(root, request.blueprint);
   let blueprint;
+  let nativeModule = null;
   try {
     blueprint = JSON.parse(source.toString("utf8"));
     rejectSecrets(blueprint);
+    if (request.nativeStudioHandoff) nativeModule = await import("../../agent-builder/scripts/native-studio.mjs");
+    if (blueprint.agentType === "copilot-studio") {
+      if (!nativeModule) stop("STUDIO_HANDOFF_REQUIRED", "Native source requires the versioned native deployment contract.");
+    }
     validateBlueprint(blueprint);
   } catch {
     stop("BLUEPRINT_INVALID", "Invalid blueprint; validate the whole source with agent-builder before packaging.");
   }
-  const distribution = normalizeDistribution(blueprint);
+  const distribution = blueprint.agentType === "copilot-studio" ? null : normalizeDistribution(blueprint);
   if (distribution && !distribution.targets.includes(request.target)) stop("DISTRIBUTION_MISMATCH", "Requested target is absent from the validated blueprint distribution.");
   if (blueprint.agentType === "foundry-hosted" && request.runtime.kind !== "hosted") stop("RUNTIME_MISMATCH", "A hosted blueprint cannot execute as a prompt-agent deployment.");
   const capability = capabilityFor(request);
   if (!capability) stop("PROVIDER_UNAVAILABLE", "No trusted adapter owns the requested target.");
-  const instructions = promptInstructions(blueprint);
+  const instructions = nativeModule ? null : promptInstructions(blueprint);
   const files = new Map([
     ["blueprint.json", source],
-    ["request.json", requestFile.bytes],
-    ["agent.md", Buffer.from(renderAgent(blueprint))],
-    ["instructions.txt", Buffer.from(instructions)]
+    ["request.json", requestFile.bytes]
   ]);
+  if (!nativeModule) {
+    files.set("agent.md", Buffer.from(renderAgent(blueprint)));
+    files.set("instructions.txt", Buffer.from(instructions));
+  }
   const definition = request.target !== "foundry-endpoint" ? null : request.runtime.kind === "prompt"
     ? { kind: "prompt", model: request.foundry.modelDeployment, instructions, tools: [] }
     : {
@@ -169,6 +179,17 @@ export async function loadContext(root, requestPath) {
   if (definition) files.set("definition.json", Buffer.from(jsonBytes(definition)));
   let hostedTestEvidence = null;
   let publicationTestEvidence = null;
+  let nativeStudioHandoff = null;
+  if (request.nativeStudioHandoff) {
+    const bytes = await boundInput(root, request.nativeStudioHandoff);
+    try {
+      nativeStudioHandoff = parseStudioJson(bytes.toString("utf8"));
+      nativeModule.validateNativeStudioHandoff(nativeStudioHandoff);
+    } catch {
+      stop("STUDIO_HANDOFF_INVALID", "The reviewed native handoff is invalid or its shared validator is unavailable. Regenerate it with the current agent-builder; no legacy coercion is allowed.");
+    }
+    files.set("native-studio-handoff.json", bytes);
+  }
   if (request.hosted) {
     const sbom = await boundInput(root, request.hosted.sbom);
     try { rejectSecrets(JSON.parse(sbom.toString("utf8"))); } catch { stop("SBOM_INVALID", "Hosted handoff requires a credential-free JSON SBOM."); }
@@ -197,17 +218,25 @@ export async function loadContext(root, requestPath) {
   }
   const inputReferences = [];
   const inputDigests = new Map();
+  const inputContents = new Map();
   let platformInputBytes = 0;
   async function collectInputs(value) {
     if (!value || typeof value !== "object") return;
     if (typeof value.path === "string" && typeof value.sha256 === "string") {
       const normalized = relativePath(value.path);
+      if (nativeStudioHandoff) {
+        rejectPrivateFile(normalized);
+        if (/(?:^|\/)\.mcs(?:\/|$)|(?:^|\/)(?:auth-cache|token-cache|credentials-cache)(?:\/|$)/i.test(normalized)) {
+          stop("PRIVATE_INPUT_REJECTED", "Private native credential/binding caches cannot be packaged or used as readiness evidence.");
+        }
+      }
       if (inputDigests.has(normalized)) {
         if (inputDigests.get(normalized) !== value.sha256) stop("INPUT_CONFLICT", "One platform input path has conflicting reviewed digests.");
         return;
       }
       inputDigests.set(normalized, value.sha256);
       const bytes = await boundInput(root, value);
+      inputContents.set(normalized, bytes);
       platformInputBytes += bytes.length;
       if (platformInputBytes > 67_108_864) stop("INPUT_LIMIT", "Platform inputs exceed the 64 MiB reviewed-package boundary.");
       const suffix = value.path.match(/\.[a-zA-Z0-9]{1,8}$/)?.[0] ?? ".data";
@@ -221,6 +250,59 @@ export async function loadContext(root, requestPath) {
     for (const child of Object.values(value)) await collectInputs(child);
   }
   await collectInputs(request.copilotStudio ?? request.agentsToolkit);
+  if (nativeStudioHandoff) await collectInputs(nativeStudioHandoff);
+  let nativeContext = {};
+  let nativeSourceDirectory = null;
+  if (nativeStudioHandoff) {
+    const artifacts = nativeStudioHandoff.artifacts;
+    let spec;
+    const diagnostics = [];
+    try {
+      nativeModule.validateNativeStudioGuide(inputContents.get(artifacts.guide.path).toString("utf8"));
+      spec = nativeModule.validateNativeStudioSpec(parseStudioJson(inputContents.get(artifacts.spec.path).toString("utf8")));
+      if (stableJson(spec.agent) !== stableJson(nativeStudioHandoff.agent)
+          || stableJson(spec.security) !== stableJson(Object.fromEntries(Object.entries(nativeStudioHandoff.security).filter(([key]) => key !== "policy")))
+          || spec.target.cloud !== nativeStudioHandoff.target.cloud
+          || spec.target.solutionUniqueName !== nativeStudioHandoff.target.solution.uniqueName
+          || (blueprint.agentType === "copilot-studio" && (stableJson(blueprint.nativeSpec) !== stableJson(artifacts.spec)
+            || stableJson(blueprint.guide) !== stableJson(artifacts.guide)))) throw new Error("Native source scope differs.");
+      const declaredCapabilities = spec.capabilities.map((item) => ({
+        id: item.id, scope: item.scope, description: item.description,
+        sourcePaths: item.sourcePaths.map((name) => `${spec.source.directory}/${name}`),
+        criteria: item.acceptanceCriteria, persistence: item.persistence
+      }));
+      const handoffCapabilities = nativeStudioHandoff.capabilities.map((item) => ({
+        id: item.id, scope: item.scope, description: item.description, sourcePaths: item.sourcePaths,
+        criteria: item.acceptance.criteria, persistence: { mode: item.persistence.mode, operations: item.persistence.operations }
+      }));
+      if (stableJson(declaredCapabilities) !== stableJson(handoffCapabilities)
+          || spec.source.files.some((item) => !artifacts.authored.some((ref) => ref.path === `${spec.source.directory}/${item.target}`))) {
+        throw new Error("Native capability scope was silently reduced.");
+      }
+      nativeSourceDirectory = spec.source.directory;
+      for (const ref of artifacts.authored) {
+        if (!ref.path.startsWith(`${spec.source.directory}/`)) throw new Error("Authored source is not in the canonical native directory.");
+        if (/\.ya?ml$/i.test(ref.path)) {
+          try {
+            const document = nativeModule.parseNativeStudioSource(inputContents.get(ref.path).toString("utf8"));
+            diagnostics.push(...nativeModule.diagnoseNativeStudioSource(document).diagnostics);
+          } catch { diagnostics.push({ code: "STUDIO_SOURCE_UNSUPPORTED" }); }
+        } else diagnostics.push({ code: "STUDIO_SOURCE_UNSUPPORTED" });
+      }
+    } catch {
+      stop("STUDIO_SOURCE_BINDING", "Native guide, spec, security, canonical source or blueprint references disagree; preserve source and review a corrected handoff.");
+    }
+    nativeContext = bindNativeStudioHandoff(request, blueprint, nativeStudioHandoff, inputContents);
+    if (diagnostics.length) nativeContext.studioGateReasons.unshift("The native source shape needs supported tooling/schema review; unsupported actions/settings were retained, not deleted.");
+    if (request.copilotStudio?.operation === "import" && nativeContext.studioMembership) {
+      try {
+        inspectStudioSolution(inspectZip(inputContents.get(relativePath(request.copilotStudio.solution.path))).files, {
+          nativeMode: true, requiredComponents: nativeContext.studioMembership.components.map((item) => item.schemaName),
+          expectedBotId: nativeContext.studioTarget?.botId ?? null
+        });
+      } catch (error) { nativeContext.studioGateReasons.unshift(safeError(error).message); }
+    }
+  }
   if (request.target === "openai-api-application") {
     files.set("application.mjs", Buffer.from(ownClientSource(request.openai.model, instructions)));
   }
@@ -245,9 +327,15 @@ export async function loadContext(root, requestPath) {
   };
   const packageSha256 = digest(manifest);
   const packagePath = `reports/agent-deployment/${blueprint.id}/packages/${packageSha256}`;
+  if (nativeStudioHandoff && nativeStudioHandoff.artifacts.authored.length) {
+    const references = [...nativeStudioHandoff.artifacts.authored];
+    if (request.nativeStudioHandoff.path.startsWith(`${nativeSourceDirectory}/`)) references.push(request.nativeStudioHandoff);
+    await sourceTree({ root, work: path.join(root, ...packagePath.split("/")) }, nativeSourceDirectory, references);
+  }
   return {
     root, requestPath: normalizedPath, request, requestSha256, blueprint, distribution, definition,
-    capability, manifest, files, packageSha256, packagePath, hostedTestEvidence, publicationTestEvidence,
+    capability, manifest, files, packageSha256, packagePath, hostedTestEvidence, publicationTestEvidence, nativeStudioHandoff,
+    ...nativeContext,
     inputReferences: inputReferences.map((item) => ({ ...item, packagedPath: `${packagePath}/${item.packagedName}` }))
   };
 }

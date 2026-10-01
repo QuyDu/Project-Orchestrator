@@ -1,0 +1,343 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-10-01T18:40:41.907Z",
+  "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+  "leases": [
+    {
+      "owner": "remediation-audit-tooling",
+      "leaseId": "M1-AUDIT-CODE-001",
+      "fencingToken": 1,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T00:15:49.060Z",
+      "expiresAt": "2026-10-01T04:15:49.060Z",
+      "scope": [
+        ".github/skills/audit-code/SKILL.md",
+        ".github/prompts/audit-code-help.prompt.md",
+        ".github/skills/audit-code/scripts/audit-validate.mjs",
+        ".github/skills/audit-code/scripts/audit-evidence.mjs",
+        ".github/skills/audit-code/scripts/gitleaks-scan.mjs",
+        "tests/audit-execution.test.mjs",
+        "tests/audit-assurance.test.mjs",
+        "tests/skill-contracts.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T08:38:21.393Z",
+      "releaseEvidence": "Owner explicitly relinquished all write ownership in turn5 after token expiry."
+    },
+    {
+      "owner": "remediation-agent-builder",
+      "leaseId": "M2-2",
+      "fencingToken": 2,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T08:38:21.393Z",
+      "expiresAt": "2026-10-01T20:38:21.393Z",
+      "scope": [
+        ".github/skills/agent-builder/SKILL.md",
+        ".github/prompts/agent-builder-help.prompt.md",
+        ".github/skills/agent-builder/scripts/agent-builder.mjs",
+        "tests/agent-builder.test.mjs",
+        ".github/skills/agent-builder/scripts/native-studio.mjs"
+      ],
+      "releasedAt": "2026-10-01T09:30:32.562Z",
+      "releaseEvidence": "Explicit owner relinquishment after M2 verification; M2 independent review passed."
+    },
+    {
+      "owner": "remediation-runtime",
+      "leaseId": "M2-3",
+      "fencingToken": 3,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T08:38:21.393Z",
+      "expiresAt": "2026-10-01T20:38:21.393Z",
+      "scope": [
+        "pso.mjs",
+        "tests/adoption-rerun.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T16:29:13.769Z",
+      "releaseEvidence": "Explicit owner release after REM-0122 verification."
+    },
+    {
+      "owner": "remediation-project-video",
+      "leaseId": "M2-4",
+      "fencingToken": 4,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T08:38:21.393Z",
+      "expiresAt": "2026-10-01T20:38:21.393Z",
+      "scope": [
+        ".github/skills/project-video/SKILL.md",
+        ".github/prompts/project-video-help.prompt.md",
+        ".github/skills/project-video/scripts/project-video.mjs",
+        "tests/project-video.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T16:29:58.088Z",
+      "releaseEvidence": "Owner stopped after M2; continuing same owner only with newly scoped token."
+    },
+    {
+      "owner": "remediation-project-visual-storytelling",
+      "leaseId": "M2-5",
+      "fencingToken": 5,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T08:38:21.393Z",
+      "expiresAt": "2026-10-01T20:38:21.393Z",
+      "scope": [
+        ".github/skills/project-visual-storytelling/SKILL.md",
+        ".github/prompts/project-visual-storytelling-help.prompt.md",
+        ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+        "tests/project-visual-storytelling.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T17:03:05.707Z",
+      "releaseEvidence": "Explicit owner release after REM-0129; M2 review passed."
+    },
+    {
+      "owner": "parent-remediation",
+      "leaseId": "M2-6",
+      "fencingToken": 6,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T08:38:21.393Z",
+      "expiresAt": "2026-10-01T20:38:21.393Z",
+      "scope": [
+        "README.md",
+        "tests/skill-contracts.test.mjs",
+        ".github/skills/live-chat-interaction/SKILL.md",
+        ".github/prompts/live-chat-interaction-help.prompt.md",
+        "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+        "tests/live-chat-provider-adapter.test.mjs",
+        ".github/skills/project-understanding/SKILL.md",
+        ".github/prompts/project-understanding-help.prompt.md",
+        ".github/skills/project-understanding/scripts/project-understanding.mjs",
+        "tests/project-understanding.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T09:34:59.871Z"
+    },
+    {
+      "owner": "parent-personalization",
+      "leaseId": "M3-7",
+      "fencingToken": 7,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T09:23:12.766Z",
+      "expiresAt": "2026-10-01T21:23:12.766Z",
+      "scope": [
+        ".github/skills/user-personalization/SKILL.md",
+        ".github/prompts/user-personalization-help.prompt.md",
+        ".github/skills/user-personalization/scripts/user-personalization.mjs",
+        "tests/user-personalization.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T18:40:41.907Z",
+      "releaseEvidence": "Parent source edits finished and frozen for final verification."
+    },
+    {
+      "owner": "remediation-runtime",
+      "leaseId": "M3-8",
+      "fencingToken": 8,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T09:29:20.023Z",
+      "expiresAt": "2026-10-01T21:29:20.023Z",
+      "scope": [
+        "scripts/verify-release.mjs",
+        "tests/production-gates.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T16:29:13.769Z"
+    },
+    {
+      "owner": "remediation-agent-builder",
+      "leaseId": "M3-9",
+      "fencingToken": 9,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T09:30:32.562Z",
+      "expiresAt": "2026-10-01T21:30:32.562Z",
+      "scope": [
+        ".github/skills/agent-builder/SKILL.md",
+        ".github/prompts/agent-builder-help.prompt.md",
+        ".github/skills/agent-builder/scripts/agent-builder.mjs",
+        "tests/agent-builder.test.mjs",
+        ".github/skills/agent-builder/scripts/native-studio.mjs"
+      ],
+      "releasedAt": "2026-10-01T16:54:56.870Z",
+      "releaseEvidence": "Explicit owner relinquishment after94tests and independent M3 review."
+    },
+    {
+      "owner": "parent-remediation",
+      "leaseId": "M4-10",
+      "fencingToken": 10,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T09:34:59.871Z",
+      "expiresAt": "2026-10-01T21:34:59.871Z",
+      "scope": [
+        "README.md",
+        "tests/skill-contracts.test.mjs",
+        ".github/skills/live-chat-interaction/SKILL.md",
+        ".github/prompts/live-chat-interaction-help.prompt.md",
+        "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+        "tests/live-chat-provider-adapter.test.mjs",
+        ".github/skills/project-understanding/SKILL.md",
+        ".github/prompts/project-understanding-help.prompt.md",
+        ".github/skills/project-understanding/scripts/project-understanding.mjs",
+        "tests/project-understanding.test.mjs",
+        "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+        "templates/project/.skills-orchestrator/live-chat/browser-controller.mjs",
+        "templates/project/.skills-orchestrator/live-chat/grounding.mjs",
+        "tests/live-chat-interaction.test.mjs",
+        "tests/live-chat-grounding.test.mjs",
+        "tests/live-chat-step016-evaluation.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T18:40:41.907Z",
+      "releaseEvidence": "Parent source edits finished and frozen for final verification."
+    },
+    {
+      "owner": "remediation-runtime",
+      "leaseId": "M4-11",
+      "fencingToken": 11,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T16:29:13.769Z",
+      "expiresAt": "2026-10-02T04:29:13.769Z",
+      "scope": [
+        "pso.mjs",
+        "tests/adoption-rerun.test.mjs",
+        "schemas/project-update-plan.schema.json",
+        "scripts/verify-release.mjs",
+        "tests/production-gates.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T18:38:52.941Z",
+      "releaseEvidence": "Explicit owner relinquishment in the verified final item response."
+    },
+    {
+      "owner": "remediation-project-video",
+      "leaseId": "M4-12",
+      "fencingToken": 12,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T16:29:58.088Z",
+      "expiresAt": "2026-10-02T04:29:58.088Z",
+      "scope": [
+        ".github/skills/project-video/SKILL.md",
+        ".github/prompts/project-video-help.prompt.md",
+        ".github/skills/project-video/scripts/project-video.mjs",
+        "tests/project-video.test.mjs",
+        "schemas/project-video-voice-samples.schema.json",
+        "schemas/project-video-voice-selection.schema.json",
+        "schemas/project-video-narration-manifest.schema.json",
+        "schemas/project-video-manifest.schema.json"
+      ],
+      "releasedAt": "2026-10-01T18:40:41.907Z",
+      "releaseEvidence": "Explicit owner release after final video verification."
+    },
+    {
+      "owner": "parent-documentation",
+      "leaseId": "M4-13",
+      "fencingToken": 13,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T16:36:04.222Z",
+      "expiresAt": "2026-10-02T04:36:04.222Z",
+      "scope": [
+        ".github/skills/documentation-builder/SKILL.md",
+        ".github/prompts/documentation-builder-help.prompt.md",
+        ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+        "tests/documentation-builder.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T18:40:41.907Z",
+      "releaseEvidence": "Parent source edits finished and frozen for final verification."
+    },
+    {
+      "owner": "parent-azure-status",
+      "leaseId": "M4-14",
+      "fencingToken": 14,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T16:46:54.584Z",
+      "expiresAt": "2026-10-02T04:46:54.584Z",
+      "scope": [
+        ".github/skills/azure-cleanup/SKILL.md",
+        ".github/prompts/azure-cleanup-help.prompt.md",
+        "templates/project/infra/cleanup.ps1",
+        "templates/project/infra/deploy-infra.ps1",
+        ".github/skills/azure-discovery/SKILL.md",
+        ".github/prompts/azure-discovery-help.prompt.md",
+        ".github/skills/azure-discovery/scripts/azure-discovery.ps1",
+        ".github/skills/azure-discovery/scripts/azure-environment.ps1",
+        "schemas/azure-environment.schema.json",
+        "tests/azure-discovery.test.mjs",
+        ".github/skills/project-status/SKILL.md",
+        ".github/prompts/project-status-help.prompt.md",
+        ".github/skills/project-status/scripts/project-status.mjs",
+        "tests/project-status.test.mjs"
+      ],
+      "releasedAt": "2026-10-01T18:40:41.907Z",
+      "releaseEvidence": "Parent source edits finished and frozen for final verification."
+    },
+    {
+      "owner": "remediation-agent-builder",
+      "leaseId": "M4-15",
+      "fencingToken": 15,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T16:54:56.870Z",
+      "expiresAt": "2026-10-02T04:54:56.870Z",
+      "scope": [
+        ".github/skills/agent-builder/SKILL.md",
+        ".github/prompts/agent-builder-help.prompt.md",
+        ".github/skills/agent-builder/scripts/agent-builder.mjs",
+        "tests/agent-builder.test.mjs",
+        ".github/skills/agent-builder/scripts/native-studio.mjs",
+        "schemas/copilot-studio-handoff.schema.json"
+      ],
+      "releasedAt": "2026-10-01T17:36:21.961Z",
+      "releaseEvidence": "Explicit owner release after six verified contract fixes."
+    },
+    {
+      "owner": "remediation-project-visual-storytelling",
+      "leaseId": "M4-16",
+      "fencingToken": 16,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T17:03:05.707Z",
+      "expiresAt": "2026-10-02T05:03:05.707Z",
+      "scope": [
+        ".github/skills/project-visual-storytelling/SKILL.md",
+        ".github/prompts/project-visual-storytelling-help.prompt.md",
+        ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+        "tests/project-visual-storytelling.test.mjs",
+        ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+        ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs"
+      ],
+      "releasedAt": "2026-10-01T17:36:21.961Z",
+      "releaseEvidence": "Explicit owner release; PNG expansion not approved."
+    },
+    {
+      "owner": "remediation-agent-builder",
+      "leaseId": "M4-17",
+      "fencingToken": 17,
+      "mode": "exclusive-write",
+      "status": "released",
+      "issuedAt": "2026-10-01T17:36:21.961Z",
+      "expiresAt": "2026-10-02T05:36:21.961Z",
+      "scope": [
+        ".github/skills/agent-builder/SKILL.md",
+        ".github/prompts/agent-builder-help.prompt.md",
+        ".github/skills/agent-builder/scripts/agent-builder.mjs",
+        "tests/agent-builder.test.mjs",
+        ".github/skills/agent-builder/scripts/native-studio.mjs",
+        "schemas/copilot-studio-handoff.schema.json"
+      ],
+      "releasedAt": "2026-10-01T18:38:52.941Z",
+      "releaseEvidence": "Explicit owner relinquishment in the verified final item response."
+    }
+  ],
+  "sharedReportsOwner": "parent-audit-remediation",
+  "conflicts": [],
+  "controls": [
+    "Check owner, token and expiry before writes.",
+    "No other agent may change a leased file.",
+    "No root report writes by workers; return evidence to the parent.",
+    "Release explicitly before ownership transfer."
+  ]
+}

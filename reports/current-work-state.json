@@ -1,83 +1,161 @@
 {
   "schemaVersion": "1.0.0",
-  "updatedAt": "2026-09-22T23:58:16.322Z",
-  "snapshotPhase": "pre-commit",
+  "updatedAt": "2026-10-01T19:45:45.335Z",
+  "status": "waiting-approval",
   "project": {
     "name": "project-skills-orchestrator",
     "repository": "QuyDu/Project-Orchestrator",
-    "version": "1.2.0",
-    "frameworkVersion": "9.1.0",
-    "sourceVersionDate": "2026-09-22",
+    "version": "1.3.0",
+    "frameworkVersion": "9.2.0",
+    "sourceVersionDate": "2026-10-01",
     "branch": "release/1.1.2",
-    "sourceRevisionAtSnapshot": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
+    "sourceRevisionAtSnapshot": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
     "upstream": "origin/release/1.1.2",
-    "upstreamRevisionAtSnapshot": "83e6f053a0fa7aea212bcb76ee3532e755542e28"
+    "upstreamRevisionAtSnapshot": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+    "sourceDirty": true
   },
-  "status": "implementation-complete",
   "activeMilestone": {
-    "name": "Governed agent deployment, visual companions and versioned source delivery",
-    "status": "validated"
+    "name": "Approved 45-finding local audit remediation",
+    "status": "waiting-approval",
+    "phase": "M4"
   },
   "workflow": {
-    "id": "WF-LIVE-CHAT-20260918",
-    "runId": "RUN-LIVE-CHAT-PLAN-20260918-01",
-    "currentStep": 20,
-    "lastCompletedStep": 20,
-    "lastSequence": 79,
-    "status": "completed",
-    "historical": true,
-    "eventStateAdvanced": false,
-    "note": "Last recorded Live Chat workflow lineage; this feature/version handoff does not invent or rewrite workflow events or certify full historical replay."
+    "schemaVersion": "1.0.0",
+    "status": "waiting-approval",
+    "currentStep": 42,
+    "totalSteps": 48,
+    "activeSkill": "skill-update",
+    "lastCompletedStep": 47,
+    "resumeFromStep": 42,
+    "workflowId": "WF-REMEDIATION-4da7d0e8-28fc-43a9-8ac5-3c9f80009aac",
+    "runId": "RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
+    "lastSequence": 136,
+    "updatedAt": "2026-10-01T18:45:59.445Z",
+    "historical": false,
+    "eventStateAdvanced": true
   },
+  "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+  "immutablePlan": {
+    "path": "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
+    "sha256": "f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0"
+  },
+  "executionReport": "reports/audit-remediation-execution.json",
   "lastCompletedAction": {
-    "action": "Validate the versioned agent-deployment and visual-companion implementation",
+    "action": "REM-0145",
     "status": "completed",
-    "completedAt": "2026-09-22T23:58:16.322Z",
     "evidence": [
-      "reports/change-review.json",
-      "reports/regression-test-result.json",
-      "reports/security-check.json",
-      "reports/skill-dependency-graph.json"
+      "reports/policy-evaluation.json",
+      "reports/recovery-plan.json",
+      "reports/current-execution-state.json",
+      "reports/audit-remediation-execution.json"
     ]
   },
-  "validationStatus": {
-    "command": "npm run check",
-    "status": "passed",
-    "tests": {
-      "total": 341,
-      "passed": 340,
-      "failed": 0,
-      "skipped": 1
-    },
-    "skillsVerified": 50,
-    "securityFilesScanned": 323,
-    "packageDependencies": 0,
-    "unsignedCandidateFilesVerified": 226,
-    "checkOutputSha256": "1c51b31d55f583a2ee1808b79ad977f04fed8a2b87f3a74e02405f08b6bbee67",
-    "focusedMetadataTests": {
-      "passed": 6,
-      "failed": 0,
-      "skipped": 0
-    },
-    "deploymentRegressionSuite": {
-      "passed": 119,
-      "failed": 0,
-      "basis": "Retained pre-version feature validation; all cases also included in the current full gate."
-    }
-  },
-  "deliveryApproval": {
-    "status": "explicitly-authorized",
-    "request": "update version info date commit and push",
-    "scope": "Version/date metadata, the completed reviewed feature changes and preserved rename links, normal commit, and normal push to origin/release/1.1.2.",
-    "excludes": [
-      "force push",
-      "branch rename",
-      "main update",
-      "release tag",
-      "GitHub Release",
-      "package publication",
-      "cloud deployment"
-    ]
+  "completedItemIds": [
+    "REM-0146",
+    "REM-0108",
+    "REM-0106",
+    "REM-0128",
+    "REM-0110",
+    "REM-0111",
+    "REM-0122",
+    "REM-0129",
+    "REM-0130",
+    "REM-0131",
+    "REM-0121",
+    "REM-0115",
+    "REM-0116",
+    "REM-0137",
+    "REM-0138",
+    "REM-0101",
+    "REM-0102",
+    "REM-0103",
+    "REM-0104",
+    "REM-0105",
+    "REM-0107",
+    "REM-0109",
+    "REM-0112",
+    "REM-0114",
+    "REM-0117",
+    "REM-0118",
+    "REM-0120",
+    "REM-0123",
+    "REM-0125",
+    "REM-0126",
+    "REM-0127",
+    "REM-0134",
+    "REM-0135",
+    "REM-0136",
+    "REM-0139",
+    "REM-0142",
+    "REM-0143",
+    "REM-0113",
+    "REM-0124",
+    "REM-0140",
+    "REM-0141",
+    "REM-0119",
+    "REM-0144",
+    "REM-0145"
+  ],
+  "completedFindingIds": [
+    "AUD-0146",
+    "AUD-0108",
+    "AUD-0106",
+    "AUD-0128",
+    "AUD-0110",
+    "AUD-0111",
+    "AUD-0122",
+    "AUD-0129",
+    "AUD-0130",
+    "AUD-0131",
+    "AUD-0121",
+    "AUD-0115",
+    "AUD-0116",
+    "AUD-0137",
+    "AUD-0138",
+    "AUD-0101",
+    "AUD-0102",
+    "AUD-0103",
+    "AUD-0104",
+    "AUD-0105",
+    "AUD-0107",
+    "AUD-0109",
+    "AUD-0112",
+    "AUD-0114",
+    "AUD-0117",
+    "AUD-0118",
+    "AUD-0120",
+    "AUD-0123",
+    "AUD-0125",
+    "AUD-0126",
+    "AUD-0127",
+    "AUD-0134",
+    "AUD-0135",
+    "AUD-0136",
+    "AUD-0139",
+    "AUD-0142",
+    "AUD-0143",
+    "AUD-0113",
+    "AUD-0124",
+    "AUD-0140",
+    "AUD-0141",
+    "AUD-0119",
+    "AUD-0144",
+    "AUD-0145"
+  ],
+  "remainingItemIds": [
+    "REM-0132"
+  ],
+  "remainingFindingIds": [
+    "AUD-0132"
+  ],
+  "blockedItemIds": [],
+  "pendingApprovals": [
+    "REM-0132: approve the explicit visual-companion-builder shared-decoder scope: .github/skills/visual-companion-builder/scripts/png.mjs; tests/visual-companion-builder.test.mjs; .github/skills/visual-companion-builder/SKILL.md; .github/prompts/visual-companion-builder-help.prompt.md"
+  ],
+  "currentApproval": "User: proceed with all changes --Proceed (2026-09-30T23:55:42.714Z); local reversible M1-M5 only",
+  "priorDeliveryApproval": {
+    "historical": true,
+    "usableForCurrentWork": false
   },
   "historicalMilestones": [
     {
@@ -104,42 +182,120 @@
       "summary": "Preserved blocked lineage, not completed or cancelled by these source updates."
     }
   ],
-  "historicalExecutionIssue": {
-    "path": "reports/execution-log.jsonl",
-    "line": 71,
-    "sourceRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
-    "issue": "Historical sequence-71 and sequence-72 objects are joined without a JSONL newline.",
-    "disposition": "Unchanged and outside this commit scope. Only the latest event was compared with the current snapshot; complete historical replay is not certified."
-  },
   "blockers": [],
-  "pendingApprovals": [
-    "Any later deployment, tenant publication, native ChatGPT implementation or formal release requires its own approved scope."
-  ],
+  "validationStatus": {
+    "status": "passed",
+    "scope": "44 implemented items; pending scope remains unimplemented",
+    "evidence": {
+      "id": "CP-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-VERIFIED",
+      "createdAt": "2026-10-01T18:45:59.441Z",
+      "status": "valid",
+      "completedItemIds": [
+        "REM-0146",
+        "REM-0108",
+        "REM-0106",
+        "REM-0128",
+        "REM-0110",
+        "REM-0111",
+        "REM-0122",
+        "REM-0129",
+        "REM-0130",
+        "REM-0131",
+        "REM-0121",
+        "REM-0115",
+        "REM-0116",
+        "REM-0137",
+        "REM-0138",
+        "REM-0101",
+        "REM-0102",
+        "REM-0103",
+        "REM-0104",
+        "REM-0105",
+        "REM-0107",
+        "REM-0109",
+        "REM-0112",
+        "REM-0114",
+        "REM-0117",
+        "REM-0118",
+        "REM-0120",
+        "REM-0123",
+        "REM-0125",
+        "REM-0126",
+        "REM-0127",
+        "REM-0134",
+        "REM-0135",
+        "REM-0136",
+        "REM-0139",
+        "REM-0142",
+        "REM-0143",
+        "REM-0113",
+        "REM-0124",
+        "REM-0140",
+        "REM-0141",
+        "REM-0119",
+        "REM-0144",
+        "REM-0145"
+      ],
+      "remainingItemIds": [
+        "REM-0132"
+      ],
+      "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+      "worktreeDigest": "d79a723b0b362e46978ab87ee7b85be4d633042a7d32dd41583b64319ffc158f"
+    },
+    "releaseApproval": "not-granted",
+    "sourceVersion": "1.3.0",
+    "frameworkVersion": "9.2.0",
+    "command": "npm run check",
+    "tests": {
+      "total": 948,
+      "passed": 945,
+      "failed": 0,
+      "skipped": 3
+    }
+  },
   "limitations": [
-    "Local tests and independent code/security reviews do not certify live tenant behavior, hosted performance, catalog acceptance, or production readiness.",
-    "The unsigned formal release remains blocked by trusted signing, candidate-bound independent release attestation, operational readiness and required cross-platform evidence.",
-    "No cloud deployment, tenant publication, package publication, VSIX installation, GitHub Release or tag is authorized by this version/commit/push request.",
-    "Native ChatGPT plugin/MCP Apps UI export and OpenAI Managed Agents API integration remain unimplemented; existing OpenAI delivery is an application export or manual Custom GPT Action handoff.",
-    "Azure Government agent-deployment execution remains blocked pending service qualification.",
-    "The unchanged historical execution log joins sequence-71 and sequence-72 JSON objects on one line. The latest event matches the execution snapshot, but full historical replay remains unverified.",
-    "This report is a pre-commit snapshot. Git HEAD and the remote branch, not this report's base revision, establish the containing commit and delivery status."
+    "Local approval only; no external operations or release authority.",
+    "Legacy prefix remains unchanged and explicitly nonconformant in formatting/metadata; this fresh run uses a validated typed suffix.",
+    "No item is resolved merely because an edit ran; current acceptance evidence and post-fix audit verification are required.",
+    "REM-0132 was not silently widened or implemented with a reduced compatible image-format policy. User unavailability is not approval.",
+    "Final complete gate passed on current implementation source. The current generated guide is separately validated; closing cached-only secret scanning and read-only verification are performed after these reports are frozen.",
+    "No source finding is described as resolved without its recorded current acceptance and post-fix audit verification.",
+    "No live-provider/tenant/device, hosted, advisory or current external standards qualification is implied.",
+    "The historical event prefix remains unchanged; its legacy metadata and framing limitations are retained.",
+    "The current delivery request separately authorizes a normal source commit and upstream push, but not tags,formal releases,deployments or PNG decoder implementation. This is a pre-commit snapshot, not proof that delivery already occurred."
   ],
   "nextAction": {
-    "owner": "assistant",
-    "status": "approved",
-    "action": "Complete the authorized commit and normal push, then verify that the containing commit equals origin/release/1.1.2. If they already match, this delivery milestone has no remaining action.",
-    "prerequisites": [
-      "Current full gate passed",
-      "Exact staged boundary checked",
-      "No unresolved review findings",
-      "No generated distributions or secrets staged"
+    "status": "approval-required",
+    "action": "Confirm --Proceed for the exact shared PNG decoder scope in the retained REM-0132 proposal; all other selected items have passed final local verification."
+  },
+  "generatedAt": "2026-10-01T19:45:45.335Z",
+  "snapshotPhase": "pre-commit",
+  "deliveryApproval": {
+    "status": "explicitly-authorized",
+    "request": "update versioning date info and commit and push --Proceed",
+    "scope": "Current reviewed source work plus version/date metadata; one normal commit and push to existing origin/release/1.1.2",
+    "repositoryVisibility": "public",
+    "excludes": [
+      "PNG decoder scope implementation",
+      "force push",
+      "branch rename",
+      "tag",
+      "GitHub Release",
+      "package publication",
+      "deployment"
     ]
   },
-  "handoff": "reports/project-handoff.json",
-  "previousReport": {
-    "sourceRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
-    "path": "reports/current-work-state.json",
-    "generatedAt": "2026-09-18T14:48:34.6130241Z",
-    "sha256": "4b6e8c085501dcf858b308e7dd854d3349adcc2b19dca97a38ad599fcf5c552e"
+  "deliveryStatus": {
+    "status": "validated-pre-commit-snapshot",
+    "commit": null,
+    "push": null,
+    "tests": {
+      "total": 948,
+      "passed": 945,
+      "failed": 0,
+      "skipped": 3
+    },
+    "evidenceSha256": "21ca6a8241c4c009bdfedb5a393ce0855bfff30214c85f6ad826145fb6d1f1c3",
+    "actualDeliveryMustBeVerifiedFromGit": true
   }
 }

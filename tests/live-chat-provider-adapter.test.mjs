@@ -85,3 +85,152 @@ test("identity limits, transcript limits, response limits, and circuit breaker f
   await assert.rejects(async () => { for await (const _event of adapter.streamOpenAI({ ...request, turnId: "turn-4", messages: [{ role: "user", content: "123456" }] })) {} }, (error) => error.code === "transcript-limited");
   await assert.rejects(async () => { for await (const _event of adapter.streamOpenAI({ ...request, turnId: "turn-5", responseTokens: 3 })) {} }, (error) => error.code === "response-limited");
 });
+
+test("response budgets reach the provider and reject invalid numeric bounds", async () => {
+  const bodies = [];
+  const adapter = createProviderAdapter({
+    config, credential, limits: { maxResponseTokens: 20 },
+    fetchImpl: async (_url, request) => {
+      bodies.push(JSON.parse(request.body));
+      return fakeResponse("data: [DONE]\n");
+    }
+  });
+  const request = { sessionId: "budget", identity: "budget-user", turnId: "turn", messages: [] };
+  for (const responseTokens of [undefined, 0, 7]) {
+    for await (const _event of adapter.streamOpenAI({ ...request, responseTokens })) {}
+  }
+  assert.deepEqual(bodies.map((body) => body.max_completion_tokens), [20, 20, 7]);
+  for (const estimatedCostUsd of [NaN, Infinity, -Infinity, "0"]) {
+    await assert.rejects(async () => {
+      for await (const _event of adapter.streamOpenAI({ ...request, estimatedCostUsd })) {}
+    }, (error) => error.code === "cost-limited");
+  }
+  for (const value of [0, -1, NaN, Infinity, 1.5, "2"]) {
+    assert.throws(() => createProviderAdapter({ config, credential, limits: { maxResponseTokens: value } }), (error) => error.code === "invalid-config");
+    assert.throws(() => createProviderAdapter({ config, credential, limits: { maxResponseBytes: value } }), (error) => error.code === "invalid-config");
+  }
+  assert.equal(bodies.length, 3);
+});
+
+test("output byte ceiling stops before yielding excess and releases the request", async () => {
+  let closed = 0;
+  let requestSignal;
+  let calls = 0;
+  const adapter = createProviderAdapter({
+    config, credential, limits: { maxResponseBytes: 8 },
+    fetchImpl: async (_url, request) => {
+      requestSignal = request.signal;
+      calls++;
+      return {
+        status: 200, ok: true,
+        body: (async function* () {
+          try {
+            yield 'data: {"choices":[{"delta":{"content":"abcd"}}]}\n';
+            if (calls === 1) yield 'data: {"choices":[{"delta":{"content":"efghi"}}]}\n';
+            yield "data: [DONE]\n";
+          } finally { closed++; }
+        })()
+      };
+    }
+  });
+  const request = { sessionId: "bytes", identity: "byte-user", turnId: "first", messages: [] };
+  const output = [];
+  await assert.rejects(async () => {
+    for await (const event of adapter.streamOpenAI(request)) output.push(event.text);
+  }, (error) => error.code === "response-limited");
+  assert.deepEqual(output, ["abcd"]);
+  assert.equal(closed, 1);
+  assert.equal(requestSignal.aborted, true);
+  for await (const _event of adapter.streamOpenAI({ ...request, turnId: "second" })) {}
+  assert.equal(closed, 2);
+});
+
+test("wire and line byte ceilings reject oversized streams and release readers", async () => {
+  for (const readerMode of [false, true]) {
+    for (const chunks of [
+      [Buffer.alloc(64 * 1024 + 1, 120)],
+      Array.from({ length: 17 }, () => Buffer.from("x\n".repeat(32 * 1024)))
+    ]) {
+      let returned = 0;
+      let released = 0;
+      let position = 0;
+      const body = readerMode ? {
+        getReader: () => ({
+          async read() { return position < chunks.length ? { value: chunks[position++], done: false } : { done: true }; },
+          async cancel() { returned++; },
+          releaseLock() { released++; }
+        })
+      } : (async function* () {
+        try { yield* chunks; } finally { returned++; }
+      })();
+      const adapter = createProviderAdapter({ config, credential, fetchImpl: async () => ({ status: 200, ok: true, body }) });
+      await assert.rejects(async () => {
+        for await (const _event of adapter.streamOpenAI({ sessionId: "wire", identity: "wire-user", turnId: "turn", messages: [] })) {}
+      }, (error) => error.code === "response-limited");
+      assert.equal(returned, 1);
+      assert.equal(released, readerMode ? 1 : 0);
+    }
+  }
+});
+
+test("bounded stream decoding preserves UTF-8 across all byte boundaries", async () => {
+  const text = "caf\u00e9 \ud83d\ude03 \u6f22";
+  const data = Buffer.from(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n`);
+  for (let split = 1; split < data.length; split++) {
+    const adapter = createProviderAdapter({
+      config, credential,
+      fetchImpl: async () => ({ status: 200, ok: true, body: (async function* () { yield data.subarray(0, split); yield data.subarray(split); })() })
+    });
+    const values = [];
+    for await (const event of adapter.streamOpenAI({ sessionId: "unicode", identity: "unicode-user", turnId: "turn", messages: [] })) values.push(event.text);
+    assert.deepEqual(values, [text]);
+  }
+});
+
+test("provider byte bounds accept exact ceilings and count UTF-8 bytes rather than characters", async () => {
+  for (const text of ["\u00e9\u00e9", "\u00e9\u00e9x"]) {
+    const adapter = createProviderAdapter({
+      config, credential, limits: { maxResponseBytes: 4 },
+      fetchImpl: async () => fakeResponse(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n`)
+    });
+    const consume = async () => {
+      const values = [];
+      for await (const event of adapter.streamOpenAI({ sessionId: "exact", identity: "exact-user", turnId: "turn", messages: [] })) values.push(event.text);
+      return values;
+    };
+    if (Buffer.byteLength(text) === 4) assert.deepEqual(await consume(), [text]);
+    else await assert.rejects(consume, (error) => error.code === "response-limited");
+  }
+  for (const chunks of [
+    [Buffer.alloc(64 * 1024, 120)],
+    Array.from({ length: 16 }, () => Buffer.from("x\n".repeat(32 * 1024)))
+  ]) {
+    const adapter = createProviderAdapter({
+      config, credential,
+      fetchImpl: async () => ({ status: 200, ok: true, body: (async function* () { yield* chunks; })() })
+    });
+    const values = [];
+    for await (const event of adapter.streamOpenAI({ sessionId: "exact-wire", identity: "exact-wire-user", turnId: "turn", messages: [] })) values.push(event);
+    assert.deepEqual(values, []);
+  }
+});
+
+test("rate rejection and pre-transport errors do not retain an active identity slot", async () => {
+  let clock = 1;
+  const request = { sessionId: "rate-reset", identity: "same-user", turnId: "turn", messages: [] };
+  const adapter = createProviderAdapter({
+    config, credential, now: () => clock, limits: { maxRequestsPerMinute: 1 },
+    fetchImpl: async () => fakeResponse("data: [DONE]\n")
+  });
+  const consume = async (instance, value) => { for await (const _event of instance.streamOpenAI(value)) {} };
+  await consume(adapter, request);
+  await assert.rejects(() => consume(adapter, request), (error) => error.code === "rate-limited");
+  clock += 60_001;
+  await consume(adapter, request);
+
+  const second = createProviderAdapter({ config, credential, fetchImpl: async () => fakeResponse("data: [DONE]\n") });
+  await assert.rejects(() => consume(second, {
+    ...request, signal: { aborted: false, addEventListener() { throw new Error("injected signal setup failure"); } }
+  }), /signal setup failure/);
+  await consume(second, request);
+});

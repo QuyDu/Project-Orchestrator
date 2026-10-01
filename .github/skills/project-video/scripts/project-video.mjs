@@ -7,6 +7,7 @@ import { lstat, mkdir, open, readFile, readdir, realpath, rename, rm, stat, writ
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { ensureDiscovery, inspectCachedDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
 
 const SCRIPT_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PROJECT_ROOT = path.resolve(SCRIPT_ROOT, "..", "..", "..", "..");
@@ -15,10 +16,10 @@ const RENDERER_VERSION = "5.3.0";
 const AZURE_NARRATION_PROVIDER = "azure-neural";
 const BROWSER_NARRATION_PROVIDER = "browser-preview";
 const BROWSER_VOICE_NAME = "default-English";
-const AZURE_DISCOVERY_MAX_AGE_DAYS = 14;
 const AZURE_DISCOVERY_PATH = "reports/azure-discovery.json";
 const PROJECT_UNDERSTANDING_PATH = "reports/project-understanding.json";
 const PROJECT_UNDERSTANDING_MARKDOWN_PATH = "reports/project-understanding.md";
+const VIDEO_PUBLICATION_LOCK = ".skills-orchestrator/cache/project-video/publication.lock";
 const LOCAL_NARRATION_PROVIDER = "local-piper";
 const AZURE_SCRIPT_PROVIDER = "azure-openai";
 const AZURE_AVATAR_PROVIDER = "azure-speech-avatar";
@@ -171,43 +172,62 @@ async function writeBrowserPreviewArtifacts(output, manifestFile, html, manifest
   }
   await Promise.all([mkdir(path.dirname(output), { recursive: true }), mkdir(path.dirname(manifestFile), { recursive: true })]);
   const transaction = randomUUID();
-  const outputPartial = `${output}.${transaction}.partial`;
-  const manifestPartial = `${manifestFile}.${transaction}.partial`;
-  const outputBackup = `${output}.${transaction}.backup`;
-  const manifestBackup = `${manifestFile}.${transaction}.backup`;
-  let outputBackedUp = false;
-  let manifestBackedUp = false;
-  let outputPublished = false;
-  let manifestPublished = false;
+  const entries = [
+    { file: output, content: html },
+    { file: manifestFile, content: `${JSON.stringify(manifest, null, 2)}\n` }
+  ].map((entry) => ({
+    ...entry, partial: `${entry.file}.${transaction}.partial`, backup: `${entry.file}.${transaction}.backup`,
+    staged: false, backedUp: false, published: false
+  }));
+  const failures = [];
+  let committed = false;
+  let rollbackIncomplete = false;
   try {
-    await writeFile(outputPartial, html, { encoding: "utf8", flag: "wx" });
-    await writeFile(manifestPartial, `${JSON.stringify(manifest, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
-    if (existsSync(output)) {
-      await rename(output, outputBackup);
-      outputBackedUp = true;
+    for (const entry of entries) {
+      const handle = await open(entry.partial, "wx");
+      entry.staged = true;
+      try { await handle.writeFile(entry.content, "utf8"); } finally { await handle.close(); }
     }
-    if (existsSync(manifestFile)) {
-      await rename(manifestFile, manifestBackup);
-      manifestBackedUp = true;
+    for (const entry of entries) {
+      if (existsSync(entry.file)) {
+        await rename(entry.file, entry.backup);
+        entry.backedUp = true;
+      }
     }
-    await rename(outputPartial, output);
-    outputPublished = true;
-    await rename(manifestPartial, manifestFile);
-    manifestPublished = true;
-    await Promise.all([rm(outputBackup, { force: true }), rm(manifestBackup, { force: true })]);
+    for (const entry of entries) {
+      await rename(entry.partial, entry.file);
+      entry.staged = false;
+      entry.published = true;
+    }
+    committed = true;
   } catch (error) {
-    if (outputPublished) await rm(output, { force: true });
-    if (manifestPublished) await rm(manifestFile, { force: true });
-    if (outputBackedUp && existsSync(outputBackup)) await rename(outputBackup, output);
-    if (manifestBackedUp && existsSync(manifestBackup)) await rename(manifestBackup, manifestFile);
-    throw error;
-  } finally {
-    await Promise.all([
-      rm(outputPartial, { force: true }),
-      rm(manifestPartial, { force: true }),
-      rm(outputBackup, { force: true }),
-      rm(manifestBackup, { force: true })
-    ]);
+    failures.push(error);
+    for (const entry of entries.toReversed()) {
+      try {
+        if (entry.published) await rm(entry.file);
+        if (entry.backedUp) {
+          await rename(entry.backup, entry.file);
+          entry.backedUp = false;
+        }
+      } catch (rollbackError) {
+        rollbackIncomplete = true;
+        failures.push(rollbackError);
+      }
+    }
+  }
+  for (const entry of entries) {
+    if (entry.staged) {
+      try { await rm(entry.partial); } catch (error) { failures.push(error); }
+    }
+    if (committed && entry.backedUp) {
+      try { await rm(entry.backup); } catch (error) { failures.push(error); }
+    }
+  }
+  if (failures.length) {
+    const state = committed ? "Browser preview published; cleanup incomplete"
+      : rollbackIncomplete ? "Browser preview rollback incomplete; recovery required; retain the transaction backups"
+        : "Browser preview publication failed; previous outputs restored";
+    throw new AggregateError(failures, `${state}: ${failures.map((error) => error.message).join("; ")}`);
   }
 }
 
@@ -438,7 +458,8 @@ async function loadPlan(root, options) {
   const relative = String(options.plan || "reports/project-video/project-video-plan.json");
   const file = resolveInside(root, relative, "plan path");
   if (!existsSync(file) || (await lstat(file)).isSymbolicLink()) throw new Error(`Plan must be a regular project file: ${relative}`);
-  const plan = await readJson(file);
+  const source = await readFile(file);
+  const plan = JSON.parse(source.toString("utf8"));
   const errors = validatePlan(plan);
   if (errors.length) throw new Error(`Project video plan is invalid:\n- ${errors.join("\n- ")}`);
   if (plan.schemaVersion === "1.2.0") {
@@ -464,7 +485,7 @@ async function loadPlan(root, options) {
     const canonical = await realpath(evidenceFile);
     if (canonical !== root && !canonical.startsWith(`${root}${path.sep}`)) throw new Error(`Project video evidence escapes the project root: ${item}`);
   }
-  return { plan, file, relative, sha256: await fileDigest(file) };
+  return { plan, file, relative, sha256: digest(source) };
 }
 
 function words(value, maximum = 24) {
@@ -682,62 +703,26 @@ function requestedSpeechContext() {
   return { region, cloud, speechDomains };
 }
 
-function validateAzureDiscovery(discovery) {
-  const errors = [];
-  if (!discovery || typeof discovery !== "object" || Array.isArray(discovery)) return ["report must be an object"];
-  rejectUnknownFields(discovery, ["schemaVersion", "discoveredAt", "cloud", "location", "cognitiveAvailable", "cognitiveRegions", "openAIAvailable", "openAIModelName", "openAIModelVersion", "openAIModelSku", "openAIApiVersion", "speech"], "Azure discovery", errors);
-  if (discovery.schemaVersion !== "1.0.0") errors.push("schemaVersion must be 1.0.0");
-  if (!Number.isFinite(Date.parse(discovery.discoveredAt || ""))) errors.push("discoveredAt must be an ISO date-time");
-  if (!new Set(["AzureCloud", "AzureUSGovernment"]).has(discovery.cloud)) errors.push("cloud is unsupported");
-  if (!/^[a-z0-9-]+$/.test(discovery.location || "")) errors.push("location is invalid");
-  if (typeof discovery.cognitiveAvailable !== "boolean" || typeof discovery.openAIAvailable !== "boolean") errors.push("service availability fields must be boolean");
-  const validateRegions = (regions, label) => {
-    if (!Array.isArray(regions) || new Set(regions).size !== regions.length || regions.some((region) => !/^[a-z0-9-]+$/.test(region))) errors.push(`${label} must contain unique lowercase Azure regions`);
-  };
-  validateRegions(discovery.cognitiveRegions, "cognitiveRegions");
-  for (const field of ["openAIModelName", "openAIModelVersion", "openAIModelSku", "openAIApiVersion"]) {
-    if (typeof discovery[field] !== "string") errors.push(`${field} must be a string`);
-  }
-  const speech = discovery.speech;
-  if (!speech || typeof speech !== "object" || Array.isArray(speech)) {
-    errors.push("speech is required");
-    return errors;
-  }
-  rejectUnknownFields(speech, ["serviceAvailable", "serviceRegions", "existingResourceQuerySucceeded", "existingResourceAvailable", "existingResourceCount", "existingResourceRegions", "existingResourceKinds"], "Azure discovery speech", errors);
-  for (const field of ["serviceAvailable", "existingResourceQuerySucceeded", "existingResourceAvailable"]) {
-    if (typeof speech[field] !== "boolean") errors.push(`speech.${field} must be boolean`);
-  }
-  const existingResourceRegions = Array.isArray(speech.existingResourceRegions) ? speech.existingResourceRegions : [];
-  const existingResourceKinds = Array.isArray(speech.existingResourceKinds) ? speech.existingResourceKinds : [];
-  validateRegions(speech.serviceRegions, "speech.serviceRegions");
-  validateRegions(speech.existingResourceRegions, "speech.existingResourceRegions");
-  if (!Number.isInteger(speech.existingResourceCount) || speech.existingResourceCount < 0) errors.push("speech.existingResourceCount must be a nonnegative integer");
-  const allowedKinds = new Set(["SpeechServices", "AIServices", "CognitiveServices"]);
-  if (!Array.isArray(speech.existingResourceKinds) || new Set(existingResourceKinds).size !== existingResourceKinds.length || existingResourceKinds.some((kind) => !allowedKinds.has(kind))) {
-    errors.push("speech.existingResourceKinds contains unsupported values");
-  }
-  if (speech.existingResourceAvailable === true && (speech.existingResourceCount < 1 || existingResourceRegions.length < 1 || existingResourceKinds.length < 1)) {
-    errors.push("available Speech resources require a positive count, region, and kind");
-  }
-  if (speech.existingResourceAvailable === false && speech.existingResourceCount !== 0) errors.push("unavailable Speech resources require a zero count");
-  if (speech.existingResourceQuerySucceeded === false && (speech.existingResourceAvailable !== false || speech.existingResourceCount !== 0 || existingResourceRegions.length || existingResourceKinds.length)) {
-    errors.push("failed Speech resource queries cannot claim resource evidence");
-  }
-  return errors;
-}
-
-async function loadAzureSpeechDiscovery(root, expected = {}) {
+async function loadAzureSpeechDiscovery(root, expected = {}, { refresh = false } = {}) {
   const file = resolveInside(root, AZURE_DISCOVERY_PATH, "Azure discovery report");
-  if (!existsSync(file) || (await lstat(file)).isSymbolicLink()) {
-    throw new Error("Azure Speech requires reports/azure-discovery.json; run the azure-discovery skill first");
+  let cached;
+  try {
+    cached = await inspectCachedDiscovery(root);
+  } catch (error) {
+    throw new Error(`${error.message}; initialize or repair .azure/environment.json with the azure-discovery skill before retrying`);
   }
-  const discovery = await readJson(file);
-  const validationErrors = validateAzureDiscovery(discovery);
-  if (validationErrors.length) throw new Error(`Azure discovery evidence is incompatible; rerun the azure-discovery skill:\n- ${validationErrors.join("\n- ")}`);
-  const discoveredAt = Date.parse(discovery.discoveredAt || "");
-  const age = Date.now() - discoveredAt;
-  if (!Number.isFinite(discoveredAt) || age < -300_000 || age > AZURE_DISCOVERY_MAX_AGE_DAYS * 86_400_000) {
-    throw new Error(`Azure discovery evidence is stale; rerun azure-discovery within ${AZURE_DISCOVERY_MAX_AGE_DAYS} days of video creation`);
+  if (expected.cloud) {
+    const profileFile = resolveInside(root, ".azure/environment.json", "Azure environment profile");
+    const profile = JSON.parse((await readFile(profileFile, "utf8")).replace(/^\uFEFF/, ""));
+    if (profile.cloud !== expected.cloud) throw new Error(`Azure discovery cloud ${profile.cloud} does not match AZURE_SPEECH_CLOUD ${expected.cloud}`);
+  }
+  let discovery = cached.report;
+  if (cached.status !== "fresh") {
+    if (!refresh) {
+      const details = cached.errors?.length ? `: ${cached.errors.join("; ")}` : "";
+      throw new Error(`Azure discovery evidence requires refresh (${cached.reason})${details}; selected Azure work or an explicit azure-preflight refreshes through azure-discovery`);
+    }
+    discovery = await ensureDiscovery(root);
   }
   if (expected.cloud && discovery.cloud !== expected.cloud) throw new Error(`Azure discovery cloud ${discovery.cloud} does not match AZURE_SPEECH_CLOUD ${expected.cloud}`);
   const speech = discovery.speech;
@@ -792,13 +777,13 @@ async function keyFromProjectKeyVault(plan) {
 }
 
 async function speechServiceSettings(root, options, plan) {
+  if (options["approve-external"] !== true) throw new Error("Speech generation requires --approve-external after explicit user approval of narration text, Azure processing, and cost");
   const { region, cloud: configuredCloud, speechDomains } = requestedSpeechContext();
-  const discovery = await loadAzureSpeechDiscovery(root, { cloud: configuredCloud, region });
+  const discovery = await loadAzureSpeechDiscovery(root, { cloud: configuredCloud, region }, { refresh: true });
   const cloud = configuredCloud || discovery.discovery.cloud;
   const key = process.env.AZURE_SPEECH_KEY || process.env.SPEECH_KEY || await keyFromProjectKeyVault(plan);
   if (!key) throw new Error("Set AZURE_SPEECH_KEY in the current process or store AzureSpeechKey in the project Key Vault; never place the key in project files or command arguments");
   if (!region) throw new Error(`Set AZURE_SPEECH_REGION to one of the discovered resource regions: ${discovery.regions.join(", ")}`);
-  if (options["approve-external"] !== true) throw new Error("Speech generation requires --approve-external after explicit user approval of Azure processing and cost");
   return {
     key,
     region,
@@ -811,7 +796,7 @@ async function speechServiceSettings(root, options, plan) {
 
 async function azurePreflight(root) {
   const { region, cloud } = requestedSpeechContext();
-  const result = await loadAzureSpeechDiscovery(root, { cloud, region });
+  const result = await loadAzureSpeechDiscovery(root, { cloud, region }, { refresh: true });
   const readiness = {
     schemaVersion: "1.0.0",
     status: "ready",
@@ -829,8 +814,8 @@ async function azurePreflight(root) {
     videoRenderer: "local-ffmpeg"
   };
   console.log(JSON.stringify(readiness, null, 2));
-  if (!readiness.credentialConfigured) console.log("Set AZURE_SPEECH_KEY securely in the execution environment; never paste or persist it in project files.");
-  if (!readiness.selectedRegion) console.log(`Set AZURE_SPEECH_REGION to one of: ${readiness.existingResourceRegions.join(", ")}`);
+  if (!readiness.credentialConfigured) console.error("Set AZURE_SPEECH_KEY securely in the execution environment; never paste or persist it in project files.");
+  if (!readiness.selectedRegion) console.error(`Set AZURE_SPEECH_REGION to one of: ${readiness.existingResourceRegions.join(", ")}`);
   return 0;
 }
 
@@ -847,7 +832,7 @@ async function discoveryStatus(root) {
       regions: result.regions,
       selectedRegion: region || null,
       nextAction: "continue-azure-preflight",
-      fallbackProvider: BROWSER_NARRATION_PROVIDER
+      alternativeProvider: BROWSER_NARRATION_PROVIDER
     }, null, 2));
   } catch (error) {
     console.log(JSON.stringify({
@@ -855,10 +840,11 @@ async function discoveryStatus(root) {
       status: existsSync(resolveInside(root, AZURE_DISCOVERY_PATH, "Azure discovery report")) ? "unusable" : "missing",
       discoveryFile: AZURE_DISCOVERY_PATH,
       reason: error.message,
-      nextAction: "ask-user-to-run-azure-discovery",
+      nextAction: "refresh-on-selected-azure-work",
       discoveryCommand: "/azure-discovery",
-      declinedAction: "generate-browser-preview",
-      fallbackProvider: BROWSER_NARRATION_PROVIDER
+      refreshCommand: "azure-preflight",
+      alternativeAction: "generate-browser-preview",
+      alternativeProvider: BROWSER_NARRATION_PROVIDER
     }, null, 2));
   }
   return 0;
@@ -973,14 +959,51 @@ async function requestSpeechAudio(settings, ssml, label) {
     body: ssml,
     signal: AbortSignal.timeout(60_000)
   });
-  if (!response.ok) throw new Error(`Azure Speech failed for ${label}: HTTP ${response.status}`);
-  if (!/^audio\//i.test(response.headers.get("content-type") || "")) throw new Error(`Azure Speech returned a non-audio response for ${label}`);
-  const declaredBytes = Number(response.headers.get("content-length") || 0);
-  if (declaredBytes > MAX_SPEECH_BYTES) throw new Error(`Azure Speech response is too large for ${label}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  const mp3Header = bytes.subarray(0, 3).toString("ascii") === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
-  if (bytes.length < 1024 || bytes.length > MAX_SPEECH_BYTES || !mp3Header) throw new Error(`Azure Speech returned incomplete MP3 audio for ${label}`);
-  return bytes;
+  let reader;
+  let failure;
+  try {
+    reader = response.body?.getReader();
+    if (!response.ok) throw new Error(`Azure Speech failed for ${label}: HTTP ${response.status}`);
+    if (!/^audio\//i.test(response.headers.get("content-type") || "")) throw new Error(`Azure Speech returned a non-audio response for ${label}`);
+    if (!reader) throw new Error(`Azure Speech returned no readable audio body for ${label}`);
+    let buffer = Buffer.alloc(0);
+    let length = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array)) throw new Error(`Azure Speech returned a non-byte audio chunk for ${label}`);
+      if (value.byteLength > MAX_SPEECH_BYTES - length) throw new Error(`Azure Speech response exceeds the ${MAX_SPEECH_BYTES}-byte limit for ${label}`);
+      if (value.byteLength) {
+        const nextLength = length + value.byteLength;
+        if (nextLength > buffer.length) {
+          const grown = Buffer.alloc(Math.min(MAX_SPEECH_BYTES, Math.max(1024, nextLength, buffer.length * 2)));
+          buffer.copy(grown, 0, 0, length);
+          buffer = grown;
+        }
+        buffer.set(value, length);
+        length = nextLength;
+      }
+    }
+    const bytes = buffer.subarray(0, length);
+    const mp3Header = bytes.subarray(0, 3).toString("ascii") === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
+    if (bytes.length < 1024 || !mp3Header) throw new Error(`Azure Speech returned incomplete MP3 audio for ${label}`);
+    return bytes;
+  } catch (error) {
+    failure = error;
+    throw error;
+  } finally {
+    if (reader) {
+      const cleanupErrors = [];
+      if (failure) {
+        try { await reader.cancel(); } catch (error) { cleanupErrors.push(error); }
+      }
+      try { reader.releaseLock(); } catch (error) { cleanupErrors.push(error); }
+      if (cleanupErrors.length) {
+        const errors = [...(failure ? [failure] : []), ...cleanupErrors];
+        throw new AggregateError(errors, `Azure Speech response cleanup failed for ${label}: ${errors.map((error) => error.message).join("; ")}`);
+      }
+    }
+  }
 }
 
 function auditionText(narration) {
@@ -1014,13 +1037,14 @@ async function previewSsml(root, options) {
 
 async function auditionVoices(root, options) {
   const { plan, sha256: planSha256 } = await loadPlan(root, options);
-  const settings = await speechServiceSettings(root, options, plan);
+  if (voiceProvider(plan.voice) !== AZURE_NARRATION_PROVIDER) throw new Error("Azure audition requires an azure-neural plan");
   const sceneId = String(options.scene || plan.scenes[0].id);
   const scene = plan.scenes.find((item) => item.id === sceneId);
   if (!scene) throw new Error(`Unknown audition scene: ${sceneId}`);
   const sampleText = auditionText(scene.narration);
   const outputDirectory = await resolveSafeTarget(root, "reports/project-video/voice-samples", "voice sample output");
   if (existsSync(outputDirectory) && options.force !== true) throw new Error("Voice samples already exist; use --force only after replacement approval");
+  const settings = await speechServiceSettings(root, options, plan);
   const staging = await resolveSafeTarget(root, `.skills-orchestrator/cache/project-video/voice-audition-${randomUUID()}`, "voice sample staging");
   await mkdir(staging, { recursive: true });
   try {
@@ -1060,15 +1084,25 @@ async function auditionVoices(root, options) {
   return 0;
 }
 
+function requireCurrentVoiceProfile(profile) {
+  if (profile === "aria-professional") {
+    throw new Error("Legacy aria-professional voice evidence remains readable; re-audition and explicitly reselect a current profile before new selection or synthesis. Existing voice metadata was not renamed.");
+  }
+}
+
 async function selectVoice(root, options) {
   if (options["approve-selection"] !== true) throw new Error("Voice selection requires --approve-selection after the user listens to the audition samples");
   const profileId = String(options.profile || "");
   if (!profileId) throw new Error("Use --profile with an audition profile ID");
+  requireCurrentVoiceProfile(profileId);
   const { plan, file: planFile } = await loadPlan(root, options);
   const sampleDirectory = await resolveSafeTarget(root, "reports/project-video/voice-samples", "voice sample input");
   const sampleManifestFile = path.join(sampleDirectory, "voice-samples.json");
   if (!existsSync(sampleManifestFile)) throw new Error("Voice audition evidence is missing; run audition first");
   const sampleManifest = await readJson(sampleManifestFile);
+  if (Array.isArray(sampleManifest.samples)) {
+    for (const sample of sampleManifest.samples) requireCurrentVoiceProfile(sample?.id);
+  }
   if (sampleManifest.sampleTextSha256 !== digest(Buffer.from(sampleManifest.sampleText || "", "utf8"))) throw new Error("Voice audition passage integrity failed");
   const auditionPage = path.join(sampleDirectory, "index.html");
   if (!existsSync(auditionPage) || sampleManifest.auditionPageSha256 !== await fileDigest(auditionPage)) throw new Error("Voice audition page integrity failed");
@@ -1113,6 +1147,7 @@ async function verifyVoiceSelection(root, plan) {
   const selectionFile = await resolveSafeTarget(root, "reports/project-video/voice-selection.json", "voice selection input");
   if (!existsSync(selectionFile)) throw new Error("Explicit voice selection is missing; audition, listen, and run select-voice first");
   const selection = await readJson(selectionFile);
+  requireCurrentVoiceProfile(selection?.profile);
   const auditionManifestFile = await resolveSafeTarget(root, "reports/project-video/voice-samples/voice-samples.json", "voice audition manifest");
   const sampleFile = await resolveSafeTarget(root, selection.sampleFile, "voice sample file");
   if (!existsSync(auditionManifestFile) || selection.auditionManifestSha256 !== await fileDigest(auditionManifestFile)) throw new Error("Voice selection does not match the current audition evidence");
@@ -1339,29 +1374,42 @@ async function locateFfmpeg(root, requested) {
       if (existsSync(executable)) pathCandidates.push({ executable, source: "system-path" });
     }
   }
-  const candidates = [
-    requested ? { executable: requested, source: "explicit" } : null,
-    process.env.FFMPEG_PATH ? { executable: process.env.FFMPEG_PATH, source: "environment" } : null,
-    { executable: bundled, source: "isolated-pinned" },
-    ...pathCandidates
-  ].filter(Boolean);
+  const selected = requested ? { executable: requested, source: "explicit" }
+    : process.env.FFMPEG_PATH ? { executable: process.env.FFMPEG_PATH, source: "environment" } : null;
+  const candidates = selected ? [selected] : [{ executable: bundled, source: "isolated-pinned" }, ...pathCandidates];
   for (const candidate of candidates) {
     if (!path.isAbsolute(candidate.executable)) throw new Error(`${candidate.source} FFmpeg path must be absolute`);
-    if (!existsSync(candidate.executable)) continue;
+    if (!existsSync(candidate.executable)) {
+      if (selected) throw new Error(`Selected ${candidate.source} FFmpeg is unavailable; no fallback was attempted`);
+      continue;
+    }
     const details = await lstat(candidate.executable);
-    if (details.isSymbolicLink() || !details.isFile()) throw new Error(`FFmpeg must be a regular executable file: ${candidate.executable}`);
-    if (!testExecutable(candidate.executable)) continue;
-    if (candidate.source === "isolated-pinned") {
-      const manifestFile = path.join(rendererRoot(root), "renderer-manifest.json");
+    if (details.isSymbolicLink() || !details.isFile() || details.nlink !== 1) throw new Error(`FFmpeg must be a regular executable file without links: ${candidate.executable}`);
+    const canonical = await realpath(candidate.executable);
+    const pinned = path.relative(bundled, candidate.executable) === "" || path.relative(bundled, canonical) === "";
+    let manifest;
+    if (pinned) {
+      await resolveSafeTarget(root, path.relative(root, bundled), "Pinned renderer");
+      const manifestFile = await resolveSafeTarget(root, path.relative(root, path.join(rendererRoot(root), "renderer-manifest.json")), "Pinned renderer manifest");
       if (!existsSync(manifestFile)) throw new Error("Pinned renderer manifest is missing; reinstall the renderer after approval");
-      const manifest = await readJson(manifestFile);
-      if (manifest.package !== RENDERER_PACKAGE || manifest.packageVersion !== RENDERER_VERSION || manifest.binarySha256 !== await fileDigest(candidate.executable)) {
+      manifest = await readJson(manifestFile);
+      if (manifest?.package !== RENDERER_PACKAGE || manifest.packageVersion !== RENDERER_VERSION || !/^[a-f0-9]{64}$/.test(manifest.binarySha256 || "")) {
         throw new Error("Pinned renderer integrity verification failed; reinstall it after review and approval");
       }
-      return { ...candidate, name: RENDERER_PACKAGE, packageVersion: RENDERER_VERSION, binarySha256: manifest.binarySha256 };
     }
-    candidate.binarySha256 = await fileDigest(candidate.executable);
-    return { ...candidate, name: "ffmpeg", packageVersion: null };
+    const binarySha256 = await fileDigest(candidate.executable);
+    const current = await lstat(candidate.executable);
+    if (!current.isFile() || current.isSymbolicLink() || current.nlink !== 1
+      || ["dev", "ino", "size", "mtimeMs", "ctimeMs"].some((field) => current[field] !== details[field])
+      || await realpath(candidate.executable) !== canonical) {
+      throw new Error("FFmpeg changed during integrity verification; no executable was launched");
+    }
+    if (pinned && manifest.binarySha256 !== binarySha256) throw new Error("Pinned renderer integrity verification failed; reinstall it after review and approval");
+    if (!testExecutable(candidate.executable)) {
+      if (selected) throw new Error(`Selected ${candidate.source} FFmpeg failed its version probe; no fallback was attempted`);
+      continue;
+    }
+    return { ...candidate, name: pinned ? RENDERER_PACKAGE : "ffmpeg", packageVersion: pinned ? RENDERER_VERSION : null, binarySha256 };
   }
   throw new Error("FFmpeg is unavailable. After approval, run install-renderer --accept-download, or set FFMPEG_PATH to an approved executable");
 }
@@ -1923,10 +1971,138 @@ async function fileDigest(file) {
   return fileHash(file, "sha256");
 }
 
+async function publishVideoArtifacts(root, { output, sourceDirectory, videoManifest, partial, stagedSourceDirectory, cache, manifest, force }) {
+  const stagedManifest = path.join(cache, "manifest.partial.json");
+  const manifestSource = `${JSON.stringify(manifest, null, 2)}\n`;
+  await writeFile(stagedManifest, manifestSource, { encoding: "utf8", flag: "wx", mode: 0o600 });
+  const sourceFiles = [];
+  for (const name of (await readdir(stagedSourceDirectory)).sort()) {
+    const file = path.join(stagedSourceDirectory, name);
+    const details = await lstat(file);
+    if (!/^scene-[0-9]{2}\.svg$/.test(name) || !details.isFile() || details.isSymbolicLink()) throw new Error("Staged video source contains an unexpected artifact");
+    sourceFiles.push({ name, sha256: await fileDigest(file) });
+  }
+  const transaction = path.basename(cache);
+  const entries = [
+    { name: "output", file: output, staged: partial, directory: false, sha256: manifest.sha256 },
+    { name: "source", file: sourceDirectory, staged: stagedSourceDirectory, directory: true, files: sourceFiles },
+    { name: "manifest", file: videoManifest, staged: stagedManifest, directory: false, sha256: digest(manifestSource) }
+  ].map((entry) => ({ ...entry, backup: `${entry.file}.${transaction}.backup`, hadOriginal: false, backedUp: false, published: false }));
+  const relative = (file) => path.relative(root, file).replaceAll("\\", "/");
+  const lockPath = await resolveSafeTarget(root, VIDEO_PUBLICATION_LOCK, "Video publication lock");
+  let lock;
+  try { lock = await open(lockPath, "wx", 0o600); } catch (error) {
+    if (error.code === "EEXIST") throw new Error("A video publication is in progress or requires recovery; preserve its lock and journal");
+    throw error;
+  }
+  const journalPath = path.join(cache, "publication.json");
+  async function journal(name, value) {
+    const file = path.join(cache, name);
+    const pending = `${file}.partial`;
+    const handle = await open(pending, "wx", 0o600);
+    try {
+      await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`, "utf8");
+      await handle.sync();
+    } finally { await handle.close(); }
+    await rename(pending, file);
+  }
+  const failures = [];
+  let committed = false;
+  let rollbackIncomplete = false;
+  try {
+    await lock.writeFile(`${JSON.stringify({ schemaVersion: "1.0.0", transaction, journal: relative(journalPath) })}\n`, "utf8");
+    await lock.sync();
+    for (const entry of entries) {
+      await resolveSafeTarget(root, relative(entry.file), "Video publication target");
+      if (existsSync(entry.backup)) throw new Error("Video publication backup already exists; preserve the transaction");
+      entry.hadOriginal = existsSync(entry.file);
+      if (entry.hadOriginal) {
+        const details = await lstat(entry.file);
+        if (entry.directory ? !details.isDirectory() : !details.isFile()) throw new Error("Video publication target has an unexpected file type");
+      }
+    }
+    if (entries.some((entry) => entry.hadOriginal) && force !== true) throw new Error("Video publication target changed; replacement requires explicit --force approval");
+    await journal("publication.json", {
+      schemaVersion: "1.0.0", state: "prepared", transaction, planSha256: manifest.planSha256,
+      entries: entries.map((entry) => ({
+        name: entry.name, target: relative(entry.file), staged: relative(entry.staged), backup: relative(entry.backup),
+        hadOriginal: entry.hadOriginal, ...(entry.directory ? { files: entry.files } : { sha256: entry.sha256 })
+      }))
+    });
+    for (const entry of entries) {
+      if (entry.hadOriginal) {
+        await rename(entry.file, entry.backup);
+        entry.backedUp = true;
+      }
+    }
+    for (const entry of entries) {
+      if (existsSync(entry.file)) throw new Error("Video publication target changed during replacement; preserve concurrent work");
+      await rename(entry.staged, entry.file);
+      entry.published = true;
+    }
+    for (const entry of entries) {
+      await resolveSafeTarget(root, relative(entry.file), "Published video artifact");
+      if (entry.directory) {
+        if (JSON.stringify((await readdir(entry.file)).sort()) !== JSON.stringify(entry.files.map((file) => file.name))) throw new Error("Published video source file set failed integrity verification");
+        for (const file of entry.files) {
+          const target = await resolveSafeTarget(root, relative(path.join(entry.file, file.name)), "Published video source");
+          if (await fileDigest(target) !== file.sha256) throw new Error("Published video source failed integrity verification");
+        }
+      } else if (await fileDigest(entry.file) !== entry.sha256) throw new Error("Published video artifact failed integrity verification");
+    }
+    await journal("publication-committed.json", {
+      schemaVersion: "1.0.0", state: "committed", transaction, planSha256: manifest.planSha256,
+      outputSha256: manifest.sha256, manifestSha256: digest(manifestSource), sourceFiles
+    });
+    committed = true;
+  } catch (error) {
+    failures.push(error);
+    for (const entry of entries.toReversed()) {
+      try {
+        if (entry.published) {
+          await rename(entry.file, entry.staged);
+          entry.published = false;
+        }
+        if (entry.backedUp) {
+          if (existsSync(entry.file)) throw new Error("Video rollback target changed; retain its backup and concurrent work");
+          await rename(entry.backup, entry.file);
+          entry.backedUp = false;
+        }
+      } catch (rollbackError) {
+        rollbackIncomplete = true;
+        failures.push(rollbackError);
+      }
+    }
+  }
+  if (committed) {
+    for (const entry of entries) {
+      if (entry.backedUp) {
+        try { await rm(entry.backup, { recursive: entry.directory }); } catch (error) { failures.push(error); }
+      }
+    }
+  }
+  let retainRecovery = rollbackIncomplete || committed && failures.length > 0;
+  try { await lock.close(); } catch (error) { failures.push(error); retainRecovery = true; }
+  if (!retainRecovery) {
+    try { await rm(lockPath); } catch (error) { failures.push(error); retainRecovery = true; }
+  }
+  if (failures.length) {
+    const state = committed ? "Video publication committed; cleanup incomplete"
+      : rollbackIncomplete ? "Video publication rollback incomplete; recovery required"
+        : "Video publication failed; previous outputs restored";
+    const retained = retainRecovery ? `; preserve recovery artifacts at ${relative(cache)} and ${VIDEO_PUBLICATION_LOCK}` : "";
+    throw Object.assign(new AggregateError(failures, `${state}${retained}: ${failures.map((error) => error.message).join("; ")}`), {
+      code: retainRecovery ? "VIDEO_PUBLICATION_RECOVERY_REQUIRED" : "VIDEO_PUBLICATION_FAILED"
+    });
+  }
+}
+
 async function renderVideo(root, options) {
   if (options["approve-render"] !== true) throw new Error("Rendering requires --approve-render after explicit user approval of output creation and executable use");
   const { plan, relative: planRelative, sha256: planSha256 } = await loadPlan(root, options);
   if (voiceProvider(plan.voice) === BROWSER_NARRATION_PROVIDER) throw new Error("Browser preview plans generate interactive HTML; run browser-preview instead of render");
+  const publicationLock = await resolveSafeTarget(root, VIDEO_PUBLICATION_LOCK, "Video publication lock");
+  if (existsSync(publicationLock)) throw new Error("A video publication is in progress or requires recovery; preserve its lock and journal before rerendering");
   const { audioDirectory, narrationManifest } = await verifyNarrationSet(root, plan, planSha256);
   await resolveSafeTarget(root, ".skills-orchestrator/tools/project-video", "renderer root");
   const renderer = await locateFfmpeg(root, options.ffmpeg);
@@ -1946,20 +2122,23 @@ async function renderVideo(root, options) {
   const presenterEvidence = [];
   const avatarProfile = plan.production?.presenter_provider === AZURE_AVATAR_PROVIDER ? plan.production.selection.avatar_profile : null;
   const presenterAssets = new Map();
-  if (avatarProfile) {
-    if (!['generated', 'validated'].includes(avatarProfile.generation_status)) throw new Error("Azure Speech Avatar assets must be generated before FFmpeg rendering");
-    if (avatarProfile.assets.length !== avatarProfile.segments.length) throw new Error("Azure Speech Avatar rendering requires one asset for each selected segment");
-    for (const [index, sceneId] of avatarProfile.segments.entries()) {
-      const relative = avatarProfile.assets[index];
-      const file = resolveInside(root, relative, "Avatar presenter asset");
-      if (!existsSync(file)) throw new Error(`Avatar presenter asset does not exist: ${relative}`);
-      const details = await lstat(file);
-      if (details.isSymbolicLink() || !details.isFile() || details.size < 1024) throw new Error(`Avatar presenter asset must be a complete regular file: ${relative}`);
-      presenterAssets.set(sceneId, file);
-      presenterEvidence.push({ id: sceneId, file: relative, sha256: await fileDigest(file) });
-    }
-  }
+  let publicationCommitted = false;
+  let renderFailure;
+  let completedManifest;
   try {
+    if (avatarProfile) {
+      if (!["generated", "validated"].includes(avatarProfile.generation_status)) throw new Error("Azure Speech Avatar assets must be generated before FFmpeg rendering");
+      if (avatarProfile.assets.length !== avatarProfile.segments.length) throw new Error("Azure Speech Avatar rendering requires one asset for each selected segment");
+      for (const [index, sceneId] of avatarProfile.segments.entries()) {
+        const relative = avatarProfile.assets[index];
+        const file = resolveInside(root, relative, "Avatar presenter asset");
+        if (!existsSync(file)) throw new Error(`Avatar presenter asset does not exist: ${relative}`);
+        const details = await lstat(file);
+        if (details.isSymbolicLink() || !details.isFile() || details.size < 1024) throw new Error(`Avatar presenter asset must be a complete regular file: ${relative}`);
+        presenterAssets.set(sceneId, file);
+        presenterEvidence.push({ id: sceneId, file: relative, sha256: await fileDigest(file) });
+      }
+    }
     for (const [index, scene] of plan.scenes.entries()) {
       const narrationRecord = narrationManifest.scenes.find((item) => item.id === scene.id);
       const audio = narrationRecord ? resolveInside(root, narrationRecord.file, "narration audio") : "";
@@ -2000,10 +2179,6 @@ async function renderVideo(root, options) {
     runChecked(ffmpeg, ["-v", "error", "-i", partial, "-map", "0:v:0", "-frames:v", "1", "-f", "null", "-"]);
     runChecked(ffmpeg, ["-v", "error", "-i", partial, "-map", "0:a:0", "-t", "0.1", "-f", "null", "-"]);
     if ((await stat(partial)).size < 50 * 1024) throw new Error("Rendered MP4 is unexpectedly small");
-    await rm(output, { force: true });
-    await rename(partial, output);
-    await rm(sourceDirectory, { recursive: true, force: true });
-    await rename(stagedSourceDirectory, sourceDirectory);
     const version = runChecked(ffmpeg, ["-version"]).stdout.split(/\r?\n/, 1)[0];
     const audioManifest = {
       codec: "aac",
@@ -2040,8 +2215,8 @@ async function renderVideo(root, options) {
       plan: planRelative.replaceAll("\\", "/"),
       planSha256,
       output: plan.output.file,
-      sha256: await fileDigest(output),
-      bytes: (await stat(output)).size,
+      sha256: await fileDigest(partial),
+      bytes: (await stat(partial)).size,
       durationSeconds: audioEvidence.reduce((total, item) => total + item.durationSeconds, 0),
       video: { width: plan.video.width, height: plan.video.height, fps: plan.video.fps, codec: "h264" },
       audio: audioManifest,
@@ -2054,14 +2229,22 @@ async function renderVideo(root, options) {
       },
       presenter: avatarProfile ? { provider: AZURE_AVATAR_PROVIDER, layout: avatarProfile.layout, scenes: presenterEvidence } : null
     };
-    await writeJsonAtomic(videoManifest, manifest);
-    console.log(`Rendered ${plan.output.file}`);
-    console.log(`sha256:${manifest.sha256}`);
-    return 0;
+    await publishVideoArtifacts(root, { output, sourceDirectory, videoManifest, partial, stagedSourceDirectory, cache, manifest, force: options.force });
+    publicationCommitted = true;
+    completedManifest = manifest;
+  } catch (error) {
+    renderFailure = error;
+    throw error;
   } finally {
-    await rm(partial, { force: true });
-    await rm(cache, { recursive: true, force: true });
+    if (renderFailure?.code !== "VIDEO_PUBLICATION_RECOVERY_REQUIRED") {
+      const cleanup = await Promise.allSettled([rm(partial, { force: true }), rm(cache, { recursive: true, force: true })]);
+      const failures = cleanup.filter((result) => result.status === "rejected").map((result) => result.reason);
+      if (failures.length) throw new AggregateError([...(renderFailure ? [renderFailure] : []), ...failures], `${publicationCommitted ? "Video publication committed" : "Video render failed"}; render cleanup incomplete: ${[...(renderFailure ? [renderFailure] : []), ...failures].map((error) => error.message).join("; ")}`);
+    }
   }
+  console.log(`Rendered ${plan.output.file}`);
+  console.log(`sha256:${completedManifest.sha256}`);
+  return 0;
 }
 
 function requireReadyCapability(production, capabilityName, fields = []) {
@@ -2117,8 +2300,8 @@ function printHelp() {
 Commands:
   inspect [--root PATH] [--output reports/project-video/project-evidence.json]
   plan-from-understanding [--root PATH] [--name OUTPUT-NAME] [--audience TEXT] [--force]
-  discovery-status [--root PATH]
-  azure-preflight [--root PATH]
+  discovery-status [--root PATH] (local, read-only; never refreshes)
+  azure-preflight [--root PATH] (explicit Azure readiness request; refreshes discovery when needed)
   production-preflight [--root PATH] [--plan PATH]
   validate [--root PATH] [--plan reports/project-video/project-video-plan.json]
   ssml [--root PATH] [--plan PATH] [--scene scene-01]

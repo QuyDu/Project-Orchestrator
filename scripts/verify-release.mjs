@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash, verify as verifySignature } from "node:crypto";
-import { readFile, readdir } from "node:fs/promises";
+import { lstat, readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,12 +28,14 @@ async function walk(directory, relative = "") {
 }
 
 const checksumPath = path.join(artifactRoot, "SHA256SUMS");
+await assertSafeRelativePath(root, path.relative(root, checksumPath));
 const checksumContent = await readFile(checksumPath, "utf8");
 const expected = new Map();
-for (const line of checksumContent.split(/\r?\n/).filter(Boolean)) {
+for (const [lineIndex, line] of checksumContent.split(/\r?\n/).entries()) {
+  if (!line) continue;
   const match = line.match(/^([a-f0-9]{64})  (.+)$/);
-  if (!match) throw new Error(`Invalid SHA256SUMS entry: ${line}`);
-  if (expected.has(match[2])) throw new Error(`Duplicate SHA256SUMS entry: ${match[2]}`);
+  if (!match) throw new Error(`Invalid SHA256SUMS entry at line ${lineIndex + 1}`);
+  if (expected.has(match[2])) throw new Error(`Duplicate SHA256SUMS entry at line ${lineIndex + 1}`);
   expected.set(match[2], match[1]);
 }
 const allowedUnlisted = new Set(["SHA256SUMS", "release-signature.json", "independent-review.json"]);
@@ -42,18 +44,22 @@ for (const relative of await walk(artifactRoot)) {
   if (!expected.has(relative)) throw new Error(`Release file is not checksum-covered: ${relative}`);
 }
 for (const [relative, digest] of expected) {
+  await assertSafeRelativePath(artifactRoot, relative);
   const target = path.join(artifactRoot, relative);
   if (!existsSync(target)) throw new Error(`Checksummed release file is missing: ${relative}`);
   const actual = createHash("sha256").update(await readFile(target)).digest("hex");
   if (actual !== digest) throw new Error(`Checksum mismatch: ${relative}`);
 }
 
-const payloadManifest = await readFile(path.join(artifactRoot, "PAYLOAD-SHA256SUMS"), "utf8");
+const payloadPath = path.join(artifactRoot, "PAYLOAD-SHA256SUMS");
+await assertSafeRelativePath(root, path.relative(root, payloadPath));
+const payloadManifest = await readFile(payloadPath, "utf8");
 const payloadDigest = createHash("sha256").update(payloadManifest).digest("hex");
 const payloadEntries = new Map();
-for (const line of payloadManifest.split(/\r?\n/).filter(Boolean)) {
+for (const [lineIndex, line] of payloadManifest.split(/\r?\n/).entries()) {
+  if (!line) continue;
   const match = line.match(/^([a-f0-9]{64})  (.+)$/);
-  if (!match) throw new Error(`Invalid PAYLOAD-SHA256SUMS entry: ${line}`);
+  if (!match) throw new Error(`Invalid PAYLOAD-SHA256SUMS entry at line ${lineIndex + 1}`);
   payloadEntries.set(match[2], match[1]);
 }
 const provenance = JSON.parse(await readFile(path.join(artifactRoot, "provenance.intoto.json"), "utf8"));
@@ -63,9 +69,31 @@ const sbom = JSON.parse(await readFile(path.join(artifactRoot, "sbom.cdx.json"),
 if (sbom.bomFormat !== "CycloneDX" || sbom.specVersion !== "1.6") throw new Error("Unsupported or invalid SBOM");
 
 if (candidateOnly) {
+  if (!Array.isArray(packageManifest.files) || !packageManifest.files.length
+    || packageManifest.files.some((relative) => typeof relative !== "string" || !relative)) {
+    throw new Error("Release candidate source inventory requires package.json files metadata");
+  }
+  const sourceFiles = new Set();
+  for (const relative of new Set([...packageManifest.files, "package.json"])) {
+    const source = await assertSafeRelativePath(root, relative);
+    if (!existsSync(source)) throw new Error(`Release candidate is stale relative to source: missing shipped root ${relative}`);
+    const details = await lstat(source);
+    if (details.isDirectory()) {
+      for (const child of await walk(source)) sourceFiles.add(path.join(relative, child).replaceAll("\\", "/"));
+    } else if (details.isFile()) {
+      sourceFiles.add(relative.replaceAll("\\", "/"));
+    } else {
+      throw new Error(`Unsupported shipped source path: ${relative}`);
+    }
+  }
+  for (const relative of sourceFiles) {
+    if (!payloadEntries.has(relative)) throw new Error(`Release candidate is stale relative to source: missing payload file ${relative}`);
+  }
+  const packageArchive = `${packageManifest.name.replace(/^@/, "").replaceAll("/", "-")}-${packageManifest.version}.tgz`;
   for (const [relative, digest] of payloadEntries) {
-    const source = path.join(root, relative);
-    if (!existsSync(source)) continue;
+    if (relative === packageArchive && !sourceFiles.has(relative)) continue;
+    if (!sourceFiles.has(relative)) throw new Error(`Release candidate is stale relative to source: no longer shipped ${relative}`);
+    const source = await assertSafeRelativePath(root, relative);
     const sourceDigest = createHash("sha256").update(await readFile(source)).digest("hex");
     if (sourceDigest !== digest) throw new Error(`Release candidate is stale relative to source: ${relative}`);
   }

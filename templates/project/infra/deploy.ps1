@@ -5,7 +5,7 @@
 .DESCRIPTION
     The entry point. It dot-sources the focused modules beside it and runs them in order:
 
-        discover.ps1      - live region probe; picks the best available OpenAI model
+        discover.ps1      - skill-owned cached discovery; refreshes when required
         deploy-infra.ps1  - az deployment group create against main.bicep
 
     Those modules are libraries. Running one directly does nothing.
@@ -22,8 +22,7 @@
 .PARAMETER Gov
     Deploy to Azure US Government. Sets AZURE_CLOUD so the app resolves sovereign endpoints.
 .PARAMETER Commercial
-    Deploy to Azure Commercial. If neither cloud switch is supplied, the script displays a
-    numeric selection menu.
+    Deploy to Azure Commercial. Otherwise reuse the saved cloud, defaulting to Commercial.
 .PARAMETER PreferModel
     Try this OpenAI model first, falling back to the normal preference order if the region
     does not offer it.
@@ -92,8 +91,15 @@ if (-not $Location) {
     $Location = [string]$environmentProfile.location
 }
 
-$discovery = Invoke-AzureDiscovery -Location $Location -Gov:($expectedCloud -eq 'AzureUSGovernment') `
-    -PreferModel $PreferModel -DiscoveryOutputPath $DiscoveryOutputPath
+$discoveryParameters = @{
+    Location = $Location
+    Gov = ($expectedCloud -eq 'AzureUSGovernment')
+    PreferModel = $PreferModel
+}
+if ($PSBoundParameters.ContainsKey('DiscoveryOutputPath')) {
+    $discoveryParameters.DiscoveryOutputPath = $DiscoveryOutputPath
+}
+$discovery = Invoke-AzureDiscovery @discoveryParameters
 
 $resourceGroup = Get-AzureResourceName -ProjectName $SiteName -ResourceType resourceGroup
 $existingSpeech = @()

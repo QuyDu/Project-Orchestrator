@@ -27,10 +27,10 @@
         "additionalProperties": false,
         "required": ["id", "slot", "label", "file", "voice", "sha256"],
         "properties": {
-          "id": { "enum": ["ava-hd-warm", "aria-hd-warm", "aria-professional"] },
+          "id": { "enum": ["ava-hd-warm", "aria-hd-warm", "jenny-professional", "aria-professional"], "description": "Current A/B/C profiles use Jenny for C; aria-professional remains readable historical evidence and requires re-audition before new selection or synthesis." },
           "slot": { "enum": ["A", "B", "C"] },
           "label": { "type": "string", "minLength": 1, "maxLength": 120 },
-          "file": { "type": "string", "pattern": "^(ava-hd-warm|aria-hd-warm|aria-professional)\\.mp3$" },
+          "file": { "type": "string", "pattern": "^(ava-hd-warm|aria-hd-warm|jenny-professional|aria-professional)\\.mp3$" },
           "voice": { "$ref": "#/$defs/voice" },
           "sha256": { "$ref": "#/$defs/sha256" }
         }

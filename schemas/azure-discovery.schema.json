@@ -8,6 +8,8 @@
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "discoveredAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "contextSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "cloud": { "enum": ["AzureCloud", "AzureUSGovernment"] },
     "location": { "$ref": "#/$defs/region" },
     "cognitiveAvailable": { "type": "boolean" },
@@ -195,6 +197,16 @@
       ]
     }
   },
+  "allOf": [
+    {
+      "if": { "required": ["expiresAt"] },
+      "then": { "required": ["contextSha256"] }
+    },
+    {
+      "if": { "required": ["contextSha256"] },
+      "then": { "required": ["expiresAt"] }
+    }
+  ],
   "$defs": {
     "imageModel": {
       "type": "object",

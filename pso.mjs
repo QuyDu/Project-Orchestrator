@@ -8,8 +8,8 @@ import { createHash, randomUUID } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 
-const VERSION = "1.2.0";
-const FRAMEWORK_VERSION = "9.1.0";
+const VERSION = "1.3.0";
+const FRAMEWORK_VERSION = "9.2.0";
 const RISK_ACCEPTANCE_VERSION = "1.0.0";
 const DIGEST_ALGORITHM = "sha256-normalized-text-v1";
 const PROJECT_MANIFEST_SCHEMA_VERSION = "1.1.0";
@@ -27,9 +27,11 @@ const CONFIGURATION_PATH = path.join("config", "skills-orchestrator.json");
 const TEMPLATE_ROOT_RELATIVE = "templates/project";
 const BRIEF_RELATIVE_PATH = "docs/PROJECT-BRIEF.md";
 const SCAFFOLD_MANIFEST_RELATIVE = "templates/scaffold-manifest.json";
+const STUDIO_GUIDE_PATH = ".github/instructions/copilot-studio.instructions.md";
+const STUDIO_GUIDE_SCOPE = "copilot-studio/**,**/*.mcs.yml,**/*.mcs.yaml,scripts/*studio*.ts,tests/studio-*.test.ts";
 const STACK_TAGS = new Set([
   "typescript", "javascript", "csharp", "python", "powershell", "bicep",
-  "terraform", "java", "ruby", "php", "go", "rust", "swift", "tests"
+  "terraform", "java", "ruby", "php", "go", "rust", "swift", "tests", "copilot-studio"
 ]);
 const STACK_FILE_MARKERS = new Map([
   ["package.json", ["javascript"]],
@@ -70,7 +72,7 @@ const PROJECT_MARKER_FILES = new Set([
   "settings.gradle", "settings.gradle.kts", "gemfile", "composer.json", "package.swift",
   "cmakelists.txt", "makefile", "dockerfile"
 ]);
-const PROJECT_MARKER_SUFFIXES = [".sln", ".csproj", ".fsproj", ".vbproj", ".tf", ".bicep", ".ps1", ".ipynb"];
+const PROJECT_MARKER_SUFFIXES = [".sln", ".csproj", ".fsproj", ".vbproj", ".tf", ".bicep", ".ps1", ".ipynb", ".mcs.yml", ".mcs.yaml"];
 const SCAN_EXCLUDED_DIRECTORIES = new Set([
   "node_modules", "dist", "bin", "obj", "out", "build", "target", "vendor",
   "venv", "__pycache__", "packages", "coverage", "reports"
@@ -257,21 +259,41 @@ const AGENT_INSTRUCTION = `## Project Orchestrator
 - Treat machine-readable artifacts under \`reports/\` as authoritative.
 - Plan and validate before modifying files.
 - Require approval for destructive, external, privileged, or irreversible actions.`;
+const CREATION_WORKSPACE_OPENING_ANCHOR = "After creating a new project or agent, open its owning project in VS Code before reporting completion.";
+const CREATION_WORKSPACE_OPENING_INSTRUCTION = `## Open created projects and agents
+
+- ${CREATION_WORKSPACE_OPENING_ANCHOR} Prefer the generated \`.code-workspace\` file; otherwise open the project folder. Use a new window for a different project so the current workspace is preserved.
+- For a new agent, also open its definition. If only a blueprint or review plan was created, open that preview and state that installation or deployment is still pending.
+- When using \`create-project\`, include \`--open\`; agent creation outside that command still requires an explicit workspace-opening step. Writing files or changing a shell directory is not the same as opening the project.
+- The only scope exception is an explicit user request to upgrade Project Orchestrator itself to include the new projects, agents, files, or other framework artifacts. Keep that work in the Project Orchestrator workspace instead.
+- Verify the target workspace opened. If VS Code is unavailable or opening fails, report the blocked opening step and provide the exact workspace path and manual open command; never silently skip it or claim it opened.
+- Opening a workspace does not approve agent installation, deployment, publication, external mutation, commits, or pushes.`;
 const AZURE_ENVIRONMENT_INSTRUCTION = `## Azure environment automation
 
 - Read \`.azure/environment.json\` before Azure work. Explicit \`-Gov\` or \`-Commercial\` overrides the saved cloud; otherwise use the saved profile, then Azure Commercial as the default.
 - If the profile is missing, collect its nonsecret environment choices once and persist them. Never repeat cloud, subscription, MCP, or login questions while the profile remains valid.
 - Select the recorded Azure CLI cloud and subscription automatically. If authentication is absent or stale, start the recorded login flow instead of asking whether to log in.
 - Azure MCP is opt-in. Do not invoke it when disabled, and never invoke \`foundryextensions\` unless the profile already enables it with a client ID.`;
+const STUDIO_ROUTING_INSTRUCTION = `## Native Copilot Studio routing
+
+- For native Copilot Studio creation, configuration, troubleshooting, evaluation, import, publication, or delivery, load \`${STUDIO_GUIDE_PATH}\` before requirements, scaffolding, blueprint validation, or handoff.
+- Use the existing orchestrator, agent-builder and agent-deployment owners. A local agent definition or distribution label is not a native runtime or proof of completed features.
+- Resolve an ambiguous Copilot destination once. Do not route ordinary apps, GitHub Copilot agents/SDK apps, Foundry agents or Agents Toolkit projects through the native Studio workflow.
+- Use the project-local scoped guide. If absent, stop for governed native project setup; do not fall back to another project's private files or guess a target.
+- Native Studio selection does not authorize remote operations, Azure hosting, sign-in, billing, DLP changes or audience expansion. Preserve explicit target and operation approvals.`;
 const CLARIFICATION_ANCHOR = "Ask one question round only";
 const COPILOT_INSTRUCTION_BLOCKS = [
   { id: "clarification-protocol", version: 1, content: CLARIFICATION_PROTOCOL, anchor: CLARIFICATION_ANCHOR },
   { id: "orchestration-routing", version: 1, content: COPILOT_ORCHESTRATION_INSTRUCTION, anchor: ORCHESTRATION_ROUTE },
+  { id: "native-studio-routing", version: 1, content: STUDIO_ROUTING_INSTRUCTION, anchor: "## Native Copilot Studio routing" },
+  { id: "post-creation-workspace", version: 1, content: CREATION_WORKSPACE_OPENING_INSTRUCTION, anchor: CREATION_WORKSPACE_OPENING_ANCHOR },
   { id: "azure-environment-automation", version: 1, content: AZURE_ENVIRONMENT_INSTRUCTION, anchor: ".azure/environment.json" }
 ];
 const AGENT_INSTRUCTION_BLOCKS = [
   { id: "clarification-protocol", version: 1, content: CLARIFICATION_PROTOCOL, anchor: CLARIFICATION_ANCHOR },
   { id: "agent-orchestration-routing", version: 1, content: AGENT_INSTRUCTION, anchor: ORCHESTRATION_ROUTE },
+  { id: "native-studio-routing", version: 1, content: STUDIO_ROUTING_INSTRUCTION, anchor: "## Native Copilot Studio routing" },
+  { id: "post-creation-workspace", version: 1, content: CREATION_WORKSPACE_OPENING_INSTRUCTION, anchor: CREATION_WORKSPACE_OPENING_ANCHOR },
   { id: "azure-environment-automation", version: 1, content: AZURE_ENVIRONMENT_INSTRUCTION, anchor: ".azure/environment.json" }
 ];
 const RISK_ACCEPTANCE_NOTICE = `SECURITY AND RISK ACKNOWLEDGMENT
@@ -606,6 +628,8 @@ async function prepareAdoptionTransaction(plan, transactionId, riskAcceptance, a
   await mkdir(backupRoot, { recursive: true });
   const paths = [...new Set([
     ...plan.actions.filter((item) => MUTATING_ADOPTION_ACTIONS.has(item.action)).map((item) => item.path),
+    "project-orchestrator.json",
+    PROJECT_LOCK_PATH,
     ...ADOPTION_REPORT_PATHS,
     ...additionalPaths
   ])];
@@ -907,6 +931,12 @@ async function hasProjectMarker(directory) {
 // Bounded breadth-first scan; large repositories stop at the entry cap rather than walking every file.
 async function detectProjectStack(root) {
   const tags = new Set();
+  const manifestPath = path.join(root, "project-orchestrator.json");
+  if (existsSync(manifestPath)) {
+    await assertSafeManagedPath(root, "project-orchestrator.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    if (Array.isArray(manifest.declaredStack) && manifest.declaredStack.includes("copilot-studio")) tags.add("copilot-studio");
+  }
   let visited = 0;
   let truncated = false;
   async function scan(directory, depth) {
@@ -934,6 +964,7 @@ async function detectProjectStack(root) {
         continue;
       }
       if (!entry.isFile()) continue;
+      if (/\.mcs\.ya?ml$/.test(name)) tags.add("copilot-studio");
       for (const tag of STACK_FILE_MARKERS.get(name) ?? []) tags.add(tag);
       for (const tag of STACK_EXTENSION_MARKERS.get(path.extname(name)) ?? []) tags.add(tag);
       if (/\.(test|spec)\./.test(name) || /tests?\.cs$/.test(name)) tags.add("tests");
@@ -949,7 +980,54 @@ function parseStackOption(value) {
   const unknown = [...tags].filter((tag) => !STACK_TAGS.has(tag));
   if (unknown.length) throw new Error(`Unknown --stack value: ${unknown.join(", ")}. Supported: ${[...STACK_TAGS].sort().join(", ")}`);
   if (tags.has("typescript")) tags.add("javascript");
+  if (tags.has("copilot-studio") && [...tags].some((tag) => tag !== "copilot-studio" && tag !== "tests")) {
+    throw new Error("Native Copilot Studio must be selected independently; review a mixed hosted architecture separately");
+  }
   return tags;
+}
+
+export function classifyNativeStudioIntent(intent) {
+  const text = String(intent).toLowerCase();
+  const native = /\bcopilot[ -]+studio\b/.test(text);
+  const other = /\bfoundry\b|\bgithub[ -]+copilot\b|\bcopilot[ -]+sdk\b|\bagents toolkit\b/.test(text);
+  if (!native) return /\bcopilot\b/.test(text) && !other
+    ? { runtime: null, status: "clarification-required", operations: [], reason: "Specify the Copilot destination/runtime before planning." }
+    : null;
+  if (other) return { runtime: null, status: "clarification-required", operations: [], reason: "Select one native Studio or other agent destination/runtime before planning." };
+  const operationPatterns = [
+    ["create", /\b(?:creat(?:e|ion)|new|build|scaffold)\b/],
+    ["update", /\b(?:update|edit|configure|configuration)\b/],
+    ["import", /\bimport\b/], ["export", /\bexport\b/],
+    ["evaluate", /\b(?:evaluate|evaluation|test)\b/],
+    ["troubleshoot", /\b(?:troubleshoot|troubleshooting|diagnose|status)\b/],
+    ["publish", /\b(?:publish|publication)\b/],
+    ["clone", /\bclone\b/], ["pull", /\bpull\b/], ["push", /\bpush\b/]
+  ];
+  const operations = operationPatterns.filter(([, pattern]) => pattern.test(text)).map(([operation]) => operation);
+  if (/\b(?:not|never|without|don't)\b.{0,24}\b(?:create|update|import|export|evaluate|publish|clone|pull|push)\b/.test(text)) {
+    return { runtime: "native-copilot-studio", status: "clarification-required", operations: [], reason: "Native Studio intent contains operation exclusions; confirm the exact allowed operation before planning." };
+  }
+  if (!operations.length || /\bdeploy(?:ment)?\b/.test(text) && !operations.some((operation) => ["import", "publish"].includes(operation))) return {
+    runtime: "native-copilot-studio", status: "clarification-required", operations,
+    reason: "Specify the native Studio operation; deploy can mean draft import, publication, or channel delivery."
+  };
+  return { runtime: "native-copilot-studio", status: "ready", operations };
+}
+
+export async function loadNativeStudioInstructions(root) {
+  const file = path.join(root, STUDIO_GUIDE_PATH);
+  await assertSafeManagedPath(root, STUDIO_GUIDE_PATH);
+  if (!existsSync(file)) throw new Error(`Native Studio instructions are missing: ${STUDIO_GUIDE_PATH}. Use governed setup with --stack copilot-studio first.`);
+  if ((await lstat(file)).size > 262_144) throw new Error("Native Studio instructions exceed the bounded guide size");
+  const source = await readFile(file, "utf8");
+  const header = source.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
+  if (!header) throw new Error("Native Studio instructions require valid frontmatter");
+  const keys = [...header.matchAll(/^([a-zA-Z][\w-]*):/gm)].map((match) => match[1]);
+  if (new Set(keys).size !== keys.length) throw new Error("Native Studio instructions contain duplicate frontmatter fields");
+  const details = metadata(source);
+  if (!details.description?.trim()) throw new Error("Native Studio instructions require a description");
+  if (details.applyTo !== STUDIO_GUIDE_SCOPE) throw new Error("Native Studio instructions must retain the approved narrow applyTo scope");
+  return { path: STUDIO_GUIDE_PATH, sha256: createHash("sha256").update(source).digest("hex"), applyTo: details.applyTo };
 }
 
 async function loadScaffoldManifest() {
@@ -965,10 +1043,21 @@ async function loadScaffoldManifest() {
       throw new Error(`Shipped template is not declared in the scaffold manifest: ${relative}`);
     }
   }
+  const nativeGuide = manifest.templates.find((template) => template.path === STUDIO_GUIDE_PATH);
+  if (nativeGuide) {
+    await loadNativeStudioInstructions(path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE));
+    if (existsSync(path.join(SCRIPT_ROOT, STUDIO_GUIDE_PATH))) {
+      await loadNativeStudioInstructions(SCRIPT_ROOT);
+      if (!await sameFile(path.join(SCRIPT_ROOT, STUDIO_GUIDE_PATH), path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, STUDIO_GUIDE_PATH))) {
+        throw new Error("Native Studio instruction template differs from its canonical source; regenerate the mirror before delivery");
+      }
+    }
+  }
   return manifest.templates;
 }
 
 function templateApplies(template, stack) {
+  if (stack.has("copilot-studio") && (template.kind === "deployment" || template.kind === "local-runtime")) return false;
   return template.requires === "always" || template.requires.some((tag) => stack.has(tag));
 }
 
@@ -1353,22 +1442,24 @@ objective, steps, affected files, and risks, then wait for explicit approval.
 }
 
 function projectBlueprint({ name, displayName, declaredStack, createdAt, intent }) {
-  const languages = [...declaredStack].filter((tag) => tag !== "tests").sort();
-  const frameworks = [];
+  const nativeStudio = declaredStack.has("copilot-studio");
+  const languages = nativeStudio ? ["yaml"] : [...declaredStack].filter((tag) => tag !== "tests").sort();
+  const frameworks = nativeStudio ? ["Microsoft Copilot Studio"] : [];
   const infrastructure = declaredStack.has("bicep") || declaredStack.has("terraform");
   const blueprint = {
-    schemaVersion: "1.0.0",
+    schemaVersion: nativeStudio ? "1.1.0" : "1.0.0",
     project: {
       name,
       purpose: intent || `Build the ${displayName} project.`,
-      type: infrastructure ? "infrastructure" : "other"
+      type: nativeStudio ? "copilot-studio" : infrastructure ? "infrastructure" : "other"
     },
     stack: {
       languages: languages.length ? languages : ["undecided"],
-      frameworks
+      frameworks,
+      ...(nativeStudio ? { runtime: "native-copilot-studio" } : {})
     },
     delivery: {
-      target: infrastructure ? "azure" : "local",
+      target: nativeStudio ? "power-platform" : infrastructure ? "azure" : "local",
       environment: "development",
       ...(infrastructure ? { cloud: "AzureCloud" } : {})
     },
@@ -1377,8 +1468,13 @@ function projectBlueprint({ name, displayName, declaredStack, createdAt, intent 
       security: ["secret scanning", "dependency review"],
       observability: ["health and error reporting"]
     },
-    assumptions: ["This initial blueprint is derived from create-project inputs and requires review before implementation."],
-    acceptanceCriteria: ["The project builds and its automated tests pass in the declared development environment."],
+    assumptions: [
+      "This initial blueprint is derived from create-project inputs and requires review before implementation.",
+      ...(nativeStudio ? ["Native topics, tools, storage, target identity, evaluation, publication and channel delivery are not implemented or verified by this baseline."] : [])
+    ],
+    acceptanceCriteria: nativeStudio
+      ? ["The project-local native Studio guide is loaded before authoring.", "Each requested capability has implementation and acceptance evidence; missing capabilities keep delivery incomplete.", "Publication and channel verification retain separate scoped approvals and evidence."]
+      : ["The project builds and its automated tests pass in the declared development environment."],
     generatedAt: createdAt
   };
   delete blueprint.generatedAt;
@@ -1572,6 +1668,11 @@ async function createProject({ name: enteredName, destination, profile = DEFAULT
   if (!PROFILES.has(profile)) throw new Error(`Unsupported profile: ${profile}`);
   const declaredStack = stack ? parseStackOption(stack) : new Set();
   const requestedOutcome = String(intent ?? "").trim();
+  const nativeRoute = classifyNativeStudioIntent(requestedOutcome);
+  if (!declaredStack.has("copilot-studio") && nativeRoute) {
+    throw new Error(nativeRoute.status === "clarification-required" ? nativeRoute.reason : "Native Studio projects require explicit --stack copilot-studio before scaffolding.");
+  }
+  if (declaredStack.has("copilot-studio")) await loadNativeStudioInstructions(path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE));
   const createdAt = new Date().toISOString();
   const displayName = enteredName.trim();
   const name = normalizeName(displayName);
@@ -1589,7 +1690,7 @@ async function createProject({ name: enteredName, destination, profile = DEFAULT
   const staging = path.join(parent, `.pso-${name}-${randomUUID()}`);
   await mkdir(staging, { recursive: true });
   try {
-    const directories = [".github", ".vscode", "config", "schemas", "reports", "src", "tests", "docs"];
+    const directories = [".github", ".vscode", "config", "schemas", "reports", declaredStack.has("copilot-studio") ? "copilot-studio" : "src", "tests", "docs"];
     await Promise.all(directories.map((directory) => mkdir(path.join(staging, directory), { recursive: true })));
     await cp(path.join(SCRIPT_ROOT, ".github", "skills"), path.join(staging, ".github", "skills"), { recursive: true });
     await cp(path.join(SCRIPT_ROOT, "schemas"), path.join(staging, "schemas"), { recursive: true });
@@ -1643,6 +1744,11 @@ async function createProject({ name: enteredName, destination, profile = DEFAULT
       ["src/.gitkeep", ""],
       ["tests/.gitkeep", ""]
     ]);
+    if (declaredStack.has("copilot-studio")) {
+      files.delete("src/.gitkeep");
+      files.set("copilot-studio/.gitkeep", "");
+      files.set("README.md", `# ${displayName}\n\nThis is a governed **native Microsoft Copilot Studio** project baseline, not a hosted application or an implemented agent.\n\n## Start here\n\n1. Open \`${name}.code-workspace\` in VS Code.\n2. Read \`${STUDIO_GUIDE_PATH}\` before requirements, native scaffolding, validation, or delivery.\n3. Use the existing Agent Builder native preparation path with a reviewed capability specification and an installed, pinned PAC version. Local initialization must not include an environment argument.\n4. Keep authored source in one canonical directory beneath \`copilot-studio/\`. Review real operations, stores, authentication, target identity, and acceptance tests rather than claiming an instruction-only starter implements them.\n5. Hand exact approved artifacts to \`agent-deployment\` only when a supported operation and its approvals are ready.\n\n## Boundaries\n\nNo Azure hosting subscription, application backend, account, connection, solution import, publication, or channel installation was created. Target IDs, tool availability, evaluation, publication, and channel verification remain unverified. The generated CI deliberately remains unconfigured until the native project's actual validation command is selected.\n\nAll framework instructions, schemas and skill helpers are project-local. This project needs no source-repository paths, private memory or previous deployment identifiers. Preserve existing user files and resolve instruction conflicts explicitly.\n`);
+    }
     const frameworkSkills = await discoverSkills(SCRIPT_ROOT);
     for (const skill of frameworkSkills) {
       files.set(`.github/prompts/${skill.name}-help.prompt.md`, skillHelpPrompt(skill));
@@ -1795,7 +1901,7 @@ async function installedSourceIdentity() {
 }
 
 function managedRegionContent(source, blocks) {
-  return blocks.map((block) => source.match(managedRegionPattern(block.id))?.[0] ?? "").join("\n");
+  return blocks.map((block) => source.match(managedRegionPattern(block.id))?.[0]).filter(Boolean).join("\n");
 }
 
 async function buildBaselineLock(projectRoot, baselineAt, installedSource) {
@@ -2060,13 +2166,19 @@ async function buildAdoptionPlan(projectRoot, profileOverride, projectNameOverri
   const detectedStack = detectedResult.tags;
   const explicitStack = stackOverride ? parseStackOption(stackOverride) : new Set();
   for (const tag of explicitStack) detectedStack.add(tag);
+  if (detectedStack.has("copilot-studio")) await loadNativeStudioInstructions(path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE));
   const customizationAssets = await discoverCustomizationAssets(root);
   for (const template of scaffoldTemplates) {
     if (template.createOnly || ADOPTION_TEMPLATE_EXCLUSIONS.has(template.path)) continue;
     const destination = path.join(root, template.path);
     const projectRelative = path.relative(root, destination).replaceAll("\\", "/");
     if (existsSync(destination)) {
-      actions.push({ action: "already-current", kind: "scaffold", path: projectRelative });
+      if (template.path === STUDIO_GUIDE_PATH) await assertSafeManagedPath(root, projectRelative);
+      const conflict = template.path === STUDIO_GUIDE_PATH && detectedStack.has("copilot-studio")
+        && !await sameFile(destination, path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, template.path));
+      actions.push(conflict
+        ? { action: "conflict", kind: "scaffold", path: projectRelative, reason: "Existing native Studio instructions differ; preserve them and review an explicit merge before adoption." }
+        : { action: "already-current", kind: "scaffold", path: projectRelative });
       continue;
     }
     if (!templateApplies(template, detectedStack)) {
@@ -2074,7 +2186,9 @@ async function buildAdoptionPlan(projectRoot, profileOverride, projectNameOverri
         action: "skipped",
         kind: "scaffold",
         path: projectRelative,
-        reason: `No detected stack matches ${template.requires.join(", ")}`
+        reason: Array.isArray(template.requires)
+          ? `No detected stack matches ${template.requires.join(", ")}`
+          : "Native Copilot Studio excludes application deployment and local-runtime templates"
       });
       continue;
     }
@@ -2124,6 +2238,7 @@ async function buildAdoptionPlan(projectRoot, profileOverride, projectNameOverri
     frameworkVersion: FRAMEWORK_VERSION,
     runtimeVersion: VERSION,
     conformanceProfile: profile,
+    ...(detectedStack.has("copilot-studio") ? { declaredStack: [...new Set([...(Array.isArray(existingManifest.declaredStack) ? existingManifest.declaredStack : []), ...detectedStack])].sort() } : {}),
     resolvedConfiguration,
     adoptedAt: existingManifest.adoptedAt || now,
     status: "adopted",
@@ -2559,7 +2674,6 @@ async function loadUpdateBaseline(projectRoot) {
     if (existsSync(path.join(projectRoot, PROJECT_LOCK_PATH))) {
       throw new Error("Invalid legacy baseline: manifest 1.0 must not have a 1.1 baseline lock. Restore the matching pre-migration pair from backup before retrying.");
     }
-    const installedSource = await installedSourceIdentity();
     return {
       manifest,
       legacy: true,
@@ -2567,7 +2681,7 @@ async function loadUpdateBaseline(projectRoot) {
         schemaVersion: PROJECT_LOCK_SCHEMA_VERSION,
         digestAlgorithm: DIGEST_ALGORITHM,
         baselineAt: manifest.updatedAt ?? manifest.adoptedAt ?? manifest.createdAt ?? "1970-01-01T00:00:00.000Z",
-        installedSource,
+        installedSource: null,
         entries: []
       }
     };
@@ -2741,9 +2855,14 @@ async function localUpdateState(projectRoot, entry) {
   }
   const source = await readFile(target, "utf8");
   const blocks = entry.path === "AGENTS.md" ? AGENT_INSTRUCTION_BLOCKS : COPILOT_INSTRUCTION_BLOCKS;
-  const malformedRegions = blocks.some((block) => (source.match(managedRegionPattern(block.id)) ?? []).length !== 1);
+  const digest = digestManagedBuffer(Buffer.from(managedRegionContent(source, blocks), "utf8"), { kind: "text" });
+  const malformedRegions = blocks.some((block) => {
+    const count = (source.match(managedRegionPattern(block.id)) ?? []).length;
+    if (count === 1) return false;
+    return !(block.id === "native-studio-routing" && count === 0 && digest === entry.normalizedBaseDigest);
+  });
   return {
-    digest: digestManagedBuffer(Buffer.from(managedRegionContent(source, blocks), "utf8"), { kind: "text" }),
+    digest,
     malformedRegions,
     precondition: await managedPathState(projectRoot, entry.path)
   };
@@ -3041,7 +3160,10 @@ export async function buildUpdatePlan(projectRoot, requestedMode = "all", select
     const localDigest = selected?.localDigest ?? (await localUpdateState(root, entry)).digest;
     const baseline = base.get(assetId);
     const policy = selected?.policy ?? baseline?.policy ?? entry.policy ?? "track";
-    if (localDigest === null) {
+    let projectedDigest = localDigest;
+    if (selected?.proposedAction === "delete") projectedDigest = null;
+    else if (selected && ["create", "replace", "fork"].includes(selected.proposedAction)) projectedDigest = selected.upstreamDigest;
+    if (projectedDigest === null) {
       conflicts.push({ code: "INCOMPATIBLE_PROFILE", asset: entry.path, message: `Profile ${manifest.conformanceProfile} requires missing skill contract ${entry.path}` });
       continue;
     }
@@ -3078,7 +3200,7 @@ export async function buildUpdatePlan(projectRoot, requestedMode = "all", select
     source: {
       frameworkVersion: manifest.frameworkVersion,
       runtimeVersion: manifest.runtimeVersion,
-      installedSource: manifest.installedSource,
+      installedSource: legacy ? null : manifest.installedSource,
       lockDigest: canonicalDigest(lock)
     },
     target,
@@ -3150,9 +3272,9 @@ async function upstreamAssetContent(projectRoot, asset) {
     const baseline = `frameworkVersion: ${FRAMEWORK_VERSION}\nruntimeVersion: ${VERSION}\nprofile: ${manifest.conformanceProfile}\npaths:\n  skills: .github/skills\n  reports: reports\n  schemas: schemas\nruntime:\n  eventStream: reports/execution-log.jsonl\n  stateSnapshot: reports/current-execution-state.json\n  appendOnly: true\nproject:\n  name: ${manifest.projectName}\n  ${projectState}\n`;
     return Buffer.from(mergeProjectOrchestratorConfiguration(current, baseline), "utf8");
   }
-  const frameworkPath = path.join(SCRIPT_ROOT, asset.path);
-  const templatePath = path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, asset.path);
-  const source = existsSync(frameworkPath) ? frameworkPath : templatePath;
+  const source = asset.scope.startsWith("scaffold:")
+    ? path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, asset.path)
+    : path.join(SCRIPT_ROOT, asset.path);
   if (!existsSync(source)) throw new Error(`Upstream asset source is missing: ${asset.path}`);
   return readFile(source);
 }
@@ -3242,7 +3364,12 @@ async function verifyUpdateCandidate(projectRoot, plan, candidateLock) {
       continue;
     }
     const local = await localUpdateState(projectRoot, asset);
-    if (asset.policy === "pin") {
+    if (asset.proposedAction === "none") {
+      if (local.digest !== asset.localDigest || local.precondition !== asset.destinationPrecondition
+        || entry.normalizedBaseDigest !== (asset.baseDigest ?? asset.localDigest)) {
+        failures.push(`Preserved content or baseline changed for ${asset.path}`);
+      }
+    } else if (asset.policy === "pin") {
       if (local.digest === null || entry.normalizedBaseDigest !== (asset.baseDigest ?? asset.localDigest)) failures.push(`Pinned baseline changed for ${asset.path}`);
     } else if (local.digest !== asset.upstreamDigest || entry.normalizedBaseDigest !== asset.upstreamDigest) {
       failures.push(`Tracked content does not match upstream for ${asset.path}`);
@@ -3969,6 +4096,9 @@ async function validateWorkflowPlanFile(requestedRoot, requestedFile) {
 async function plan(requestedRoot, intent) {
   if (!intent) throw new Error("Use --intent to describe the requested outcome");
   const root = await realpath(path.resolve(requestedRoot));
+  const nativeRoute = classifyNativeStudioIntent(intent);
+  if (nativeRoute?.status === "clarification-required") throw new Error(nativeRoute.reason);
+  const nativeGuide = nativeRoute ? await loadNativeStudioInstructions(root) : null;
   await assertSafeManagedPath(root, "reports");
   const reports = path.join(root, "reports");
   await mkdir(reports, { recursive: true });
@@ -3990,26 +4120,34 @@ async function plan(requestedRoot, intent) {
     const routedSkills = await resolvePlanSkills(root, intent);
     const steps = [
       {
-        id: "STEP-001", owner: { type: "skill", id: "project-skills-orchestrator" }, action: "Route clarified intent", status: "ready",
-        inputs: ["Clarified user intent"], outputs: ["Routed workflow outcome"], requiresApproval: false, approvalClasses: [], prerequisites: [],
-        completionCriteria: ["Intent is routed to exactly one owning skill per executable step."], checkpoint: "CP-ROUTED",
+        id: "STEP-001", owner: { type: "skill", id: "project-skills-orchestrator" }, action: nativeGuide ? "Route native Copilot Studio intent after loading its scoped instructions" : "Route clarified intent", status: "ready",
+        inputs: ["Clarified user intent", ...(nativeGuide ? [nativeGuide.path, `sha256:${nativeGuide.sha256}`, ...nativeRoute.operations.map((operation) => `native-operation:${operation}`)] : [])],
+        outputs: ["Routed workflow outcome"], requiresApproval: false, approvalClasses: [], prerequisites: [],
+        completionCriteria: ["Intent is routed to exactly one owning skill per executable step.", ...(nativeGuide ? ["The project-local native Studio guide was validated and loaded before this plan or any scaffold was written."] : [])], checkpoint: "CP-ROUTED",
         rollback: "Preserve the prior valid plan.", recovery: "Correct unresolved ownership and replan.", onBlocked: "", onFailed: ""
       }
     ];
     const skillStepIds = new Map();
     for (const skill of routedSkills) {
-      const stepNumber = String(steps.length + 1).padStart(3, "0");
-      const prerequisites = dependencyItems(skill.source).map((dependency) => skillStepIds.get(dependency)).filter(Boolean);
-      const stepId = `STEP-${stepNumber}`;
-      const approvalClasses = skill.name === "agent-deployment" ? ["external", "publication"]
-        : skill.name === "visual-companion-builder" ? ["phase"] : [];
-      steps.push({
-        id: stepId, owner: { type: "skill", id: skill.name }, action: `Execute ${skill.name} for the clarified intent`, status: "planned",
-        inputs: ["STEP-001 routed intent"], outputs: [`${skill.name} outcome`], requiresApproval: approvalClasses.length > 0, approvalClasses, prerequisites: prerequisites.length ? prerequisites : ["STEP-001"],
-        completionCriteria: [`${skill.name} completes its bounded contract or reports a blocked state.`], checkpoint: `CP-${skill.name.toUpperCase()}`,
-        rollback: "Preserve prior valid artifacts.", recovery: "Correct the reported condition and rerun this bounded step.", onBlocked: "", onFailed: ""
-      });
-      skillStepIds.set(skill.name, stepId);
+      const selectedOperations = nativeRoute?.operations.filter((operation) => (["create", "update"].includes(operation) ? "agent-builder" : "agent-deployment") === skill.name) ?? [];
+      for (const operation of selectedOperations.length ? selectedOperations : [null]) {
+        const stepNumber = String(steps.length + 1).padStart(3, "0");
+        const prerequisites = dependencyItems(skill.source).map((dependency) => skillStepIds.get(dependency)).filter(Boolean);
+        if (skillStepIds.has(skill.name)) prerequisites.push(skillStepIds.get(skill.name));
+        const stepId = `STEP-${stepNumber}`;
+        const approvalClasses = skill.name === "agent-deployment"
+          ? operation === "troubleshoot" ? [] : operation && operation !== "publish" ? ["external"] : ["external", "publication"]
+          : skill.name === "visual-companion-builder" ? ["phase"] : [];
+        steps.push({
+          id: stepId, owner: { type: "skill", id: skill.name },
+          action: operation ? `Prepare or perform the separately governed native Studio ${operation} operation` : `Execute ${skill.name} for the clarified intent`,
+          status: "planned", inputs: ["STEP-001 routed intent", ...(operation ? [`native-operation:${operation}`] : [])],
+          outputs: [`${skill.name}${operation ? ` ${operation}` : ""} outcome`], requiresApproval: approvalClasses.length > 0, approvalClasses, prerequisites: prerequisites.length ? prerequisites : ["STEP-001"],
+          completionCriteria: [`${skill.name} completes its bounded contract or reports a blocked state.`], checkpoint: `CP-${skill.name.toUpperCase()}${operation ? `-${operation.toUpperCase()}` : ""}`,
+          rollback: "Preserve prior valid artifacts.", recovery: "Correct the reported condition and rerun this bounded step.", onBlocked: "", onFailed: ""
+        });
+        skillStepIds.set(skill.name, stepId);
+      }
     }
     const terminalStepId = `STEP-${String(steps.length + 1).padStart(3, "0")}`;
     for (const step of steps) {
@@ -4066,8 +4204,15 @@ async function resolvePlanSkills(root, intent) {
     return { skill, score };
   });
   const highestScore = Math.max(0, ...scored.map(({ score }) => score));
-  const selected = scored.filter(({ score }) => score === highestScore && score > 0).map(({ skill }) => skill);
   const byName = new Map(skills.map((skill) => [skill.name, skill]));
+  const native = classifyNativeStudioIntent(intent);
+  if (native?.status === "clarification-required") throw new Error(native.reason);
+  const selected = native
+    ? [...new Set(native.operations.map((operation) => ["create", "update"].includes(operation) ? "agent-builder" : "agent-deployment"))].map((name) => {
+      if (!byName.has(name)) throw new Error(`Native Studio owner is missing: ${name}`);
+      return byName.get(name);
+    })
+    : scored.filter(({ score }) => score === highestScore && score > 0).map(({ skill }) => skill);
   const resolved = new Map();
   function addWithDependencies(skill) {
     if (resolved.has(skill.name)) return;
@@ -4135,7 +4280,7 @@ function runAgentBuilder(options) {
     "user-invocable", "model-invocable", "autonomy", "web-safety", "constraints", "approach", "output-format", "subagents", "handoffs-file",
     "azure-required", "cloud", "location", "environment-name", "authentication-method", "subscription-id",
     "publication-targets", "version-policy", "microsoft365-audience", "chatgpt-visibility",
-    "distribution-targets", "distribution-environment", "data-boundary"
+    "distribution-targets", "distribution-environment", "data-boundary", "native-spec"
   ];
   const flagOptions = ["accept-risk", "json"];
   for (const key of Object.keys(options).filter((item) => item !== "_")) {
@@ -4354,6 +4499,9 @@ New project:
   instruction files, the build and test tasks, the debug configurations, and the
   continuous-integration commands. Without it none of those are generated.
   Supported values: ${[...STACK_TAGS].sort().join(", ")}
+  --stack copilot-studio selects native Studio only: it validates the scoped guide
+  before scaffolding and installs no Azure app backend or live-chat application.
+  Native capabilities, target readiness, publication and channels remain unverified.
   --color sets the new workspace accent using #RRGGBB. The default is ${DEFAULT_WORKSPACE_COLOR}.
   --open launches Visual Studio Code on the generated workspace when the editor
   is installed. Accept the workspace trust prompt to enable tasks, debugging,
@@ -4375,6 +4523,10 @@ Agent Builder:
   Portable schema 2.3 authoring uses --type portable --distribution-targets IDs,
   --distribution-environment, and --data-boundary. It does not initialize Azure.
   Legacy publication intent remains readable without rewriting existing blueprints.
+  Native Studio preparation uses --type copilot-studio --native-spec FILE --accept-risk.
+  It requires the project-local scoped guide and an installed supported PAC, invokes
+  local initialization without an environment, and emits a native review/handoff,
+  not a .agent.md deployment. Applying reviewed native bytes is a separate approval.
   Foundry types or --azure-required true also resolve --cloud, --location,
   --environment-name, --authentication-method, and optional --subscription-id.
   Azure CLI authentication starts only when required. Credential values are never accepted.

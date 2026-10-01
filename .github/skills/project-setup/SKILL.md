@@ -25,6 +25,7 @@ Turn a new or unstructured repository into a governed development baseline with 
 - Detected repository evidence: existing manifests, source layout, infrastructure definitions, tests, and CI configuration.
 - Clarification result from `clarify-the-ask` when purpose, stack, or constraints are materially ambiguous.
 - Resolved conformance profile and the installed skill catalog.
+- Explicit native Copilot Studio selection, or recognized `.mcs.yml`/`.mcs.yaml` source, when that project type is intended. Ambiguous Copilot intent requires destination clarification, not a guess.
 
 ## Approved Tools and Resources
 
@@ -44,8 +45,10 @@ Turn a new or unstructured repository into a governed development baseline with 
 
 1. Detect the current state: languages, frameworks, build and test tooling, infrastructure definitions, existing agent customization files, and existing skills.
 2. Resolve the project's purpose, stack, constraints, and cloud target; route material ambiguity through `clarify-the-ask` before proposing structure.
+   For native Copilot Studio, load `.github/instructions/copilot-studio.instructions.md` before requirements or scaffolding. Use `--stack copilot-studio` for the native-only baseline; do not require Azure app hosting, introduce an implicit backend, or reinterpret ordinary Copilot/Foundry applications.
 3. Determine the required baseline: repository instructions, scoped instruction files matching the detected languages, specialist agents, reusable prompts, decision-record location, reports directory, and workspace support files.
 4. Select required and suggested skills from the installed catalog against the project's actual shape, and record why each suggested skill is or is not applicable.
+	- The native Studio scoped instruction is a mandatory asset selected by the existing scaffold pipeline. Preserve its narrow `applyTo` and install the same project-relative file. Its template is a generated mirror of the canonical main-repository instruction, with byte-parity tests rather than independently maintained procedures.
 	- Provision and route `project-video` when a future evidence-grounded browser preview, narrated MP4, or executive demo is requested. Setup owns only availability and routing; `project-video` exclusively owns inspection, production-path selection, provider preflight, media planning, Avatar, and FFmpeg behavior.
 	- Provision and route `project-understanding` as the full-repository rescan owner. Keep it distinct from durable knowledge capture, and require Project Video to rebuild and consume its authoritative report pair.
 5. Classify every planned artifact as `create`, `already-present`, or `conflict`, and never plan a silent replacement.
@@ -62,6 +65,8 @@ Turn a new or unstructured repository into a governed development baseline with 
 - The repository instruction file routes multi-skill work through `project-skills-orchestrator`.
 - Continuity artifacts under `reports/` are not excluded by ignore rules.
 - The machine-readable plan validates against `schemas/project-setup-plan.schema.json` and the Markdown view derives from it.
+- Native projects contain their own scoped guide, explicit native project blueprint and pending implementation criteria, without an Azure application scaffold or source-machine paths. An existing different guide is a conflict even with forced templates; preserve it until an explicit merge is reviewed.
+- Setup is not native feature implementation, cloud synchronization, evaluation, publication or channel verification. Hand off to the existing Agent Builder and deployment owners with incomplete capabilities visible.
 
 ## Outputs
 

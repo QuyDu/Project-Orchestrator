@@ -37,10 +37,10 @@ const registry = {
     },
     {
       id: "copilot-studio-pac", target: "copilot-studio", runtime: "package", support: "supported",
-      clouds: ["AzureCloud", "none"], apiVersion: null, executable: true, automaticSteps: ["Bind the exact CLI version, explicit environment and operator-reviewed identity evidence.", "Execute separate pack, managed-solution import, agent publish or export operations using frozen inputs.", "Validate retained solution ZIP identity; retain submission/verification boundaries rather than infer catalog acceptance."],
+      clouds: ["AzureCloud", "none"], apiVersion: null, executable: true, automaticSteps: ["Bind the exact CLI version, explicit environment and operator-reviewed identity evidence.", "Inspect publishOnImport, supported workspace shape and complete reviewed agent component membership before separate pack/import/publish/export operations.", "Validate retained solution ZIP identity; retain submission/verification boundaries rather than infer catalog acceptance."],
       manualSteps: ["Verify pac version, authenticated identity, selected Power Platform environment and workspace.", "Develop in an unmanaged solution; import the reviewed managed solution downstream after checking connection references and environment variables.", "Complete post-import authentication, icons, channels and nonsolution configuration gates.", "Separately approve publish, verify each channel and retain the prior approved managed solution for rollback."],
-      limitations: ["Solution import is not agent publication.", "The current PAC reference has no general JSON output contract; localized prose is not parsed into fabricated identity or health claims.", "Post-import authentication, connection/environment variables, icons and each channel still need explicit verification.", "Installed managed solutions cannot be exported and no atomic downgrade/rollback is claimed; recovery requires a separately reviewed compatible artifact or environment restore."],
-      sources: ["https://learn.microsoft.com/power-platform/developer/cli/reference/copilot", "https://learn.microsoft.com/power-platform/developer/cli/reference/solution"]
+      limitations: ["Import configuration may publish implicitly. Enabled, absent or ambiguous native publishOnImport is blocked; combined publication is not supported even with a generic import approval.", "Legacy non-agent fixtures remain readable; native agent imports require complete reviewed handoff membership. Unsupported connected pack shapes preserve files and require solution ALM.", "The current PAC reference has no general JSON output contract; localized prose, Provisioned and Component State are not publication or health evidence. Known invalid status-query attributes produce an explicit read-only verification block.", "Evaluation request/admission/functional validators are offline only: no REST transport, credential acquisition, evaluation POST or channel tests are implemented. No invented API version body field.", "Post-import settings, authentication, connections and each intended channel require independent server/runtime evidence; no-op source sync is insufficient.", "Installed managed solutions cannot be exported and no atomic downgrade/rollback is claimed; recovery requires a separately reviewed compatible artifact or environment restore."],
+      sources: ["https://learn.microsoft.com/power-platform/developer/cli/reference/copilot", "https://learn.microsoft.com/power-platform/developer/cli/reference/solution", "https://learn.microsoft.com/power-platform/developer/cli/reference/env", "https://learn.microsoft.com/power-apps/developer/data-platform/reference/entities/bot", "https://learn.microsoft.com/rest/api/power-platform/copilotstudio/bots/run-maker-evaluation-test-set"]
     },
     {
       id: "openai-application-export", target: "openai-api-application", runtime: "package", support: "manual",
@@ -68,7 +68,9 @@ export function capabilityFor(request) {
   const field = { "microsoft-365-copilot-and-teams": "microsoft365", "copilot-studio": "copilotStudio", "microsoft-365-agents-toolkit": "agentsToolkit" }[request.target];
   if (capability && field && !request[field]) return {
     ...capability, executable: false, support: "manual",
-    limitations: [`Execution configuration ${field} is absent. This legacy compatibility package is nonexecuting; supply the strict provider configuration for an executable plan.`, ...capability.limitations]
+    limitations: [request.nativeStudioHandoff
+      ? `Execution configuration ${field} is absent. This native operation is a nonexecuting handoff; no synchronization, evaluation or channel transport is implied.`
+      : `Execution configuration ${field} is absent. This legacy compatibility package is nonexecuting; supply the strict provider configuration for an executable plan.`, ...capability.limitations]
   };
   return capability;
 }

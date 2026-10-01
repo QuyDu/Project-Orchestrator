@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { createHash, generateKeyPairSync, randomUUID, sign } from "node:crypto";
 import path from "node:path";
 import os from "node:os";
+import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { assertSafeRelativePath } from "../scripts/safe-path.mjs";
@@ -32,6 +34,8 @@ test("production scripts and release metadata are present", async () => {
     assert.ok(document.includes(`| Framework version | \`${frameworkVersion}\` |`));
     assert.ok(document.includes(`| Source version date | ${sourceDate} |`));
   }
+  const securityPolicy = await readFile(path.join(root, "SECURITY.md"), "utf8");
+  assert.ok(securityPolicy.includes(`| \`${manifest.version}\` | ${sourceDate} |`), "The supported source-version table must match current version/date metadata");
   const help = spawnSync(process.execPath, [path.join(root, "pso.mjs"), "--help"], { cwd: root, encoding: "utf8" });
   assert.equal(help.status, 0, help.stderr);
   assert.match(help.stdout, /^Project Orchestrator /);
@@ -93,6 +97,9 @@ test("release manifest declares required supply-chain outputs", async () => {
   assert.ok(packageManifest.files.includes("DISCLAIMER.md"));
   const releaseBuilder = await readFile(path.join(root, "scripts", "build-release.mjs"), "utf8");
   assert.match(releaseBuilder, /"DISCLAIMER\.md"/);
+  const standaloneSources = JSON.parse(releaseBuilder.match(/^const shipped = (\[[^\r\n]+\]);$/m)[1]);
+  assert.deepEqual(standaloneSources.sort(), [...new Set([...packageManifest.files, "package.json"])].sort(),
+    "Standalone and package metadata must describe the same shipped source roots");
   for (const schema of [
     "release-manifest.schema.json",
     "release-signature.schema.json",
@@ -255,6 +262,244 @@ test("security output paths reject symbolic links", async () => {
   } finally {
     await rm(project, { recursive: true, force: true });
     await rm(outside, { recursive: true, force: true });
+  }
+});
+
+const releaseDigest = (content) => createHash("sha256").update(content).digest("hex");
+
+async function writeFixtureChecksums(artifact) {
+  const excluded = new Set(["SHA256SUMS", "release-signature.json", "independent-review.json"]);
+  const files = [];
+  const collect = async (relative = "") => {
+    for (const entry of await readdir(path.join(artifact, relative), { withFileTypes: true })) {
+      if (!relative && excluded.has(entry.name)) continue;
+      assert.equal(entry.isSymbolicLink(), false);
+      const child = path.join(relative, entry.name);
+      if (entry.isDirectory()) await collect(child);
+      else files.push(child.replaceAll("\\", "/"));
+    }
+  };
+  await collect();
+  const entries = [];
+  for (const name of files.sort()) {
+    entries.push(`${releaseDigest(await readFile(path.join(artifact, name)))}  ${name}`);
+  }
+  await writeFile(path.join(artifact, "SHA256SUMS"), `${entries.join("\n")}\n`, "utf8");
+}
+
+async function withReleaseFixture(action) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "pso-release-checksums-"));
+  const source = path.join(directory, "source");
+  const artifact = path.join(source, "dist", "release-fixture-1.0.0");
+  try {
+    await mkdir(path.join(source, "scripts"), { recursive: true });
+    await mkdir(artifact, { recursive: true });
+    for (const file of ["verify-release.mjs", "safe-path.mjs", "trust.mjs"]) {
+      await writeFile(path.join(source, "scripts", file), await readFile(path.join(root, "scripts", file)));
+    }
+    const payload = new Map([
+      ["package.json", "{\"name\":\"release-fixture\",\"version\":\"1.0.0\",\"files\":[\"fixture.txt\",\"schemas\",\"templates\"]}\n"],
+      ["fixture.txt", "Synthetic release payload.\n"],
+      ["schemas/base.schema.json", "{\"type\":\"object\"}\n"],
+      ["templates/base.txt", "Synthetic shipped template.\n"]
+    ]);
+    for (const [name, content] of payload) {
+      await mkdir(path.dirname(path.join(source, name)), { recursive: true });
+      await mkdir(path.dirname(path.join(artifact, name)), { recursive: true });
+      await writeFile(path.join(source, name), content, "utf8");
+      await writeFile(path.join(artifact, name), content, "utf8");
+    }
+    const payloadManifest = `${[...payload].map(([name, content]) => `${releaseDigest(content)}  ${name}`).join("\n")}\n`;
+    await writeFile(path.join(artifact, "PAYLOAD-SHA256SUMS"), payloadManifest, "utf8");
+    await writeFile(path.join(artifact, "provenance.intoto.json"), JSON.stringify({
+      subject: [{ name: "PAYLOAD-SHA256SUMS", digest: { sha256: releaseDigest(payloadManifest) } }]
+    }), "utf8");
+    await writeFile(path.join(artifact, "sbom.cdx.json"), JSON.stringify({ bomFormat: "CycloneDX", specVersion: "1.6" }), "utf8");
+    await writeFixtureChecksums(artifact);
+    const run = ({ candidate = true, hook, env = {} } = {}) => spawnSync(process.execPath, [
+      ...(hook ? ["--import", pathToFileURL(hook).href] : []),
+      path.join(source, "scripts", "verify-release.mjs"),
+      ...(candidate ? ["--candidate"] : [])
+    ], { cwd: source, encoding: "utf8", env: { ...process.env, ...env } });
+    await action({ directory, source, artifact, run });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function checksumReadObserver(fixture, modeledLink = false) {
+  const hook = path.join(fixture.directory, "checksum-read-observer.mjs");
+  const marker = path.join(fixture.directory, "checksum-read-attempted.json");
+  const checksum = path.join(fixture.artifact, "SHA256SUMS");
+  await writeFile(hook, `
+import fs from "node:fs/promises";
+import path from "node:path";
+import { syncBuiltinESMExports } from "node:module";
+const read = fs.readFile;
+const write = fs.writeFile;
+const lstat = fs.lstat;
+const target = ${JSON.stringify(checksum)};
+fs.readFile = async (file, ...options) => {
+  if (path.resolve(String(file)) === target) await write(${JSON.stringify(marker)}, "true\\n", "utf8");
+  return read(file, ...options);
+};
+fs.lstat = async (file, ...options) => {
+  const details = await lstat(file, ...options);
+  if (${modeledLink} && path.resolve(String(file)) === target) details.isSymbolicLink = () => true;
+  return details;
+};
+syncBuiltinESMExports();
+`, "utf8");
+  return { hook, marker };
+}
+
+test("release checksum links are rejected before target reads", async (context) => {
+  for (const boundary of ["checksum leaf", "artifact parent"]) {
+    await context.test(boundary, async (subtest) => withReleaseFixture(async (fixture) => {
+      const canary = `sensitive-fixture-${randomUUID()}`;
+      const observer = await checksumReadObserver(fixture);
+      if (boundary === "checksum leaf") {
+        const outside = path.join(fixture.directory, "private-fixture.txt");
+        await writeFile(outside, `${canary}\n`, "utf8");
+        await rm(path.join(fixture.artifact, "SHA256SUMS"));
+        try {
+          await symlink(outside, path.join(fixture.artifact, "SHA256SUMS"), "file");
+        } catch (error) {
+          if (process.platform === "win32" && ["EPERM", "EACCES", "ENOTSUP"].includes(error.code)) {
+            subtest.skip("Physical file symlinks unavailable without elevation; the modeled pre-read boundary runs separately.");
+            return;
+          }
+          throw error;
+        }
+      } else {
+        const outside = path.join(fixture.directory, "relocated-artifact");
+        await rename(fixture.artifact, outside);
+        await symlink(outside, fixture.artifact, process.platform === "win32" ? "junction" : "dir");
+      }
+      for (const candidate of [true, false]) {
+        const result = fixture.run({ candidate, hook: observer.hook });
+        assert.equal(result.status, 1);
+        assert.equal(existsSync(observer.marker), false, "Checksum target must not be read through a linked path");
+        assert.equal(`${result.stdout}${result.stderr}`.includes(canary), false, "Failure must not disclose fixture contents");
+        assert.equal(/symbolic link/i.test(result.stderr), true, "Failure must identify the unsafe link");
+      }
+    }));
+  }
+});
+
+test("release checksum modeled links enforce the pre-read boundary without OS privileges", async () => {
+  await withReleaseFixture(async (fixture) => {
+    const canary = `sensitive-fixture-${randomUUID()}`;
+    await writeFile(path.join(fixture.artifact, "SHA256SUMS"), `${canary}\n`, "utf8");
+    const observer = await checksumReadObserver(fixture, true);
+    for (const candidate of [true, false]) {
+      const result = fixture.run({ candidate, hook: observer.hook });
+      assert.equal(result.status, 1);
+      assert.equal(existsSync(observer.marker), false, "Modeled lstat link must be rejected before readFile");
+      assert.equal(`${result.stdout}${result.stderr}`.includes(canary), false, "Modeled-link failure must not disclose contents");
+    }
+  });
+});
+
+test("release checksum diagnostics report physical line numbers without values", async (context) => {
+  for (const input of ["invalid checksum", "duplicate checksum", "invalid payload"]) {
+    await context.test(input, async () => withReleaseFixture(async (fixture) => {
+      const canary = `sensitive-fixture-${randomUUID()}`;
+      const name = input === "invalid payload" ? "PAYLOAD-SHA256SUMS" : "SHA256SUMS";
+      const file = path.join(fixture.artifact, name);
+      const first = input === "duplicate checksum"
+        ? `${"0".repeat(64)}  ${canary}`
+        : (await readFile(file, "utf8")).split(/\r?\n/)[0];
+      await writeFile(file, `\r\n${first}\r\n${input === "duplicate checksum" ? first : canary}\r\n`, "utf8");
+      if (input === "invalid payload") await writeFixtureChecksums(fixture.artifact);
+      const diagnostic = `${input === "duplicate checksum" ? "Duplicate" : "Invalid"} ${name} entry at line 3`;
+      for (const candidate of [true, false]) {
+        const result = fixture.run({ candidate });
+        assert.equal(result.status, 1);
+        const output = `${result.stdout}${result.stderr}`;
+        assert.equal(output.includes(canary), false, "Checksum diagnostic must not echo input values");
+        assert.equal(output.includes(diagnostic), true, "Checksum diagnostic must retain the physical line number");
+      }
+    }));
+  }
+});
+
+test("release verification preserves candidate and signed synthetic fixture checks", async () => {
+  await withReleaseFixture(async (fixture) => {
+    const candidate = fixture.run();
+    assert.equal(candidate.status, 0);
+    assert.equal(candidate.stdout.includes("Verified unsigned release candidate"), true);
+    const unsigned = fixture.run({ candidate: false });
+    assert.equal(unsigned.status, 1);
+    assert.equal(unsigned.stderr.includes("release-signature.json is missing"), true);
+
+    const signingKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const reviewerKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const publicKeyPem = signingKeys.publicKey.export({ type: "spki", format: "pem" });
+    const reviewerPublicKeyPem = reviewerKeys.publicKey.export({ type: "spki", format: "pem" });
+    const checksums = await readFile(path.join(fixture.artifact, "SHA256SUMS"));
+    await writeFile(path.join(fixture.artifact, "release-signature.json"), JSON.stringify({
+      schemaVersion: "1.0.0", algorithm: "RSA-SHA256", signedArtifact: "SHA256SUMS",
+      publicKeyPem, signature: sign("RSA-SHA256", checksums, signingKeys.privateKey).toString("base64")
+    }), "utf8");
+    const review = {
+      schemaVersion: "1.0.0", algorithm: "RSA-SHA256", status: "approved", reviewer: "synthetic-reviewer",
+      reviewedSha256: releaseDigest(checksums), approvedAt: new Date().toISOString(),
+      scope: ["source", "security-scan", "codeql", "threat-model", "recovery", "package-installation"],
+      findings: [], reviewerPublicKeyPem
+    };
+    review.signature = sign("RSA-SHA256", Buffer.from(canonicalReviewPayload(review)), reviewerKeys.privateKey).toString("base64");
+    await writeFile(path.join(fixture.artifact, "independent-review.json"), JSON.stringify(review), "utf8");
+    const env = {
+      PSO_TRUSTED_SIGNING_KEY_SHA256: publicKeyFingerprint(publicKeyPem),
+      PSO_TRUSTED_REVIEW_KEY_SHA256: publicKeyFingerprint(reviewerPublicKeyPem)
+    };
+    const signed = fixture.run({ candidate: false, env });
+    assert.equal(signed.status, 0);
+    assert.equal(signed.stdout.includes("Verified production release"), true);
+    await writeFile(path.join(fixture.artifact, "fixture.txt"), "tampered payload\n", "utf8");
+    for (const candidate of [true, false]) {
+      const tampered = fixture.run({ candidate, env });
+      assert.equal(tampered.status, 1);
+      assert.equal(tampered.stderr.includes("Checksum mismatch"), true);
+    }
+  });
+});
+
+test("release candidate freshness compares the current shipped file set", async (context) => {
+  for (const change of ["added schema", "deleted schema", "added template", "deleted template", "nonshipped outputs", "generated private package"]) {
+    await context.test(change, async () => withReleaseFixture(async (fixture) => {
+      if (change === "added schema" || change === "added template") {
+        const relative = change === "added schema" ? "schemas/nested/added.schema.json" : "templates/nested/added.txt";
+        await mkdir(path.dirname(path.join(fixture.source, relative)), { recursive: true });
+        await writeFile(path.join(fixture.source, relative), "new shipped content\n", "utf8");
+      } else if (change === "deleted schema" || change === "deleted template") {
+        await rm(path.join(fixture.source, change === "deleted schema" ? "schemas/base.schema.json" : "templates/base.txt"));
+      } else if (change === "nonshipped outputs") {
+        for (const relative of ["reports/local-output.json", "dist/local-output.json", "node_modules/example/index.js"]) {
+          await mkdir(path.dirname(path.join(fixture.source, relative)), { recursive: true });
+          await writeFile(path.join(fixture.source, relative), "nonshipped output\n", "utf8");
+        }
+      } else {
+        const name = "release-fixture-1.0.0.tgz";
+        const content = "Synthetic generated private-package bytes, not a real archive.\n";
+        await writeFile(path.join(fixture.artifact, name), content, "utf8");
+        const payloadPath = path.join(fixture.artifact, "PAYLOAD-SHA256SUMS");
+        const payload = `${await readFile(payloadPath, "utf8")}${releaseDigest(content)}  ${name}\n`;
+        await writeFile(payloadPath, payload, "utf8");
+        await writeFile(path.join(fixture.artifact, "provenance.intoto.json"), JSON.stringify({
+          subject: [{ name: "PAYLOAD-SHA256SUMS", digest: { sha256: releaseDigest(payload) } }]
+        }), "utf8");
+        await writeFixtureChecksums(fixture.artifact);
+      }
+      const result = fixture.run();
+      const shouldReject = change.startsWith("added") || change.startsWith("deleted");
+      assert.equal(result.status, shouldReject ? 1 : 0, shouldReject
+        ? "A source-file-set change beneath a shipped root must invalidate the candidate"
+        : "Nonshipped outputs and the generated package must not invalidate a current candidate");
+      if (shouldReject) assert.equal(/stale relative to source/.test(result.stderr), true);
+      else assert.equal(result.stdout.includes("Verified unsigned release candidate"), true);
+    }));
   }
 });
 

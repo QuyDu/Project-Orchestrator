@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 
 const root = path.resolve(import.meta.dirname, "..");
 const helper = path.join(root, ".github", "skills", "project-status", "scripts", "project-status.mjs");
@@ -101,4 +102,29 @@ test("project-status schema constrains Azure resources and sync evidence", async
   assert.equal(schema.$defs.sync.additionalProperties, false);
   assert.deepEqual(schema.properties.azure.properties.resources.items, { $ref: "#/$defs/resource" });
   assert.deepEqual(schema.properties.syncs.items, { $ref: "#/$defs/sync" });
+});
+
+test("future success evidence is unknown even one millisecond ahead, while explicit failures stay failed", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-status-future-"));
+  try {
+    await mkdir(path.join(project, "reports"));
+    const instant = "2026-10-01T10:00:00.000Z";
+    const preload = path.join(project, "clock.mjs");
+    await writeFile(preload, `const NativeDate = Date; globalThis.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [${JSON.stringify(instant)}])); } static now() { return NativeDate.parse(${JSON.stringify(instant)}); } };`);
+    await writeFile(path.join(project, "reports", "sync-status.json"), JSON.stringify({ syncs: [
+      { name: "current", lastSuccessfulAt: instant },
+      { name: "one-ms-future", lastSuccessfulAt: "2026-10-01T10:00:00.001Z" },
+      { name: "far-future", lastSuccessfulAt: "2099-01-01T00:00:00.000Z" },
+      { name: "failed-future", status: "failed", lastSuccessfulAt: "2099-01-01T00:00:00.000Z", lastError: "actual failure" }
+    ] }));
+    const result = spawnSync(process.execPath, ["--import", pathToFileURL(preload).href, helper, "--root", project], { cwd: root, encoding: "utf8", timeout: 30000 });
+    assert.equal(result.status, 0, result.stderr);
+    const report = JSON.parse(await readFile(path.join(project, "reports", "project-status.json"), "utf8"));
+    assert.deepEqual(report.syncs.map((sync) => sync.status), ["healthy", "unknown", "unknown", "failed"]);
+    for (const sync of report.syncs.filter((entry) => entry.status === "unknown")) assert.match(sync.lastError, /future/i);
+    assert.equal(report.syncs.at(-1).lastError, "actual failure");
+    assert.equal(report.azure.status, "not-configured");
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
 });

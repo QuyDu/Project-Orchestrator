@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 
 const root = path.resolve(import.meta.dirname, "..");
 const helper = path.join(root, ".github", "skills", "project-understanding", "scripts", "project-understanding.mjs");
@@ -90,4 +91,110 @@ test("project-understanding schema is strict and versioned", async () => {
   assert.ok(schema.properties.customizations.required.includes("schemas"));
   assert.equal(schema.$defs.item.additionalProperties, false);
   assert.deepEqual(schema.$defs.item.properties.status.enum, ["verified", "inferred", "planned", "unknown"]);
+});
+
+test("understanding publication preserves originals and recovery backups across failures", async (context) => {
+  for (const fault of ["publication", "restore-json", "cleanup"]) {
+    await context.test(fault, async () => {
+      const project = await mkdtemp(path.join(os.tmpdir(), "pso-understanding-fault-"));
+      try {
+        await seedProject(project);
+        assert.equal(run(project, "scan").status, 0);
+        const reports = path.join(project, "reports");
+        const jsonFile = path.join(reports, "project-understanding.json");
+        const markdownFile = path.join(reports, "project-understanding.md");
+        const previousJson = await readFile(jsonFile);
+        const previousMarkdown = await readFile(markdownFile);
+        await writeFile(path.join(project, "src", "app.mjs"), "export const changed = true;\n");
+        const privateDirectory = path.join(project, ".skills-orchestrator");
+        await mkdir(privateDirectory);
+        const preload = path.join(privateDirectory, "fault.mjs");
+        await writeFile(preload, `
+import fs from "node:fs/promises";
+import { syncBuiltinESMExports } from "node:module";
+const rename = fs.rename;
+const rm = fs.rm;
+const mode = ${JSON.stringify(fault)};
+fs.rename = async (from, to) => {
+  if (mode !== "cleanup" && String(from).endsWith(".partial") && String(to).endsWith("project-understanding.md")) {
+    throw Object.assign(new Error("injected publication failure"), { code: "EIO" });
+  }
+  if (mode === "restore-json" && String(from).endsWith(".backup") && String(to).endsWith("project-understanding.json")) {
+    throw Object.assign(new Error("injected restore failure"), { code: "EACCES" });
+  }
+  return rename(from, to);
+};
+fs.rm = async (file, options) => {
+  if (mode === "cleanup" && /project-understanding\\.md\\.[^.]+\\.backup$/.test(String(file))) {
+    throw Object.assign(new Error("injected cleanup failure"), { code: "EBUSY" });
+  }
+  return rm(file, options);
+};
+syncBuiltinESMExports();
+`);
+        const failed = spawnSync(process.execPath, ["--import", pathToFileURL(preload).href, helper, "scan", "--root", project], { cwd: root, encoding: "utf8", timeout: 30000 });
+        assert.equal(failed.status, 1, failed.stderr);
+        if (fault === "publication") {
+          assert.deepEqual(await readFile(jsonFile), previousJson);
+          assert.deepEqual(await readFile(markdownFile), previousMarkdown);
+          assert.equal((await readdir(reports)).some((file) => /\.(?:partial|backup)$/.test(file)), false);
+        } else if (fault === "restore-json") {
+          const backup = (await readdir(reports)).find((file) => /^project-understanding\.json\..+\.backup$/.test(file));
+          assert.ok(backup, "The unrestored original JSON must remain recoverable");
+          assert.deepEqual(await readFile(path.join(reports, backup)), previousJson);
+          assert.deepEqual(await readFile(markdownFile), previousMarkdown, "Independent Markdown restoration must still run");
+          assert.match(failed.stderr, /recovery required/i);
+        } else {
+          const current = JSON.parse(await readFile(jsonFile, "utf8"));
+          assert.equal(current.markdownSha256, sha256(await readFile(markdownFile)));
+          assert.notDeepEqual(await readFile(jsonFile), previousJson);
+          assert.match(failed.stderr, /committed.*cleanup/i);
+          const backup = (await readdir(reports)).find((file) => /^project-understanding\.md\..+\.backup$/.test(file));
+          assert.ok(backup);
+          assert.deepEqual(await readFile(path.join(reports, backup)), previousMarkdown);
+        }
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("flat repository scans accept exactly the file ceiling and reject the next insertion", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-understanding-limit-"));
+  try {
+    await writeFile(path.join(project, "README.md"), "# Limit Fixture\n\nFile-count boundary.\n");
+    const state = path.join(project, ".skills-orchestrator");
+    await mkdir(state);
+    const preload = path.join(state, "large-directory.mjs");
+    await writeFile(preload, `
+import fs from "node:fs/promises";
+import path from "node:path";
+import { syncBuiltinESMExports } from "node:module";
+const readdir = fs.readdir, lstat = fs.lstat, readFile = fs.readFile, stat = fs.stat;
+const root = path.resolve(process.env.PSO_LIMIT_ROOT);
+const count = Number(process.env.PSO_LIMIT_COUNT);
+const fake = (file) => path.dirname(String(file)) === root && /^file-\\d+\\.mjs$/.test(path.basename(String(file)));
+fs.readdir = async (directory, options) => path.resolve(directory) === root
+  ? ["README.md", ...Array.from({ length: count - 1 }, (_, i) => "file-" + i + ".mjs")].map(name => ({ name, isSymbolicLink: () => false, isDirectory: () => false, isFile: () => true }))
+  : readdir(directory, options);
+const details = { size: 2, isFile: () => true, isDirectory: () => false, isSymbolicLink: () => false };
+fs.lstat = async (file, ...rest) => fake(file) ? details : lstat(file, ...rest);
+fs.stat = async (file, ...rest) => fake(file) ? details : stat(file, ...rest);
+fs.readFile = async (file, encoding) => fake(file) ? (encoding ? "x\\n" : Buffer.from("x\\n")) : readFile(file, encoding);
+syncBuiltinESMExports();
+`);
+    for (const count of [30000, 30001]) {
+      const result = spawnSync(process.execPath, ["--import", pathToFileURL(preload).href, helper, "scan", "--root", project], {
+        cwd: root, encoding: "utf8", timeout: 60000, env: { ...process.env, PSO_LIMIT_ROOT: project, PSO_LIMIT_COUNT: String(count) }
+      });
+      assert.equal(result.status, count === 30000 ? 0 : 1, result.stderr);
+      if (count === 30000) {
+        const report = JSON.parse(await readFile(path.join(project, "reports", "project-understanding.json"), "utf8"));
+        assert.equal(report.scan.fileCount, count);
+      } else assert.match(result.stderr, /exceeded 30000 files/);
+    }
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
 });

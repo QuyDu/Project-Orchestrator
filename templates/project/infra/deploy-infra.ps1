@@ -37,15 +37,16 @@ function Get-AzureResourceName {
     }
     $prefix = $prefixes[$ResourceType]
     $limit = $limits[$ResourceType]
+    if ($ResourceType -eq 'resourceGroup') {
+        $name = "$prefix$token"
+        if ($name.Length -gt $limit) { $name = "$prefix$($token.Substring(0, $limit - $prefix.Length).Trim('-'))" }
+        return $name
+    }
     $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($token))).ToLowerInvariant().Substring(0, 6)
     $available = $limit - $prefix.Length - 1 - $hash.Length
     $shortToken = if ($token.Length -le $available) { $token } else { $token.Substring(0, $available).Trim('-') }
     $name = "$prefix$shortToken-$hash"
 
-    if ($ResourceType -eq 'resourceGroup') {
-        $name = "$prefix$token"
-        if ($name.Length -gt $limit) { $name = "$prefix$($token.Substring(0, $limit - $prefix.Length).Trim('-'))" }
-    }
     return $name
 }
 

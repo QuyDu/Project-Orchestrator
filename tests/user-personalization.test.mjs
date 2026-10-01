@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { existsSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 
 const root = path.resolve(import.meta.dirname, "..");
 const helper = path.join(root, ".github", "skills", "user-personalization", "scripts", "user-personalization.mjs");
@@ -151,4 +153,90 @@ test("User Personalization source is generic and exposes the full interview", as
   assert.equal(schema.additionalProperties, false);
   assert.equal(schema.properties.safety.properties.treatSourcesAsUntrusted.const, true);
   assert.equal(schema.properties.visualPreferences.properties.requireAltText.const, true);
+});
+
+test("profile privacy follows effective ignore rules, index tracking and transaction paths", async (context) => {
+  for (const mode of ["non-git-control", "negation", "nested-negation", "profile-only", "profile-and-lock-only", "tracked", "tracked-backup"]) {
+    await context.test(mode, async () => {
+      const project = await mkdtemp(path.join(os.tmpdir(), "pso-profile-ignore-"));
+      try {
+        const privateDirectory = path.join(project, ".skills-orchestrator");
+        await mkdir(privateDirectory);
+        await writeFile(path.join(privateDirectory, "candidate.json"), JSON.stringify(validProfile()));
+        const profile = path.join(privateDirectory, "user-personalization.json");
+        const ignored = mode === "profile-only" ? ".skills-orchestrator/user-personalization.json\n"
+          : mode === "profile-and-lock-only" ? ".skills-orchestrator/user-personalization.json\n.skills-orchestrator/user-personalization.lock\n"
+          : mode === "negation" ? ".skills-orchestrator/\n!.skills-orchestrator/\n!.skills-orchestrator/user-personalization.json\n"
+          : mode === "nested-negation" ? ".skills-orchestrator/*\n" : ".skills-orchestrator/\n";
+        await writeFile(path.join(project, ".gitignore"), ignored);
+        if (mode === "nested-negation") await writeFile(path.join(privateDirectory, ".gitignore"), "!user-personalization.json\n");
+        if (mode === "tracked" || mode === "tracked-backup") {
+          await writeFile(profile, JSON.stringify(validProfile()));
+          const trackedPath = mode === "tracked" ? ".skills-orchestrator/user-personalization.json" : ".skills-orchestrator/user-personalization.json.earlier.bak";
+          if (mode === "tracked-backup") await writeFile(path.join(project, trackedPath), JSON.stringify(validProfile()));
+          for (const args of [["init", "--quiet"], ["add", "--force", "--", trackedPath]]) {
+            const result = spawnSync("git", args, { cwd: project, encoding: "utf8", timeout: 30000 });
+            assert.equal(result.status, 0, "Isolated Git fixture setup must succeed");
+          }
+        }
+        const before = existsSync(profile) ? await readFile(profile) : null;
+        const result = run(["apply", "--project", project, "--input", ".skills-orchestrator/candidate.json", "--approve"]);
+        if (mode === "non-git-control") {
+          assert.equal(result.status, 0, result.stderr);
+          assert.ok(existsSync(profile));
+          assert.equal(existsSync(path.join(project, ".git")), false, "Do not initialize the target repository to check its privacy");
+        } else {
+          assert.notEqual(result.status, 0, `${mode} must block profile persistence`);
+          assert.match(result.stderr, /ignored|tracked/);
+          if (before) assert.deepEqual(await readFile(profile), before);
+          else assert.equal(existsSync(profile), false);
+        }
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("rejected private inputs never appear in CLI or status diagnostics", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-profile-diagnostics-"));
+  try {
+    await mkdir(path.join(project, ".skills-orchestrator"));
+    await writeFile(path.join(project, ".gitignore"), ".skills-orchestrator/\n");
+    const canary = `api_key=${randomBytes(24).toString("hex")}`;
+    const fragment = canary.slice(0, 14);
+    const invalidEnum = validProfile();
+    invalidEnum.communication.preferredPatterns = [canary];
+    const invalidKey = validProfile({ [canary]: true });
+    for (const content of [JSON.stringify(invalidEnum), JSON.stringify(invalidKey), canary]) {
+      await writeFile(path.join(project, ".skills-orchestrator", "candidate.json"), content);
+      const validation = run(["validate", "--project", project, "--input", ".skills-orchestrator/candidate.json"]);
+      assert.equal(validation.status, 1);
+      assert.equal(`${validation.stdout}${validation.stderr}`.includes(fragment), false, "A rejected input must not be echoed, even partially");
+      await writeFile(path.join(project, ".skills-orchestrator", "user-personalization.json"), content);
+      const status = run(["status", "--project", project]);
+      assert.equal(status.status, 0);
+      assert.equal(JSON.parse(status.stdout).status, "invalid");
+      assert.equal(`${status.stdout}${status.stderr}`.includes(fragment), false, "Status diagnostics must not echo private values");
+    }
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("profile privacy verification fails closed when Git is unavailable", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-profile-no-git-"));
+  try {
+    await mkdir(path.join(project, ".skills-orchestrator"));
+    await writeFile(path.join(project, ".gitignore"), ".skills-orchestrator/\n");
+    await writeFile(path.join(project, ".skills-orchestrator", "candidate.json"), JSON.stringify(validProfile()));
+    const result = spawnSync(process.execPath, [helper, "apply", "--project", project, "--input", ".skills-orchestrator/candidate.json", "--approve"], {
+      cwd: project, encoding: "utf8", env: { ...process.env, PATH: "" }, timeout: 30000
+    });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Git is required/);
+    assert.equal(existsSync(path.join(project, ".skills-orchestrator", "user-personalization.json")), false);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
 });

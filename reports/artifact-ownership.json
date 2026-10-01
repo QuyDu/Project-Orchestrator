@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-22T23:47:55.574Z",
+  "generatedAt": "2026-10-01T19:23:41.475Z",
   "artifacts": [
     {
       "report": "artifacts/project-visual-storytelling/<run-id>/",
@@ -17,6 +17,10 @@
     {
       "report": "project-orchestrator.lock.json",
       "producer": "pso-runtime"
+    },
+    {
+      "report": "reports/.gitleaks-scan-*.candidate.json",
+      "producer": "audit-code"
     },
     {
       "report": "reports/agent-blueprints/<id>.json",

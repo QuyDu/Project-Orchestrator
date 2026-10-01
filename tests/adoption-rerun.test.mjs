@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, readdir, realpath, rename, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, readdir, realpath, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import test from "node:test";
@@ -51,6 +52,68 @@ async function latestTransaction(project) {
   const transactionId = (await readdir(transactionRoot)).sort().at(-1);
   const directory = path.join(transactionRoot, transactionId);
   return { directory, journal: JSON.parse(await readFile(path.join(directory, "journal.json"), "utf8")) };
+}
+
+async function copyUpdateRuntime(destination) {
+  for (const relative of ["pso.mjs", "config", "schemas", "templates", ".github/skills", ".github/instructions"]) {
+    const target = path.join(destination, relative);
+    await mkdir(path.dirname(target), { recursive: true });
+    await cp(path.join(root, relative), target, { recursive: true });
+  }
+  return path.join(destination, "pso.mjs");
+}
+
+async function withPreservedUpdateFixture(classification, action) {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-preserved-update-"));
+  try {
+    const source = path.join(parent, "framework");
+    const isolatedRuntime = await copyUpdateRuntime(source);
+    const run = (args, { hook, env = {} } = {}) => spawnSync(process.execPath, [
+      ...(hook ? ["--import", pathToFileURL(hook).href] : []), isolatedRuntime, ...args
+    ], {
+      cwd: source, encoding: "utf8", maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env, PSO_TEST_INTERRUPT_AFTER_FIRST_WRITE: "0", PSO_TEST_FAIL_BEFORE_MANIFEST_WRITE: "0", ...env }
+    });
+    const created = run(["create-project", "--name", "Preserved Assets", "--destination", parent, "--profile", "core", "--accept-risk"]);
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "preserved-assets");
+    const asset = ".github/skills/azure-discovery/SKILL.md";
+    const schemaPath = "schemas/project-blueprint.schema.json";
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const upstream = (await readFile(path.join(source, asset), "utf8")).replace(/\r\n?/g, "\n");
+    const local = classification === "local-only" ? `${upstream}\nProject-specific retained note.\n` : upstream;
+    const localBytes = Buffer.from(local.replaceAll("\n", "\r\n"));
+    await writeFile(path.join(project, asset), localBytes);
+    const entry = lock.entries.find((candidate) => candidate.path === asset);
+    if (classification === "converged") entry.normalizedBaseDigest = digestManagedBuffer(Buffer.from(`${upstream}\nEarlier upstream contract revision.\n`));
+    const baseDigest = entry.normalizedBaseDigest;
+    const currentSchema = await readFile(path.join(source, schemaPath));
+    const olderSchema = JSON.parse(currentSchema);
+    olderSchema.title = "Earlier project blueprint contract";
+    const schemaBytes = Buffer.from(`${JSON.stringify(olderSchema, null, 2)}\n`);
+    await writeFile(path.join(project, schemaPath), schemaBytes);
+    lock.entries.find((candidate) => candidate.path === schemaPath).normalizedBaseDigest = digestManagedBuffer(schemaBytes);
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    await action({ parent, source, project, run, asset, schemaPath, lockPath, baseDigest, localBytes, currentSchema });
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+}
+
+async function assertBuilderDeploymentGuidance(project, agentIds = ["azure-architect", "security-reviewer", "documentation-writer"]) {
+  const guide = path.join(".github", "skills", "agent-builder", "references", "deployment-handoff.md");
+  const normalize = (value) => value.replaceAll("\r\n", "\n").trimEnd();
+  assert.equal(normalize(await readFile(path.join(project, guide), "utf8")), normalize(await readFile(path.join(root, guide), "utf8")));
+  assert.ok(existsSync(path.join(project, ".github", "skills", "agent-deployment", "SKILL.md")));
+  const help = await readFile(path.join(project, ".github", "prompts", "agent-builder-help.prompt.md"), "utf8");
+  assert.match(help, /references\/deployment-handoff\.md/);
+  for (const id of agentIds) {
+    const definition = await readFile(path.join(project, ".github", "agents", `${id}.agent.md`), "utf8");
+    assert.match(definition, /^## Deployment Guidance$/m);
+    assert.match(definition, /\.github\/skills\/agent-builder\/references\/deployment-handoff\.md/);
+    assert.match(definition, /does not grant tools, credentials, or permission/);
+  }
 }
 
 test("managed digests normalize text while preserving binary bytes, final newlines, paths, and scope", async () => {
@@ -261,6 +324,11 @@ test("rerun adoption synchronizes updates, wiring, and legacy skill IDs", async 
       nextAction: "Preserve this legacy field set during migration"
     }, null, 2)}\n`, "utf8");
     runAdoption(project, "--apply");
+    await assertBuilderDeploymentGuidance(project);
+
+    const projectAgent = path.join(project, ".github", "agents", "project-owned.agent.md");
+    const projectAgentSource = "---\nname: Project Owned\ndescription: Existing agent outside framework ownership.\ntools: [\"read\"]\n---\n\nPreserve this project's independent instructions.\n";
+    await writeFile(projectAgent, projectAgentSource, "utf8");
 
     const auditPath = path.join(project, ".github", "skills", "audit-code", "SKILL.md");
     await writeFile(auditPath, `${await readFile(auditPath, "utf8")}\nStale installed content.\n`, "utf8");
@@ -365,6 +433,8 @@ No approval is required for read-only work.
     assert.match(dryRun, /Duplicate prompt commands to remove: 2/);
 
     runAdoption(project, "--apply");
+    await assertBuilderDeploymentGuidance(project);
+    assert.equal(await readFile(projectAgent, "utf8"), projectAgentSource, "adoption must not inject guidance into a project-owned agent");
 
     assert.equal(await readFile(auditPath, "utf8"), await readFile(path.join(root, ".github", "skills", "audit-code", "SKILL.md"), "utf8"));
     assert.ok(!existsSync(obsoletePackageFile));
@@ -428,6 +498,11 @@ No approval is required for read-only work.
     assert.match(agentInstructions, /Keep this project-specific agent instruction\./);
     assert.match(agentInstructions, /\.github\/skills\/project-skills-orchestrator\/SKILL\.md/);
     assert.match(agentInstructions, /\.azure\/environment\.json/);
+    for (const source of [instructions, agentInstructions]) {
+      assert.equal([...source.matchAll(/<!-- pso:begin id=post-creation-workspace version=1 -->/g)].length, 1);
+      assert.match(source, /After creating a new project or agent, open its owning project in VS Code before reporting completion/);
+      assert.match(source, /only scope exception is an explicit user request to upgrade Project Orchestrator itself/);
+    }
     assert.ok(existsSync(path.join(project, ".vscode", "extensions.json")));
     assert.ok(existsSync(path.join(project, ".vscode", "settings.json")));
     const adoptedSettings = JSON.parse(await readFile(path.join(project, ".vscode", "settings.json"), "utf8"));
@@ -686,6 +761,119 @@ test("failed validation rolls back every adoption mutation", async () => {
     assert.ok(!existsSync(path.join(project, "project-orchestrator.json")));
   } finally {
     await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("adoption rollback and recovery preserve every metadata write", async (context) => {
+  for (const baseline of ["absent", "legacy", "existing", "no-op"]) {
+    for (const outcome of ["failure", "interruption"]) {
+      await context.test(`${baseline} baseline after ${outcome}`, async () => {
+        const parent = await mkdtemp(path.join(os.tmpdir(), "pso-adoption-metadata-"));
+        const project = path.join(parent, "project");
+        try {
+          await mkdir(project);
+          await writeFile(path.join(project, "package.json"), "{\"name\":\"adoption-metadata-fixture\"}\n", "utf8");
+          if (baseline !== "absent") runAdoption(project, "--apply");
+          const manifestPath = path.join(project, "project-orchestrator.json");
+          const lockPath = path.join(project, "project-orchestrator.lock.json");
+          if (baseline === "legacy") {
+            await downgradeToLegacyManifest(project);
+          } else if (baseline === "existing") {
+            const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+            const lock = JSON.parse(await readFile(lockPath, "utf8"));
+            const priorSource = {
+              framework: { version: manifest.frameworkVersion, digest: "1".repeat(64) },
+              runtime: { version: manifest.runtimeVersion, digest: "2".repeat(64) }
+            };
+            manifest.installedSource = priorSource;
+            lock.installedSource = priorSource;
+            await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`.replaceAll("\n", "\r\n"), "utf8");
+            await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`.replaceAll("\n", "\r\n"), "utf8");
+          } else if (baseline === "no-op") {
+            await writeFile(lockPath, (await readFile(lockPath, "utf8")).replaceAll("\n", "\r\n"), "utf8");
+            const preview = spawnSync(process.execPath, [runtime, "adopt", "--project", project, "--profile", "core", "--dry-run", "--json"], {
+              cwd: root, encoding: "utf8"
+            });
+            assert.equal(preview.status, 0, preview.stderr);
+            const plan = JSON.parse(preview.stdout);
+            assert.equal(plan.actions.find((action) => action.path === "project-orchestrator.json").action, "already-current");
+            assert.ok(plan.actions.every((action) => ["already-current", "skipped", "covered"].includes(action.action)));
+          }
+
+          const metadataPaths = ["project-orchestrator.json", "project-orchestrator.lock.json"];
+          const before = await snapshotFiles(project, [...metadataPaths, ...transactionReportPaths]);
+          const hook = path.join(parent, "adoption-write-fault.mjs");
+          const marker = path.join(parent, "fault-reached.json");
+          // The no-op manifest is still rewritten with a new risk acknowledgement.
+          const faultPath = baseline === "no-op" ? manifestPath : lockPath;
+          await writeFile(hook, `
+import fs from "node:fs/promises";
+import path from "node:path";
+import { syncBuiltinESMExports } from "node:module";
+const originalWrite = fs.writeFile;
+let triggered = false;
+fs.writeFile = async (file, ...args) => {
+  const result = await originalWrite(file, ...args);
+  if (!triggered && path.resolve(String(file)) === ${JSON.stringify(faultPath)}) {
+    triggered = true;
+    await originalWrite(${JSON.stringify(marker)}, JSON.stringify({ completedWrite: ${JSON.stringify(path.basename(faultPath))} }), "utf8");
+    if (${JSON.stringify(outcome)} === "interruption") process.exit(87);
+    throw Object.assign(new Error("Injected failure after adoption metadata write"), { code: "EIO" });
+  }
+  return result;
+};
+syncBuiltinESMExports();
+`, "utf8");
+          const applied = spawnSync(process.execPath, [
+            "--import", pathToFileURL(hook).href, runtime, "adopt", "--project", project, "--profile", "core", "--apply", "--accept-risk"
+          ], { cwd: root, encoding: "utf8" });
+          assert.equal(applied.status, outcome === "interruption" ? 87 : 1, `${applied.stdout}\n${applied.stderr}`);
+          assert.deepEqual(JSON.parse(await readFile(marker, "utf8")), { completedWrite: path.basename(faultPath) });
+          const transaction = await latestTransaction(project);
+          if (outcome === "interruption") {
+            assert.equal(transaction.journal.status, "applying");
+            assert.ok(existsSync(path.join(project, ".skills-orchestrator", "adoption.lock")));
+            const recovered = spawnSync(process.execPath, [
+              runtime, "recover", "--project", project, "--transaction", transaction.journal.transactionId
+            ], { cwd: root, encoding: "utf8" });
+            assert.equal(recovered.status, 0, `${recovered.stdout}\n${recovered.stderr}`);
+          } else {
+            assert.match(applied.stderr, /Adoption failed and was rolled back: Injected failure after adoption metadata write/);
+          }
+
+          for (const relative of metadataPaths) {
+            const expected = before.get(relative);
+            if (expected === null) {
+              assert.equal(existsSync(path.join(project, relative)), false, `${relative} must remain absent after rollback`);
+            } else {
+              assert.ok((await readFile(path.join(project, relative))).equals(expected), `${relative} must be restored byte-for-byte`);
+            }
+          }
+          await assertFilesMatchSnapshot(project, before);
+          assert.equal(existsSync(path.join(project, ".skills-orchestrator", "adoption.lock")), false);
+          const journal = JSON.parse(await readFile(path.join(transaction.directory, "journal.json"), "utf8"));
+          assert.equal(journal.status, "rolled-back");
+          for (const relative of metadataPaths) {
+            const entries = journal.entries.filter((entry) => entry.path === relative);
+            assert.equal(entries.length, 1, `${relative} must be journaled exactly once`);
+            const original = before.get(relative);
+            assert.equal(entries[0].originalState, original === null
+              ? "missing"
+              : `file:sha256:${createHash("sha256").update(original).digest("hex")}`);
+            if (original === null) assert.equal(entries[0].backup, null);
+            else assert.ok((await readFile(path.join(transaction.directory, entries[0].backup))).equals(original));
+          }
+          if (baseline === "absent") runAdoption(project, "--apply");
+          const update = spawnSync(process.execPath, [runtime, "update", "--project", project, "--json"], {
+            cwd: root, encoding: "utf8", maxBuffer: 10 * 1024 * 1024
+          });
+          assert.equal(update.status, 0, `${update.stdout}\n${update.stderr}`);
+          assert.equal(JSON.parse(update.stdout).canApply, true);
+        } finally {
+          await rm(parent, { recursive: true, force: true });
+        }
+      });
+    }
   }
 });
 
@@ -1120,7 +1308,8 @@ test("managed instruction regions survive heading edits without duplicating", as
     const instructionPath = path.join(project, ".github", "copilot-instructions.md");
     const migrated = (await readFile(instructionPath, "utf8"))
       .replaceAll(/<!-- pso:(begin|end) id=[a-z-]+( version=\d+)? -->\r?\n?/g, "")
-      .replace("Engagement protocol (mandatory, highest precedence)", "Engagement protocol (our house rules)");
+      .replace("Engagement protocol (mandatory, highest precedence)", "Engagement protocol (our house rules)")
+      .replace("Open created projects and agents", "Workspace follow-through (our house rules)");
     await writeFile(instructionPath, `${migrated}\nProject-authored trailing note.\n`, "utf8");
 
     runAdoption(project, "--apply");
@@ -1128,6 +1317,10 @@ test("managed instruction regions survive heading edits without duplicating", as
     assert.equal([...result.matchAll(/<!-- pso:begin id=clarification-protocol version=1 -->/g)].length, 1);
     assert.equal([...result.matchAll(/Ask one question round only:/g)].length, 1);
     assert.equal([...result.matchAll(/Engagement protocol/g)].length, 1);
+    assert.equal([...result.matchAll(/<!-- pso:begin id=post-creation-workspace version=1 -->/g)].length, 1);
+    assert.equal([...result.matchAll(/After creating a new project or agent, open its owning project in VS Code before reporting completion/g)].length, 1);
+    assert.equal([...result.matchAll(/## Open created projects and agents/g)].length, 1);
+    assert.doesNotMatch(result, /Workspace follow-through \(our house rules\)/);
     assert.match(result, /Project-authored trailing note\./);
 
     const verification = JSON.parse(await readFile(path.join(project, "reports", "adoption-verification.json"), "utf8"));
@@ -1213,6 +1406,15 @@ test("the workspace is configured so VS Code discovers every customization witho
       ".github/skills/clarify-the-ask/SKILL.md"
     ]) {
       assert.ok(existsSync(path.join(project, relative)), `${relative} must exist in a default discovery location`);
+    }
+
+    const template = await readFile(path.join(root, "templates", "project", ".github", "copilot-instructions.md"), "utf8");
+    const openingBlock = /<!-- pso:begin id=post-creation-workspace version=1 -->[\s\S]*?<!-- pso:end id=post-creation-workspace -->/;
+    const expectedOpening = template.match(openingBlock)?.[0].replaceAll("\r\n", "\n");
+    assert.ok(expectedOpening, "the shipped template must carry the workspace-opening rule");
+    for (const relative of [".github/copilot-instructions.md", "AGENTS.md"]) {
+      const instructions = await readFile(path.join(project, relative), "utf8");
+      assert.equal(instructions.match(openingBlock)?.[0].replaceAll("\r\n", "\n"), expectedOpening, `${relative} must receive the complete opening rule`);
     }
 
     const readme = await readFile(path.join(project, "README.md"), "utf8");
@@ -1372,15 +1574,30 @@ test("every created project receives the Azure discovery and deployment scaffold
     });
     assert.equal(created.status, 0, created.stderr);
     const infra = path.join(parent, "infra-demo", "infra");
+    await assertBuilderDeploymentGuidance(path.join(parent, "infra-demo"), ["security-reviewer", "documentation-writer"]);
+    assert.equal(existsSync(path.join(parent, "infra-demo", ".github", "agents", "azure-architect.agent.md")), false, "guidance must not change stack-based template selection");
     for (const file of ["deploy.ps1", "discover.ps1", "deploy-infra.ps1", "main.bicep", "README.md"]) {
       assert.equal(existsSync(path.join(infra, file)), true, `infra/${file} is installed`);
     }
-    const skillCount = (await readdir(path.join(root, ".github", "skills"), { withFileTypes: true }))
-      .filter((entry) => entry.isDirectory()).length;
+    const skillNames = (await readdir(path.join(root, ".github", "skills"), { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+    const skillCount = skillNames.length;
     const promptFiles = await readdir(path.join(parent, "infra-demo", ".github", "prompts"));
     assert.equal(promptFiles.filter((file) => file.endsWith("-help.prompt.md") && file !== "skills-help.prompt.md").length, skillCount);
     assert.ok(promptFiles.includes("skills-help.prompt.md"));
     assert.ok(promptFiles.includes("skill-update-help.prompt.md"));
+    for (const name of skillNames) {
+      const sourceHelp = await readFile(path.join(root, ".github", "prompts", `${name}-help.prompt.md`), "utf8");
+      const installedHelp = await readFile(path.join(parent, "infra-demo", ".github", "prompts", `${name}-help.prompt.md`), "utf8");
+      assert.equal(installedHelp.replaceAll("\r\n", "\n").trimEnd(), sourceHelp.replaceAll("\r\n", "\n").trimEnd(), `${name} help must be identical in the source and generated project`);
+    }
+    const discoveryHelp = await readFile(path.join(parent, "infra-demo", ".github", "prompts", "azure-discovery-help.prompt.md"), "utf8");
+    assert.match(discoveryHelp, /30 days inclusive/);
+    assert.match(discoveryHelp, /contextSha256/);
+    assert.ok(existsSync(path.join(parent, "infra-demo", ".github", "skills", "azure-discovery", "scripts", "discovery-cache.mjs")));
+    const discoveryWrapper = await readFile(path.join(infra, "discover.ps1"), "utf8");
+    assert.match(discoveryWrapper, /skills\\azure-discovery\\scripts\\azure-discovery\.ps1/);
+    assert.doesNotMatch(discoveryWrapper, /function Invoke-AzureDiscovery|az cognitiveservices/);
     const skillUpdateHelp = await readFile(path.join(parent, "infra-demo", ".github", "prompts", "skill-update-help.prompt.md"), "utf8");
     assert.match(skillUpdateHelp, /Run the skill with \/skill-update\./);
     assert.match(skillUpdateHelp, /Open this help with \/skill-update-help\./);
@@ -1456,6 +1673,98 @@ test("standalone project update defaults to a portable mutation-free safe-all pl
   }
 });
 
+test("safe-all preserves planned local-only and converged assets", async (context) => {
+  for (const classification of ["local-only", "converged"]) {
+    for (const outcome of ["apply", "rollback then retry"]) {
+      await context.test(`${classification}: ${outcome}`, async () => withPreservedUpdateFixture(classification, async (fixture) => {
+        const { project, run, asset, schemaPath, lockPath, baseDigest, localBytes, currentSchema } = fixture;
+        const args = ["update", "--project", project];
+        const preview = run([...args, "--json"]);
+        assert.equal(preview.status, 0, preview.stderr);
+        const plan = JSON.parse(preview.stdout);
+        assert.equal(plan.canApply, true, JSON.stringify(plan.conflicts));
+        assert.equal(plan.requestedMode, "all");
+        const preserved = plan.assets.find((entry) => entry.path === asset);
+        assert.equal(preserved.classification, classification);
+        assert.equal(preserved.proposedAction, "none");
+        assert.equal(preserved.baselineAction, "preserve");
+        assert.equal(plan.assets.find((entry) => entry.path === schemaPath).proposedAction, "replace");
+        const before = await snapshotFiles(project, [asset, schemaPath, "project-orchestrator.json", "project-orchestrator.lock.json", ...updateReportPaths]);
+        if (outcome === "rollback then retry") {
+          const failed = run([...args, "--apply", "--accept-risk"], {
+            env: { NODE_ENV: "test", PSO_TEST_FAIL_BEFORE_MANIFEST_WRITE: "1" }
+          });
+          assert.equal(failed.status, 1);
+          assert.match(failed.stderr, /rolled back: Injected failure before manifest write/);
+          await assertFilesMatchSnapshot(project, before);
+          assert.equal((await latestTransaction(project)).journal.status, "rolled-back");
+        }
+        const applied = run([...args, "--apply", "--accept-risk"]);
+        assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+        assert.ok((await readFile(path.join(project, asset))).equals(localBytes), "A no-action asset must keep its exact local bytes");
+        assert.deepEqual(await readFile(path.join(project, schemaPath)), currentSchema);
+        const installedLock = JSON.parse(await readFile(lockPath, "utf8"));
+        const preservedEntry = installedLock.entries.find((entry) => entry.path === asset);
+        assert.equal(preservedEntry.normalizedBaseDigest, baseDigest, "A preserved plan must not advance or replace the recorded baseline");
+        assert.equal(preservedEntry.policy, "track");
+        assert.equal(installedLock.entries.find((entry) => entry.path === schemaPath).normalizedBaseDigest, digestManagedBuffer(currentSchema));
+        const verification = JSON.parse(await readFile(path.join(project, "reports", "update-verification.json"), "utf8"));
+        assert.equal(verification.status, "passed");
+        const { journal } = await latestTransaction(project);
+        assert.equal(journal.status, "completed");
+        assert.equal(journal.entries.some((entry) => entry.path === asset), false, "Preserved content must not become an update write target");
+        const repeat = run([...args, "--apply", "--accept-risk"]);
+        assert.equal(repeat.status, 0, `${repeat.stdout}\n${repeat.stderr}`);
+        assert.ok((await readFile(path.join(project, asset))).equals(localBytes));
+        assert.equal(JSON.parse(await readFile(lockPath, "utf8")).entries.find((entry) => entry.path === asset).normalizedBaseDigest, baseDigest);
+      }));
+    }
+  }
+});
+
+test("safe-all rejects drift in preserved assets and rolls back owned writes", async () => {
+  await withPreservedUpdateFixture("local-only", async (fixture) => {
+    const { parent, project, run, asset, schemaPath, localBytes } = fixture;
+    const args = ["update", "--project", project];
+    const preview = run([...args, "--json"]);
+    assert.equal(preview.status, 0, preview.stderr);
+    assert.equal(JSON.parse(preview.stdout).canApply, true);
+    const before = await snapshotFiles(project, [schemaPath, "project-orchestrator.json", "project-orchestrator.lock.json", ...updateReportPaths]);
+    const editedBytes = Buffer.from(localBytes.toString("utf8").replaceAll("\r\n", "\n"));
+    assert.equal(digestManagedBuffer(editedBytes), digestManagedBuffer(localBytes));
+    assert.equal(editedBytes.equals(localBytes), false);
+    const hook = path.join(parent, "preserved-drift.mjs");
+    const marker = path.join(parent, "drift-observed.json");
+    await writeFile(hook, `
+import fs from "node:fs/promises";
+import path from "node:path";
+import { syncBuiltinESMExports } from "node:module";
+const rename = fs.rename;
+let edited = false;
+fs.rename = async (from, to) => {
+  const result = await rename(from, to);
+  if (!edited && path.resolve(String(to)) === ${JSON.stringify(path.join(project, "reports", "project-update-plan.json"))}) {
+    edited = true;
+    await fs.writeFile(${JSON.stringify(path.join(project, asset))}, Buffer.from(${JSON.stringify(editedBytes.toString("base64"))}, "base64"));
+    await fs.writeFile(${JSON.stringify(marker)}, "true\\n", "utf8");
+  }
+  return result;
+};
+syncBuiltinESMExports();
+`, "utf8");
+    const failed = run([...args, "--apply", "--accept-risk"], { hook });
+    assert.equal(failed.status, 1);
+    assert.ok(existsSync(marker));
+    assert.match(failed.stderr, /Preserved content or baseline changed/);
+    await assertFilesMatchSnapshot(project, before);
+    assert.ok((await readFile(path.join(project, asset))).equals(editedBytes), "Rollback must not overwrite an external edit to an unowned no-action target");
+    assert.equal((await latestTransaction(project)).journal.status, "rolled-back");
+    const retry = run([...args, "--apply", "--accept-risk"]);
+    assert.equal(retry.status, 0, `${retry.stdout}\n${retry.stderr}`);
+    assert.ok((await readFile(path.join(project, asset))).equals(editedBytes));
+  });
+});
+
 test("update rejects unknown options before mode defaulting or mutation", async () => {
   const parent = await mkdtemp(path.join(os.tmpdir(), "pso-update-unknown-option-"));
   try {
@@ -1509,6 +1818,52 @@ test("legacy manifest update plans conservatively classify equivalent, unknown, 
     assert.equal(existsSync(path.join(project, "project-orchestrator.lock.json")), false);
     assert.deepEqual(JSON.parse(await readFile(path.join(project, "project-orchestrator.json"), "utf8")), legacyManifest);
     assert.equal(await readFile(path.join(project, projectLocal), "utf8"), "preserve project local\n");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("legacy update plans explicitly preserve unknown source provenance", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-legacy-provenance-"));
+  try {
+    const source = path.join(parent, "framework");
+    const isolatedRuntime = await copyUpdateRuntime(source);
+    const run = (args) => spawnSync(process.execPath, [isolatedRuntime, ...args], { cwd: source, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
+    const created = run(["create-project", "--name", "Legacy Provenance", "--destination", parent, "--profile", "core", "--accept-risk"]);
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "legacy-provenance");
+    const manifestPath = path.join(project, "project-orchestrator.json");
+    const knownManifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    const current = run(["update", "--project", project, "--json"]);
+    assert.equal(current.status, 0, current.stderr);
+    assert.deepEqual(JSON.parse(current.stdout).source.installedSource, knownManifest.installedSource);
+
+    await downgradeToLegacyManifest(project);
+    const originalManifest = await readFile(manifestPath);
+    const legacy = run(["update", "--project", project, "--json"]);
+    assert.equal(legacy.status, 0, legacy.stderr);
+    const plan = JSON.parse(legacy.stdout);
+    assert.equal(plan.source.installedSource, null, "A legacy plan must represent unavailable source identity explicitly");
+    assert.ok(Object.hasOwn(plan.source, "installedSource"));
+    assert.deepEqual(plan.target.installedSource, knownManifest.installedSource);
+    assert.equal(plan.canApply, true, JSON.stringify(plan.conflicts));
+    assert.deepEqual(await readFile(manifestPath), originalManifest);
+    assert.equal(existsSync(path.join(project, "project-orchestrator.lock.json")), false);
+
+    const applied = run(["update", "--project", project, "--apply", "--accept-risk"]);
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    const installed = JSON.parse(await readFile(manifestPath, "utf8"));
+    assert.equal(installed.schemaVersion, "1.1.0");
+    assert.deepEqual(installed.installedSource, plan.target.installedSource);
+    const migrated = run(["update", "--project", project, "--json"]);
+    assert.equal(migrated.status, 0, migrated.stderr);
+    assert.deepEqual(JSON.parse(migrated.stdout).source.installedSource, installed.installedSource);
+
+    installed.installedSource = null;
+    await writeFile(manifestPath, `${JSON.stringify(installed, null, 2)}\n`, "utf8");
+    const invalidCurrent = run(["update", "--project", project, "--json"]);
+    assert.notEqual(invalidCurrent.status, 0);
+    assert.match(invalidCurrent.stderr, /Invalid update baseline/);
   } finally {
     await rm(parent, { recursive: true, force: true });
   }
@@ -1640,6 +1995,91 @@ test("additive and selective update plans are dependency closed without overwrit
     const additivePlan = JSON.parse(additive.stdout);
     assert.ok(additivePlan.assets.every((asset) => asset.localDigest === null));
     assert.equal(await readFile(sentinel, "utf8"), "do not overwrite\n");
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("additive updates restore required profile skills and their missing dependencies", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-additive-profile-"));
+  try {
+    const source = path.join(parent, "framework");
+    const isolatedRuntime = await copyUpdateRuntime(source);
+    const run = (args) => spawnSync(process.execPath, [isolatedRuntime, ...args], { cwd: source, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
+    const created = run(["create-project", "--name", "Restore Core", "--destination", parent, "--profile", "core", "--accept-risk"]);
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "restore-core");
+    const missingSkills = ["workflow-planner", "skill-dependency-manager"];
+    for (const skill of missingSkills) {
+      await rm(path.join(project, ".github", "skills", skill), { recursive: true, force: true });
+      await rm(path.join(project, ".github", "prompts", `${skill}-help.prompt.md`));
+    }
+    const untouched = await snapshotFiles(project, ["README.md", ".github/skills/azure-discovery/SKILL.md"]);
+    const args = ["update", "--project", project, "--mode", "additive", "--skills", "workflow-planner"];
+    const preview = run([...args, "--json"]);
+    assert.equal(preview.status, 0, preview.stderr);
+    const plan = JSON.parse(preview.stdout);
+    assert.equal(plan.canApply, true, JSON.stringify(plan.conflicts));
+    for (const skill of missingSkills) {
+      const asset = plan.assets.find((entry) => entry.path === `.github/skills/${skill}/SKILL.md`);
+      assert.equal(asset.proposedAction, "create");
+      assert.equal(asset.localDigest, null);
+    }
+    assert.ok(plan.selection.implicit.skills.includes("skill-dependency-manager"));
+    const applied = run([...args, "--apply", "--accept-risk"]);
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    for (const skill of missingSkills) {
+      assert.deepEqual(await readFile(path.join(project, ".github", "skills", skill, "SKILL.md")),
+        await readFile(path.join(source, ".github", "skills", skill, "SKILL.md")));
+    }
+    await assertFilesMatchSnapshot(project, untouched);
+    const rerun = run([...args, "--json"]);
+    assert.equal(rerun.status, 0, rerun.stderr);
+    assert.equal(JSON.parse(rerun.stdout).canApply, true);
+    assert.equal(JSON.parse(rerun.stdout).assets.length, 0);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("updates install a newly required profile skill absent from the old baseline", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-new-profile-skill-"));
+  try {
+    const source = path.join(parent, "framework");
+    const isolatedRuntime = await copyUpdateRuntime(source);
+    const run = (args) => spawnSync(process.execPath, [isolatedRuntime, ...args], { cwd: source, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
+    const created = run(["create-project", "--name", "New Requirement", "--destination", parent, "--profile", "core", "--accept-risk"]);
+    assert.equal(created.status, 0, created.stderr);
+    const project = path.join(parent, "new-requirement");
+    const skill = "workflow-simulator";
+    await rm(path.join(project, ".github", "skills", skill), { recursive: true, force: true });
+    await rm(path.join(project, ".github", "prompts", `${skill}-help.prompt.md`));
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const obsoleteIds = new Set(lock.entries.filter((entry) => [`skill:${skill}`, `skill-help:${skill}`].includes(entry.scope)).map((entry) => entry.assetId));
+    lock.entries = lock.entries.filter((entry) => !obsoleteIds.has(entry.assetId));
+    for (const entry of lock.entries) {
+      entry.dependencies = entry.dependencies.filter((id) => !obsoleteIds.has(id));
+      entry.generatedCompanions = entry.generatedCompanions.filter((id) => !obsoleteIds.has(id));
+    }
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const profilePath = path.join(source, "config", "profiles.yaml");
+    const originalProfiles = await readFile(profilePath, "utf8");
+    const upgradedProfiles = originalProfiles.replace(/(  core:\r?\n    required:\r?\n)/, `$1      - ${skill}\n`);
+    assert.notEqual(upgradedProfiles, originalProfiles);
+    await writeFile(profilePath, upgradedProfiles, "utf8");
+    const preview = run(["update", "--project", project, "--json"]);
+    assert.equal(preview.status, 0, preview.stderr);
+    const plan = JSON.parse(preview.stdout);
+    assert.equal(plan.canApply, true, JSON.stringify(plan.conflicts));
+    const newSkill = plan.assets.find((entry) => entry.path === `.github/skills/${skill}/SKILL.md`);
+    assert.equal(newSkill.classification, "new-upstream");
+    assert.equal(newSkill.proposedAction, "create");
+    const applied = run(["update", "--project", project, "--apply", "--accept-risk"]);
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    assert.deepEqual(await readFile(path.join(project, ".github", "skills", skill, "SKILL.md")),
+      await readFile(path.join(source, ".github", "skills", skill, "SKILL.md")));
+    assert.equal(await readFile(path.join(project, "config", "profiles.yaml"), "utf8"), upgradedProfiles);
   } finally {
     await rm(parent, { recursive: true, force: true });
   }
@@ -1864,6 +2304,51 @@ test("update plans resolve track, pin, keep, and replace without mutating projec
     assert.equal(replacedAsset.baselineAction, "advance-after-verification");
     assert.equal(await readFile(skillPath, "utf8"), "locally diverged\n");
     assert.equal((await readFile(lockPath, "utf8")).includes("0".repeat(64)), true);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test("scaffold updates use their planned template source despite Launch Pad collisions", async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-template-source-"));
+  try {
+    const source = path.join(parent, "framework");
+    const isolatedRuntime = await copyUpdateRuntime(source);
+    const paths = [".github/copilot-instructions.md", ".gitattributes"];
+    for (const relative of paths) {
+      await writeFile(path.join(source, relative), "Launch Pad only; never install this as a project template.\n", "utf8");
+    }
+    const created = spawnSync(process.execPath, [
+      isolatedRuntime, "create-project", "--name", "Template Sources", "--destination", parent, "--profile", "core", "--accept-risk"
+    ], { cwd: source, encoding: "utf8" });
+    assert.equal(created.status, 0, `${created.stdout}\n${created.stderr}`);
+    const project = path.join(parent, "template-sources");
+    const lockPath = path.join(project, "project-orchestrator.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    const expected = new Map();
+    for (const relative of paths) {
+      const template = await readFile(path.join(source, "templates", "project", relative));
+      expected.set(relative, template);
+      const previous = Buffer.concat([template, Buffer.from("\nPrevious template revision.\n")]);
+      await writeFile(path.join(project, relative), previous);
+      lock.entries.find((entry) => entry.path === relative).normalizedBaseDigest = digestManagedBuffer(previous);
+    }
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const args = ["update", "--project", project, "--mode", "select", "--assets", paths.join(",")];
+    const preview = spawnSync(process.execPath, [isolatedRuntime, ...args, "--json"], { cwd: source, encoding: "utf8" });
+    assert.equal(preview.status, 0, preview.stderr);
+    const plan = JSON.parse(preview.stdout);
+    assert.equal(plan.canApply, true);
+    assert.equal(plan.assets.length, paths.length);
+    assert.ok(plan.assets.every((asset) => asset.classification === "upstream-only" && asset.proposedAction === "replace"));
+    const applied = spawnSync(process.execPath, [isolatedRuntime, ...args, "--apply", "--accept-risk"], { cwd: source, encoding: "utf8" });
+    assert.equal(applied.status, 0, `${applied.stdout}\n${applied.stderr}`);
+    const installedLock = JSON.parse(await readFile(lockPath, "utf8"));
+    for (const relative of paths) {
+      assert.deepEqual(await readFile(path.join(project, relative)), expected.get(relative));
+      assert.equal(installedLock.entries.find((entry) => entry.path === relative).normalizedBaseDigest, digestManagedBuffer(expected.get(relative)));
+      assert.equal(await readFile(path.join(source, relative), "utf8"), "Launch Pad only; never install this as a project template.\n");
+    }
   } finally {
     await rm(parent, { recursive: true, force: true });
   }
@@ -2381,7 +2866,13 @@ test("the Azure baseline treats Key Vault as optional", async () => {
 });
 
 test("discovery probes every region rather than only the target region", async () => {
-  const discover = await readFile(path.join(root, "templates", "project", "infra", "discover.ps1"), "utf8");
+  const discover = await readFile(path.join(root, ".github", "skills", "azure-discovery", "scripts", "azure-discovery.ps1"), "utf8");
+  const wrapper = await readFile(path.join(root, "templates", "project", "infra", "discover.ps1"), "utf8");
+  assert.match(wrapper, /\. \$discoveryModule/);
+  assert.doesNotMatch(wrapper, /function |az cognitiveservices/);
+  const deploy = await readFile(path.join(root, "templates", "project", "infra", "deploy.ps1"), "utf8");
+  assert.match(deploy, /\$PSBoundParameters\.ContainsKey\('DiscoveryOutputPath'\)/);
+  assert.match(deploy, /Invoke-AzureDiscovery @discoveryParameters/);
   assert.match(discover, /function Get-AzureDiscoveryProjectRoot/);
   assert.match(discover, /function Get-AzureCognitiveKindRegion/);
   assert.match(discover, /function Get-AzureSpeechResourceSummary/);

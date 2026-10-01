@@ -1,30 +1,36 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-08T23:40:00.000Z",
-  "decisionId": "POLICY-2026-09-08-AVA-NARRATION-PUSH",
+  "generatedAt": "2026-10-01T19:21:47.931Z",
+  "decisionId": "POLICY-VERSION-DELIVERY-20261001",
   "decision": "allow",
-  "action": "Create one reviewed female Ava demo narration commit and push feat/agent-builder-latest to its configured upstream",
-  "scope": [
-    "Female en-US-AvaNeural narration metadata and 11 local scene MP3 assets",
-    "AzureUSGovernment narration generation support, documentation, and focused tests",
-    "Current validation and governance evidence attributable to the narration change",
-    "origin/feat/agent-builder-latest"
-  ],
+  "action": "Update source version/date metadata, make one normal reviewed commit and push the current branch to its existing upstream",
+  "scope": {
+    "runtime": "1.3.0",
+    "framework": "9.2.0",
+    "sourceDate": "2026-10-01",
+    "branch": "release/1.1.2",
+    "upstream": "origin/release/1.1.2",
+    "repository": "QuyDu/Project-Orchestrator",
+    "repositoryVisibility": "PUBLIC"
+  },
+  "approval": {
+    "source": "current user message",
+    "request": "update versioning date info and commit and push --Proceed",
+    "receivedAt": "2026-10-01T19:02:17.640Z"
+  },
   "ruleTrace": [
-    "Repository policy requires explicit approval for commit and push.",
-    "The user explicitly requested Commit and Push for the completed female Ava narration correction.",
-    "The current clarification round applied the user's autonomous instruction to the recommended one-commit, upstream-only boundary.",
-    "The exact working-tree boundary must pass current change review and npm run check before mutation.",
-    "The transient PowerPoint lock file, force push, pull request, merge, signing, tag creation, release, deployment, publication, hosted-agent creation, MCP installation, and Azure mutation remain prohibited."
+    "Current explicit approval covers version/date updates and normal commit/push.",
+    "The existing configured upstream is origin/release/1.1.2 and remote HEAD matches the local base.",
+    "This is the existing public source repository; include only reviewed framework changes and sanitized owned evidence.",
+    "Release-manifest package/signature/review/operational gates remain blocked and are not bypassed.",
+    "The PNG shared-decoder expansion is not implemented by this delivery request."
   ],
   "conditions": [
-    "Commit only the reviewed Ava narration assets, metadata, generator, documentation, test, and attributable evidence paths.",
-    "Exclude Demo/~$Project-Orchestrator-Demo.pptx from staging.",
-    "Use one normal commit and push only to the configured upstream without force.",
-    "Stop and report any remote rejection rather than bypassing branch protections.",
-    "Keep P4 release assurance blocked and make no production-readiness claim."
-  ],
-  "limitations": [
-    "This decision authorizes the bounded commit and branch push only; it does not authorize a pull request, merge, force push, tag, release, signing, publication, deployment, or Azure action."
+    "Current bounded review and required full validation must pass.",
+    "Stage an explicit reviewed path list; exclude ignored profiles, credentials, temporary outputs and unrelated changes.",
+    "No force push, branch rename, history rewrite, tag, GitHub Release, package publication or deployment.",
+    "Stop on authentication/protection/non-fast-forward rejection; do not bypass protections.",
+    "Include the required Copilot co-author trailer.",
+    "Retain historical records and pending PNG scope honestly."
   ]
 }

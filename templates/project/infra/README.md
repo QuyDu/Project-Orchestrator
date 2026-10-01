@@ -12,13 +12,16 @@ subscription**. Run it with `-WhatIf` first and read the plan before you trust i
 | File | Role |
 | --- | --- |
 | `deploy.ps1` | The entry point. Dot-sources the modules below and runs them in order. |
-| `azure-environment.ps1` | Persists nonsecret Azure choices, configures MCP opt-in, and establishes the Azure CLI context. |
-| `discover.ps1` | Library. Probes services, selects chat and image models, checks image quota, and summarizes compatible image deployments. |
+| `azure-environment.ps1` | Delegates profile, MCP opt-in, and Azure CLI context handling to the installed `azure-discovery` skill. |
+| `discover.ps1` | Delegates discovery and the shared 30-day cache policy to the installed `azure-discovery` skill. |
 | `deploy-infra.ps1` | Library. Runs `az deployment group create` against `main.bicep`. |
 | `main.bicep` | App Service with a system-assigned identity, Key Vault with RBAC, optional Azure OpenAI. |
 
 `azure-environment.ps1`, `discover.ps1`, and `deploy-infra.ps1` are **libraries, not entry points**. Running one directly
 defines its functions and exits without doing anything. Only `deploy.ps1` does work.
+The first two libraries are thin compatibility entrypoints, not independent copies. The generated
+project must retain `.github/skills/azure-discovery/`, its schema, and Node.js. A missing package
+produces an explicit error rather than falling back to another implementation.
 
 ## Usage
 
@@ -49,8 +52,38 @@ regional quota, and summarizes compatible image deployments by count, region, mo
 Account and deployment names are used only transiently for read-only enumeration. The report never
 stores them, resource identifiers, endpoints, subscription or tenant IDs, or keys. Catalog presence
 alone is not deployment readiness: missing quota evidence remains `unknown`, and limited-access or
-preview models require separate acceptance. `/project-video` requires Speech evidence to be no older
-than 14 days before Azure narration.
+preview models require separate acceptance. Video and image consumers use the discovery owner's
+context-bound schema and inclusive 30-day policy rather than their own age limits or validators.
+
+### Discovery cache
+
+Discovery persists the probe's UTC `discoveredAt`, an `expiresAt` exactly 30 days later, and a
+`contextSha256` fingerprint of the cloud, tenant, subscription, region, and preferred chat model.
+The fingerprint does not expose the underlying subscription identifiers. The ignored local
+profile remains the only file containing those identifiers and the subscription display name.
+
+Evidence is reusable through exactly 30 days, without Azure queries or timestamp changes.
+Missing, malformed, future-dated, legacy-unbound, mismatched, or older evidence triggers the
+skill-owned probe. Query or publication failures preserve the previous reports but do not make
+stale evidence usable. The JSON report is authoritative; its Markdown companion is generated
+from the same validated record. Publication rejects linked paths and concurrent writers.
+
+`Invoke-AzureDiscovery -Refresh` explicitly requests a new probe. Omitting `-DiscoveryOutputPath`
+from `deploy.ps1` keeps the normal report output; passing an explicit empty output retains the
+legacy non-persisting probe behavior. Custom output paths must remain inside this project's
+`reports/` directory; discovery cannot replace the local profile or source files.
+
+JavaScript consumers should import `inspectCachedDiscovery` (read-only) or `ensureDiscovery`
+(refresh on demand) from `.github/skills/azure-discovery/scripts/discovery-cache.mjs`.
+The equivalent helper commands are `inspect`, `ensure`, and `publish`; `publish` accepts probe
+JSON on standard input. Run `Invoke-AzureDiscovery` first when the local Azure profile is absent
+or still lacks a selected tenant/subscription. Do not duplicate schemas or freshness constants.
+Video discovery status, image doctor, and local verification/preview paths remain offline.
+Eligible Azure operations delegate refresh before relying on expired or unusable evidence;
+processing, cost, provider, region, voice, and replacement approvals remain separate.
+Approved image creation refreshes before capturing its new render context and plan. If discovery
+changes for an already reviewed image render, that render stops for new preflight and plan review.
+Existing narration and media digest bindings are never silently rewritten after a refresh.
 
 ## Cleanup
 

@@ -4,8 +4,9 @@ import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateRawSync } from "node:zlib";
-import { digest, DeploymentError, rejectSecrets, safeError, stop } from "../contracts.mjs";
+import { digest, DeploymentError, rejectSecrets, safeError, stop, validateShape } from "../contracts.mjs";
 import { checkedPath, immutableFile, makeDirectory, projectRoot, readBytes, relativePath } from "../files.mjs";
+import { studioTargetSchema } from "./studio-evidence.mjs";
 
 const bridge = path.join(path.dirname(fileURLToPath(import.meta.url)), "enterprise-cli.ps1");
 const maxOutput = 1_048_576;
@@ -167,7 +168,9 @@ export async function runEnterpriseCli(tool, args, options = {}, dependencies = 
         child.stdout?.destroy();
         child.stderr?.destroy();
       }
-      reject(new DeploymentError(code, "CLI execution failed, timed out, or exceeded its output bound; details redacted. Reconcile the operation before any retry."));
+      reject(new DeploymentError(code, code === "PAC_STATUS_QUERY_UNSUPPORTED"
+        ? "This PAC status query uses an unsupported Dataverse attribute. Publication remains unverified; use separately reviewed read-only bot attributes, not schema or security changes."
+        : "CLI execution failed, timed out, or exceeded its output bound; details redacted. Reconcile the operation before any retry."));
     };
     try {
       child = launch(invocation.command, invocation.args, {
@@ -188,7 +191,12 @@ export async function runEnterpriseCli(tool, args, options = {}, dependencies = 
     child.on("error", () => fail("CLI_EXECUTION_UNCERTAIN"));
     child.on("close", (exitCode, signal) => {
       if (done) return;
-      if (exitCode !== 0 || signal) { fail("CLI_EXECUTION_UNCERTAIN"); return; }
+      if (exitCode !== 0 || signal) {
+        const badStatus = tool === "pac" && args[0] === "copilot" && args[1] === "status"
+          && /componentstate_Property/i.test(Buffer.concat([...stdout, ...stderr]).toString("utf8"));
+        fail(badStatus ? "PAC_STATUS_QUERY_UNSUPPORTED" : "CLI_EXECUTION_UNCERTAIN");
+        return;
+      }
       done = true;
       clearTimeout(timer);
       resolve({ exitCode, stdout: Buffer.concat(stdout).toString("utf8"), stderr: Buffer.concat(stderr).toString("utf8") });
@@ -203,6 +211,10 @@ export async function invokeCli(tool, args, options, dependencies) {
   catch (error) {
     if (error instanceof DeploymentError) throw error;
     stop("CLI_EXECUTION_UNCERTAIN", "The CLI operation could not be completed; reconcile before retrying. Details redacted.");
+  }
+  if (tool === "pac" && args[0] === "copilot" && args[1] === "status"
+      && /componentstate_Property/i.test(`${result?.stdout ?? ""}\n${result?.stderr ?? ""}`.slice(0, maxOutput))) {
+    stop("PAC_STATUS_QUERY_UNSUPPORTED", "This PAC status query uses an unsupported Dataverse attribute. Publication remains unverified; use separately reviewed read-only bot attributes, not schema or security changes.");
   }
   if (!result || result.exitCode !== 0 || typeof result.stdout !== "string" || typeof result.stderr !== "string"
       || Buffer.byteLength(result.stdout) + Buffer.byteLength(result.stderr) > maxOutput) {
@@ -244,7 +256,7 @@ export async function cliPreflight(tool, config, context, cwd, dependencies, off
   const observations = {};
   for (const name of tool === "pac" ? ["who", "list"] : ["list"]) observations[name] = await invokeCli(tool, ["auth", name], { cwd, timeoutMs: 30_000 }, dependencies);
   const identitySha256 = identityEvidenceDigest(tool, {
-    tenantId: context.profile.subscription.tenantId, environment: config.environment,
+    tenantId: context.studioTarget?.tenantId ?? context.profile?.subscription?.tenantId, environment: config.environment,
     audience: context.request.audience, cloud: context.request.cloud
   }, observations);
   if (identitySha256 !== config.identityEvidence.sha256) {
@@ -258,10 +270,16 @@ export async function checkedContext(context, dependencies, tool, offline) {
   if (context.request?.target !== expectedTarget || !["individual", "tenant", "private"].includes(context.request?.audience)) {
     stop("PLATFORM_TARGET_MISMATCH", "The reviewed platform and audience do not match this adapter.");
   }
-  if (!["none", "AzureCloud"].includes(context.request.cloud) || (!offline && (context.request.cloud !== "AzureCloud" || context.profile?.cloud !== "AzureCloud"))) {
+  const studioTarget = tool === "pac" && context.studioTarget
+    ? validateShape(studioTargetSchema, context.studioTarget, "Studio provider target") : null;
+  if (!offline && studioTarget && context.profile && (context.profile.cloud !== studioTarget.cloud
+      || (context.profile.subscription?.tenantId && context.profile.subscription.tenantId.toLowerCase() !== studioTarget.tenantId.toLowerCase()))) {
+    stop("STUDIO_PROFILE_CONFLICT", "The saved cloud or tenant conflicts with the reviewed Power Platform target; no account or cloud switching is permitted.");
+  }
+  if (!["none", "AzureCloud"].includes(context.request.cloud) || (!offline && (context.request.cloud !== "AzureCloud" || (studioTarget?.cloud ?? context.profile?.cloud) !== "AzureCloud"))) {
     stop("CLOUD_UNVERIFIED", "Only explicitly reviewed Commercial platform routing is supported; Government and inferred routing are blocked.");
   }
-  if (!offline && !guid.test(context.profile?.subscription?.tenantId ?? "")) {
+  if (!offline && !guid.test(studioTarget?.tenantId ?? context.profile?.subscription?.tenantId ?? "")) {
     stop("CLI_TENANT_REQUIRED", "The target profile must identify the tenant used for the operator-reviewed identity evidence binding; no account switching was attempted.");
   }
   const root = await projectRoot(context.root, dependencies);

@@ -1,21 +1,54 @@
 # Skill Dependency Report
 
-Generated: 2026-09-22T23:58:16.322Z
+50 canonical skills; all dependencies resolve and the graph is acyclic.
 
-- Runtime: 1.2.0
-- Skills: 50
-- Cycles: 0
-- Missing dependencies: 0
-- Conflicting output owners: 0
-- All conformance profiles are dependency-closed.
-
-| Profile | Effective skills | Dependency-closed |
-| --- | ---: | --- |
-| core | 35 | Yes |
-| durable | 46 | Yes |
-| distributed | 48 | Yes |
-| advanced | 50 | Yes |
-
-## Validation boundary
-
-This is local source/contract conformance evidence, not provider availability, release signing, tenant approval or live deployment verification.
+- agent-builder: clarify-the-ask, policy-engine, azure-discovery
+- agent-deployment: clarify-the-ask, agent-builder, policy-engine, azure-discovery, architecture-review, security-review, deployment-review, workflow-state-manager, workflow-telemetry, project-handoff
+- architecture-review: clarify-the-ask
+- artifact-upgrade: skill-inventory, skill-dependency-manager
+- audit-azure-environment: none
+- audit-code: none
+- audit-plan-remediation: audit-review-findings, policy-engine
+- audit-remediation: audit-plan-remediation, policy-engine, workflow-state-manager, workflow-recovery, change-review, systematic-debugging, regression-test-development, project-handoff, audit-code
+- audit-review-findings: audit-code, audit-azure-environment
+- azure-cleanup: azure-discovery, project-handoff, policy-engine
+- azure-discovery: project-handoff
+- change-review: policy-engine
+- ci-failure-triage: policy-engine, systematic-debugging, regression-test-development, workflow-state-manager
+- clarify-the-ask: none
+- dependency-maintenance: policy-engine, regression-test-development, workflow-state-manager
+- deployment-review: architecture-review, security-review
+- development-environment-readiness: policy-engine, workflow-state-manager
+- documentation-builder: clarify-the-ask, project-understanding
+- environment-update: development-environment-readiness, policy-engine
+- framework-health-check: skill-inventory, skill-dependency-manager
+- linkedin-post: project-handoff, documentation-builder, user-personalization
+- live-chat-interaction: clarify-the-ask, policy-engine, project-understanding, regression-test-development
+- multi-agent-coordinator: workflow-state-manager, workflow-scheduler
+- policy-engine: none
+- prepare-commit: change-review
+- project-handoff: workflow-state-manager
+- project-knowledge-capture: project-handoff
+- project-memory: project-knowledge-capture
+- project-setup: clarify-the-ask, workflow-planner
+- project-skills-orchestrator: clarify-the-ask, workflow-planner, skill-inventory, policy-engine, workflow-state-manager, skill-update
+- project-status: project-handoff, workflow-telemetry, audit-azure-environment
+- project-understanding: clarify-the-ask
+- project-video: clarify-the-ask, project-understanding, documentation-builder, azure-discovery
+- project-visual-storytelling: user-personalization, project-understanding, agent-builder, azure-discovery
+- regression-test-development: policy-engine, workflow-state-manager
+- security-review: audit-code
+- skill-create: skill-inventory, skill-dependency-manager, project-understanding, documentation-builder
+- skill-dependency-manager: skill-inventory
+- skill-inventory: none
+- skill-registry: skill-inventory, skill-dependency-manager, policy-engine
+- skill-update: skill-inventory, skill-dependency-manager, project-understanding, documentation-builder
+- systematic-debugging: policy-engine, workflow-state-manager
+- user-personalization: none
+- visual-companion-builder: clarify-the-ask, policy-engine
+- workflow-planner: clarify-the-ask, skill-inventory, skill-dependency-manager
+- workflow-recovery: workflow-state-manager, project-handoff
+- workflow-scheduler: workflow-state-manager, policy-engine
+- workflow-simulator: workflow-planner, policy-engine
+- workflow-state-manager: workflow-planner
+- workflow-telemetry: workflow-state-manager

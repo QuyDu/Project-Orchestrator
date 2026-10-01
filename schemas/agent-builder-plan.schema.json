@@ -1,22 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://project-skills.dev/schemas/agent-builder-plan/1.2.0",
+  "$id": "https://project-skills.dev/schemas/agent-builder-plan/2.0.0",
   "title": "Agent Builder Plan",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "generatedAt", "status", "projectRoot", "blueprintPath", "blueprintSha256", "targetPath", "targetState", "action", "renderedSha256", "renderedAgent", "warnings"],
+  "required": ["schemaVersion", "generatedAt", "status", "projectRoot", "blueprintPath", "blueprintSha256", "targetPath", "targetState", "action", "warnings"],
   "properties": {
-    "schemaVersion": { "enum": ["1.0.0", "1.1.0", "1.2.0"] },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0", "1.2.0", "2.0.0"] },
     "generatedAt": { "type": "string", "format": "date-time" },
     "status": { "const": "review-required" },
     "projectRoot": { "type": "string", "minLength": 1 },
     "blueprintPath": { "type": "string", "minLength": 1 },
     "blueprintSha256": { "$ref": "#/$defs/sha256" },
-    "targetPath": { "type": "string", "pattern": "^\\.github/agents/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\.agent\\.md$" },
+    "targetPath": { "type": "string" },
     "targetState": { "anyOf": [{ "const": "missing" }, { "type": "string", "pattern": "^file:sha256:[a-f0-9]{64}$" }] },
     "action": { "enum": ["create", "update", "unchanged"] },
     "renderedSha256": { "$ref": "#/$defs/sha256" },
     "renderedAgent": { "type": "string", "minLength": 1 },
+    "runtime": { "const": "native-copilot-studio" },
+    "guide": {
+      "allOf": [
+        { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" },
+        { "properties": { "path": { "const": ".github/instructions/copilot-studio.instructions.md" } } }
+      ]
+    },
+    "nativeSpec": { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" },
+    "previewDirectory": { "type": "string", "pattern": "^\\.skills-orchestrator/agent-builder/native-preview/NP-[a-f0-9-]{36}/source$" },
+    "inputs": { "$ref": "copilot-studio-handoff.schema.json#/$defs/references" },
+    "files": { "allOf": [{ "$ref": "copilot-studio-handoff.schema.json#/$defs/references" }, { "minItems": 2 }] },
+    "tooling": {
+      "type": "object", "additionalProperties": false, "required": ["pacVersion", "helpSha256"],
+      "properties": { "pacVersion": { "const": "2.12.2" }, "helpSha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "preparation": { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" },
+    "handoff": { "$ref": "copilot-studio-handoff.schema.json" },
+    "handoffSha256": { "$ref": "#/$defs/sha256" },
+    "contractSha256": { "$ref": "#/$defs/sha256" },
+    "planSha256": { "$ref": "#/$defs/sha256" },
     "distribution": {
       "anyOf": [
         { "type": "null" },
@@ -67,6 +87,27 @@
     "warnings": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
   },
   "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "2.0.0" } }, "required": ["schemaVersion"] },
+      "then": {
+        "required": ["runtime", "guide", "nativeSpec", "previewDirectory", "inputs", "files", "tooling", "preparation", "handoff", "handoffSha256", "contractSha256", "planSha256"],
+        "properties": {
+          "targetPath": { "pattern": "^copilot-studio/[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+          "targetState": { "const": "missing" }, "action": { "const": "create" }
+        },
+        "not": { "anyOf": [{ "required": ["renderedAgent"] }, { "required": ["renderedSha256"] }] }
+      },
+      "else": {
+        "required": ["renderedAgent", "renderedSha256"],
+        "properties": { "targetPath": { "pattern": "^\\.github/agents/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\.agent\\.md$" } },
+        "not": { "anyOf": [
+          { "required": ["runtime"] }, { "required": ["guide"] }, { "required": ["nativeSpec"] },
+          { "required": ["previewDirectory"] }, { "required": ["inputs"] }, { "required": ["files"] },
+          { "required": ["tooling"] }, { "required": ["preparation"] }, { "required": ["handoff"] },
+          { "required": ["handoffSha256"] }, { "required": ["contractSha256"] }, { "required": ["planSha256"] }
+        ] }
+      }
+    },
     {
       "if": { "properties": { "schemaVersion": { "enum": ["1.1.0", "1.2.0"] } }, "required": ["schemaVersion"] },
       "then": { "required": ["publication"] },

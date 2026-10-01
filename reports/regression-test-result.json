@@ -1,92 +1,74 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-22T23:58:16.322Z",
+  "generatedAt": "2026-10-01T19:45:45.335Z",
+  "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
   "status": "passed",
-  "sourceRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
-  "sourceDirty": true,
-  "objective": "Keep package, lock, CLI, framework configuration, source-date documentation, and generated-project compatibility metadata consistent for the versioned source update.",
-  "changedFiles": [
-    "tests/production-gates.test.mjs",
-    "tests/adoption-rerun.test.mjs",
-    "tests/security-fuzz.test.mjs"
-  ],
-  "red": {
-    "command": "node --test --test-name-pattern=\"production scripts and release metadata are present\" tests/production-gates.test.mjs",
-    "exitCode": 1,
-    "result": "The CLI returned 1.1.2 while the updated package declared 1.2.0; one expected failing assertion before synchronization."
+  "scope": "All current repository checks for the implemented source; pending scope expansion remains unimplemented.",
+  "command": "npm run check",
+  "exitCode": 0,
+  "tests": {
+    "total": 948,
+    "passed": 945,
+    "failed": 0,
+    "skipped": 3
   },
-  "green": [
-    {
-      "command": "node --test --test-name-pattern=\"production scripts and release metadata are present|npm supply-chain policy|rerun adoption synchronizes|accepted project creation|update selection rejects|update rejects malformed\" tests/production-gates.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs",
-      "passed": 6,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "command": "npm run check",
-      "status": "passed",
-      "tests": {
-        "total": 341,
-        "passed": 340,
-        "failed": 0,
-        "skipped": 1
-      },
-      "skillsVerified": 50,
-      "securityFilesScanned": 323,
-      "packageDependencies": 0,
-      "unsignedCandidateFilesVerified": 226,
-      "checkOutputSha256": "1c51b31d55f583a2ee1808b79ad977f04fed8a2b87f3a74e02405f08b6bbee67",
-      "focusedMetadataTests": {
-        "passed": 6,
-        "failed": 0,
-        "skipped": 0
-      },
-      "deploymentRegressionSuite": {
-        "passed": 119,
-        "failed": 0,
-        "basis": "Retained pre-version feature validation; all cases also included in the current full gate."
-      }
-    }
+  "evidenceSha256": "21ca6a8241c4c009bdfedb5a393ce0855bfff30214c85f6ad826145fb6d1f1c3",
+  "sourceInputSha256": "d64da83d40ae352d86b420fc9b8f1b716c0da7de244d199467dad7e21b70fa0e",
+  "currentSourceFilesMatched": 473,
+  "completedItemIds": [
+    "REM-0146",
+    "REM-0108",
+    "REM-0106",
+    "REM-0128",
+    "REM-0110",
+    "REM-0111",
+    "REM-0122",
+    "REM-0129",
+    "REM-0130",
+    "REM-0131",
+    "REM-0121",
+    "REM-0115",
+    "REM-0116",
+    "REM-0137",
+    "REM-0138",
+    "REM-0101",
+    "REM-0102",
+    "REM-0103",
+    "REM-0104",
+    "REM-0105",
+    "REM-0107",
+    "REM-0109",
+    "REM-0112",
+    "REM-0114",
+    "REM-0117",
+    "REM-0118",
+    "REM-0120",
+    "REM-0123",
+    "REM-0125",
+    "REM-0126",
+    "REM-0127",
+    "REM-0134",
+    "REM-0135",
+    "REM-0136",
+    "REM-0139",
+    "REM-0142",
+    "REM-0143",
+    "REM-0113",
+    "REM-0124",
+    "REM-0140",
+    "REM-0141",
+    "REM-0119",
+    "REM-0144",
+    "REM-0145"
   ],
-  "retainedFeatureRepairs": [
-    {
-      "id": "openapi-reference-policy",
-      "severity": "medium",
-      "status": "fixed-confirmed",
-      "paths": [
-        ".github/skills/agent-deployment/scripts/package.mjs"
-      ],
-      "evidence": "Two red-green cases; the independent security reviewer confirmed the reference-policy repair."
-    },
-    {
-      "id": "native-workspace-contract",
-      "severity": "high",
-      "status": "fixed-confirmed",
-      "paths": [
-        ".github/skills/agent-deployment/scripts/platform-engine.mjs"
-      ],
-      "evidence": "Three core/real-provider red-green cases with only CLI calls mocked; independently confirmed."
-    },
-    {
-      "id": "large-artifact-verification",
-      "severity": "medium",
-      "status": "fixed-confirmed",
-      "paths": [
-        ".github/skills/agent-deployment/scripts/files.mjs",
-        ".github/skills/agent-deployment/scripts/package.mjs"
-      ],
-      "evidence": "Greater-than-1-MiB ZIP creation, deterministic reuse and oversized-tampering regression; independently confirmed."
-    }
+  "pendingItemIds": [
+    "REM-0132"
   ],
   "limitations": [
-    "Local tests and independent code/security reviews do not certify live tenant behavior, hosted performance, catalog acceptance, or production readiness.",
-    "The unsigned formal release remains blocked by trusted signing, candidate-bound independent release attestation, operational readiness and required cross-platform evidence.",
-    "No cloud deployment, tenant publication, package publication, VSIX installation, GitHub Release or tag is authorized by this version/commit/push request."
+    "Passing tests do not establish live/hosted/provider qualification or resolve the pending PNG scope.",
+    "Three platform-specific tests were explicitly skipped.",
+    "Earlier timeouts and the obsolete assertion failure remain retained private evidence, not overwritten success."
   ],
-  "previousReport": {
-    "sourceRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
-    "path": "reports/regression-test-result.json",
-    "generatedAt": "2026-09-18T20:10:00.000Z",
-    "sha256": "db43a436bc8b52d1c2e856a2eedcce48a002c65980b195b03b11dab788959687"
-  }
+  "sourceVersion": "1.3.0",
+  "frameworkVersion": "9.2.0"
 }

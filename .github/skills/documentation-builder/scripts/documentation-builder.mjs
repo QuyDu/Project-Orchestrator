@@ -6,6 +6,7 @@ import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { validateCurrentSources } from "../../project-understanding/scripts/project-understanding.mjs";
 
 const SCRIPT_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT = path.resolve(SCRIPT_ROOT, "..", "..", "..", "..");
@@ -33,12 +34,22 @@ function safeEvidence(value, files) {
   return typeof value === "string" && value.length > 0 && !path.isAbsolute(value) && !value.includes("\\") && !value.split("/").includes("..") && files.has(value);
 }
 
-function claim(id, topic, statement, evidence) {
-  return { id: `claim-${id}`, topic, status: "verified", statement, evidence };
+function claimStatus(status) {
+  if (status === "verified" || status === "planned") return status;
+  if (status === "inferred" || status === "unknown") return "unavailable";
+  throw new Error("Project Understanding contains an unsupported claim classification");
+}
+
+function claim(id, topic, statement, evidence, status) {
+  return { id: `claim-${id}`, topic, status: claimStatus(status), statement, evidence };
 }
 
 function list(items, fallback) {
-  return items.length ? items.map((item) => `- **${item.name}**: ${item.description}`).join("\n") : `- ${fallback}`;
+  return items.length ? items.map((item) => {
+    const status = claimStatus(item.status);
+    const label = status === "verified" ? "" : status === "planned" ? " [planned]" : ` [${item.status}; unverified]`;
+    return `- **${item.name}**${label}: ${item.description}`;
+  }).join("\n") : `- ${fallback}`;
 }
 
 function guide(report, claims) {
@@ -94,7 +105,8 @@ function build(understanding) {
     `${String(index + 1).padStart(2, "0")}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item"}`,
     "project-understanding",
     item.description,
-    item.evidence.filter((value) => safeEvidence(value, files))
+    item.evidence.filter((value) => safeEvidence(value, files)),
+    item.status
   )).filter((item) => item.evidence.length);
   if (!claims.length) throw new Error("Project Understanding contains no evidence-backed guide claims");
   const report = {
@@ -122,15 +134,17 @@ function validate(report, guideSource, understanding, understandingSource, under
   if (report?.projectUnderstanding?.json !== UNDERSTANDING_JSON || report?.projectUnderstanding?.markdown !== UNDERSTANDING_MARKDOWN) errors.push("Project Understanding paths are invalid");
   if (report?.projectUnderstanding?.jsonSha256 !== sha256(JSON.stringify(understanding))) errors.push("Project Understanding JSON digest is stale");
   if (report?.projectUnderstanding?.markdownSha256 !== understanding.markdownSha256) errors.push("Project Understanding Markdown digest is stale");
-  if (understandingMarkdown && sha256(understandingMarkdown) !== understanding.markdownSha256) errors.push("Project Understanding Markdown content is stale");
+  if (typeof understandingMarkdown !== "string" || sha256(understandingMarkdown) !== understanding.markdownSha256) errors.push("Project Understanding Markdown content is stale");
   if (report?.guideSha256 !== sha256(guideSource)) errors.push("Project guide content is stale");
   if (!Array.isArray(report?.claims) || !report.claims.length) errors.push("claims must be non-empty");
   const files = new Set(understanding?.scan?.files?.map((file) => file.path));
   for (const item of report?.claims || []) {
     if (!/^claim-[a-z0-9-]+$/.test(item.id || "")) errors.push("claim ID is invalid");
-    if (item.status !== "verified") errors.push(`${item.id || "claim"} is not verified`);
+    if (!["verified", "planned", "unavailable"].includes(item.status)) errors.push(`${item.id || "claim"} has an invalid classification`);
     if (!Array.isArray(item.evidence) || !item.evidence.length || item.evidence.some((value) => !safeEvidence(value, files))) errors.push(`${item.id || "claim"} has invalid evidence`);
   }
+  const expectedClaims = build(understanding).report.claims;
+  if (JSON.stringify(report?.claims) !== JSON.stringify(expectedClaims)) errors.push("Guide claims do not preserve the current Project Understanding classifications and evidence");
   if (!guideSource.startsWith(`# ${understanding?.project?.displayName || ""} Project Guide`)) errors.push("Guide title does not match Project Understanding");
   if (understandingSource && report?.projectUnderstanding?.jsonSha256 !== sha256(JSON.stringify(JSON.parse(understandingSource)))) errors.push("Project Understanding source is stale");
   return errors;
@@ -141,7 +155,9 @@ async function loadUnderstanding(root) {
   const markdownFile = path.join(root, UNDERSTANDING_MARKDOWN);
   if (!existsSync(jsonFile) || !existsSync(markdownFile)) throw new Error("Project Understanding outputs are missing; run project-understanding scan first");
   const source = await readFile(jsonFile, "utf8");
-  return { report: JSON.parse(source), source, markdown: await readFile(markdownFile, "utf8") };
+  const report = JSON.parse(source);
+  await validateCurrentSources(root, report);
+  return { report, source, markdown: await readFile(markdownFile, "utf8") };
 }
 
 async function generate(root) {

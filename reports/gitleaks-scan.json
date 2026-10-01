@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.1.0",
-  "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
-  "generatedAt": "2026-09-19T00:10:40.815Z",
+  "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+  "generatedAt": "2026-10-01T18:49:18.661Z",
   "scanner": {
     "name": "gitleaks",
     "version": "8.30.1",
@@ -12,9 +12,9 @@
   },
   "configurationSha256": "e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4",
   "allowlistCount": 1,
-  "repositoryRevision": "427fcae427a9c7246909c66b468e4c6f5c171c41",
-  "worktreeDigest": "00c845baf0961009bdb97ebd58488e55f92ee99b0eb41b3ab0bf827774de7318",
-  "scanInputDigest": "6cfa94828c3c719c44b889b0a4939116375aaf2d8f03e9e1ffbbd1242ce60fa4",
+  "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+  "worktreeDigest": "d79a723b0b362e46978ab87ee7b85be4d633042a7d32dd41583b64319ffc158f",
+  "scanInputDigest": "1f09826d71d29271c1f0200941c54a39a0874dd1c6df76047c007e0109e1c40c",
   "scopes": [
     "worktree",
     "staged",
@@ -47,6 +47,7 @@
     "history": []
   },
   "limitations": [
-    "Remote-only refs and unreachable or pruned objects were not scanned."
+    "Remote-only refs and unreachable or pruned objects were not scanned.",
+    "The newly issued reports/gitleaks-scan.json is a certificate output, not an input scanned before its publication; retain the exact SHA256 receipt."
   ]
 }

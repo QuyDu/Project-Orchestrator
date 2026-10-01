@@ -44,6 +44,7 @@ Identify Azure resources associated with the current project and prepare or exec
 1. Resolve the cloud using explicit `-Commercial` or `-Gov`, then the persisted profile, then Azure Commercial. Persist explicit overrides.
 2. Select the profile's Azure CLI cloud and subscription. Start the recorded login flow when authentication is absent or stale, then display the subscription name and ID.
 3. Resolve the target scope. `-All` targets the project resource group after ownership checks; `-Resource` requires `-RG` or a uniquely resolved project resource; `-RG` targets the named group.
+   Reuse `Get-AzureResourceName` from the deployment naming library for `-All`, including normalization, the 90-character resource-group limit and trailing-hyphen trimming. Explicit resource-group inputs remain unchanged.
 4. List the exact target and associated resources before any mutation.
 5. Write a cleanup report containing scope, account metadata, cloud, resources, `WhatIf`, and findings.
 6. In `-WhatIf` mode, stop after reporting what would be deleted.

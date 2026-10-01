@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "workflowId": "WF-LIVE-CHAT-20260918",
-  "runId": "RUN-LIVE-CHAT-PLAN-20260918-01",
-  "status": "completed",
-  "currentStep": 20,
-  "totalSteps": 20,
-  "activeSkill": "regression-test-development",
-  "lastCompletedStep": 20,
-  "resumeFromStep": 20,
-  "lastSequence": 79,
-  "updatedAt": "2026-09-18T20:10:00.000Z"
+  "status": "waiting-approval",
+  "currentStep": 42,
+  "totalSteps": 48,
+  "activeSkill": "skill-update",
+  "lastCompletedStep": 47,
+  "resumeFromStep": 42,
+  "workflowId": "WF-REMEDIATION-4da7d0e8-28fc-43a9-8ac5-3c9f80009aac",
+  "runId": "RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
+  "lastSequence": 136,
+  "updatedAt": "2026-10-01T18:45:59.445Z"
 }

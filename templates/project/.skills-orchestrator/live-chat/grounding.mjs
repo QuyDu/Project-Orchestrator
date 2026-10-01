@@ -11,11 +11,18 @@ export function validateGroundingManifest(manifest, { now = new Date().toISOStri
 }
 
 export function groundResponse(response, manifest, options = {}) {
+  const fallback = (reason) => ({ answer: "I don't know based on the approved local sources.", citations: [], unknowns: [reason] });
   const checked = validateGroundingManifest(manifest, options);
-  const sourceIds = new Set((manifest?.sources ?? []).map((source) => source.id));
-  const citations = Array.isArray(response?.citations) ? response.citations.filter((citation) => sourceIds.has(citation.sourceId) && typeof citation.locator === "string") : [];
-  if (!checked.valid || INSTRUCTION_PATTERN.test(String(response?.answer ?? "")) || citations.length === 0 || (response.sourceIds ?? []).some((id) => !sourceIds.has(id))) {
-    return { answer: "I don't know based on the approved local sources.", citations: [], unknowns: [checked.valid ? "unsupported-or-uncited" : "grounding-unavailable"] };
+  if (!checked.valid) return fallback("grounding-unavailable");
+  if (!response || typeof response !== "object" || Array.isArray(response) || typeof response.answer !== "string") return fallback("unsupported-or-uncited");
+  const sourceIds = new Set(manifest.sources.map((source) => source.id));
+  const declaredSources = response.sourceIds ?? [];
+  const unknowns = response.unknowns ?? [];
+  if (!Array.isArray(declaredSources) || !Array.isArray(unknowns) || unknowns.some((unknown) => typeof unknown !== "string")
+      || !Array.isArray(response.citations) || response.citations.some((citation) => !citation || typeof citation.sourceId !== "string" || typeof citation.locator !== "string")) {
+    return fallback("unsupported-or-uncited");
   }
-  return { answer: String(response.answer), citations, unknowns: Array.isArray(response.unknowns) ? response.unknowns : [] };
+  const citations = response.citations.filter((citation) => sourceIds.has(citation.sourceId));
+  if (INSTRUCTION_PATTERN.test(response.answer) || citations.length === 0 || declaredSources.some((id) => !sourceIds.has(id))) return fallback("unsupported-or-uncited");
+  return { answer: response.answer, citations, unknowns };
 }

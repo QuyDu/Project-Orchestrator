@@ -1,13 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://project-skills.dev/schemas/agent-blueprint/2.3.0",
+  "$id": "https://project-skills.dev/schemas/agent-blueprint/3.0.0",
   "title": "Governed Agent Blueprint",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "name", "description", "purpose", "risk", "capabilities", "invocation", "instructions", "subagents", "handoffs"],
+  "required": ["schemaVersion", "id", "name"],
   "properties": {
-    "schemaVersion": { "enum": ["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0"] },
-    "agentType": { "enum": ["copilot", "foundry-prompt", "foundry-hosted", "portable"] },
+    "schemaVersion": { "enum": ["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0", "3.0.0"] },
+    "agentType": { "enum": ["copilot", "foundry-prompt", "foundry-hosted", "portable", "copilot-studio"] },
+    "nativeSpec": { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" },
+    "guide": {
+      "allOf": [
+        { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" },
+        { "properties": { "path": { "const": ".github/instructions/copilot-studio.instructions.md" } } }
+      ]
+    },
     "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
     "name": { "type": "string", "minLength": 3, "maxLength": 80 },
     "description": { "type": "string", "minLength": 40, "maxLength": 500 },
@@ -141,6 +148,29 @@
     }
   },
   "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "3.0.0" } }, "required": ["schemaVersion"] },
+      "then": {
+        "required": ["agentType", "nativeSpec", "guide"],
+        "properties": {
+          "agentType": { "const": "copilot-studio" },
+          "name": { "pattern": "^[^\\s@/\\-][^\\r\\n\\t]*$" }
+        },
+        "not": {
+          "anyOf": [
+            { "required": ["description"] }, { "required": ["purpose"] }, { "required": ["risk"] },
+            { "required": ["capabilities"] }, { "required": ["autonomy"] }, { "required": ["invocation"] },
+            { "required": ["instructions"] }, { "required": ["subagents"] }, { "required": ["handoffs"] },
+            { "required": ["azure"] }, { "required": ["publication"] }, { "required": ["distribution"] }
+          ]
+        }
+      },
+      "else": {
+        "required": ["description", "purpose", "risk", "capabilities", "invocation", "instructions", "subagents", "handoffs"],
+        "properties": { "agentType": { "enum": ["copilot", "foundry-prompt", "foundry-hosted", "portable"] } },
+        "not": { "anyOf": [{ "required": ["nativeSpec"] }, { "required": ["guide"] }] }
+      }
+    },
     {
       "if": { "properties": { "schemaVersion": { "enum": ["2.0.0", "2.1.0", "2.2.0", "2.3.0"] } }, "required": ["schemaVersion"] },
       "then": { "required": ["agentType"] }

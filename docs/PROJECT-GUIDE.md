@@ -9,24 +9,24 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 ## Architecture
 
 - **.azure**: Top-level project boundary containing 1 scanned files.
-- **.github**: Top-level project boundary containing 114 scanned files.
+- **.github**: Top-level project boundary containing 163 scanned files.
 - **.vscode**: Top-level project boundary containing 2 scanned files.
 - **Demo**: Top-level project boundary containing 15 scanned files.
 - **artifacts**: Top-level project boundary containing 26 scanned files.
 - **config**: Top-level project boundary containing 4 scanned files.
 - **docs**: Top-level project boundary containing 6 scanned files.
 - **release**: Top-level project boundary containing 1 scanned files.
-- **reports**: Top-level project boundary containing 99 scanned files.
-- **schemas**: Top-level project boundary containing 65 scanned files.
+- **reports**: Top-level project boundary containing 92 scanned files.
+- **schemas**: Top-level project boundary containing 66 scanned files.
 - **scripts**: Top-level project boundary containing 13 scanned files.
-- **templates**: Top-level project boundary containing 34 scanned files.
-- **tests**: Top-level project boundary containing 26 scanned files.
+- **templates**: Top-level project boundary containing 35 scanned files.
+- **tests**: Top-level project boundary containing 29 scanned files.
 
 ## Technology
 
-- **.md**: 148 scanned files use this extension.
-- **.json**: 139 scanned files use this extension.
-- **.mjs**: 66 scanned files use this extension.
+- **.md**: 190 scanned files use this extension.
+- **.json**: 140 scanned files use this extension.
+- **.mjs**: 72 scanned files use this extension.
 - **.mp3**: 22 scanned files use this extension.
 - **.ps1**: 13 scanned files use this extension.
 - **.svg**: 8 scanned files use this extension.
@@ -35,11 +35,11 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 - **.toml**: 2 scanned files use this extension.
 - **.yaml**: 2 scanned files use this extension.
 - **.html**: 2 scanned files use this extension.
-- **.jsonl**: 2 scanned files use this extension.
+- **.js**: 1 scanned files use this extension.
 
 ## Setup And Usage
 
-- **npm run check**: node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify
+- **npm run check**: node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify
 - **npm run evidence:adoption**: node scripts/adoption-evidence.mjs
 - **npm run inventory**: node pso.mjs inventory --root .
 - **npm run release**: node scripts/build-release.mjs
@@ -49,32 +49,32 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 - **npm run security**: node scripts/security-check.mjs
 - **npm run security:gitleaks**: node .github/skills/audit-code/scripts/gitleaks-scan.mjs scan
 - **npm run security:gitleaks:install**: node .github/skills/audit-code/scripts/gitleaks-scan.mjs install
-- **npm run test**: node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs
+- **npm run test**: node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs
 - **npm run test:gitleaks**: node --test tests/gitleaks-scan.test.mjs
 - **npm run verify**: node pso.mjs verify
 
 ## Capabilities
 
 - **Governed skill workflows**: 50 installed skills provide bounded project actions.
-- **Reusable prompt workflows**: 14 prompt files provide user-invoked workflows.
+- **Reusable prompt workflows**: 58 prompt files provide user-invoked workflows.
 - **Machine-readable contracts**: Schemas validate governed plans, reports, and runtime evidence.
 - **Automated validation**: Repository tests protect contracts and implementation behavior.
 
 ## Validation
 
-- **npm run check**: node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify
+- **npm run check**: node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify
 - **npm run release:verify**: node scripts/verify-release.mjs
 - **npm run release:verify:candidate**: node scripts/verify-release.mjs --candidate
 - **npm run security**: node scripts/security-check.mjs
 - **npm run security:gitleaks**: node .github/skills/audit-code/scripts/gitleaks-scan.mjs scan
 - **npm run security:gitleaks:install**: node .github/skills/audit-code/scripts/gitleaks-scan.mjs install
-- **npm run test**: node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs
+- **npm run test**: node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs
 - **npm run test:gitleaks**: node --test tests/gitleaks-scan.test.mjs
 - **npm run verify**: node pso.mjs verify
 
 ## Limitations
 
-- No explicit limitations were discovered by Project Understanding.
+- Current-code provenance excludes downstream operational attestations to avoid publication cycles: reports/audit-remediation-execution.json, reports/audit-remediation-execution.md, reports/current-execution-state.json, reports/current-execution-state.md, reports/execution-log.jsonl, reports/project-handoff.json, reports/project-handoff.md, reports/current-work-state.json, reports/change-review.json, reports/change-review.md, reports/policy-evaluation.json, reports/policy-evaluation.md, reports/policy-decision-log.jsonl, reports/coordination-state.json, reports/coordination-state.md, reports/regression-test-result.json, reports/regression-test-result.md, reports/gitleaks-scan.json. Read those authoritative reports directly for live workflow/verification state; secret scanning still covers them.
 
 ## Evidence
 

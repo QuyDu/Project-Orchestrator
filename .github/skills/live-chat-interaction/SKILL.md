@@ -43,10 +43,12 @@ Own the reusable local contract for grounded text and half-duplex voice conversa
 
 1. Validate the local configuration and create a pure conversation state.
 2. Apply consent, listening, transcript, endpoint, correction, cancellation, confirmation, response, speaking, reconnect, and fallback events through the reducer.
+   Bind pending submissions to the final displayed transcript and start each new turn with an empty response buffer. Fence asynchronous microphone requests so cancelled or superseded permission completions cannot change current consent state; always stop tracks returned by a late success.
 3. Automatically submit accepted informational turns once, while routing consequential turns to explicit confirmation.
 4. Pause capture during speaking and resume only after completion or cancellation; barge-in remains unsupported.
 5. Validate the approved grounding manifest, bind citations to active source IDs and digests, and return explicit unknown or guided fallback for stale, malformed, unsupported, or instruction-like content.
 6. Enforce session identity, replay, event, retry, and transcript bounds at the local server/session boundary.
+   The opt-in provider adapter sends `max_completion_tokens`; an omitted or zero `responseTokens` selects the configured positive ceiling. It separately enforces a positive `limits.maxResponseBytes` output ceiling (64 KiB by default), 64 KiB stream lines and 1 MiB total streaming input. Byte bounds are not a tokenizer or a guarantee of final billing.
 7. Measure synthetic endpoint decisions and local transition latency with deterministic fixtures; keep microphone-device and cloud-provider latency explicitly unmeasured.
 8. Validate browser text and guided fallbacks, permission-denied handling, cancellation, and credential absence with deterministic tests.
 
@@ -57,7 +59,9 @@ Own the reusable local contract for grounded text and half-duplex voice conversa
 - Informational turns submit automatically exactly once; consequential turns require confirmation.
 - Cancellation rejects late events, correction reopens the turn, and half-duplex capture resumes safely.
 - Grounding citations resolve to a fresh approved manifest or return explicit unknown/guided fallback.
+- Validate grounding and response collections before traversing their members. Rejected rate checks and failures before transport must not retain an active identity slot.
 - Security tests prove no raw audio persistence, browser credentials, cross-session replay, unbounded retries, or unconfirmed consequential execution.
+- Oversized provider streams fail before excess output is retained or yielded, cancel the request, and release owned readers. Streaming UTF-8 decoding preserves characters across chunk boundaries.
 - Synthetic endpoint fixtures and local transition P95 measurements meet their declared thresholds without representing device or provider latency as measured.
 - `node pso.mjs verify`, repository tests, and `npm run check` pass without cloud access.
 

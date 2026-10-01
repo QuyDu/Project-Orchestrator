@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-22T23:58:20.704Z",
+  "generatedAt": "2026-10-01T19:23:55.337Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "e94450270d1491ead0ce1a6115019af88906a7264099688541226f452ec500a3",
+    "jsonSha256": "a89a9611973a44d48beb10dd59d00cf9b4f518896664331135042979461ad7ce",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "94e96426fe4db10ccf77e8170c7ae5f78679bd5995289fe2ea7f9925b3ec79c1"
+    "markdownSha256": "99c6def981948b841a56871174e31b5cdb1e50625a9e37bf43648ceb59eecf9f"
   },
   "guide": "docs/PROJECT-GUIDE.md",
-  "guideSha256": "aa0ec0fb126c31d98d902e0c6f52785da98578822852f4e7495f361745f6269f",
+  "guideSha256": "f35ba984ec3520a42cd36b904eecd23729486dff3159119ac769d5888fd1812a",
   "claims": [
     {
       "id": "claim-01-azure",
@@ -23,7 +23,7 @@
       "id": "claim-02-github",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 114 scanned files.",
+      "statement": "Top-level project boundary containing 163 scanned files.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -86,7 +86,7 @@
       "id": "claim-09-reports",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 99 scanned files.",
+      "statement": "Top-level project boundary containing 92 scanned files.",
       "evidence": [
         "reports/adoption-rerun-evidence.json"
       ]
@@ -95,7 +95,7 @@
       "id": "claim-10-schemas",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 65 scanned files.",
+      "statement": "Top-level project boundary containing 66 scanned files.",
       "evidence": [
         "schemas/adoption-transaction.schema.json"
       ]
@@ -113,7 +113,7 @@
       "id": "claim-12-templates",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 34 scanned files.",
+      "statement": "Top-level project boundary containing 35 scanned files.",
       "evidence": [
         "templates/project/.editorconfig"
       ]
@@ -122,7 +122,7 @@
       "id": "claim-13-tests",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 26 scanned files.",
+      "statement": "Top-level project boundary containing 29 scanned files.",
       "evidence": [
         "tests/adoption-rerun.test.mjs"
       ]
@@ -131,7 +131,7 @@
       "id": "claim-14-md",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "148 scanned files use this extension.",
+      "statement": "190 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -140,7 +140,7 @@
       "id": "claim-15-json",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "139 scanned files use this extension.",
+      "statement": "140 scanned files use this extension.",
       "evidence": [
         ".azure/environment.json"
       ]
@@ -149,7 +149,7 @@
       "id": "claim-16-mjs",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "66 scanned files use this extension.",
+      "statement": "72 scanned files use this extension.",
       "evidence": [
         ".github/skills/agent-builder/scripts/agent-builder.mjs"
       ]
@@ -227,19 +227,19 @@
       ]
     },
     {
-      "id": "claim-25-jsonl",
+      "id": "claim-25-js",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "2 scanned files use this extension.",
+      "statement": "1 scanned files use this extension.",
       "evidence": [
-        "reports/execution-log.jsonl"
+        ".github/skills/visual-companion-builder/scripts/browser-runtime.js"
       ]
     },
     {
       "id": "claim-26-npm-run-check",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
+      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ]
@@ -329,7 +329,7 @@
       "id": "claim-36-npm-run-test",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
+      "statement": "node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
       "evidence": [
         "package.json"
       ]
@@ -369,13 +369,13 @@
       "id": "claim-40-reusable-prompt-workflows",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "14 prompt files provide user-invoked workflows.",
+      "statement": "58 prompt files provide user-invoked workflows.",
       "evidence": [
         ".github/prompts/agent-builder-help.prompt.md",
         ".github/prompts/agent-deployment-help.prompt.md",
-        ".github/prompts/azure-cleanup-help.prompt.md",
-        ".github/prompts/demo-create-project.prompt.md",
-        ".github/prompts/demo-web-app.prompt.md"
+        ".github/prompts/architecture-review-help.prompt.md",
+        ".github/prompts/artifact-upgrade-help.prompt.md",
+        ".github/prompts/audit-azure-environment-help.prompt.md"
       ]
     },
     {
@@ -400,7 +400,7 @@
       "id": "claim-43-npm-run-check",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
+      "statement": "node --check pso.mjs && npm run security && npm run release && npm run release:verify:candidate && node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs && node pso.mjs verify",
       "evidence": [
         "package.json"
       ]
@@ -454,7 +454,7 @@
       "id": "claim-49-npm-run-test",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "node --test tests/skill-contracts.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
+      "statement": "node --test tests/skill-contracts.test.mjs tests/native-copilot-studio.test.mjs tests/azure-discovery.test.mjs tests/agent-builder.test.mjs tests/agent-deployment.test.mjs tests/agent-deployment-platforms.test.mjs tests/visual-companion-builder.test.mjs tests/audit-assurance.test.mjs tests/audit-execution.test.mjs tests/adoption-rerun.test.mjs tests/security-fuzz.test.mjs tests/production-gates.test.mjs tests/package-install.test.mjs tests/project-understanding.test.mjs tests/documentation-builder.test.mjs tests/project-status.test.mjs tests/project-video.test.mjs tests/user-personalization.test.mjs tests/project-visual-storytelling.test.mjs tests/live-chat-interaction.test.mjs tests/live-chat-grounding.test.mjs tests/live-chat-security.test.mjs tests/live-chat-generated-fixture.test.mjs tests/live-chat-provider-adapter.test.mjs tests/live-chat-step016-evaluation.test.mjs tests/compatibility-doctor.test.mjs",
       "evidence": [
         "package.json"
       ]

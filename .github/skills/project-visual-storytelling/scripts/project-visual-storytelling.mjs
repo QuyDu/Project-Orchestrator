@@ -2,12 +2,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { lstat, mkdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
+import { link, lstat, mkdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { PROFILE_PATH, assertProfileStorageIgnored, validateProfile } from "../../user-personalization/scripts/user-personalization.mjs";
 import { generateAzureOpenAIImage, inspectAzureOpenAIImage, supportsAzureOpenAIImageDimensions } from "./azure-openai-image-render.mjs";
 import { generateMaiImage, inspectMaiImage, supportsMaiImageDimensions } from "./mai-image-render.mjs";
+import { ensureDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
 
 const OUTPUT_TYPES = new Set(["whiteboard", "whiteboard-specification", "diorama", "diorama-specification"]);
 const DIAGRAM_TYPES = new Set(["architecture", "component", "deployment", "data-flow", "sequence", "process", "agent-topology", "executive-overview"]);
@@ -229,6 +230,27 @@ async function verifyRender(root, runId) {
   };
 }
 
+async function refreshImageDiscovery(root, preference = "auto") {
+  const capabilities = await Promise.all([
+    preference === "mai-image" ? null : inspectAzureOpenAIImage(root),
+    preference === "azure-openai" ? null : inspectMaiImage(root)
+  ]);
+  if (!capabilities.some((capability) => capability?.refreshRequired)) return false;
+  await ensureDiscovery(root);
+  return true;
+}
+
+async function removeOwnedRenderPath(target, identity, options = {}) {
+  let current;
+  try {
+    current = await lstat(target, { bigint: true });
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
+  if (current.dev === identity.dev && current.ino === identity.ino) await rm(target, options);
+}
+
 async function renderRun(root, runId, externalProcessingApproved) {
   const { directory, relativeDirectory, context } = await loadRun(root, runId);
   if (context.outputType.endsWith("-specification")) throw new Error("Specification-only runs cannot invoke a renderer");
@@ -237,39 +259,89 @@ async function renderRun(root, runId, externalProcessingApproved) {
   const planSource = await readFile(planPath, "utf8");
   const plan = validateRenderPlan(JSON.parse(planSource), context, profile);
   if (plan.creationDate !== currentDateInTimezone(profile.contentDefaults.timezone)) throw new Error("Render plan creationDate is not current in the configured timezone");
-  const [azureOpenAI, mai] = await Promise.all([inspectAzureOpenAIImage(root), inspectMaiImage(root)]);
-  if (plan.renderer.preference === "azure-openai" && !azureOpenAI.available) throw new Error(azureOpenAI.reason);
-  if (plan.renderer.preference === "mai-image" && !mai.available) throw new Error(mai.reason);
   const externalProcessingIsApproved = externalProcessingApproved === "true";
   if (!externalProcessingIsApproved) throw new Error("Image generation requires --external-processing-approved true for this run");
-  const automaticAzureOpenAI = externalProcessingIsApproved && azureOpenAI.available && supportsAzureOpenAIImageDimensions(plan.canvas.width, plan.canvas.height);
-  const automaticMai = externalProcessingIsApproved && mai.available && supportsMaiImageDimensions(plan.canvas.width, plan.canvas.height);
-  const bitmap = plan.renderer.preference === "azure-openai" ? azureOpenAI
-    : plan.renderer.preference === "mai-image" ? mai
-      : plan.renderer.preference === "auto" ? (automaticAzureOpenAI ? azureOpenAI : automaticMai ? mai : null)
-        : null;
-  if (!bitmap) {
-    throw new Error(`No qualified Azure Government image model supports this render plan. Azure OpenAI: ${azureOpenAI.reason || "dimensions unsupported"}. MAI: ${mai.reason || "dimensions unsupported"}.`);
+
+  const stagingPath = await safeRelativeTarget(root, `${relativeDirectory}/.rendering`, "directory");
+  try {
+    await mkdir(stagingPath, { recursive: false, mode: 0o700 });
+  } catch (error) {
+    if (error.code === "EEXIST") throw new Error("Rendering is already reserved for this run; finish recovery or use a new preflight run.");
+    throw error;
   }
-  if (bitmap) {
+  const reservation = await lstat(stagingPath, { bigint: true });
+  const published = [];
+  let recoveryRequired = false;
+  try {
+    for (const name of [bitmapCandidateName(context.visualStyle, "azure-openai"), bitmapCandidateName(context.visualStyle, "mai-image"), RENDER_REPORT_FILE]) {
+      const target = await safeRelativeTarget(root, `${relativeDirectory}/${name}`, "file");
+      try {
+        await lstat(target);
+      } catch (error) {
+        if (error.code === "ENOENT") continue;
+        throw error;
+      }
+      throw new Error(`Render output already exists: ${name}; use a new preflight run.`);
+    }
+    const publicationProbe = path.join(stagingPath, ".publication-probe");
+    await writeFile(publicationProbe, "", { mode: 0o600, flag: "wx" });
+    try {
+      await link(publicationProbe, `${publicationProbe}-link`);
+    } catch (error) {
+      throw new Error("Cannot reserve no-clobber publication on this filesystem; no image request was sent.", { cause: error });
+    }
+    if (await refreshImageDiscovery(root, plan.renderer.preference)) {
+      throw new Error("Azure discovery was refreshed; run preflight and review a new render plan before rendering. Existing plan evidence was not rebound.");
+    }
+    const [azureOpenAI, mai] = await Promise.all([inspectAzureOpenAIImage(root), inspectMaiImage(root)]);
+    if (plan.renderer.preference === "azure-openai" && !azureOpenAI.available) throw new Error(azureOpenAI.reason);
+    if (plan.renderer.preference === "mai-image" && !mai.available) throw new Error(mai.reason);
+    const automaticAzureOpenAI = externalProcessingIsApproved && azureOpenAI.available && supportsAzureOpenAIImageDimensions(plan.canvas.width, plan.canvas.height);
+    const automaticMai = externalProcessingIsApproved && mai.available && supportsMaiImageDimensions(plan.canvas.width, plan.canvas.height);
+    const bitmap = plan.renderer.preference === "azure-openai" ? azureOpenAI
+      : plan.renderer.preference === "mai-image" ? mai
+        : plan.renderer.preference === "auto" ? (automaticAzureOpenAI ? azureOpenAI : automaticMai ? mai : null)
+          : null;
+    if (!bitmap) {
+      throw new Error(`No qualified Azure Government image model supports this render plan. Azure OpenAI: ${azureOpenAI.reason || "dimensions unsupported"}. MAI: ${mai.reason || "dimensions unsupported"}.`);
+    }
     const imagePath = path.join(directory, bitmapCandidateName(context.visualStyle, bitmap.provider));
     const reportPath = path.join(directory, RENDER_REPORT_FILE);
-    try {
-      const generateImage = bitmap.provider === "azure-openai" ? generateAzureOpenAIImage : generateMaiImage;
-      const report = await generateImage({
-        capability: bitmap,
-        prompt: plan.renderer.prompt,
-        width: plan.canvas.width,
-        height: plan.canvas.height,
-        outputPath: imagePath,
-        renderPlanSha256: sha256(planSource)
-      });
-      await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
-      return verifyRender(root, runId);
-    } catch (error) {
-      await Promise.all([rm(imagePath, { force: true }), rm(reportPath, { force: true })]);
-      throw error;
+    const stagedImage = path.join(stagingPath, path.basename(imagePath));
+    const stagedReport = path.join(stagingPath, RENDER_REPORT_FILE);
+    const generateImage = bitmap.provider === "azure-openai" ? generateAzureOpenAIImage : generateMaiImage;
+    const report = await generateImage({
+      capability: bitmap,
+      prompt: plan.renderer.prompt,
+      width: plan.canvas.width,
+      height: plan.canvas.height,
+      outputPath: stagedImage,
+      renderPlanSha256: sha256(planSource)
+    });
+    await writeFile(stagedReport, `${JSON.stringify(report, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
+    for (const [source, target] of [[stagedImage, imagePath], [stagedReport, reportPath]]) {
+      const identity = await lstat(source, { bigint: true });
+      // Hard-link publication is no-clobber and retains an identity for ownership-checked rollback.
+      await link(source, target);
+      published.push({ target, identity });
     }
+    return await verifyRender(root, runId);
+  } catch (error) {
+    const cleanupErrors = [];
+    for (const { target, identity } of published.reverse()) {
+      try {
+        await removeOwnedRenderPath(target, identity);
+      } catch (cleanupError) {
+        cleanupErrors.push(cleanupError);
+      }
+    }
+    if (cleanupErrors.length) {
+      recoveryRequired = true;
+      throw new AggregateError([error, ...cleanupErrors], "Rendering failed and owned output cleanup is incomplete; preserve the reserved run for recovery.");
+    }
+    throw error;
+  } finally {
+    if (!recoveryRequired) await removeOwnedRenderPath(stagingPath, reservation, { recursive: true, force: true });
   }
 }
 
@@ -622,10 +694,11 @@ function validateOutputType(outputType) {
   if (!OUTPUT_TYPES.has(outputType)) throw new Error(`Unsupported --output-type: ${outputType || "missing"}`);
 }
 
-async function prepareVisualRun(root, outputType) {
+async function prepareVisualRun(root, outputType, refreshDiscovery = false) {
   validateOutputType(outputType);
   const profile = await loadProfile(root);
-  const source = await refreshProjectUnderstanding(root);
+  let source = await refreshProjectUnderstanding(root);
+  if (refreshDiscovery && await refreshImageDiscovery(root)) source = await refreshProjectUnderstanding(root);
   const generatedAt = new Date().toISOString();
   const { runId, directory: outputDirectory } = await reserveOutputDirectory(root, source, outputType, generatedAt);
   const visualStyle = outputType.startsWith("diorama") ? "diorama" : "whiteboard";
@@ -676,7 +749,13 @@ async function createVisual(root, options) {
   if (options["external-processing-approved"] !== "true") throw new Error("Create requires --external-processing-approved true because rendered whiteboards and dioramas use an Azure Government image model");
   const request = normalizedText(options.request, "", 1600);
   assertString(request, "Create request", 1600);
-  const { context, profile, source } = await prepareVisualRun(root, outputType);
+  const audience = options.audience ?? "technical";
+  const state = options.state ?? "current";
+  const detail = options.detail ?? "medium";
+  if (!DIAGRAM_AUDIENCES.has(audience) || !DIAGRAM_STATES.has(state) || !DIAGRAM_DETAILS.has(detail)) {
+    throw new Error("Create audience, state, or detail is unsupported");
+  }
+  const { context, profile, source } = await prepareVisualRun(root, outputType, true);
   const directory = context.destination.directory;
   const elements = renderElements(source, profile, context.visualStyle);
   const creationDate = currentDateInTimezone(profile.contentDefaults.timezone);
@@ -699,17 +778,14 @@ async function createVisual(root, options) {
     source: { kind: "current-project", repositoryDigestSha256: source.repositoryDigestSha256, projectUnderstandingDigestSha256: source.jsonSha256 },
     visual: {
       type: context.visualStyle,
-      audience: options.audience ?? "technical",
-      state: options.state ?? "current",
-      detail: options.detail ?? "medium",
+      audience,
+      state,
+      detail,
       formats: ["png", "spec"]
     },
     destination: { directory },
     rendering: { allowedClasses: ["bitmap-generation"] }
   };
-  if (!DIAGRAM_AUDIENCES.has(requestRecord.visual.audience) || !DIAGRAM_STATES.has(requestRecord.visual.state) || !DIAGRAM_DETAILS.has(requestRecord.visual.detail)) {
-    throw new Error("Create audience, state, or detail is unsupported");
-  }
   const prefix = context.visualStyle;
   const requestPath = `${directory}/request.json`;
   const planPath = `${directory}/${RENDER_PLAN_FILE}`;

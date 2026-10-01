@@ -97,6 +97,14 @@
       "mandatory": true
     },
     {
+      "path": ".github/instructions/copilot-studio.instructions.md",
+      "kind": "scoped-instructions",
+      "purpose": "native Copilot Studio authoring deployment evaluation and channel verification",
+      "applyTo": "copilot-studio/**,**/*.mcs.yml,**/*.mcs.yaml,scripts/*studio*.ts,tests/studio-*.test.ts",
+      "requires": ["copilot-studio"],
+      "mandatory": true
+    },
+    {
       "path": ".github/instructions/security.instructions.md",
       "kind": "scoped-instructions",
       "purpose": "security secrets identity injection owasp",

@@ -5,7 +5,9 @@
   "type": "object", "additionalProperties": false,
   "required": ["schemaVersion", "action", "status", "target", "agentId", "planId", "planSha256", "packagePath", "packageSha256", "statePath", "activeVersion", "previousVersion", "identityId", "verifiedAt", "code", "message"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
+    "nativeStudioHandoffSha256": { "$ref": "agent-deployment-plan.schema.json#/$defs/sha256" },
+    "studioEvidence": { "$ref": "agent-deployment-plan.schema.json#/$defs/studioDeploymentEvidence" },
     "action": { "enum": ["package", "apply", "verify", "rollback", "status"] },
     "status": { "enum": ["packaged", "verified", "partial", "rolled-back", "rollback-partial", "unverified", "drifted", "manual-handoff", "unavailable", "imported", "provisioned", "deployed", "publication-submitted", "pending-admin-approval", "published", "verification-required"] },
     "platformOutcome": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/platformOutcome" }] },
@@ -23,6 +25,11 @@
     "code": { "type": ["string", "null"], "pattern": "^[A-Z0-9_]{1,80}$" },
     "message": { "type": "string", "minLength": 1, "maxLength": 1000 }
   },
+  "allOf": [{
+    "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+    "then": { "required": ["nativeStudioHandoffSha256", "studioEvidence"], "properties": { "target": { "const": "copilot-studio" } } },
+    "else": { "not": { "anyOf": [{ "required": ["nativeStudioHandoffSha256"] }, { "required": ["studioEvidence"] }] } }
+  }],
   "$defs": {
     "platformOutcome": {
       "type": "object", "additionalProperties": false,

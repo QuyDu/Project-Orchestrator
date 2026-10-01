@@ -49,10 +49,13 @@ function normalizeSyncs(value, now) {
     const intervalMinutes = finiteNumber(sync.expectedIntervalMinutes ?? sync.intervalMinutes, 60);
     const graceMinutes = finiteNumber(sync.graceMinutes, intervalMinutes, true);
     const last = lastSuccess ? parsedLastSuccess : NaN;
+    const future = Number.isFinite(last) && last > now;
     const status = sync.status === "failed" || sync.lastRunStatus === "failed" ? "failed"
+      : future ? "unknown"
       : Number.isFinite(last) && now - last > (intervalMinutes + graceMinutes) * 60_000 ? "stale"
       : Number.isFinite(last) ? "healthy" : "unknown";
-    return { name: String(sync.name || sync.id || "unnamed-sync"), status, lastSuccess, lastError: stringOrNull(sync.lastError || sync.error), expectedIntervalMinutes: intervalMinutes, graceMinutes };
+    const lastError = stringOrNull(sync.lastError || sync.error) ?? (future ? "Success timestamp is in the future; freshness cannot be established." : null);
+    return { name: String(sync.name || sync.id || "unnamed-sync"), status, lastSuccess, lastError, expectedIntervalMinutes: intervalMinutes, graceMinutes };
   });
 }
 

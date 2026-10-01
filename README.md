@@ -4,9 +4,9 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 | Item | Value |
 | --- | --- |
-| Runtime version | `1.2.0` |
-| Source version date | September 22, 2026 |
-| Framework version | `9.1.0` |
+| Runtime version | `1.3.0` |
+| Source version date | October 1, 2026 |
+| Framework version | `9.2.0` |
 | Skill catalog | 50 governed skills |
 | Supported Node.js | 22, 24, 26 |
 | Dependencies | None |
@@ -17,7 +17,7 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 > `.skills-orchestrator` state directory remain stable compatibility interfaces for existing
 > projects and automation.
 
-> **Release status.** Version `1.2.0` is a source update dated September 22, 2026. No GitHub Release or package is published. The formal release remains blocked by trusted signing, independent release-review evidence, and operational readiness evidence tracked in [release/release-manifest.json](release/release-manifest.json). The completed code/security reviews do not substitute for those release attestations. See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+> **Release status.** Version `1.3.0` is a source update dated October 1, 2026. No GitHub Release or package is published. The formal release remains blocked by trusted signing, independent release-review evidence, and operational readiness evidence tracked in [release/release-manifest.json](release/release-manifest.json). The completed code/security reviews do not substitute for those release attestations. See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 > **Security and use notice.** Reasonable security efforts do not eliminate all risk. Before using this software, read [DISCLAIMER.md](DISCLAIMER.md), perform independent checks appropriate to your environment, and comply with the internal-use terms in [LICENSE](LICENSE).
 
@@ -42,6 +42,8 @@ It has two halves.
 **A catalog of 50 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
 
 The `live-chat-interaction` skill ships a provider-neutral local conversation reducer, approved-manifest grounding, credential-free session boundary, and accessible text/guided fallback assets. Informational turns can submit after endpoint acceptance; consequential intent always requires explicit confirmation. No cloud provider or raw audio persistence is part of this local capability.
+
+The opt-in server adapter forwards its configured completion-token limit to the provider and independently caps output at 64 KiB by default, individual stream lines at 64 KiB, and the input stream at 1 MiB. Oversized responses stop with an explicit error and release the transport; byte ceilings are not token counts or billing guarantees. Provider use still requires separate approval.
 
 ### What makes it different
 
@@ -181,6 +183,10 @@ separately from the trusted, validated Launch Pad checkout.
 neither is force-all. The plan classifies each selected managed asset against its installed baseline,
 local content, and current upstream content, then writes `reports/project-update-plan.json` and
 `reports/project-update-plan.md`.
+
+Scaffold updates read the exact template source reviewed by the plan, not a similarly named Launch Pad file. Additive compatibility checks include the selected files that will exist after application. Legacy plans record unknown installed provenance as `null`; they never substitute the current upstream identity for missing historical evidence.
+
+For assets planned as no-action, application verifies the reviewed local bytes and preserves the appropriate installed baseline rather than requiring unrelated upstream equality. A local edit made after planning still blocks application. Adoption journals include both manifest and baseline lock so a reported rollback restores their consistent prior state.
 
 ```powershell
 # Safe-all plan.
@@ -703,6 +709,8 @@ Open the project in VS Code, start Copilot Chat in **Agent** mode, and invoke a 
 
 `project-visual-storytelling` creates technical diagrams without personalization. Profile-aware whiteboards and dioramas require a valid `.skills-orchestrator/user-personalization.json`; when it is missing or invalid, `user-personalization` asks a bounded, reusable questionnaire before visual work continues. The profile stores only user-approved public-facing preferences and professional context, remains ignored by Git, and is never copied into reports or generated documentation.
 
+Profile writes verify effective Git ignore rules and index tracking for the profile and transaction files, including negations and nested rules. A project without Git is checked through an owned temporary Git context; its repository is not initialized. Missing Git, tracked private files, or unignored staging/backup paths block persistence. Rejected profile values and malformed JSON fragments are not echoed in diagnostics.
+
 Every `/project-visual-storytelling` run performs a fresh Project Understanding scan and uses the current repository as its sole topic and source. Preflight binds the run to that repository digest and assigns a unique local destination under `artifacts/project-visual-storytelling/<run-id>/`; external source and output-path overrides are rejected.
 
 For architecture, component, deployment, data-flow, sequence, process, agent-topology, or executive views, use the unified technical command. It writes editable Mermaid source, a specification, evidence map, alt text, request, and an honest `partial` result until a local SVG or PNG renderer is qualified:
@@ -756,7 +764,7 @@ Every profile is dependency-closed and enforced by tests.
 
 ### Project video
 
-Every created or adopted project receives `/project-understanding`, `/documentation-builder`, `/project-video`, their schemas, and self-contained Node.js helpers. Project Understanding performs a complete rescan on every run and atomically rebuilds `reports/project-understanding.json` and its Markdown view. When a user explicitly invokes `/documentation-builder`, it builds the canonical `docs/PROJECT-GUIDE.md` and evidence-bound `reports/project-guide.json`. `/project-video`, `/linkedin-post`, and future presentation workflows consume that guide and verify it against current code and reports. These workflows do not run automatically after project creation or during unrelated skills.
+Every created or adopted project receives `/project-understanding`, `/documentation-builder`, `/project-video`, their schemas, and self-contained Node.js helpers. Project Understanding performs a complete rescan on every run and publishes `reports/project-understanding.json` and its Markdown view as a recoverable pair. Incomplete rollback retains recovery artifacts; cleanup errors after commitment preserve the new pair. When a user explicitly invokes `/documentation-builder`, it builds the canonical `docs/PROJECT-GUIDE.md` and evidence-bound `reports/project-guide.json`. Build and validation reuse the understanding owner's current-source check, reject changed source, and preserve planned/unverified classifications instead of upgrading them to verified behavior. `/project-video`, `/linkedin-post`, and future presentation workflows consume that guide and verify it against current code and reports. These workflows do not run automatically after project creation or during unrelated skills.
 
 After rebuilding Project Understanding, every invocation runs `discovery-status`. When Azure discovery is missing or unusable, the skill asks whether to run `/azure-discovery`. A yes refreshes discovery and continues through `azure-preflight`. A no explicitly selects `browser-preview` and generates project-specific HTML with browser-default English speech, responsive visuals, manual controls, and scene advancement on utterance completion. The browser or operating system controls voice processing, which may use an online service. This fallback preserves the same pages and dialogue but is not rendered audio, portable video, or an MP4.
 

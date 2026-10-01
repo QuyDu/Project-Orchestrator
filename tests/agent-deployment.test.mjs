@@ -82,10 +82,11 @@ function providerDouble() {
 }
 
 async function fixture(t, target = "foundry-endpoint") {
-  const project = await mkdtemp(path.join(os.tmpdir(), "pso-deployment-core-"));
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-deployment-fixture-"));
+  assert.ok(!project.startsWith(`${root}${path.sep}`), "deployment fixtures must not enter repository evidence scans");
   await mkdir(path.join(project, ".azure"), { recursive: true });
   t.after(async () => {
-    await rm(project, { recursive: true, force: true });
+    await rm(project, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
   const source = `${JSON.stringify(blueprint(target), null, 2)}\n`;
   await writeFile(path.join(project, "agent.json"), source);
@@ -125,6 +126,20 @@ async function fixture(t, target = "foundry-endpoint") {
   });
   return { project, request, profile, provider, deps, save, plan, read, approved };
 }
+
+test("deployment packages retain local deployment guidance without adding it to remote prompts", async (t) => {
+  const f = await fixture(t);
+  const packaged = await runDeployment("package", { project: f.project, request: "request.json" }, f.deps);
+  const local = await readFile(path.join(f.project, packaged.packagePath, "agent.md"), "utf8");
+  assert.match(local, /^## Deployment Guidance$/m);
+  assert.match(local, /agent-builder\/references\/deployment-handoff\.md/);
+  const instructions = await readFile(path.join(f.project, packaged.packagePath, "instructions.txt"), "utf8");
+  const definition = JSON.parse(await readFile(path.join(f.project, packaged.packagePath, "definition.json"), "utf8"));
+  assert.equal(definition.instructions, instructions);
+  assert.deepEqual(definition.tools, []);
+  assert.doesNotMatch(instructions, /Deployment Guidance|deployment-handoff\.md|agent-deployment\/SKILL\.md/);
+  assert.deepEqual(f.provider.calls, [], "local packaging must not acquire provider authority");
+});
 
 async function hostedFixture(t) {
   const f = await fixture(t);
@@ -1709,4 +1724,54 @@ test("Toolkit registry separates lifecycle execution from retained-package submi
   const capability = getCapabilities().providers.find((item) => item.target === "microsoft-365-agents-toolkit");
   assert.match(capability.automaticSteps.join(" "), /retained ZIP/i);
   assert.match(capability.limitations.join(" "), /TypeSpec.*comments/i);
+});
+
+test("a native provider cannot elevate CLI publication or a local attestation into generic published success", async (t) => {
+  const f = await nativeFixture(t);
+  const common = f.request.copilotStudio;
+  f.request.copilotStudio = {
+    operation: "publish", expectedCliVersion: common.expectedCliVersion,
+    environment: common.environment, identityEvidence: common.identityEvidence,
+    botId: "66666666-6666-4666-8666-666666666666"
+  };
+  await f.save();
+  f.platform.execute = async () => ({
+    status: "published", responseId: "local-attestation", resourceIds: [f.request.copilotStudio.botId],
+    version: null, mutationAccepted: true, publicationVerified: true,
+    evidenceSha256: "a".repeat(64), messageCode: "CLAIMED_PUBLICATION"
+  });
+  const plan = await f.plan();
+  const outcome = await runDeployment("apply", { ...f.approved(plan), approve: plan.requiredApprovals }, f.deps);
+  assert.equal(outcome.status, "partial");
+  assert.equal(outcome.code, "PUBLICATION_CLAIM");
+  assert.equal(outcome.verifiedAt, null);
+});
+
+test("deployment request rejects OAuth query credentials without echoing their value", async (t) => {
+  const f = await fixture(t);
+  f.request.verification.prompt = "https://example.invalid/callback?code=private-oauth-value-never-log";
+  assert.throws(() => validateRequest(f.request), (error) => {
+    assert.equal(error.code, "CREDENTIAL_REJECTED");
+    assert.doesNotMatch(error.message, /private-oauth-value/);
+    return true;
+  });
+
+});
+
+test("native deployment 1.1 explicitly requires a handoff and cannot be smuggled into legacy requests", async (t) => {
+  const f = await nativeFixture(t);
+  const native = {
+    ...f.request, schemaVersion: "1.1.0",
+    runtime: { ...f.request.runtime, kind: "native-copilot-studio" },
+    nativeStudioHandoff: { path: "native-handoff.json", sha256: "a".repeat(64) }
+  };
+  assert.equal(validateRequest(native), native);
+  assert.throws(() => validateRequest({ ...native, nativeStudioHandoff: undefined }), /contract/i);
+  assert.throws(() => validateRequest({ ...native, schemaVersion: "1.0.0" }), /contract/i);
+  assert.throws(() => validateRequest({ ...native, runtime: f.request.runtime }), /contract/i);
+  assert.equal(validateRequest(f.request).schemaVersion, "1.0.0", "existing requests remain readable");
+  f.platform.calls.length = 0;
+  await writeFile(path.join(f.project, "request.json"), JSON.stringify(native));
+  await assert.rejects(runDeployment("plan", { project: f.project, request: "request.json" }, f.deps), /input|missing/i);
+  assert.deepEqual(f.platform.calls, []);
 });

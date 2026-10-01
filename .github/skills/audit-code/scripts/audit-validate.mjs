@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, readFileSync, readlinkSync, realpathSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { createReadStream, existsSync, lstatSync, readFileSync, readlinkSync, realpathSync } from "node:fs";
 import path from "node:path";
+import { StringDecoder } from "node:string_decoder";
 
 const REQUIRED_STANDARDS = new Set([
   "microsoft-sdl",
@@ -168,27 +169,71 @@ async function snapshotPlan(planPath, root) {
   return { status: "valid", command: "snapshot", path: snapshotPath, planId: plan.planId, sha256, sourceReview: plan.sourceReview };
 }
 
+function errorCode(error) {
+  return /^[A-Z][A-Z0-9_]*$/.test(error?.code ?? "") ? error.code : "unknown";
+}
+
+function failGit(operation, { error, outputError, status, signal }) {
+  const detail = error ? `could not start (${errorCode(error)})`
+    : outputError ? `output could not be read (${errorCode(outputError)})`
+      : signal ? `terminated by signal ${signal}` : `exited with status ${status ?? "unknown"}`;
+  fail([`could not inspect resume repository: git ${operation} ${detail}; check Git availability and repository state (output withheld)`]);
+}
+
 function git(root, ...args) {
-  const result = spawnSync("git", args, { cwd: path.resolve(root), encoding: "utf8", windowsHide: true, shell: false });
-  if (result.status !== 0) fail([`could not inspect resume repository: ${result.stderr.trim() || result.stdout.trim()}`]);
+  const result = spawnSync("git", args, {
+    cwd: path.resolve(root), encoding: "utf8", windowsHide: true, shell: false,
+    stdio: ["ignore", "pipe", "ignore"]
+  });
+  if (result.error || result.status !== 0) failGit(args[0], result);
   return result.stdout.trim();
 }
 
-function gitBuffer(root, ...args) {
-  const result = spawnSync("git", args, { cwd: path.resolve(root), encoding: null, windowsHide: true, shell: false });
-  if (result.status !== 0) fail([`could not inspect resume repository: ${result.stderr?.toString().trim() || result.stdout?.toString().trim()}`]);
-  return result.stdout;
+async function consumeGitOutput(root, args, consume) {
+  let child;
+  try {
+    child = spawn("git", args, {
+      cwd: path.resolve(root), windowsHide: true, shell: false,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+  } catch (error) {
+    failGit(args[0], { error });
+  }
+  let error;
+  let outputError;
+  child.on("error", (cause) => { error ??= cause; });
+  const closed = new Promise((resolve) => child.once("close", (status, signal) => resolve({ status, signal })));
+  try {
+    for await (const chunk of child.stdout) consume(chunk);
+  } catch (cause) {
+    outputError = cause;
+    child.stdout?.destroy();
+    if (child.pid && child.exitCode === null && child.signalCode === null) child.kill();
+  }
+  const result = await closed;
+  child.stdout?.destroy();
+  if (error || outputError || result.status !== 0) failGit(args[0], { ...result, error, outputError });
 }
 
-function worktreeDigest(root) {
+async function worktreeDigest(root) {
   const repositoryRoot = path.resolve(root);
   const revision = git(repositoryRoot, "rev-parse", "HEAD");
   const excludedPathspecs = [...WORKFLOW_STATE_PATHS].map((file) => `:(exclude)${file}`);
-  const diff = gitBuffer(repositoryRoot, "diff", "--binary", "--no-ext-diff", "HEAD", "--", ".", ...excludedPathspecs);
-  const untrackedFiles = gitBuffer(repositoryRoot, "ls-files", "--others", "--exclude-standard", "-z")
-    .toString("utf8").split("\0").filter((file) => file && !WORKFLOW_STATE_PATHS.has(file)).sort();
-  const untracked = Buffer.from(`${untrackedFiles.join("\0")}${untrackedFiles.length ? "\0" : ""}`);
-  const digest = createHash("sha256").update(revision).update("\0").update(diff).update("\0").update(untracked);
+  const digest = createHash("sha256").update(revision).update("\0");
+  await consumeGitOutput(repositoryRoot, ["diff", "--binary", "--no-ext-diff", "HEAD", "--", ".", ...excludedPathspecs], (chunk) => digest.update(chunk));
+  const untrackedFiles = [];
+  const decoder = new StringDecoder("utf8");
+  let pending = "";
+  const includeFile = (file) => { if (file && !WORKFLOW_STATE_PATHS.has(file)) untrackedFiles.push(file); };
+  await consumeGitOutput(repositoryRoot, ["ls-files", "--others", "--exclude-standard", "-z"], (chunk) => {
+    const names = (pending + decoder.write(chunk)).split("\0");
+    pending = names.pop();
+    for (const name of names) includeFile(name);
+  });
+  includeFile(pending + decoder.end());
+  untrackedFiles.sort();
+  digest.update("\0");
+  for (const relative of untrackedFiles) digest.update(relative).update("\0");
   for (const relative of untrackedFiles) {
     const file = path.resolve(repositoryRoot, relative);
     const boundary = path.relative(repositoryRoot, file);
@@ -196,7 +241,8 @@ function worktreeDigest(root) {
     try {
       const stat = lstatSync(file);
       digest.update("\0").update(relative).update("\0");
-      digest.update(stat.isSymbolicLink() ? readlinkSync(file) : readFileSync(file));
+      if (stat.isSymbolicLink()) digest.update(readlinkSync(file));
+      else for await (const chunk of createReadStream(file)) digest.update(chunk);
     } catch (error) {
       fail([`untracked path changed during resume validation: '${relative}': ${error.message}`]);
     }
@@ -521,7 +567,7 @@ async function validateExecution(plan, execution, planPath, planSha256, reposito
   if (selection.mode === "resume" && resumeRoot && finalCheckpoint) {
     const currentRevision = git(resumeRoot, "rev-parse", "HEAD");
     if (finalCheckpoint.repositoryRevision !== currentRevision) errors.push("resume repository revision does not match checkpoint");
-    if (finalCheckpoint.worktreeDigest !== worktreeDigest(resumeRoot)) errors.push("resume worktree digest does not match checkpoint");
+    if (finalCheckpoint.worktreeDigest !== await worktreeDigest(resumeRoot)) errors.push("resume worktree digest does not match checkpoint");
   }
   if (errors.length) fail(errors);
 }
@@ -539,7 +585,7 @@ else if (command === "execution" && (args.length === 4 || args.length === 6) && 
   const planArtifact = await loadJsonArtifact(args[0]);
   await validateExecution(planArtifact.value, await loadJson(args[1]), args[0], planArtifact.sha256, args[3], args[5]);
 } else if (command === "checkpoint" && args.length === 1) {
-  result = { status: "valid", command, repositoryRevision: git(args[0], "rev-parse", "HEAD"), worktreeDigest: worktreeDigest(args[0]) };
+  result = { status: "valid", command, repositoryRevision: git(args[0], "rev-parse", "HEAD"), worktreeDigest: await worktreeDigest(args[0]) };
 } else if (command === "snapshot" && args.length === 2) {
   result = await snapshotPlan(args[0], args[1]);
 } else throw new Error("Use findings <report.json>, review <source.json> <review.json>, plan <plan.json>, execution <plan-snapshot.json> <execution.json> --root PATH [--resume-root PATH], checkpoint <repository-root>, or snapshot <canonical-plan.json> <repository-root>");

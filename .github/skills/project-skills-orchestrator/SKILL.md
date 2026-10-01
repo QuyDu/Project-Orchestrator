@@ -23,6 +23,7 @@ Coordinate project workflows by discovering capabilities, routing intent, enforc
 - Clarification result from `clarify-the-ask` when the request is ambiguous, conflicting, or high impact.
 - Skill and ownership catalog from `skill-inventory`.
 - Workflow plan from `workflow-planner`, current execution state from `workflow-state-manager`, and policy decision evidence from `policy-engine`.
+- Explicit native Copilot Studio runtime/operation intent and the project-local `.github/instructions/copilot-studio.instructions.md` when that destination is selected. A generic Copilot term or a distribution label alone does not establish native implementation.
 
 ## Approved Tools and Resources
 
@@ -40,8 +41,10 @@ Coordinate project workflows by discovering capabilities, routing intent, enforc
 
 1. Route every new user prompt through `clarify-the-ask` first; when the project configures `askEveryPrompt`, no step is dispatched until the required questions are answered and the stated plan is explicitly confirmed.
 2. Resolve clarified intent to candidate skills using the inventory and ownership map.
+   For native Copilot Studio creation, update, import, evaluation, troubleshooting or publication, explicitly load and validate `.github/instructions/copilot-studio.instructions.md` before requirements, scaffolding, blueprint validation or deployment handoff, even when no native files exist. Resolve ambiguous destinations once and reuse that choice; preserve each distinct requested operation. The runtime records the guide path and SHA-256 in its routing step before it writes a native workflow plan.
 3. Route any request to create, add, define, author, build, or make a skill to `skill-create` before any other skill-authoring step, regardless of the user's wording. `skill-create` must compare the requested capability with the inventory and identify reusable existing skills before authoring.
 4. Route any request to modify, revise, enhance, fix, or update an existing skill to `skill-update`. When the user did not provide an exact canonical ID, require candidate identification and user selection before an update proposal is prepared.
+   Native project setup uses the existing `project-setup` owner and explicit `--stack copilot-studio`; native creation/update preparation uses `agent-builder`; approved remote operations and evidence use `agent-deployment`. Do not install a hosted backend, require an Azure hosting subscription, or grant auth/publication authority through local routing.
 5. Load authoritative workflow plan and current execution state to determine next executable step.
 6. Enforce policy decisions before dispatching any step that is blocked, denied, or approval-gated.
 7. Route each eligible step to exactly one owning skill and prevent overlapping ownership claims.
@@ -57,6 +60,7 @@ Coordinate project workflows by discovering capabilities, routing intent, enforc
 - Orchestration status aligns with current execution state and workflow plan ordering.
 - Blocked or approval-wait states are explicit and not reported as complete.
 - Completion artifacts are internally consistent and traceable to upstream evidence.
+- Native intent is never satisfied by a local Markdown agent alone. Missing guide, runtime choice, operation, capability or evidence remains a specific blocked/pending condition. Ordinary app, GitHub Copilot, SDK, Foundry and Toolkit routes remain separate.
 
 ## Outputs
 

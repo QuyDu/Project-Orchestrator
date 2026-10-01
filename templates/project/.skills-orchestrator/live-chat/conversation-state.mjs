@@ -37,10 +37,10 @@ export function reduceConversation(current, event) {
   switch (event.type) {
     case "GRANT_CONSENT": return { ...state, status: "idle", cancelled: false };
     case "DENY_CONSENT": return { ...state, status: "denied" };
-    case "START_LISTENING": return state.status === "idle" || state.status === "cancelled" ? { ...state, status: "listening", cancelled: false, transcript: "", pendingSubmission: null } : state;
+    case "START_LISTENING": return state.status === "idle" || state.status === "cancelled" ? { ...state, status: "listening", cancelled: false, transcript: "", pendingSubmission: null, response: "" } : state;
     case "STOP_LISTENING": return ["listening", "transcribing"].includes(state.status) ? { ...state, status: "idle" } : state;
     case "TRANSCRIPT_INTERIM": return ["listening", "transcribing"].includes(state.status) ? { ...state, status: "transcribing", transcript: String(event.text ?? "") } : state;
-    case "TRANSCRIPT_FINAL": return ["listening", "transcribing"].includes(state.status) ? { ...withSubmission(state, event.intent === "consequential" ? "consequential" : "informational"), status: "endpoint-pending", transcript: String(event.text ?? "") } : state;
+    case "TRANSCRIPT_FINAL": return ["listening", "transcribing"].includes(state.status) ? { ...withSubmission({ ...state, transcript: String(event.text ?? "") }, event.intent === "consequential" ? "consequential" : "informational"), status: "endpoint-pending" } : state;
     case "CORRECT_TRANSCRIPT": return state.status === "endpoint-pending" || state.status === "correcting" ? { ...state, status: "listening", transcript: String(event.text ?? state.transcript), pendingSubmission: null } : state;
     case "ENDPOINT_ACCEPTED":
       if (state.status !== "endpoint-pending" || !state.pendingSubmission) return state;

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "repository",
+  "entries": [
+    {
+      "id": "open-created-projects-and-agents",
+      "status": "active",
+      "kind": "user-preference",
+      "rule": "After creating a new project or agent, open its owning VS Code workspace and the new agent definition or draft preview before reporting completion. Verify the opening; surface a blocked opening step rather than silently skipping it.",
+      "exception": "If the user explicitly requests upgrading Project Orchestrator itself to include the new projects, agents, files, or other framework artifacts, keep that work in the Project Orchestrator workspace.",
+      "source": {
+        "type": "current-user-instruction",
+        "receivedAt": "2026-09-24T18:23:39.318Z",
+        "evidence": "User required every newly created project or agent to be opened, with an explicit Project Orchestrator upgrade as the exception."
+      },
+      "implementedIn": [
+        "AGENTS.md",
+        ".github/copilot-instructions.md",
+        "templates/project/.github/copilot-instructions.md",
+        "pso.mjs"
+      ],
+      "boundaries": [
+        "Current instructions and verified repository evidence outrank this memory.",
+        "Opening does not authorize installation, deployment, publication, external mutation, commits, or pushes.",
+        "The governed workflow uses the existing create-project --open option; low-level CLI defaults are unchanged.",
+        "Opening a separate VS Code window does not transfer the current chat to that workspace."
+      ]
+    }
+  ],
+  "changes": {
+    "added": [
+      "open-created-projects-and-agents"
+    ],
+    "revised": [],
+    "removed": [],
+    "rationale": "Persist the user's creation follow-through requirement and preserve the explicit framework-upgrade exception."
+  }
+}

@@ -3,13 +3,14 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { inspectCachedDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
 
-const DISCOVERY_PATH = "reports/azure-discovery.json";
 const ENVIRONMENT_PATH = ".azure/environment.json";
-const MAX_DISCOVERY_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 const GPT_IMAGE_MODEL_PATTERN = /^gpt-image-2(?:$|[-.][A-Za-z0-9][A-Za-z0-9.-]{0,80})$/u;
 const GOVERNMENT_ENDPOINT_PATTERN = /^https:\/\/[a-z0-9-]+\.openai\.azure\.us$/u;
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+const MAX_IMAGE_JSON_BYTES = 33 * 1024 * 1024;
+const MAX_IMAGE_ERROR_BYTES = 8 * 1024;
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -17,9 +18,9 @@ function sha256(value) {
 
 async function readJson(root, relativePath) {
   try {
-    return JSON.parse(await readFile(path.join(root, ...relativePath.split("/")), "utf8"));
+    return JSON.parse((await readFile(path.join(root, ...relativePath.split("/")), "utf8")).replace(/^\uFEFF/u, ""));
   } catch (error) {
-    return { error: error.code === "ENOENT" ? `${relativePath} is missing` : `${relativePath} is invalid: ${error.message}` };
+    return { error: error.code === "ENOENT" ? `${relativePath} is missing` : error instanceof SyntaxError ? `${relativePath} contains invalid JSON` : `${relativePath} is unreadable: ${error.message}` };
   }
 }
 
@@ -53,7 +54,7 @@ export async function inspectAzureOpenAIImage(root) {
   const endpoint = (process.env.PROJECT_VISUAL_AZURE_OPENAI_ENDPOINT || "").replace(/\/$/u, "");
   const deployment = process.env.PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT || "";
   const deploymentModel = process.env.PROJECT_VISUAL_AZURE_OPENAI_MODEL || "";
-  const unavailable = (reason) => ({ available: false, rendererClass: "bitmap-generation", provider: "azure-openai", reason });
+  const unavailable = (reason, refreshRequired = false) => ({ available: false, rendererClass: "bitmap-generation", provider: "azure-openai", reason, refreshRequired });
   const environment = await readJson(root, ENVIRONMENT_PATH);
   if (environment.error) return unavailable(environment.error);
   if (environment.cloud !== "AzureUSGovernment") return unavailable("Azure OpenAI image generation is restricted to AzureUSGovernment for this project");
@@ -61,12 +62,11 @@ export async function inspectAzureOpenAIImage(root) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u.test(deployment)) return unavailable("PROJECT_VISUAL_AZURE_OPENAI_DEPLOYMENT is missing or invalid");
   if (!GPT_IMAGE_MODEL_PATTERN.test(deploymentModel)) return unavailable("PROJECT_VISUAL_AZURE_OPENAI_MODEL is missing or does not support exact landscape dimensions");
 
-  const discovery = await readJson(root, DISCOVERY_PATH);
-  if (discovery.error) return unavailable(discovery.error);
-  const discoveredAt = Date.parse(discovery.discoveredAt || "");
-  if (discovery.cloud !== "AzureUSGovernment" || !Number.isFinite(discoveredAt) || Date.now() - discoveredAt > MAX_DISCOVERY_AGE_MS) {
-    return unavailable("Azure Government discovery evidence is missing, mismatched, or older than 14 days");
-  }
+  let state;
+  try { state = await inspectCachedDiscovery(root); }
+  catch (error) { return unavailable(`Azure discovery is blocked: ${error.message}`); }
+  if (state.status !== "fresh") return unavailable(`Azure discovery requires refresh: ${state.reason}; run azure-discovery.`, true);
+  const discovery = state.report;
   if (!discoveryQualifies(discovery, deploymentModel, environment.location)) {
     return unavailable(`${deploymentModel} is not the current discovery-selected Azure OpenAI model with a matching existing Government deployment`);
   }
@@ -115,6 +115,55 @@ function validateGenerationInput({ prompt, width, height }) {
   }
 }
 
+export async function readImageResponse(response, label) {
+  let reader;
+  let failure;
+  try {
+    if (typeof response?.body?.getReader !== "function") throw new Error(`${label} response has no readable byte stream`);
+    reader = response.body.getReader();
+    const maximum = response.ok ? MAX_IMAGE_JSON_BYTES : MAX_IMAGE_ERROR_BYTES;
+    let buffer = Buffer.alloc(0);
+    let length = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array)) throw new Error(`${label} response contains a non-byte chunk`);
+      if (value.byteLength > maximum - length) throw new Error(`${label} response exceeds the ${maximum}-byte limit`);
+      if (value.byteLength) {
+        const nextLength = length + value.byteLength;
+        if (nextLength > buffer.length) {
+          const grown = Buffer.alloc(Math.min(maximum, Math.max(1024, nextLength, buffer.length * 2)));
+          buffer.copy(grown, 0, 0, length);
+          buffer = grown;
+        }
+        buffer.set(value, length);
+        length = nextLength;
+      }
+    }
+    const source = buffer.toString("utf8", 0, length);
+    if (!response.ok) throw new Error(`${label} request failed with HTTP ${response.status}: ${source.slice(0, 800)}`);
+    try {
+      return JSON.parse(source);
+    } catch (error) {
+      throw new Error(`${label} response contains invalid JSON`, { cause: error });
+    }
+  } catch (error) {
+    failure = error;
+    throw error;
+  } finally {
+    if (reader) {
+      const cleanupErrors = [];
+      if (failure) {
+        try { await reader.cancel(); } catch (error) { cleanupErrors.push(error); }
+      }
+      try { reader.releaseLock(); } catch (error) { cleanupErrors.push(error); }
+      if (cleanupErrors.length) {
+        throw new AggregateError([...(failure ? [failure] : []), ...cleanupErrors], `${label} response cleanup failed`);
+      }
+    }
+  }
+}
+
 function decodePng(encoded, width, height) {
   if (typeof encoded !== "string" || encoded.length < 100 || encoded.length > 32 * 1024 * 1024 || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)) {
     throw new Error("Azure OpenAI response does not contain one bounded base64 PNG");
@@ -151,8 +200,7 @@ export async function generateAzureOpenAIImage({ capability, prompt, width, heig
     }),
     signal: AbortSignal.timeout(120_000)
   });
-  if (!response.ok) throw new Error(`Azure OpenAI image request failed with HTTP ${response.status}: ${(await response.text()).slice(0, 800)}`);
-  const result = await response.json();
+  const result = await readImageResponse(response, "Azure OpenAI image");
   const image = decodePng(result?.data?.[0]?.b64_json, width, height);
   await writeFile(outputPath, image, { flag: "wx", mode: 0o600 });
   return {

@@ -1,52 +1,2953 @@
 {
   "schemaVersion": "2.2.0",
-  "auditRunId": "5d90d44c-e613-40c6-8b1b-7ba9733377f3",
-  "auditEvidence": {"path":"reports/audit-evidence/bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b.json","sha256":"bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b"},
-  "auditId": "AUDIT-2026-09-19-PSO-127",
-  "generatedAt": "2026-09-19T01:40:01.498Z",
-  "scope": {"repository":"Skills-Orchestrator","revision":"427fcae427a9c7246909c66b468e4c6f5c171c41","included":["Current local worktree, tracked reports, and locally reachable Git history.","Security, correctness, reliability, resource ownership, dependencies, configuration, tests, operability, and agentic trust boundaries."],"excluded":["Remote-only refs, hosted GitHub controls, package registries, advisory services, cloud resources, and external standards retrieval.","Unreachable or pruned Git objects, remediation, deployment, publication, commit, push, and external mutation."]},
-  "provenance": [
-    {"tool":"audit-evidence.mjs","version":"1.0.0","command":"node .github/skills/audit-code/scripts/audit-evidence.mjs --root . --audit-run-id 5d90d44c-e613-40c6-8b1b-7ba9733377f3","status":"passed","exitCode":0,"notes":"Immutable local audit evidence captured."},
-    {"tool":"Gitleaks","version":"8.30.1","command":"node .github/skills/audit-code/scripts/gitleaks-scan.mjs scan --root . --tool-root . --audit-run-id 5d90d44c-e613-40c6-8b1b-7ba9733377f3","status":"passed","exitCode":0,"notes":"Pinned scanner found zero findings across all six required local scopes."},
-    {"tool":"skills-orchestrator-security-check","version":"1.1.2","command":"node scripts/security-check.mjs","status":"passed","exitCode":0,"notes":"287 files scanned; zero package dependencies and zero findings."},
-    {"tool":"Node.js test runner","version":"current local runtime","command":"node --test tests/adoption-rerun.test.mjs","status":"passed","exitCode":0,"notes":"The long-running adoption fixture suite passed 27 tests."}
-  ],
-  "coverage": [
-    {"area":"security","status":"partial","checks":["Pinned secret scan","Runtime and Live Chat trust-boundary inspection","CI and supply-chain inspection"],"evidence":["Pinned Gitleaks completed with zero findings in all required local scopes.","Focused review found no substantiated current defect in path handling, credential boundaries, session privacy, or CI integrity."],"limitations":["Hosted GitHub controls, remote-only refs, advisories, and current external control references were not collected."]},
-    {"area":"correctness-reliability","status":"partial","checks":["Adoption rerun suite","Failure and recovery control-flow inspection"],"evidence":["The isolated adoption suite passed 27 tests.","Candidate retry and rollback paths were reviewed without a substantiated current defect."],"limitations":["The full repository gate did not return a final result during this audit run."]},
-    {"area":"resource-management","status":"partial","checks":["File-handle cleanup inspection","Staging and rollback lifecycle inspection"],"evidence":["Reviewed local ownership paths use deterministic cleanup and preserve staging for recovery after publish failure."],"limitations":["No process, handle, memory, or load profiler was run."]},
-    {"area":"performance","status":"partial","checks":["Test-duration observation"],"evidence":["The isolated adoption suite completed successfully in approximately two minutes."],"limitations":["No benchmark, load test, or profiler was run."]},
-    {"area":"dependencies-configuration","status":"partial","checks":["Local package and lockfile inspection","Repository security check"],"evidence":["The project has zero package dependencies and the local security check passed."],"limitations":["No package registry, vulnerability advisory, or license service was contacted."]},
-    {"area":"code-hygiene","status":"partial","checks":["Node syntax gate","Focused source inspection"],"evidence":["The full gate reached Node syntax, local security, and release-candidate verification successfully before its long test phase was stopped."],"limitations":["No separate lint or SAST tool beyond repository-native checks was run."]},
-    {"area":"design-maintainability","status":"partial","checks":["Runtime, Live Chat, CI, and supply-chain review"],"evidence":["No concrete harmful AI-quality, duplication, failure-hiding, or responsibility-boundary defect was substantiated."],"limitations":["No independent hosted review or external static-analysis service was used."]},
-    {"area":"tests-operability","status":"partial","checks":["Security check","Release-candidate verification","Adoption rerun suite"],"evidence":["Local security and release-candidate steps passed; the slow adoption suite passed independently."],"limitations":["The whole repository gate and hosted CI evidence are incomplete for this audit run."]}
-  ],
-  "repositoryEvidence": {"localGit":{"status":"completed","revision":"427fcae427a9c7246909c66b468e4c6f5c171c41","worktreeDirty":true,"shallow":false,"reachableCommitCount":56,"scannedRefs":["refs/heads/*","refs/remotes/*","refs/tags/*"],"limitations":["Remote-only refs were not fetched.","Unreachable and pruned objects were not assessed."]},"secretScanning":{"status":"completed","scanner":"Gitleaks","version":"8.30.1","configurationDigest":"e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4","scopes":["worktree","staged","untracked-distributable","tracked-reports","all-local-refs","reachable-history"],"findingCount":0,"limitations":["Remote-only refs were not fetched.","Unreachable and pruned objects were not assessed."]},"hostedRepository":{"provider":"github","status":"blocked","checkedAt":null,"controls":[],"limitations":["External hosted access was not approved for this audit."]}},
-  "standards": [
-    {"id":"microsoft-sdl","title":"Microsoft Security Development Lifecycle Practices","publisher":"Microsoft","version":"access-dated living guidance","reference":"https://www.microsoft.com/securityengineering/sdl/practices","accessedAt":"2026-09-19","applicability":"applicable","stability":"current","baselineRole":"informational","rationale":"Secure engineering practices apply.","controls":[{"id":"LOCAL-MSDL","title":"Current SDL conformance","status":"blocked","evidence":["Local checks and review completed as scoped."],"limitations":["Current external guidance was not retrieved."]}]},
-    {"id":"microsoft-cloud-security-benchmark","title":"Microsoft Cloud Security Benchmark","publisher":"Microsoft","version":"resolve-at-audit-time","reference":"https://learn.microsoft.com/security/benchmark/azure/overview","accessedAt":"2026-09-19","applicability":"partially-applicable","stability":"current","baselineRole":"informational","rationale":"Azure templates are distributed but no deployment was assessed.","controls":[{"id":"LOCAL-MCSB","title":"Azure design-time posture","status":"blocked","evidence":["Local template and contract checks are available."],"limitations":["Current guidance and deployed posture were not assessed."]}]},
-    {"id":"azure-well-architected-security","title":"Azure Well-Architected Framework Security","publisher":"Microsoft","version":"access-dated living guidance","reference":"https://learn.microsoft.com/azure/well-architected/security/","accessedAt":"2026-09-19","applicability":"partially-applicable","stability":"current","baselineRole":"informational","rationale":"Azure-facing templates are distributed.","controls":[{"id":"LOCAL-WAF","title":"Design-time security","status":"blocked","evidence":["Local contracts were inspected."],"limitations":["Current guidance and deployed evidence were unavailable."]}]},
-    {"id":"owasp-asvs","title":"OWASP Application Security Verification Standard","publisher":"OWASP","version":"5.0.0","reference":"https://owasp.github.io/www-project-application-security-verification-standard","accessedAt":"2026-09-19","applicability":"partially-applicable","stability":"stable","baselineRole":"informational","rationale":"Input and trust-boundary controls apply.","controls":[{"id":"LOCAL-ASVS","title":"Applicable local controls","status":"blocked","evidence":["Path, recovery, and provider-boundary paths were reviewed."],"limitations":["No current external assessment was retrieved."]}]},
-    {"id":"owasp-top-10","title":"OWASP Top 10","publisher":"OWASP","version":"2025","reference":"https://top10.owasp.org/2025/","accessedAt":"2026-09-19","applicability":"partially-applicable","stability":"stable","baselineRole":"informational","rationale":"Integrity and configuration categories apply.","controls":[{"id":"LOCAL-OWASP-TOP10","title":"Applicable weakness review","status":"blocked","evidence":["Local security and focused review produced no substantiated finding."],"limitations":["No external advisory evidence was retrieved."]}]},
-    {"id":"nist-ssdf","title":"NIST Secure Software Development Framework","publisher":"NIST","version":"1.1","reference":"https://csrc.nist.gov/pubs/sp/800/218/final","accessedAt":"2026-09-19","applicability":"applicable","stability":"final","baselineRole":"informational","rationale":"A governed software lifecycle applies.","controls":[{"id":"LOCAL-SSDF","title":"Secure lifecycle evidence","status":"blocked","evidence":["Local tests, reports, and approval gates were inspected."],"limitations":["Independent review and current control mapping were unavailable."]}]},
-    {"id":"cis-controls","title":"CIS Critical Security Controls","publisher":"Center for Internet Security","version":"8.1","reference":"https://www.cisecurity.org/controls/v8-1","accessedAt":"2026-09-19","applicability":"partially-applicable","stability":"stable","baselineRole":"informational","rationale":"Repository safeguards apply.","controls":[{"id":"LOCAL-CIS","title":"Repository safeguards","status":"blocked","evidence":["Local security workflows and path controls were inspected."],"limitations":["Hosted-control evidence was unavailable."]}]},
-    {"id":"slsa","title":"Supply-chain Levels for Software Artifacts","publisher":"OpenSSF","version":"1.2","reference":"https://slsa.dev/spec/v1.2/","accessedAt":"2026-09-19","applicability":"applicable","stability":"final","baselineRole":"informational","rationale":"The repository builds release artifacts.","controls":[{"id":"LOCAL-SLSA","title":"Artifact provenance","status":"blocked","evidence":["Local release-candidate verification passed."],"limitations":["Trusted signing and hosted provenance evidence were unavailable."]}]},
-    {"id":"openssf-scorecard","title":"OpenSSF Scorecard","publisher":"OpenSSF","version":"access-dated current checks","reference":"https://scorecard.dev/","accessedAt":"2026-09-19","applicability":"applicable","stability":"current","baselineRole":"informational","rationale":"The project is hosted on GitHub.","controls":[{"id":"LOCAL-OPENSSF","title":"Hosted posture","status":"blocked","evidence":["Local workflow pinning and permissions were inspected."],"limitations":["Hosted Scorecard evidence was not approved."]}]}
-  ],
-  "assurance": {"conclusion":"insufficient-evidence","rationale":"Local secret scanning and focused verification found no substantiated defect, but hosted controls, advisories, current external standards evidence, and a completed full-gate result for this audit run are unavailable.","blockingEvidence":["Hosted GitHub evidence blocked","External advisory and standards evidence blocked","Full repository gate did not complete during this audit run","Remote-only refs and unreachable objects excluded"],"exceptionCount":0,"expiredExceptionCount":0},
-  "verificationEvidence": {
-    "secretExposure":{"status":"completed","scopes":["worktree","staged","untracked-distributable","tracked-reports","all-local-refs","reachable-history"],"evidence":["reports/gitleaks-scan.json passed with zero findings under this audit run."],"limitations":["Remote-only refs and unreachable objects were excluded."]},
-    "analyzers":{"status":"partial","detectedLanguages":["JavaScript","PowerShell","JSON","YAML","Markdown"],"tools":[{"language":"JavaScript","tool":"Node.js test runner","version":"current local runtime","status":"passed","configurationDigest":null},{"language":"repository","tool":"skills-orchestrator-security-check","version":"1.1.2","status":"passed","configurationDigest":"3c7dbeb3b3fccf9fc86c412e6dabb7eb0110d65284c274daf97657884d8afdb8"}],"evidence":["Security check passed and the isolated adoption suite passed."],"limitations":["The full repository gate did not complete; no separate PowerShell analyzer was available."]},
-    "resourceOwnership":{"status":"partial","ownershipModels":["locally-owned","borrowed","factory-managed"],"checks":["ownership-classification","normal-exit","early-return","exception","cancellation"],"pathsChecked":["pso.mjs","scripts","templates/project/.skills-orchestrator/live-chat"],"evidence":["Focused source inspection found deterministic cleanup and intentional staging preservation on publish failure."],"limitations":["No process or memory profiler was run."]},
-    "aiQuality":{"status":"completed","aiComponentsDetected":true,"checks":["ai-slop-indicators","ai-authorship-non-inference","agentic-security-applicability"],"evidence":["The local Live Chat and provider trust boundaries were inspected without a concrete harmful behavior finding."],"limitations":["No deployed model evaluation was in scope."]},
-    "assuranceGates":{"status":"partial","gates":["critical-high-findings","secret-evidence","analyzer-evidence","standards-evidence","hosted-evidence"],"evidence":["No critical or high finding was substantiated; the local secret gate passed."],"limitations":["Hosted, standards, advisory, and complete full-gate evidence remain unavailable."]},
-    "records":[
-      {"auditRunId":"5d90d44c-e613-40c6-8b1b-7ba9733377f3","tool":"Gitleaks","toolVersion":"8.30.1","command":"node .github/skills/audit-code/scripts/gitleaks-scan.mjs scan --root . --tool-root . --audit-run-id 5d90d44c-e613-40c6-8b1b-7ba9733377f3","scope":"six approved local secret scopes","configurationDigest":"e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4","exitCode":0,"status":"passed","executedAt":"2026-09-19T00:10:40.815Z","evidenceSha256":"bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b","repositoryRevision":"427fcae427a9c7246909c66b468e4c6f5c171c41","worktreeDigest":"00c845baf0961009bdb97ebd58488e55f92ee99b0eb41b3ab0bf827774de7318","inputDigest":"6cfa94828c3c719c44b889b0a4939116375aaf2d8f03e9e1ffbbd1242ce60fa4"},
-      {"auditRunId":"5d90d44c-e613-40c6-8b1b-7ba9733377f3","tool":"audit-evidence.mjs","toolVersion":"1.0.0","command":"node .github/skills/audit-code/scripts/audit-evidence.mjs --root . --audit-run-id 5d90d44c-e613-40c6-8b1b-7ba9733377f3","scope":"local repository and audit-readiness metadata","configurationDigest":null,"exitCode":0,"status":"passed","executedAt":"2026-09-19T00:10:52.316Z","evidenceSha256":"bd77e11b9e8c56f22698d54c0152f3fd9898aac5a4e90b2256c513bc62d6ba8b","repositoryRevision":"427fcae427a9c7246909c66b468e4c6f5c171c41"},
-      {"auditRunId":"5d90d44c-e613-40c6-8b1b-7ba9733377f3","tool":"skills-orchestrator-security-check","toolVersion":"1.1.2","command":"node scripts/security-check.mjs","scope":"current worktree security patterns and package manifest","configurationDigest":"3c7dbeb3b3fccf9fc86c412e6dabb7eb0110d65284c274daf97657884d8afdb8","exitCode":0,"status":"passed","executedAt":"2026-09-19T01:40:01.498Z","evidenceSha256":"3c7dbeb3b3fccf9fc86c412e6dabb7eb0110d65284c274daf97657884d8afdb8","repositoryRevision":"427fcae427a9c7246909c66b468e4c6f5c171c41"}
+  "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+  "auditEvidence": {
+    "path": "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+    "sha256": "881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2"
+  },
+  "auditId": "AUDIT-2026-09-30-B9BE041A",
+  "generatedAt": "2026-09-30T23:30:20.437Z",
+  "scope": {
+    "repository": "QuyDu/Project-Orchestrator",
+    "revision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+    "included": [
+      "Current dirty worktree including untracked distributable changes, all local refs and reachable history.",
+      "Framework runtime, skills/help/workflows/prompts, schemas, templates, tests, local supply chain and audit artifacts.",
+      "Source baseline SHA-256: 8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280; private replay records bind the current source rather than claiming HEAD alone was tested."
+    ],
+    "excluded": [
+      "External/hosted/cloud/registry/advisory/standards access, unreachable/pruned objects and remote-only stores.",
+      "Remediation, credential validation, installation, deployment, publication, policy changes, commits and pushes.",
+      "Completed deployment-specific source-review assurance: the delegated review was blocked and produced no accepted result."
     ]
   },
-  "summary":{"total":0,"bySecuritySeverity":{"critical":0,"high":0,"medium":0,"low":0,"none":0},"byCategory":{}},
-  "findings":[],
-  "limitations":["Hosted, advisory, cloud, and current external standards evidence was not approved.","Remote-only refs and unreachable objects remain excluded.","The full repository gate did not return a final result during this audit run.","No remediation, deployment, publication, commit, push, or destructive action was performed."]
+  "provenance": [
+    {
+      "tool": "audit-evidence.mjs",
+      "version": "1.0.0",
+      "command": "node .github\\skills\\audit-code\\scripts\\audit-evidence.mjs --root . --audit-run-id b9be041a-c060-4172-b294-67b388b84ba6",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Local Git/tool/standards-profile metadata; immutable pre-publication snapshot. AUD-0108 limits post-write freshness."
+    },
+    {
+      "tool": "Gitleaks",
+      "version": "8.30.1",
+      "command": "node .github\\skills\\audit-code\\scripts\\gitleaks-scan.mjs scan --root . --tool-root . --audit-run-id b9be041a-c060-4172-b294-67b388b84ba6",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Pinned cached scanner, checksum-verified, network disabled; six local scopes at the recorded pre-report digest."
+    },
+    {
+      "tool": "npm/Node repository gate",
+      "version": "11.11.0 / v24.14.1",
+      "command": "npm run check",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Identical-source long-path isolated snapshot; 439 passed, 15 PowerShell path-loading failures, 1 skipped. Execution completion time is retained log close time."
+    },
+    {
+      "tool": "npm/Node repository gate",
+      "version": "11.11.0 / v24.14.1",
+      "command": "node --test --test-name-pattern=\"diagnoses missing offline\" tests\\project-video.test.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Identical-source short-path control; diagnoses-missing-offline video test passed without policy changes. Execution completion time is retained log close time."
+    },
+    {
+      "tool": "npm/Node repository gate",
+      "version": "11.11.0 / v24.14.1",
+      "command": "npm run check",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Full identical-source short-path isolated gate BEFORE audit report publication; 454 passed, 0 failed, 1 skipped; 50 skills and 232-file unsigned candidate verified. Execution completion time is retained log close time."
+    },
+    {
+      "tool": "PowerShell parser",
+      "version": "7.5.4",
+      "command": "[System.Management.Automation.Language.Parser]::ParseFile for 13 repository PowerShell files",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Syntax only; zero parser diagnostics. PSScriptAnalyzer was not run."
+    },
+    {
+      "tool": "Live Chat production-export reproduction",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\live-chat-reproduction.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Seven pure/fake-transport reproductions; no network, microphone, cloud, or consequential action."
+    },
+    {
+      "tool": "Agent Builder classic boundary probes",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\builder-probes.mjs --repo . --group classic",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Original function bodies/current native exports with in-memory filesystem, fake PAC, generated in-memory canaries, and actual local JSON Schema validation where applicable."
+    },
+    {
+      "tool": "Agent Builder native boundary probes",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\builder-probes.mjs --repo . --group native",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Original function bodies/current native exports with in-memory filesystem, fake PAC, generated in-memory canaries, and actual local JSON Schema validation where applicable."
+    },
+    {
+      "tool": "Agent Builder public boundary probes",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\builder-probes.mjs --repo . --group public",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Original function bodies/current native exports with in-memory filesystem, fake PAC, generated in-memory canaries, and actual local JSON Schema validation where applicable."
+    },
+    {
+      "tool": "Runtime update boundary probes",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\runtime-update-probes.mjs --root .",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Original controlling code with explicitly modeled filesystem boundaries. No physical symlink, actual installation, or external calls."
+    },
+    {
+      "tool": "Runtime release boundary probes",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\runtime-release-probes.mjs --root .",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Original controlling code with explicitly modeled filesystem boundaries. No physical symlink, actual installation, or external calls."
+    },
+    {
+      "tool": "Helper/media boundary probes",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\helpers-repros.mjs .",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Twenty deterministic observations across helper packages; fake filesystem, HTTP/process spies, and local PowerShell az function. Sub-millisecond precision observation is not promoted into a finding."
+    },
+    {
+      "tool": "Post-report audit/contract tests",
+      "version": "v24.14.1",
+      "command": "node --test tests\\audit-assurance.test.mjs tests\\audit-execution.test.mjs tests\\skill-contracts.test.mjs",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "Current audit artifacts copied into the unchanged short-path snapshot: 38 passed, 1 failed (checkpoint validity; AUD-0146), 1 skipped. Completion time is retained log close time."
+    },
+    {
+      "tool": "Checkpoint output-capacity reproduction",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\checkpoint-buffer-reproduction.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Actual checkpoint CLI fails; read-only Git comparison confirms ENOBUFS at default capacity and full output at four MiB. The larger buffer is diagnostic, not a replacement checkpoint."
+    },
+    {
+      "tool": "Closing pinned secret scan precondition",
+      "version": "8.30.1",
+      "command": "Required production checkpoint before Gitleaks closing scan",
+      "status": "blocked",
+      "exitCode": null,
+      "notes": "Blocked before scanning because the unmodified checkpoint fails; the previous successful scan is retained and is not labeled current."
+    },
+    {
+      "tool": "Public verifier and effective-ignore corroboration",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\helpers-public-corroboration.mjs .",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Unchanged public CLIs under read-only virtual filesystem; real read-only Git check-ignore with private fixture rules. Manual image review remains mandatory."
+    },
+    {
+      "tool": "Current-source documentation consumer corroboration",
+      "version": "v24.14.1",
+      "command": "node <session-evidence>\\helpers-h15-corroboration.mjs .",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "Original source functions, memory-only project and controlled project timestamps. Historical snapshot validity is not classified as a defect."
+    },
+    {
+      "tool": "Deployment-specific source reviewer",
+      "version": "not exposed by provider",
+      "command": "Read-only delegated agent-deployment source/evidence review",
+      "status": "blocked",
+      "exitCode": null,
+      "notes": "Blocked with HTTP 422 and no completed report; no retry/reroute or unpublished probe accepted."
+    }
+  ],
+  "coverage": [
+    {
+      "area": "security",
+      "checks": [
+        "Pinned worktree/index/local-history secret scan",
+        "Input/output/path trust boundaries and CLI consent",
+        "Agentic tool authority and sensitive diagnostic handling",
+        "Local Actions pinning/permissions and candidate integrity"
+      ],
+      "evidence": [
+        "Zero pinned secret findings at recorded digest; no live secret was discovered.",
+        "Confirmed security consequences are separately classified from reliability defects.",
+        "Renderer/checksum/input-diagnostic defects reproduced with synthetic/in-memory inputs only."
+      ],
+      "limitations": [
+        "Deployment source review, hosted controls, remote stores, live authentication/authorization, current advisories and authoritative controls remain unverified."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "correctness-reliability",
+      "checks": [
+        "Control flow and type/schema parity",
+        "Input/output collision and transactional failure paths",
+        "Concurrency, late events, freshness and UTF-8 decoding"
+      ],
+      "evidence": [
+        "Full gate before report publication: 454 passed, 0 failed, 1 skipped. Post-report audit/contract run: 38 passed, 1 failed, 1 skipped (AUD-0146).",
+        "Deterministic reproductions expose defects not exercised by existing passing tests across runtime, builder, helpers and Live Chat."
+      ],
+      "limitations": [
+        "Physical faults, live platforms and the blocked deployment review are not qualified by modeled tests."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "resource-management",
+      "checks": [
+        "Ownership classification",
+        "Normal/early/exception/cancellation cleanup",
+        "Locks, backup lifetime, active identity slots, stream and collection bounds",
+        "C# disposal applicability"
+      ],
+      "evidence": [
+        "Confirmed leaked identity slot/orphan lock, destructive rollback, post-allocation limit and file-count boundary failures.",
+        "C# executable application code and owned IDisposable/IAsyncDisposable lifetimes are not part of this Node framework runtime; namespace using directives are not disposal evidence."
+      ],
+      "limitations": [
+        "No heap/handle profiler, real disk-full/crash/process-tree/cancellation qualification, or generated-target runtime disposal analysis."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "performance",
+      "checks": [
+        "Algorithmic/collection and streaming byte bounds",
+        "Repeated read/hash consistency",
+        "Blocking I/O and whole-file hashing inspection"
+      ],
+      "evidence": [
+        "Oversized-response and 30,001-file probes establish specific ineffective bounds.",
+        "Whole-file hashing of large binaries and sub-millisecond timestamp precision remain concerns/limitations, not demonstrated OOM or high-impact performance findings."
+      ],
+      "limitations": [
+        "No load/profiling/production trace; test duration is not a benchmark."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "dependencies-configuration",
+      "checks": [
+        "Local package/lockfile consistency",
+        "Zero declared package dependencies",
+        "Profile closure and schema/default parity",
+        "Release source set and pinned downloads"
+      ],
+      "evidence": [
+        "Native gate audited 50 skills and dependency-closed profiles.",
+        "Runtime/profile/voice/MCP defaults expose independently reproduced contract defects despite the gate."
+      ],
+      "limitations": [
+        "No advisory/registry/license retrieval or current upstream-version verification; generated-project dependencies and downloaded tools need their own approved advisory evidence."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "code-hygiene",
+      "checks": [
+        "Node syntax and PowerShell parser",
+        "Missing/wildcard/unused import applicability",
+        "Unreachable/dead/placeholder behavior and misleading validation assertions"
+      ],
+      "evidence": [
+        "Node syntax gate and 13 PowerShell parse checks passed.",
+        "No style-only defect or authorship inference was promoted; actual harmful validation/schema inconsistencies are recorded."
+      ],
+      "limitations": [
+        "No independent CodeQL/PSScriptAnalyzer/typed generated-application compiler coverage."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "design-maintainability",
+      "checks": [
+        "Responsibility and cross-owner artifact boundaries",
+        "Duplicated transaction/validation logic with observable drift",
+        "Large-function testability and shared-helper reuse"
+      ],
+      "evidence": [
+        "Duplicated unsafe pair-publication cleanup and renderer/schema definition drift have concrete consequences.",
+        "Proposed decomposition is tied to transaction, parser, source-resolution, and evidence-ownership boundaries rather than line count alone."
+      ],
+      "limitations": [
+        "No speculative generalized refactor, style checklist, or claim of AI authorship; deployment-specific responsibilities remain only partially inspected by shared tests."
+      ],
+      "status": "partial"
+    },
+    {
+      "area": "tests-operability",
+      "checks": [
+        "Full repository gate",
+        "Negative/fault/abuse cases and outcome assertions",
+        "Rollback and evidence chain",
+        "Generated/distributed artifacts, help and profile conformance"
+      ],
+      "evidence": [
+        "Before report publication, 50 skills inventoried/audited/verified; security checker examined 376 files; unsigned candidate covered 232 files.",
+        "Current report-integrated tests expose a checkpoint-output capacity failure; the closing secret scan is blocked by that required helper.",
+        "Model-based negative probes found gaps where existing tests assert planning only or stub away the failing boundary.",
+        "Long-path failure and short-path pass retained; historical malformed JSONL and continuity limits preserved."
+      ],
+      "limitations": [
+        "AUD-0146 prevents declaring the final repository validation gate passed.",
+        "Hosted CI, signing/independent release approval, real browser/device accessibility, production telemetry, and full event replay were not validated."
+      ],
+      "status": "failed"
+    }
+  ],
+  "summary": {
+    "total": 46,
+    "bySecuritySeverity": {
+      "critical": 0,
+      "high": 0,
+      "medium": 3,
+      "low": 4,
+      "none": 39
+    },
+    "byCategory": {
+      "concurrency": 1,
+      "configuration": 3,
+      "correctness": 21,
+      "operability": 2,
+      "privacy": 2,
+      "reliability": 8,
+      "resource-management": 5,
+      "security": 4
+    }
+  },
+  "repositoryEvidence": {
+    "localGit": {
+      "status": "completed",
+      "revision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+      "worktreeDirty": true,
+      "shallow": false,
+      "reachableCommitCount": 108,
+      "scannedRefs": [
+        "refs/heads/feat/agent-builder-latest",
+        "refs/heads/main",
+        "refs/heads/p4-final-evidence",
+        "refs/heads/p4-release-operations",
+        "refs/heads/pre-pull-local-20260826",
+        "refs/heads/pre-video-skill-pull-20260826",
+        "refs/heads/pre-video-skill-resync-20260826-2",
+        "refs/heads/release/1.1.2",
+        "refs/remotes/origin/HEAD",
+        "refs/remotes/origin/feat/agent-builder-latest",
+        "refs/remotes/origin/main",
+        "refs/remotes/origin/p4-final-evidence",
+        "refs/remotes/origin/p4-release-operations",
+        "refs/remotes/origin/release/1.1.2",
+        "refs/tags/pre-squash-backup"
+      ],
+      "limitations": [
+        "Remote-only refs were not fetched; unreachable/pruned objects and external object stores were not examined."
+      ]
+    },
+    "secretScanning": {
+      "status": "partial",
+      "scanner": "Pinned Gitleaks",
+      "version": "8.30.1",
+      "configurationDigest": "e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4",
+      "scopes": [
+        "worktree",
+        "staged",
+        "untracked-distributable",
+        "tracked-reports",
+        "all-local-refs",
+        "reachable-history"
+      ],
+      "findingCount": 0,
+      "limitations": [
+        "The pinned Gitleaks run succeeded for its recorded pre-report input digest. Subsequent audit outputs change that digest (AUD-0108). The closing scan is BLOCKED by the production checkpoint failure in AUD-0146; reports/gitleaks-scan.json remains the earlier successful scan, not current post-publication evidence. No scan gate was bypassed and no broad report exclusions were introduced.",
+        "Unreachable/pruned objects, remote forks/pull-request refs, hosted Actions logs/artifacts/releases/packages, issues/discussions/wikis, organizational controls, and caches outside the local scan boundary remain unassessed."
+      ]
+    },
+    "hostedRepository": {
+      "provider": "github",
+      "status": "blocked",
+      "checkedAt": null,
+      "controls": [
+        {
+          "id": "local-rulesets-required-reviews-checks",
+          "title": "Hosted rulesets-required-reviews-checks evidence not collected",
+          "status": "blocked",
+          "evidence": [],
+          "limitations": [
+            "A local remote URL and pinned workflow files do not prove current hosted settings. Explicit external-access approval was absent."
+          ]
+        },
+        {
+          "id": "local-secret-scanning-push-protection",
+          "title": "Hosted secret-scanning-push-protection evidence not collected",
+          "status": "blocked",
+          "evidence": [],
+          "limitations": [
+            "A local remote URL and pinned workflow files do not prove current hosted settings. Explicit external-access approval was absent."
+          ]
+        },
+        {
+          "id": "local-code-scanning-dependency-alerts",
+          "title": "Hosted code-scanning-dependency-alerts evidence not collected",
+          "status": "blocked",
+          "evidence": [],
+          "limitations": [
+            "A local remote URL and pinned workflow files do not prove current hosted settings. Explicit external-access approval was absent."
+          ]
+        },
+        {
+          "id": "local-workflow-environment-permissions",
+          "title": "Hosted workflow-environment-permissions evidence not collected",
+          "status": "blocked",
+          "evidence": [],
+          "limitations": [
+            "A local remote URL and pinned workflow files do not prove current hosted settings. Explicit external-access approval was absent."
+          ]
+        },
+        {
+          "id": "local-private-reporting-release-attestation",
+          "title": "Hosted private-reporting-release-attestation evidence not collected",
+          "status": "blocked",
+          "evidence": [],
+          "limitations": [
+            "A local remote URL and pinned workflow files do not prove current hosted settings. Explicit external-access approval was absent."
+          ]
+        }
+      ],
+      "limitations": [
+        "No hosted GitHub request was made."
+      ]
+    }
+  },
+  "standards": [
+    {
+      "id": "microsoft-sdl",
+      "title": "Microsoft Security Development Lifecycle Practices",
+      "publisher": "Microsoft",
+      "version": "access-dated living guidance",
+      "reference": "https://www.microsoft.com/securityengineering/sdl/practices",
+      "accessedAt": "2026-09-23",
+      "applicability": "applicable",
+      "stability": "current",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "microsoft-cloud-security-benchmark",
+      "title": "Microsoft Cloud Security Benchmark",
+      "publisher": "Microsoft",
+      "version": "resolve-at-audit-time",
+      "reference": "https://learn.microsoft.com/security/benchmark/azure/overview",
+      "accessedAt": "2026-09-23",
+      "applicability": "partially-applicable",
+      "stability": "current",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "azure-well-architected-security",
+      "title": "Azure Well-Architected Framework Security",
+      "publisher": "Microsoft",
+      "version": "access-dated living guidance",
+      "reference": "https://learn.microsoft.com/azure/well-architected/security/",
+      "accessedAt": "2026-09-23",
+      "applicability": "partially-applicable",
+      "stability": "current",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "owasp-asvs",
+      "title": "OWASP Application Security Verification Standard",
+      "publisher": "OWASP",
+      "version": "5.0.0",
+      "reference": "https://owasp.github.io/www-project-application-security-verification-standard",
+      "accessedAt": "2026-09-23",
+      "applicability": "applicable",
+      "stability": "stable",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "owasp-top-10",
+      "title": "OWASP Top 10",
+      "publisher": "OWASP",
+      "version": "2025",
+      "reference": "https://top10.owasp.org/2025/",
+      "accessedAt": "2026-09-23",
+      "applicability": "applicable",
+      "stability": "stable",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nist-ssdf",
+      "title": "NIST Secure Software Development Framework",
+      "publisher": "NIST",
+      "version": "1.1",
+      "reference": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "accessedAt": "2026-09-23",
+      "applicability": "applicable",
+      "stability": "final",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cis-controls",
+      "title": "CIS Critical Security Controls",
+      "publisher": "Center for Internet Security",
+      "version": "8.1",
+      "reference": "https://www.cisecurity.org/controls/v8-1",
+      "accessedAt": "2026-09-23",
+      "applicability": "partially-applicable",
+      "stability": "stable",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "slsa",
+      "title": "Supply-chain Levels for Software Artifacts",
+      "publisher": "OpenSSF",
+      "version": "1.2",
+      "reference": "https://slsa.dev/spec/v1.2/",
+      "accessedAt": "2026-09-23",
+      "applicability": "applicable",
+      "stability": "final",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "openssf-scorecard",
+      "title": "OpenSSF Scorecard",
+      "publisher": "OpenSSF",
+      "version": "access-dated current checks",
+      "reference": "https://scorecard.dev/",
+      "accessedAt": "2026-09-23",
+      "applicability": "applicable",
+      "stability": "current",
+      "baselineRole": "informational",
+      "rationale": "Applies to framework/agent code, generated applications, local tooling, or the associated engineering process. The version and accessedAt=2026-09-23 are unchanged UNVERIFIED historical report metadata, not evidence of authoritative retrieval. Current retrieval was not approved; no claim of currency or conformance is made.",
+      "controls": [
+        {
+          "id": "local-authoritative-baseline-unverified",
+          "title": "Local applicability checkpoint, not an external standard control identifier",
+          "status": "blocked",
+          "evidence": [
+            "reports/audit-evidence/881b9f88806d1f48ce622f275d13c59dd3383967ae05ad72aca3ce22136616c2.json",
+            "Local source review and deterministic probes identify concrete defects but do not establish external-standard compliance."
+          ],
+          "limitations": [
+            "Authoritative source and current stable/final baseline were not retrieved. Required date metadata cannot represent never-retrieved in the current report schema."
+          ]
+        }
+      ]
+    }
+  ],
+  "assurance": {
+    "conclusion": "insufficient-evidence",
+    "rationale": "46 evidence-grounded findings/candidates require downstream review, including one preliminary image-verifier scope question rather than an established final-approval bypass. Passing native tests and an empty local secret scan do not establish universal correctness, security, release approval or conformance.",
+    "blockingEvidence": [
+      "Confirmed source defects remain unremediated; implementation approval is not part of this audit.",
+      "Agent-deployment source review did not complete.",
+      "Required hosted GitHub, remote-store, advisory and authoritative standards evidence is unavailable.",
+      "Independent language/IaC analyzers and live/provider/physical-fault qualification are incomplete.",
+      "Audit snapshot/report publication changes scan inputs (AUD-0108); embedded pre-report scan evidence cannot assert post-publication freshness.",
+      "The post-report audit/contract test fails because the production checkpoint cannot handle the complete large worktree diff (AUD-0146). Closing secret scanning is blocked; no substitute success was claimed.",
+      "Standards accessedAt metadata is explicitly unverified historical compatibility data, never current source-access evidence."
+    ],
+    "exceptionCount": 0,
+    "expiredExceptionCount": 0
+  },
+  "verificationEvidence": {
+    "secretExposure": {
+      "status": "partial",
+      "scopes": [
+        "worktree",
+        "staged",
+        "untracked-distributable",
+        "tracked-reports",
+        "all-local-refs",
+        "reachable-history"
+      ],
+      "evidence": [
+        "Pinned cached 8.30.1 checksum and archive matched before execution; all three scan result arrays were empty.",
+        "No external secret validation, rotation, or publication took place."
+      ],
+      "limitations": [
+        "The pinned Gitleaks run succeeded for its recorded pre-report input digest. Subsequent audit outputs change that digest (AUD-0108). The closing scan is BLOCKED by the production checkpoint failure in AUD-0146; reports/gitleaks-scan.json remains the earlier successful scan, not current post-publication evidence. No scan gate was bypassed and no broad report exclusions were introduced.",
+        "Unreachable/pruned objects, remote forks/pull-request refs, hosted Actions logs/artifacts/releases/packages, issues/discussions/wikis, organizational controls, and caches outside the local scan boundary remain unassessed."
+      ]
+    },
+    "analyzers": {
+      "status": "partial",
+      "detectedLanguages": [
+        "JavaScript/Node.js",
+        "PowerShell",
+        "Bicep",
+        "YAML/JSON",
+        "generated TypeScript and application templates"
+      ],
+      "tools": [
+        {
+          "language": "JavaScript/Node.js",
+          "tool": "Node syntax/tests and repository security/contract checks",
+          "version": "v24.14.1",
+          "status": "failed",
+          "configurationDigest": "9a64efe6969efa15604525f240b3c4b1b44d0dd39c6dff1f0bfbce4da53a9c74"
+        },
+        {
+          "language": "PowerShell",
+          "tool": "PowerShell parser",
+          "version": "7.5.4",
+          "status": "passed",
+          "configurationDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+        },
+        {
+          "language": "PowerShell",
+          "tool": "PSScriptAnalyzer",
+          "version": null,
+          "status": "blocked",
+          "configurationDigest": null
+        },
+        {
+          "language": "JavaScript/Node.js",
+          "tool": "CodeQL CLI",
+          "version": null,
+          "status": "blocked",
+          "configurationDigest": null
+        },
+        {
+          "language": "Bicep",
+          "tool": "Independent compiler/policy analyzer",
+          "version": null,
+          "status": "blocked",
+          "configurationDigest": null
+        }
+      ],
+      "evidence": [
+        "The pre-report full gate and 13 PowerShell parse checks passed; the post-report audit/contract suite failed at checkpoint validity. Both failures and the intermediate pass are retained."
+      ],
+      "limitations": [
+        "PowerShell parsing is syntax-only. PSScriptAnalyzer and CodeQL CLI were unavailable. No independent Bicep compiler/policy-analyzer or generated-application type-check evidence was collected. No scanner or package was installed.",
+        "No applicable specialist check was marked passed merely from visual inspection."
+      ]
+    },
+    "resourceOwnership": {
+      "status": "partial",
+      "ownershipModels": [
+        "locally-owned",
+        "borrowed",
+        "shared",
+        "framework-owned"
+      ],
+      "checks": [
+        "ownership-classification",
+        "normal-exit",
+        "early-return",
+        "exception",
+        "cancellation",
+        "lock-backup-transaction-lifetime",
+        "stream-and-collection-bounds",
+        "csharp-disposal-applicability"
+      ],
+      "pathsChecked": [
+        "templates/project/.skills-orchestrator/live-chat/browser-controller.mjs",
+        "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+        "templates/project/.skills-orchestrator/live-chat/grounding.mjs",
+        "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+        ".github/skills/audit-code/scripts/gitleaks-scan.mjs",
+        ".github/skills/audit-code/scripts/audit-evidence.mjs",
+        ".github/skills/agent-builder/scripts/agent-builder.mjs",
+        "pso.mjs",
+        "scripts/verify-release.mjs",
+        "scripts/build-release.mjs",
+        ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+        ".github/skills/project-visual-storytelling/references/renderer-contract.md",
+        ".github/skills/documentation-builder/SKILL.md",
+        ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+        ".github/skills/project-video/scripts/project-video.mjs",
+        ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+        ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
+        ".github/skills/project-understanding/scripts/project-understanding.mjs"
+      ],
+      "evidence": [
+        "Owned versus pre-existing artifacts distinguished in fault probes; borrowed media/provider boundaries not disposed indiscriminately.",
+        "Confirmed identity-slot, lock, backup and allocation defects have explicit regression criteria."
+      ],
+      "limitations": [
+        "Fault injection uses original controlling functions with virtual filesystems or transport/process doubles. It does not qualify physical disk exhaustion, ACL/junction/symlink races, crash recovery on every filesystem, live cancellation/process-tree handling, or real cloud/device behavior.",
+        "C# executable framework code was not detected; generated applications require separate target-project lifetime validation."
+      ]
+    },
+    "aiQuality": {
+      "status": "partial",
+      "aiComponentsDetected": true,
+      "checks": [
+        "ai-slop-indicators",
+        "ai-authorship-non-inference",
+        "agentic-security-applicability",
+        "prompt-and-tool-authority-boundaries",
+        "source-grounding-and-claim-integrity",
+        "non-tautological-negative-test-coverage"
+      ],
+      "evidence": [
+        "Concrete contradictory validation, ineffective bounds, stale grounding, parser gaps and plan/apply drift were reproduced.",
+        "Microsoft AI SDL, OWASP GenAI/Agentic 2026, NIST AI RMF/AI 600-1 considered from local catalog only; no version or control conformance claimed.",
+        "No finding infers AI authorship from code style."
+      ],
+      "limitations": [
+        "Deployment-specific review and live agent/model/prompt-evaluation security were not completed.",
+        "Additional AI guidance was considered applicable or partly applicable: Microsoft SDL for AI and the conditional local catalog entries for OWASP GenAI LLM Top 10 2026, OWASP Agentic Top 10 2026, NIST AI RMF 1.0, and NIST AI 600-1. Their current versions/URLs were not externally verified; no authoritative access dates or conformance rows were fabricated."
+      ]
+    },
+    "assuranceGates": {
+      "status": "partial",
+      "gates": [
+        "critical-high-findings",
+        "secret-evidence",
+        "analyzer-evidence",
+        "standards-evidence",
+        "hosted-evidence",
+        "deployment-review",
+        "review-plan-lineage",
+        "source-preservation"
+      ],
+      "evidence": [
+        "No confirmed critical/high security finding or live secret was established in completed coverage.",
+        "Confirmed quality defects and partial/blocked required controls prevent a conformant conclusion."
+      ],
+      "limitations": [
+        "No permission to remediate, deploy, publish, commit or push is granted by this report."
+      ]
+    },
+    "records": [
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "audit-evidence.mjs",
+        "toolVersion": "1.0.0",
+        "command": "node .github\\skills\\audit-code\\scripts\\audit-evidence.mjs --root . --audit-run-id b9be041a-c060-4172-b294-67b388b84ba6",
+        "scope": "Local Git/tool/standards-profile metadata; immutable pre-publication snapshot. AUD-0108 limits post-write freshness.",
+        "configurationDigest": "a88e04029364b4ac4b9ab8a26767c8f551b3059ce972df06f8e29e995df85bf4",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:34:22.337Z",
+        "evidenceSha256": "19a780f671c59bc879cca4e5a7a1b568ce5df43d53f7c8078143d34dac75d7fa",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Gitleaks",
+        "toolVersion": "8.30.1",
+        "command": "node .github\\skills\\audit-code\\scripts\\gitleaks-scan.mjs scan --root . --tool-root . --audit-run-id b9be041a-c060-4172-b294-67b388b84ba6",
+        "scope": "Pinned cached scanner, checksum-verified, network disabled; six local scopes at the recorded pre-report digest.",
+        "configurationDigest": "e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:27:42.732Z",
+        "evidenceSha256": "277294742727c6f55fd38b54b2168874c621d1b74d7fdf448eb6b5b24e17b1c5",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "0dc1d2df7df29fba0e3d4cb4f727decdaacd0f4b8f7319dc59ac8bc36e3d26d5",
+        "worktreeDigest": "692f445360f9d301eb611e93465bb428a7ccae461d10d157e7e3957de65924bf"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "npm/Node repository gate",
+        "toolVersion": "11.11.0 / v24.14.1",
+        "command": "npm run check",
+        "scope": "Identical-source long-path isolated snapshot; 439 passed, 15 PowerShell path-loading failures, 1 skipped. Execution completion time is retained log close time.",
+        "configurationDigest": "9a64efe6969efa15604525f240b3c4b1b44d0dd39c6dff1f0bfbce4da53a9c74",
+        "exitCode": 1,
+        "status": "failed",
+        "executedAt": "2026-09-30T22:41:48.719Z",
+        "evidenceSha256": "86c16867d64ec9296420027e112e0f4be19e463ff655f8903185921bb7e92be6",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "npm/Node repository gate",
+        "toolVersion": "11.11.0 / v24.14.1",
+        "command": "node --test --test-name-pattern=\"diagnoses missing offline\" tests\\project-video.test.mjs",
+        "scope": "Identical-source short-path control; diagnoses-missing-offline video test passed without policy changes. Execution completion time is retained log close time.",
+        "configurationDigest": "9a64efe6969efa15604525f240b3c4b1b44d0dd39c6dff1f0bfbce4da53a9c74",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:44:20.000Z",
+        "evidenceSha256": "30a1f7d3464cb7f7dbd55e4e814a622fc8b6c500b8ba1b1ca47d527fbdabd917",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "npm/Node repository gate",
+        "toolVersion": "11.11.0 / v24.14.1",
+        "command": "npm run check",
+        "scope": "Full identical-source short-path isolated gate BEFORE audit report publication; 454 passed, 0 failed, 1 skipped; 50 skills and 232-file unsigned candidate verified. Execution completion time is retained log close time.",
+        "configurationDigest": "9a64efe6969efa15604525f240b3c4b1b44d0dd39c6dff1f0bfbce4da53a9c74",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:54:39.711Z",
+        "evidenceSha256": "bb65b96d704a896e8663a9b948c29bbbfe84266f94d432877e31312fb697a905",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "PowerShell parser",
+        "toolVersion": "7.5.4",
+        "command": "[System.Management.Automation.Language.Parser]::ParseFile for 13 repository PowerShell files",
+        "scope": "Syntax only; zero parser diagnostics. PSScriptAnalyzer was not run.",
+        "configurationDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:37:43.518Z",
+        "evidenceSha256": "db3d6df505d3b7fecdedfe605bcdea9b02093ad4f246f6aa4b301df6b893ffea",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Live Chat production-export reproduction",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\live-chat-reproduction.mjs",
+        "scope": "Seven pure/fake-transport reproductions; no network, microphone, cloud, or consequential action.",
+        "configurationDigest": "39d7602071da8aa691fcfb4b3b2eac14f9a22861d777004d2e34852009ae1329",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:53:08.680Z",
+        "evidenceSha256": "f9c7583319f9c8788edc4f4467985d1805c2030bd8b51a9303ef2a6e002d4459",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Agent Builder classic boundary probes",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\builder-probes.mjs --repo . --group classic",
+        "scope": "Original function bodies/current native exports with in-memory filesystem, fake PAC, generated in-memory canaries, and actual local JSON Schema validation where applicable.",
+        "configurationDigest": "c3a2d42ad8b12a72792401b186737de758ffa92f4e5d9fff3f722a030e217b59",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:49:04.370Z",
+        "evidenceSha256": "1e2952ccca2304f34a8f2cf4cb7704b28b0ccff0c375a791b81d5c2276a82b3f",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Agent Builder native boundary probes",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\builder-probes.mjs --repo . --group native",
+        "scope": "Original function bodies/current native exports with in-memory filesystem, fake PAC, generated in-memory canaries, and actual local JSON Schema validation where applicable.",
+        "configurationDigest": "c3a2d42ad8b12a72792401b186737de758ffa92f4e5d9fff3f722a030e217b59",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:49:04.717Z",
+        "evidenceSha256": "499eef4d518a3c4649b9737db4562de2b3c49e049fa2ba1bcbc98e271cb1e29b",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Agent Builder public boundary probes",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\builder-probes.mjs --repo . --group public",
+        "scope": "Original function bodies/current native exports with in-memory filesystem, fake PAC, generated in-memory canaries, and actual local JSON Schema validation where applicable.",
+        "configurationDigest": "c3a2d42ad8b12a72792401b186737de758ffa92f4e5d9fff3f722a030e217b59",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:49:05.690Z",
+        "evidenceSha256": "71f821f6a505cbfd5993b1427c85aac64be7ecec75ff13d5f63fb930b6a809de",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Runtime update boundary probes",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\runtime-update-probes.mjs --root .",
+        "scope": "Original controlling code with explicitly modeled filesystem boundaries. No physical symlink, actual installation, or external calls.",
+        "configurationDigest": "7377f3188b783a4cf8f06486a26d99bb6bca54232f625f459e7d2538bd112492",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:51:36.948Z",
+        "evidenceSha256": "be84f7506a87b1bd222b43818d136b68ab00e0c5335e8ca9daed62e14ad861a1",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Runtime release boundary probes",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\runtime-release-probes.mjs --root .",
+        "scope": "Original controlling code with explicitly modeled filesystem boundaries. No physical symlink, actual installation, or external calls.",
+        "configurationDigest": "11bd0bef614938c8d6722c9f5041b21f1edf420a2a9fcc8d6783ac81339c5f34",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:51:06.300Z",
+        "evidenceSha256": "c00579eee319403321fc9d5951d1190874bc7545a7bc96f58136482afd21dc36",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Helper/media boundary probes",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\helpers-repros.mjs .",
+        "scope": "Twenty deterministic observations across helper packages; fake filesystem, HTTP/process spies, and local PowerShell az function. Sub-millisecond precision observation is not promoted into a finding.",
+        "configurationDigest": "aca7fcfbb6bbd1c9ec3a850ea15ffcf4d31e0ecbc42d9151da96b5347909eac8",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T22:44:01.848Z",
+        "evidenceSha256": "72991fc5c89f20e86b1079adcfaa6327deaf4932987e4d8cfd1a55c30e7065ee",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Post-report audit/contract tests",
+        "toolVersion": "v24.14.1",
+        "command": "node --test tests\\audit-assurance.test.mjs tests\\audit-execution.test.mjs tests\\skill-contracts.test.mjs",
+        "scope": "Current audit artifacts copied into the unchanged short-path snapshot: 38 passed, 1 failed (checkpoint validity; AUD-0146), 1 skipped. Completion time is retained log close time.",
+        "configurationDigest": "9a64efe6969efa15604525f240b3c4b1b44d0dd39c6dff1f0bfbce4da53a9c74",
+        "exitCode": 1,
+        "status": "failed",
+        "executedAt": "2026-09-30T23:21:07.804Z",
+        "evidenceSha256": "c799b73690ec5695c1cbd8700736b916c4342aa47016edc666f8164a32aba565",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "0f40e72def25512deef4f20b7958b336a8910d7d5c34a9c50f3407ae3136d304"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Checkpoint output-capacity reproduction",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\checkpoint-buffer-reproduction.mjs",
+        "scope": "Actual checkpoint CLI fails; read-only Git comparison confirms ENOBUFS at default capacity and full output at four MiB. The larger buffer is diagnostic, not a replacement checkpoint.",
+        "configurationDigest": "ea3a6ee97e6b73aa5d6ae67258b36e644d8a21a68ffe8883ca2e3b1c5bf57780",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T23:26:57.983Z",
+        "evidenceSha256": "92eeadbb13c08900deff6f4a683cb9948d428a6cb1bb0faea9453a832a0d395c",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Closing pinned secret scan precondition",
+        "toolVersion": "8.30.1",
+        "command": "Required production checkpoint before Gitleaks closing scan",
+        "scope": "Blocked before scanning because the unmodified checkpoint fails; the previous successful scan is retained and is not labeled current.",
+        "configurationDigest": "e9ba7656309b23cb5b7d00aa9b7dde346caaec9c88dbd435ebaea98dde6975a4",
+        "exitCode": null,
+        "status": "blocked",
+        "executedAt": "2026-09-30T23:26:58.257Z",
+        "evidenceSha256": "3e213d3f98d52a4abee697d4583341e58b1025e3d6531c95a1a657b63b99194b",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Public verifier and effective-ignore corroboration",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\helpers-public-corroboration.mjs .",
+        "scope": "Unchanged public CLIs under read-only virtual filesystem; real read-only Git check-ignore with private fixture rules. Manual image review remains mandatory.",
+        "configurationDigest": "ddf7873f4db64e121b23a9245309155c8e2ccad54452df628450fb195bf18dd8",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T23:06:03.519Z",
+        "evidenceSha256": "6333a20aeb8fa4c95d570c168bd06483d050f2488aae9eb45173efb37373ee35",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Current-source documentation consumer corroboration",
+        "toolVersion": "v24.14.1",
+        "command": "node <session-evidence>\\helpers-h15-corroboration.mjs .",
+        "scope": "Original source functions, memory-only project and controlled project timestamps. Historical snapshot validity is not classified as a defect.",
+        "configurationDigest": "0163ba2bd09712dcbd2401ba2f5bd2174fc164ee8c7b12688c40d493e7e0bbe7",
+        "exitCode": 0,
+        "status": "passed",
+        "executedAt": "2026-09-30T23:06:04.382Z",
+        "evidenceSha256": "473f78ddf0164ad45f1bbfe8023a20b633f4abd138522589c29637fa3417c351",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      },
+      {
+        "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+        "tool": "Deployment-specific source reviewer",
+        "toolVersion": "not exposed by provider",
+        "command": "Read-only delegated agent-deployment source/evidence review",
+        "scope": "Blocked with HTTP 422 and no completed report; no retry/reroute or unpublished probe accepted.",
+        "configurationDigest": null,
+        "exitCode": null,
+        "status": "blocked",
+        "executedAt": "2026-09-30T22:54:49.492Z",
+        "evidenceSha256": "6761d197900cbc40c1537760cf24779ee15493eca97b3df9aa75c5354667b295",
+        "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+        "inputDigest": "8984b87f808e5304e5bf52b268c41f570ab554701863e2082abd742445251280"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "AUD-0101",
+      "title": "Final transcripts submit the preceding interim text",
+      "category": "correctness",
+      "bugType": "stale-state submission",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "TRANSCRIPT_FINAL calls withSubmission(state, ...) before applying event.text. The pending submission therefore contains the previous interim transcript or an empty string. A local reproduction used interim 'Delete the old record', final 'Keep the old record', then confirmation; transcript displayed the final text while pendingSubmission.text retained the interim text.",
+      "expectedBehavior": "The submission awaiting acceptance or confirmation must contain the exact final transcript that the user sees, including final-only and corrected-final recognition events.",
+      "impact": "Consumers reading pendingSubmission can submit a different or empty request from the displayed text. Consequential-intent confirmation cannot establish the intended content. The shipped local reducer does not itself execute destructive actions, so this is not claimed as a demonstrated remote authorization exploit.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+          "startLine": 25,
+          "endLine": 29,
+          "description": "withSubmission captures state.transcript."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+          "startLine": 43,
+          "endLine": 49,
+          "description": "The final event constructs pendingSubmission using the old state before storing event.text; confirmation increments that unchanged object."
+        }
+      ],
+      "resolution": "Apply and validate the final text before constructing pendingSubmission; make confirmation bind to the same immutable final text.",
+      "verification": [
+        "Add a final-only event test proving pendingSubmission.text equals the final transcript.",
+        "Add differing interim/final and corrected consequential-turn cases, and assert the confirmed payload rather than only status and submitCount."
+      ],
+      "references": [],
+      "assumptions": [
+        "Confirmed with a pure local reducer reproduction; no consumer-side remote operation was executed.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: final-transcript. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0102",
+      "title": "New conversation turns append to the prior response",
+      "category": "correctness",
+      "bugType": "cross-turn state retention",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "RESPONSE_COMPLETE leaves response intact and START_LISTENING clears only transcript/pendingSubmission. RESPONSE_DELTA concatenates onto the retained response. Two normal turns produce 'First answer.Second answer.' as the second turn's response.",
+      "expectedBehavior": "A fresh request should have its own response buffer while any intended conversation history is maintained separately.",
+      "impact": "The UI or speech consumer receives duplicated/misattributed answers and can speak an earlier answer again.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+          "startLine": 40,
+          "endLine": 40,
+          "description": "New listening state does not reset response."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+          "startLine": 52,
+          "endLine": 55,
+          "description": "Streaming concatenates onto response, while completion preserves it."
+        }
+      ],
+      "resolution": "Reset the per-turn response buffer at the start of a newly accepted turn without discarding intentional historical messages.",
+      "verification": [
+        "Run two complete turns and assert the second response contains only its deltas; retain cancellation and half-duplex assertions."
+      ],
+      "references": [],
+      "assumptions": [
+        "This is turn isolation within one local session, not a demonstrated cross-user leak.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: response-turn-state. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0103",
+      "title": "Late microphone permission completion reverses cancellation",
+      "category": "concurrency",
+      "bugType": "unfenced asynchronous completion",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "requestPermission awaits getUserMedia with no cancellation generation check. After cancel dispatches CANCEL, a delayed successful request dispatches GRANT_CONSENT; the reducer explicitly accepts that event and resets cancelled=false/status=idle.",
+      "expectedBehavior": "A cancelled permission attempt must stop returned tracks but ignore its late consent completion; only a new explicit request may resume the conversation.",
+      "impact": "The visible cancellation state is undone after the user cancels. This contradicts the skill's stated late-event invariant and permits unintended state resumption; it does not bypass the browser's own permission prompt.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/browser-controller.mjs",
+          "startLine": 3,
+          "endLine": 15,
+          "description": "The pending media promise is not fenced when cancel dispatches a state event."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/conversation-state.mjs",
+          "startLine": 36,
+          "endLine": 38,
+          "description": "GRANT_CONSENT is an exception to cancelled-event rejection and clears cancellation."
+        }
+      ],
+      "resolution": "Fence permission attempts with a request generation or cancellation marker and suppress stale completion dispatches while still releasing tracks.",
+      "verification": [
+        "Use a deferred getUserMedia fake, cancel before resolution/rejection, and verify cancelled state is retained and every returned track is stopped."
+      ],
+      "references": [],
+      "assumptions": [
+        "No microphone device or browser permission was accessed; a deferred local fake reproduced the ordering.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: permission-cancellation. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0104",
+      "title": "Malformed grounding manifests throw before the safe fallback",
+      "category": "reliability",
+      "bugType": "validation result ignored before dereference",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "groundResponse obtains a failed validation result but immediately maps manifest.sources and dereferences source.id. sources:{} and sources:[null] each throw TypeError before the guarded fallback can run.",
+      "expectedBehavior": "Reject malformed/unapproved manifest data before traversing it and return the explicit unknown/guided fallback defined by the grounding contract.",
+      "impact": "A corrupt or malformed grounding record crashes the local response path instead of preserving a usable fallback, despite tests and the skill describing malformed content as inert.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/grounding.mjs",
+          "startLine": 4,
+          "endLine": 9,
+          "description": "Manifest validation correctly returns invalid for these malformed source collections."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/grounding.mjs",
+          "startLine": 13,
+          "endLine": 17,
+          "description": "Invalid sources are mapped/dereferenced before checked.valid is tested."
+        }
+      ],
+      "resolution": "Return the explicit invalid-manifest fallback before constructing source/citation indexes; validate response collection members at the same boundary.",
+      "verification": [
+        "Test sources as object/null/non-array and arrays containing null, plus malformed citation/sourceIds values; assert safe fallback and no exception."
+      ],
+      "references": [],
+      "assumptions": [
+        "Malformed input is part of the existing documented failure behavior, not an invented supported input shape.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: malformed-grounding. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0105",
+      "title": "Rate-limited requests permanently consume an identity concurrency slot",
+      "category": "resource-management",
+      "bugType": "exception-path ownership leak",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "streamOpenAI increments activeByIdentity before guardRate, outside the try/finally that decrements it. A rate rejection leaks the count. A local fake with a one-request window succeeded once, rejected the next request for rate, then still rejected the same identity for concurrency after advancing the clock past the window.",
+      "expectedBehavior": "Rejected requests must not hold an active identity slot. All acquisitions must be paired with release on normal, exception, cancellation and early-return paths.",
+      "impact": "Normal bursts can permanently lock a user's adapter identity until the adapter instance is recreated, regardless of rate-window recovery.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 174,
+          "endLine": 183,
+          "description": "Concurrency accounting is acquired before a potentially throwing rate check and before try/finally."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 218,
+          "endLine": 221,
+          "description": "Cleanup only covers requests that reached the try statement."
+        }
+      ],
+      "resolution": "Check rate before taking the active slot or move every post-acquisition operation inside the cleanup boundary; release empty identity records.",
+      "verification": [
+        "Exceed the rate window, advance a fake clock, and assert the same identity can stream again; cover exceptions between slot acquisition and transport start."
+      ],
+      "references": [],
+      "assumptions": [
+        "Authenticated identity derivation by a hosting application was not assessed; this is a locally reproduced availability defect.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: rate-slot-leak. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0106",
+      "title": "Declared provider response-token ceiling is not enforced",
+      "category": "resource-management",
+      "bugType": "ineffective output/cost bound",
+      "securitySeverity": "medium",
+      "confidence": "high",
+      "observedBehavior": "responseTokens is range-checked but neither it nor maxResponseTokens is sent in the provider payload; the payload contains only messages and stream. Streaming output and pending line data are accumulated without an enforced response-size ceiling. A fake response returned 24,000 characters despite a configured/requested two-token ceiling.",
+      "expectedBehavior": "Send a model-compatible provider output limit and enforce a bounded streaming byte/character budget locally, cancelling excessive output and releasing the transport.",
+      "impact": "A downstream application relying on the advertised ceiling can incur output costs and retain memory beyond its approved limit. A user-controlled prompt or unexpectedly large provider stream can exercise the path; the endpoint is trusted but output volume is not bounded by this adapter.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 165,
+          "endLine": 172,
+          "description": "The response token parameter is checked only as an input number."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 184,
+          "endLine": 207,
+          "description": "The request omits any completion limit and output is appended/yielded without a local cap."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 88,
+          "endLine": 111,
+          "description": "The streaming line buffer has no maximum length."
+        }
+      ],
+      "resolution": "Enforce a provider-supported output token option and local streaming bounds at the single server adapter, with cancellation and resource cleanup when exceeded. Validate budget inputs as finite nonnegative values.",
+      "verification": [
+        "Capture the outgoing fake request and assert the configured model-compatible limit; stream oversized unterminated lines and excessive deltas and verify bounded failure before accumulation or further yields."
+      ],
+      "references": [],
+      "assumptions": [
+        "No live provider invocation or actual charge occurred; the exact accepted model parameter must be verified during remediation. The adapter is an opt-in server scaffold, not a deployed endpoint.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: response-budget. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0107",
+      "title": "Streaming decoder corrupts UTF-8 characters split across chunks",
+      "category": "correctness",
+      "bugType": "stateless multi-byte stream decoding",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The preferred async-iterator response path decodes each Buffer independently with toString('utf8'). Splitting the two bytes of a non-ASCII character across chunks produces replacement characters in the emitted delta. A café delta was emitted as caf followed by two replacement characters.",
+      "expectedBehavior": "Decode all network chunks with one streaming UTF-8 decoder and flush it only at stream completion.",
+      "impact": "Legitimate streamed non-ASCII names, user content, localized responses, and citation text are corrupted at arbitrary network chunk boundaries.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 87,
+          "endLine": 99,
+          "description": "Async-iterator input decodes each chunk without preserving partial characters; this branch takes precedence for ordinary async-iterable response streams."
+        },
+        {
+          "path": "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+          "startLine": 100,
+          "endLine": 111,
+          "description": "The alternate reader path already uses streaming TextDecoder but is not used for async-iterable bodies."
+        }
+      ],
+      "resolution": "Reuse one streaming TextDecoder for both response body interfaces, including final flush and cleanup.",
+      "verification": [
+        "Split every byte boundary of accented and multi-byte Unicode strings in fake SSE chunks; assert exact delta text and unchanged JSON parsing semantics."
+      ],
+      "references": [],
+      "assumptions": [
+        "Reproduced with byte buffers through the production exported adapter and fake transport.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): live-chat-reproduction.mjs: split-utf8. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0108",
+      "title": "Publishing audit evidence invalidates the secret-scan binding it certifies",
+      "category": "reliability",
+      "bugType": "self-invalidating evidence lifecycle",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "After a current successful pinned Gitleaks scan, audit-evidence reports secretHistory=completed and writes a new content-addressed snapshot beneath reports/audit-evidence. Both scanInputDigest and the untracked worktree digest include that new snapshot. Immediately rerunning the helper with the same run ID and no source changes reports secretHistory=ready, because the helper's own publication changed its required input digests.",
+      "expectedBehavior": "The audit should bind a well-defined pre-report source/input snapshot and separately attest its generated evidence, so publishing the required report does not automatically make a just-completed audit appear stale.",
+      "impact": "The required scan-to-evidence workflow cannot reach a stable completed freshness state. Repeated scans/evidence generations keep invalidating one another and complicate trustworthy downstream assurance and resume checks.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": ".github/skills/audit-code/scripts/gitleaks-scan.mjs",
+          "startLine": 123,
+          "endLine": 146,
+          "description": "The scan digest includes audit-evidence files and excludes only the scanner's own report among reports."
+        },
+        {
+          "path": ".github/skills/audit-code/scripts/audit-evidence.mjs",
+          "startLine": 158,
+          "endLine": 162,
+          "description": "Freshness requires exact worktree and scan-input digest matches."
+        },
+        {
+          "path": ".github/skills/audit-code/scripts/audit-evidence.mjs",
+          "startLine": 242,
+          "endLine": 260,
+          "description": "After checking freshness, the helper creates a new immutable snapshot that participates in those digests."
+        }
+      ],
+      "resolution": "Separate immutable assessed-input identity from generated audit outputs, while retaining secret scans of tracked reports and independently hashing/scanning new outputs. Do not broadly exempt all reports or weaken source-drift detection.",
+      "verification": [
+        "Scan a stable fixture, generate evidence, and repeat evidence inspection; completion must remain stable without rescanning unchanged source. A real source or pre-existing report change must still invalidate freshness."
+      ],
+      "references": [],
+      "assumptions": [
+        "Reproduced on this audit run with two immutable snapshots; both snapshots are retained. The pinned scan itself completed successfully with zero findings.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): audit-freshness-reproduction.json. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0109",
+      "title": "Cleanup derives a different resource group for supported long project names",
+      "category": "operability",
+      "bugType": "duplicated naming rules with drift",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Deployment uses Get-AzureResourceName and truncates resource-group names to 90 characters. Cleanup -All independently prepends rg- to the unbounded normalized project name. For a supported 90-character siteName, deployment uses a 90-character group while cleanup queries a 93-character name.",
+      "expectedBehavior": "Creation and cleanup must resolve the same exact group identity for every supported project name, using the shared naming owner.",
+      "impact": "The documented -All cleanup path cannot find resources created for long valid project names; it fails instead of cleaning the intended group. No live resources were queried or deleted.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "templates/project/infra/deploy-infra.ps1",
+          "startLine": 45,
+          "endLine": 48,
+          "description": "Deployment enforces the group-name length bound."
+        },
+        {
+          "path": "templates/project/infra/cleanup.ps1",
+          "startLine": 39,
+          "endLine": 42,
+          "description": "Cleanup independently builds an untruncated group name before querying resources."
+        },
+        {
+          "path": "templates/project/infra/main.bicep",
+          "startLine": 7,
+          "endLine": 10,
+          "description": "The accepted siteName range permits this input length."
+        }
+      ],
+      "resolution": "Reuse the deployment naming helper for cleanup or extract a single shared resource-naming owner; do not silently change identities of existing resources.",
+      "verification": [
+        "Cover names at 86, 87, 88, and 90 normalized characters and assert deploy/cleanup group identity equality; use fake Azure commands and verify no deletion without the exact existing confirmation gate."
+      ],
+      "references": [],
+      "assumptions": [
+        "A local helper comparison reproduced 90 versus 93 characters. The script comment claiming 2-20 characters is not the actual Bicep maximum.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): PowerShell: Get-AzureResourceName -ProjectName ('a' * 90) -ResourceType resourceGroup versus cleanup's rg- plus ConvertTo-AzureProjectToken. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0110",
+      "title": "Pre-write failure can delete the existing agent",
+      "category": "correctness",
+      "bugType": "destructive-rollback-before-write",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The real controlling catch calls rm(target) before any target replacement. All three injections leave the target absent; failed backup restoration additionally changes EIO to ENOENT.",
+      "expectedBehavior": "A pre-write failure preserves the current destination.",
+      "impact": "Loss of the original agent or a concurrent user edit during an unsuccessful update.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 839,
+          "endLine": 846,
+          "description": "AB-01: destructive-rollback-before-write. The real controlling catch calls rm(target) before any target replacement. All three injections leave the target absent; failed backup restoration additionally changes EIO to ENOENT."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 859,
+          "endLine": 863,
+          "description": "AB-01: destructive-rollback-before-write. The real controlling catch calls rm(target) before any target replacement. All three injections leave the target absent; failed backup restoration additionally changes EIO to ENOENT."
+        }
+      ],
+      "resolution": "Distinguish completed backup creation from actual target replacement and roll back only writes owned by this invocation.",
+      "verification": [
+        "Inject failures at all three observed boundaries; assert original/current target bytes remain, no target rename occurred, and original errors are preserved."
+      ],
+      "references": [],
+      "assumptions": [
+        "A valid reviewed classic update; a concurrent save after lock creation, transaction-directory EACCES, or backup-copy EIO.",
+        "Filesystem errors are narrowly injected into an in-memory regular-file model, not induced on a physical disk. The success control and recorded boundary events distinguish product cleanup from instrumentation.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"classic\",\"cases\":[\"AB-01-post-lock-drift\",\"AB-01-mkdir-denied\",\"AB-01-copy-failure\"],\"results\":\"builder-classic-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0111",
+      "title": "Native build overwrites an input spec that aliases an output",
+      "category": "correctness",
+      "bugType": "input-output-path-collision",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Build returns review-required but overwrites the spec; apply then rejects the changed spec digest.",
+      "expectedBehavior": "Reject the collision before output writes and preserve the reviewed input.",
+      "impact": "The original specification is lost and the just-produced review cannot be applied.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 852,
+          "endLine": 857,
+          "description": "AB-02: input-output-path-collision. Build returns review-required but overwrites the spec; apply then rejects the changed spec digest."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 732,
+          "endLine": 732,
+          "description": "AB-02: input-output-path-collision. Build returns review-required but overwrites the spec; apply then rejects the changed spec digest."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 890,
+          "endLine": 891,
+          "description": "AB-02: input-output-path-collision. Build returns review-required but overwrites the spec; apply then rejects the changed spec digest."
+        }
+      ],
+      "resolution": "Preflight canonical input/output aliases, including Windows case-insensitive aliases, before PAC or artifact writes.",
+      "verification": [
+        "Exercise both spec aliases and authored-input aliases; reject without changing any input or existing output."
+      ],
+      "references": [],
+      "assumptions": [
+        "A valid native spec is selected from reports/agent-blueprints/native-reviewer.json or reports/agent-builder-plan.json.",
+        "Current public native driver executed unchanged with virtual filesystem and fake PAC only.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"native\",\"cases\":[\"AB-02-blueprint-alias\",\"AB-02-plan-alias\"],\"results\":\"builder-native-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0112",
+      "title": "Classic apply interprets an explicit negative risk value as approval",
+      "category": "correctness",
+      "bugType": "boolean-cli-argument-confusion",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The unchanged main/parse/apply path ignores false as an extra positional, installs the new target, and persists an applied result.",
+      "expectedBehavior": "Reject the unsupported flag value or treat it as withheld approval.",
+      "impact": "Malformed negative approval input authorizes local installation contrary to its expressed value.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 65,
+          "endLine": 75,
+          "description": "AB-03: boolean-cli-argument-confusion. The unchanged main/parse/apply path ignores false as an extra positional, installs the new target, and persists an applied result."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 933,
+          "endLine": 933,
+          "description": "AB-03: boolean-cli-argument-confusion. The unchanged main/parse/apply path ignores false as an extra positional, installs the new target, and persists an applied result."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 972,
+          "endLine": 972,
+          "description": "AB-03: boolean-cli-argument-confusion. The unchanged main/parse/apply path ignores false as an extra positional, installs the new target, and persists an applied result."
+        }
+      ],
+      "resolution": "Reject extra positionals on all commands or parse boolean-valued flags explicitly.",
+      "verification": [
+        "Run false and no through main and verify rejection plus unchanged destination; retain the documented bare-flag success control."
+      ],
+      "references": [],
+      "assumptions": [
+        "An otherwise valid reviewed classic update is invoked with --accept-risk false.",
+        "This establishes a local CLI contract defect, not a remote authorization bypass.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"classic\",\"cases\":[\"AB-03-explicit-false-through-main\"],\"results\":\"builder-classic-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0113",
+      "title": "Classic result-persistence failure leaves the new agent installed",
+      "category": "reliability",
+      "bugType": "result-outside-transaction",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The real controlling code verifies and marks the target applied, releases the lock, then throws on the result rename without restoring the original.",
+      "expectedBehavior": "A consistent successful transaction/result or restoration of the prior destination with a recorded failure.",
+      "impact": "The command reports failure while the changed agent remains active and the current result is absent.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 853,
+          "endLine": 867,
+          "description": "AB-04: result-outside-transaction. The real controlling code verifies and marks the target applied, releases the lock, then throws on the result rename without restoring the original."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 879,
+          "endLine": 880,
+          "description": "AB-04: result-outside-transaction. The real controlling code verifies and marks the target applied, releases the lock, then throws on the result rename without restoring the original."
+        }
+      ],
+      "resolution": "Include result persistence in the transaction and lock lifetime with explicit outcome handling.",
+      "verification": [
+        "Inject only the final result rename failure; assert a coherent result or rollback and verify the lock is retained through outcome persistence."
+      ],
+      "references": [],
+      "assumptions": [
+        "Installation succeeds, then rename of the pending reports/agent-builder-result.json fails with EACCES.",
+        "Boundary trace shows the successful target rename and lock removal preceding the one injected failure; no target mutation is performed by the injection.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"classic\",\"cases\":[\"AB-04-result-persistence\"],\"results\":\"builder-classic-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0114",
+      "title": "Native parser treats ambiguous implicit scalars as validated text",
+      "category": "correctness",
+      "bugType": "yaml-scalar-semantics-mismatch",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The scalar falls through as a string; build, apply, and installed validation pass with locally verified implementation.",
+      "expectedBehavior": "Correct YAML scalar typing or conservative rejection requiring explicit quotes.",
+      "impact": "Local structural assurance can certify a value interpreted differently by YAML tooling.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 232,
+          "endLine": 237,
+          "description": "AB-05: yaml-scalar-semantics-mismatch. The scalar falls through as a string; build, apply, and installed validation pass with locally verified implementation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 314,
+          "endLine": 315,
+          "description": "AB-05: yaml-scalar-semantics-mismatch. The scalar falls through as a string; build, apply, and installed validation pass with locally verified implementation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 349,
+          "endLine": 349,
+          "description": "AB-05: yaml-scalar-semantics-mismatch. The scalar falls through as a string; build, apply, and installed validation pass with locally verified implementation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 612,
+          "endLine": 621,
+          "description": "AB-05: yaml-scalar-semantics-mismatch. The scalar falls through as a string; build, apply, and installed validation pass with locally verified implementation."
+        }
+      ],
+      "resolution": "Reject implicit scalar forms outside the supported subset or implement consistent typing.",
+      "verification": [
+        "Test quoted/unquoted boolean, null, scientific-number, hexadecimal, and reserved plain-scalar forms."
+      ],
+      "references": [],
+      "assumptions": [
+        "A supported static topic uses unquoted activity: True.",
+        "No live-platform rejection is asserted; the finding concerns local YAML semantics and the generated validation claim.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"native\",\"cases\":[\"AB-05-implicit-boolean\"],\"results\":\"builder-native-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0115",
+      "title": "Native source comments bypass credential-material checks",
+      "category": "security",
+      "bugType": "raw-source-secret-check-gap",
+      "securitySeverity": "low",
+      "confidence": "high",
+      "observedBehavior": "Build/apply/validate pass and a runtime-generated synthetic canary remains in canonical source; placing it in activity text blocks preparation.",
+      "expectedBehavior": "Reject suspected credential material before copying it into generated portable artifacts.",
+      "impact": "Potential credential propagation into generated source; external disclosure was not demonstrated.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 218,
+          "endLine": 220,
+          "description": "AB-06: raw-source-secret-check-gap. Build/apply/validate pass and a runtime-generated synthetic canary remains in canonical source; placing it in activity text blocks preparation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 314,
+          "endLine": 315,
+          "description": "AB-06: raw-source-secret-check-gap. Build/apply/validate pass and a runtime-generated synthetic canary remains in canonical source; placing it in activity text blocks preparation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 581,
+          "endLine": 589,
+          "description": "AB-06: raw-source-secret-check-gap. Build/apply/validate pass and a runtime-generated synthetic canary remains in canonical source; placing it in activity text blocks preparation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 709,
+          "endLine": 709,
+          "description": "AB-06: raw-source-secret-check-gap. Build/apply/validate pass and a runtime-generated synthetic canary remains in canonical source; placing it in activity text blocks preparation."
+        }
+      ],
+      "resolution": "Inspect bounded raw source bytes, including comments, before copying while preserving originals and sanitized errors.",
+      "verification": [
+        "Generate canaries only at runtime, compare preserved/echoed booleans, and never record their values; require comment and scalar controls to block."
+      ],
+      "references": [],
+      "assumptions": [
+        "An authored topic inadvertently contains credential-shaped material in a YAML comment.",
+        "No live credential or external transmission was used. Persisted evidence contains only canary-preserved/echoed booleans.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"native\",\"cases\":[\"AB-06-comment\",\"native-secret-activity-control\"],\"results\":\"builder-native-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0116",
+      "title": "Classic validation echoes credential-bearing rejected values",
+      "category": "security",
+      "bugType": "sensitive-input-in-validation-diagnostics",
+      "securitySeverity": "low",
+      "confidence": "high",
+      "observedBehavior": "The unchanged main/fail path prints the generated synthetic canary in captured CLI diagnostics; the instruction-text control rejects without echoing it.",
+      "expectedBehavior": "Reject using a field-specific diagnostic without echoing the untrusted value.",
+      "impact": "Accidental secret-bearing malformed input can enter terminal or agent transcripts.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 192,
+          "endLine": 192,
+          "description": "AB-07: sensitive-input-in-validation-diagnostics. The unchanged main/fail path prints the generated synthetic canary in captured CLI diagnostics; the instruction-text control rejects without echoing it."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 317,
+          "endLine": 317,
+          "description": "AB-07: sensitive-input-in-validation-diagnostics. The unchanged main/fail path prints the generated synthetic canary in captured CLI diagnostics; the instruction-text control rejects without echoing it."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 404,
+          "endLine": 405,
+          "description": "AB-07: sensitive-input-in-validation-diagnostics. The unchanged main/fail path prints the generated synthetic canary in captured CLI diagnostics; the instruction-text control rejects without echoing it."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 57,
+          "endLine": 59,
+          "description": "AB-07: sensitive-input-in-validation-diagnostics. The unchanged main/fail path prints the generated synthetic canary in captured CLI diagnostics; the instruction-text control rejects without echoing it."
+        }
+      ],
+      "resolution": "Remove untrusted-value interpolation from diagnostics and retain field locations plus safe allowed-value descriptions.",
+      "verification": [
+        "Exercise main and fail, capture output in memory, and persist only rejected/echoed booleans."
+      ],
+      "references": [],
+      "assumptions": [
+        "Credential-shaped input occurs in an invalid capability or subagent identifier.",
+        "No canary value, raw credential-like diagnostic, live credential, or external transmission is recorded.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"public\",\"cases\":[\"AB-07-cli-diagnostic\"],\"results\":\"builder-public-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0117",
+      "title": "Complete push handoff accepts blocked or missing draft approval",
+      "category": "correctness",
+      "bugType": "operation-approval-completeness-gap",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Both the current exported validator and the actual unchanged JSON Schema accept complete:true.",
+      "expectedBehavior": "The applicable draft approval must be verified before the push handoff may claim complete.",
+      "impact": "The portable completeness contract overstates applicable approval evidence.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 168,
+          "endLine": 177,
+          "description": "AB-08: operation-approval-completeness-gap. Both the current exported validator and the actual unchanged JSON Schema accept complete:true."
+        },
+        {
+          "path": "schemas/copilot-studio-handoff.schema.json",
+          "startLine": 114,
+          "endLine": 114,
+          "description": "AB-08: operation-approval-completeness-gap. Both the current exported validator and the actual unchanged JSON Schema accept complete:true."
+        }
+      ],
+      "resolution": "Require operation-relevant completion approvals and reject explicit applicable blockers.",
+      "verification": [
+        "Require verified draft approval for push and test not-requested/blocked variants against both validators; keep an approved control."
+      ],
+      "references": [],
+      "assumptions": [
+        "An otherwise complete handoff selects push, records verified synchronization, and declares draft approval blocked or not-requested.",
+        "Cost approval is deliberately excluded from this finding because no necessary cost-bearing operation was established. No downstream authorization bypass is asserted.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"public\",\"cases\":[\"AB-08-push-draft-verified\",\"AB-08-push-draft-not-requested\",\"AB-08-push-draft-blocked\"],\"results\":\"builder-public-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0118",
+      "title": "Cycle detection misses ordinary YAML agent-list formats",
+      "category": "correctness",
+      "bugType": "frontmatter-reference-parser-gap",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The graph builder records no reverse edge for either ordinary alternative form and accepts the cycle.",
+      "expectedBehavior": "Reject the same cycle detected in quoted-flow-list form.",
+      "impact": "The invocation-cycle invariant depends on cosmetic YAML formatting.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 470,
+          "endLine": 477,
+          "description": "AB-09: frontmatter-reference-parser-gap. The graph builder records no reverse edge for either ordinary alternative form and accepts the cycle."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 480,
+          "endLine": 487,
+          "description": "AB-09: frontmatter-reference-parser-gap. The graph builder records no reverse edge for either ordinary alternative form and accepts the cycle."
+        }
+      ],
+      "resolution": "Parse supported frontmatter reference forms correctly or fail closed on unrecognized reference syntax.",
+      "verification": [
+        "Run the same two-agent graph with quoted-flow, plain-flow, and block-list forms and require equivalent rejection."
+      ],
+      "references": [],
+      "assumptions": [
+        "A proposed first agent delegates to an existing second agent whose reverse reference uses a plain flow list or block list.",
+        "No actual recursive agent invocation or resource-consumption outcome is claimed.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"public\",\"cases\":[\"AB-09-cycle\"],\"results\":\"builder-public-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0119",
+      "title": "Boolean solution name passes runtime but violates emitted schema",
+      "category": "correctness",
+      "bugType": "regex-scalar-coercion",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The unchanged exported spec validator returns the same object. Current public build/apply/validate succeed in the virtual filesystem. The actual produced handoff passes runtime validation but fails actual Test-Json schema validation.",
+      "expectedBehavior": "Reject before preparation because the field is string-or-null.",
+      "impact": "The producer emits an artifact its authoritative schema rejects while declaring installed validation successful.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 79,
+          "endLine": 79,
+          "description": "AB-10: regex-scalar-coercion. The unchanged exported spec validator returns the same object. Current public build/apply/validate succeed in the virtual filesystem. The actual produced handoff passes runtime validation but fails actual Test-Json schema validation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 392,
+          "endLine": 392,
+          "description": "AB-10: regex-scalar-coercion. The unchanged exported spec validator returns the same object. Current public build/apply/validate succeed in the virtual filesystem. The actual produced handoff passes runtime validation but fails actual Test-Json schema validation."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/native-studio.mjs",
+          "startLine": 633,
+          "endLine": 633,
+          "description": "AB-10: regex-scalar-coercion. The unchanged exported spec validator returns the same object. Current public build/apply/validate succeed in the virtual filesystem. The actual produced handoff passes runtime validation but fails actual Test-Json schema validation."
+        },
+        {
+          "path": "schemas/copilot-studio-handoff.schema.json",
+          "startLine": 214,
+          "endLine": 214,
+          "description": "AB-10: regex-scalar-coercion. The unchanged exported spec validator returns the same object. Current public build/apply/validate succeed in the virtual filesystem. The actual produced handoff passes runtime validation but fails actual Test-Json schema validation."
+        }
+      ],
+      "resolution": "Check scalar types before applying regexes in both spec and handoff validation.",
+      "verification": [
+        "Add producer/API/schema parity tests for true, false, arrays, objects, and valid strings/null."
+      ],
+      "references": [],
+      "assumptions": [
+        "A native specification sets target.solutionUniqueName to the JSON boolean true.",
+        "Public modules are imported from current original files. Installation is a virtual-filesystem exercise, not an on-disk or cloud qualification.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"public\",\"cases\":[\"AB-10-current-public-spec-api\",\"AB-10-boolean-solution\",\"AB-10-actual-produced-handoff\"],\"results\":\"builder-public-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0120",
+      "title": "Partial initial lock write leaves an orphan project lock",
+      "category": "resource-management",
+      "bugType": "owned-lock-file-not-cleaned-after-write-failure",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The real early catch rethrows before the cleanup region. No target write occurs and the empty lock remains.",
+      "expectedBehavior": "Remove the lock owned by this failed invocation without touching any preexisting lock.",
+      "impact": "Later applies are blocked by an orphan lock even though this apply never installed anything.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 831,
+          "endLine": 839,
+          "description": "AB-11: owned-lock-file-not-cleaned-after-write-failure. The real early catch rethrows before the cleanup region. No target write occurs and the empty lock remains."
+        },
+        {
+          "path": ".github/skills/agent-builder/scripts/agent-builder.mjs",
+          "startLine": 865,
+          "endLine": 866,
+          "description": "AB-11: owned-lock-file-not-cleaned-after-write-failure. The real early catch rethrows before the cleanup region. No target write occurs and the empty lock remains."
+        }
+      ],
+      "resolution": "Acquire an exclusive handle, track ownership, and perform lock content writes within its cleanup boundary.",
+      "verification": [
+        "Inject a create-then-fail write and assert owned lock removal; separately ensure EEXIST never removes another invocation's lock."
+      ],
+      "references": [],
+      "assumptions": [
+        "The exclusive write creates the lock file but its content write fails with ENOSPC.",
+        "The probe explicitly models the partial-file creation precondition; it does not claim to have exhausted a physical disk or leaked an OS descriptor.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"runner\":\"builder-probes.mjs\",\"group\":\"classic\",\"cases\":[\"AB-11-partial-lock-write\"],\"results\":\"builder-classic-results.json\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0121",
+      "title": "Checksum symlink target is read and echoed before link rejection",
+      "category": "security",
+      "bugType": "linked-manifest-read-before-validation",
+      "securitySeverity": "medium",
+      "confidence": "high",
+      "observedBehavior": "Original verifier/path-guard bodies followed the modeled link and emitted the synthetic canary in an error before any artifact directory walk.",
+      "expectedBehavior": "Reject the linked manifest before reading its target and never include raw manifest data in validation errors.",
+      "impact": "Potential first-line disclosure of an unrelated readable file into verifier errors or CI/support logs. No race, real credential, or live-secret access was used in the probe.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "scripts/verify-release.mjs",
+          "startLine": 30,
+          "endLine": 40,
+          "description": "Reads SHA256SUMS and interpolates invalid line contents before walking the candidate and rejecting links."
+        }
+      ],
+      "resolution": "Check the manifest leaf and every input path before reading; report line numbers or rule IDs instead of raw line contents.",
+      "verification": [
+        "Add platform-supported physical symlink tests and assert rejection before target read plus redacted error output."
+      ],
+      "references": [],
+      "assumptions": [
+        "An untrusted candidate contains a SHA256SUMS symlink to a readable external file; its first line is not a checksum entry. Anyone receiving verifier stderr may receive that line.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-release-results.json\",\"probe\":\"RT-01\",\"status\":\"reproduced\",\"physicalFilesystemTest\":false}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0122",
+      "title": "Adoption rollback leaves the newly written baseline lock",
+      "category": "reliability",
+      "bugType": "incomplete-adoption-rollback-journal",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Injected EIO at adoption-verification.json yielded journal status rolled-back, restored the old manifest, retained the new unjournaled lock, and caused the next update to reject mismatching manifest/lock identities.",
+      "expectedBehavior": "Restore the complete original manifest/lock pair, or remove the new lock if none previously existed.",
+      "impact": "A reportedly rolled-back project retains inconsistent provenance and cannot use normal updates until the baseline pair is repaired.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "pso.mjs",
+          "startLine": 625,
+          "endLine": 633,
+          "description": "Journal selection omits project-orchestrator.lock.json unless explicitly supplied; adoption does not supply it."
+        },
+        {
+          "path": "pso.mjs",
+          "startLine": 3801,
+          "endLine": 3805,
+          "description": "Writes a new baseline lock before final installation verification."
+        }
+      ],
+      "resolution": "Journal the baseline lock and all unconditionally written metadata before any adoption mutation.",
+      "verification": [
+        "Inject failure after the lock write and interrupt at the same point; verify byte-exact pair restoration and successful subsequent update planning."
+      ],
+      "references": [],
+      "assumptions": [
+        "An adoption changes installed-source identity and fails after its lock write, such as a final verification-report I/O failure.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-update-results.json\",\"probe\":\"RT-02\",\"status\":\"reproduced\",\"injection\":\"Only writeFile for the final reports/adoption-verification.json raises EIO; other virtual writes succeed.\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0123",
+      "title": "Scaffold apply selects Launch Pad content instead of the hashed template",
+      "category": "correctness",
+      "bugType": "planned-template-and-applied-source-disagree",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "A fixture lacking only the new native-routing block planned upstream-only with canApply true, then instruction update rolled back with Written upstream digest does not match .github/copilot-instructions.md.",
+      "expectedBehavior": "Read the same template bytes whose digest the plan reviewed, keeping Launch Pad instructions distinct from target-project instructions.",
+      "impact": "The native routing instruction upgrade, and other colliding scaffold updates, cannot be applied through the reviewed update path.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "pso.mjs",
+          "startLine": 2808,
+          "endLine": 2815,
+          "description": "Upstream scaffold digests are calculated from templates/project."
+        },
+        {
+          "path": "pso.mjs",
+          "startLine": 3269,
+          "endLine": 3283,
+          "description": "Apply instead prefers any same-path file in SCRIPT_ROOT, then rejects its different digest."
+        }
+      ],
+      "resolution": "Select source content from the asset's declared scope/provenance; scaffold assets must resolve to the scaffold template, not an existence-based fallback.",
+      "verification": [
+        "Apply an instruction-template upgrade with a deliberately different Launch Pad file and assert exact planned content; cover .gitattributes too."
+      ],
+      "references": [],
+      "assumptions": [
+        "A generated project's scaffold needs updating and its path also exists with different contents in the Launch Pad, as currently occurs for .github/copilot-instructions.md and .gitattributes.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-update-results.json\",\"probe\":\"RT-03\",\"status\":\"reproduced\",\"fixture\":\"Current shipped instruction template minus its native-studio-routing managed block, with matching old normalized baseline.\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0124",
+      "title": "Safe-all accepts local-only edits then rolls back while verifying them",
+      "category": "reliability",
+      "bugType": "no-action-verification-rejects-preserved-local-state",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "A valid skill with one harmless local note produced local-only/none/canApply true, but apply rolled back because its bytes did not equal upstream.",
+      "expectedBehavior": "Verify the preserved local state according to its no-action plan and complete otherwise-compatible reconciliation.",
+      "impact": "Ordinary customized projects cannot complete the advertised safe-all update even when no upstream/local conflict exists.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "pso.mjs",
+          "startLine": 2870,
+          "endLine": 2877,
+          "description": "A local-only classification receives action none."
+        },
+        {
+          "path": "pso.mjs",
+          "startLine": 3352,
+          "endLine": 3366,
+          "description": "Verification nonetheless requires every unpinned selected asset to equal upstream."
+        }
+      ],
+      "resolution": "Make candidate verification classification/action-aware; distinguish preservation from replacement and baseline advancement.",
+      "verification": [
+        "Apply safe-all with valid local-only content and test converged/no-action cases, ensuring bytes and baseline policy remain correct."
+      ],
+      "references": [],
+      "assumptions": [
+        "A valid managed asset has a local-only change; its installed baseline and current upstream are equal.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-update-results.json\",\"probe\":\"RT-04\",\"status\":\"reproduced\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0125",
+      "title": "Profile validation blocks additive restoration of required skills",
+      "category": "configuration",
+      "bugType": "profile-validation-ignores-projected-state",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Missing workflow-planner was classified new-upstream/create but INCOMPATIBLE_PROFILE set canApply false; actual updateProject apply refused.",
+      "expectedBehavior": "Check the proposed post-apply profile, while still blocking required skills that are neither present nor being installed.",
+      "impact": "The additive command cannot repair required skills or introduce newly required profile skills through this path.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "pso.mjs",
+          "startLine": 3154,
+          "endLine": 3166,
+          "description": "Profile conformance tests current local presence without honoring a selected create action."
+        }
+      ],
+      "resolution": "Evaluate projected skill availability from verified planned creates/replacements and retained installed assets.",
+      "verification": [
+        "Apply additive workflow-planner restoration and a new-required-skill upgrade; retain the negative test for an unrelated selective update leaving a requirement absent."
+      ],
+      "references": [],
+      "assumptions": [
+        "A required skill is absent and is explicitly selected for a dependency-closed additive installation, or is newly required by an upstream profile.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-update-results.json\",\"probe\":\"RT-05\",\"status\":\"reproduced\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0126",
+      "title": "Legacy update plans omit required source provenance metadata",
+      "category": "correctness",
+      "bugType": "legacy-producer-schema-divergence",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Legacy planning reported canApply true; serialized plan.source omitted installedSource and failed the schema's required-property condition.",
+      "expectedBehavior": "Every emitted supported-version plan must satisfy its advertised contract without inventing historical identity.",
+      "impact": "Schema-consuming reviewers or automation reject the supposedly usable legacy migration plan.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": "pso.mjs",
+          "startLine": 3196,
+          "endLine": 3201,
+          "description": "Copies manifest.installedSource into plan.source even though supported legacy manifests lack it."
+        },
+        {
+          "path": "schemas/project-update-plan.schema.json",
+          "startLine": 69,
+          "endLine": 76,
+          "description": "The plan source contract requires installedSource."
+        }
+      ],
+      "resolution": "Represent unknown legacy provenance explicitly in the plan schema/runtime, rather than substituting current upstream identity for historical evidence.",
+      "verification": [
+        "Validate emitted plans from legacy 1.0 and current 1.1 fixtures against the actual plan schema, then test their migration paths."
+      ],
+      "references": [],
+      "assumptions": [
+        "Supported manifest 1.0 without installedSource or a 1.1 baseline lock.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-update-results.json\",\"probe\":\"RT-06\",\"status\":\"reproduced\",\"validatorScope\":\"Direct required-property check, not a general JSON Schema engine.\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0127",
+      "title": "Candidate freshness ignores added and deleted shipped sources",
+      "category": "reliability",
+      "bugType": "release-freshness-omits-source-set-drift",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Separate added schemas/added.schema.json and deleted schemas/retired.schema.json cases both exited 0 as verified. Baseline and a nonshipped reports output control also passed.",
+      "expectedBehavior": "Reject either shipped-file-set change while continuing to ignore nonshipped outputs and generated candidate metadata.",
+      "impact": "Release readiness can accept an artifact missing newly shipped functionality or retaining removed schemas/source.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": "scripts/verify-release.mjs",
+          "startLine": 64,
+          "endLine": 72,
+          "description": "Only compares listed payload paths that still exist; missing source paths are skipped and current source additions are not enumerated."
+        },
+        {
+          "path": "scripts/build-release.mjs",
+          "startLine": 16,
+          "endLine": 21,
+          "description": "schemas is explicitly shipped; dist/reports/node_modules are not in the source set."
+        }
+      ],
+      "resolution": "Compare the canonical shipped source and payload path sets before comparing file digests; exclude only declared non-source/generated artifacts.",
+      "verification": [
+        "Test additions and deletions independently under schemas and other shipped roots; ensure reports/dist outputs do not create false positives."
+      ],
+      "references": [],
+      "assumptions": [
+        "A candidate predates an added or removed source file beneath a shipped root, without a change to another compared source file.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): {\"artifact\":\"runtime-release-results.json\",\"probe\":\"RT-07\",\"status\":\"reproduced\",\"fixture\":\"Minimal synthetic integrity-valid candidate; altered paths are inside the actual builder's shipped schemas root.\"}. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0128",
+      "title": "Pinned FFmpeg executes before its integrity check",
+      "category": "security",
+      "bugType": "verification-after-execution",
+      "securitySeverity": "medium",
+      "confidence": "high",
+      "observedBehavior": "locateFfmpeg launches the isolated binary with -version before reading and checking renderer-manifest.json. A modified binary was launched by the reproduction spy, then rejected for its digest.",
+      "expectedBehavior": "Reject untrusted or modified pinned binaries before any execution, including a version probe.",
+      "impact": "The integrity gate cannot prevent execution of a substituted renderer with the operator's privileges.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 1292,
+          "endLine": 1295,
+          "description": "testExecutable spawns the candidate binary."
+        },
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 1317,
+          "endLine": 1325,
+          "description": "The version probe precedes the pinned manifest and binary digest checks."
+        }
+      ],
+      "resolution": "Validate the pinned manifest, approved binary digest, and safe file identity before invoking the executable; do not silently substitute another renderer for a rejected explicit choice.",
+      "verification": [
+        "Replace only the pinned binary while retaining the approved manifest; assert rejection and zero process launches.",
+        "Cover missing and invalid manifests before the version probe."
+      ],
+      "references": [],
+      "assumptions": [
+        "The attacker controls the renderer artifact, not the trusted helper or approved digest.",
+        "The reproduction uses an execution spy, not malicious native code.",
+        "This is a local execution-integrity boundary failure, not a demonstrated remote exploit or privilege escalation.",
+        "Likelihood preconditions: Conditional: an attacker must replace the isolated renderer/cache executable before the operator invokes an independently approved render.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: renderer-executed-before-integrity. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0129",
+      "title": "Failed rerender removes artifacts owned by an earlier invocation",
+      "category": "correctness",
+      "bugType": "unowned-artifact-cleanup",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "renderRun removes the candidate image and qualification report on any generation error, including EEXIST. The reproduction removed both earlier artifacts although the failing invocation created neither.",
+      "expectedBehavior": "A failed invocation must preserve previously existing results and clean only files it created.",
+      "impact": "A rerun, transport failure, or competing renderer can destroy an earlier paid-for candidate and its evidence.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+          "startLine": 269,
+          "endLine": 285,
+          "description": "Fixed output names and unconditional catch cleanup do not track artifact ownership."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+          "startLine": 152,
+          "endLine": 155,
+          "description": "The image write uses wx and can reject a pre-existing candidate after external work."
+        }
+      ],
+      "resolution": "Preflight existing outputs before external work, reserve the run, stage unique files, and remove only invocation-owned creations on failure.",
+      "verification": [
+        "Rerender a run with an existing image/report and inject EEXIST and transport failures; assert original bytes remain.",
+        "Exercise two writers targeting one run and prevent loser cleanup from deleting winner outputs."
+      ],
+      "references": [],
+      "assumptions": [
+        "Rendering itself is separately approved; approval does not implicitly authorize destructive cleanup of an earlier result.",
+        "Filesystem and generation errors were injected in memory.",
+        "Likelihood preconditions: Moderate: rerunning an existing run ID or overlapping renders reaches the same fixed paths.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: visual-rerender-deletes-existing. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0130",
+      "title": "Incomplete rollback deletes the remaining recovery backups",
+      "category": "correctness",
+      "bugType": "rollback-backup-deletion",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The understanding and browser-preview publication helpers unconditionally delete backups in finally. An injected publication error followed by restoration failure leaves neither the original pair nor its backups.",
+      "expectedBehavior": "Preserve surviving backups and recovery evidence when rollback cannot complete.",
+      "impact": "Transient filesystem failures can turn a recoverable replacement failure into permanent loss of the previous complete publication.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/project-understanding/scripts/project-understanding.mjs",
+          "startLine": 137,
+          "endLine": 145,
+          "description": "Catch restoration can throw, but finally still removes both backup paths."
+        },
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 197,
+          "endLine": 209,
+          "description": "Browser-preview pair publication repeats unconditional backup cleanup after rollback failure."
+        }
+      ],
+      "resolution": "Distinguish committed, rolled-back, and recovery-required states; retain backups and aggregate failures unless restoration or commitment was verified.",
+      "verification": [
+        "Fault-inject every publish, restore, and backup-cleanup step; incomplete rollback must leave recoverable originals.",
+        "Reproduce both preview-rollback-destroys-backups and understanding-rollback-destroys-backups."
+      ],
+      "references": [],
+      "assumptions": [
+        "The two call sites share the destructive cleanup pattern but require fixes at both owners.",
+        "The reproduction establishes control flow with a memory filesystem, not an OS crash experiment.",
+        "Likelihood preconditions: Conditional: publication and restoration or cleanup must fail; locking and permission failures make this plausible on real filesystems.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: preview-rollback-destroys-backups. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0131",
+      "title": "Failed MP4 publication leaves a mixed-generation artifact set",
+      "category": "correctness",
+      "bugType": "partial-publication-without-rollback",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "renderVideo replaces the MP4 and deletes the source directory before installing new source and writing its manifest. Injecting source installation failure left the new video, no source directory, and the old manifest.",
+      "expectedBehavior": "Publish video, source artifacts, and integrity manifest as one recoverable generation.",
+      "impact": "Replacement failure loses prior output and leaves stale evidence describing different bytes.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 1969,
+          "endLine": 1972,
+          "description": "Destructive MP4/source replacement occurs before the new manifest exists."
+        },
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 2023,
+          "endLine": 2030,
+          "description": "The manifest is published later; finally cleans staging without restoring the old set."
+        }
+      ],
+      "resolution": "Stage the complete artifact set, retain old-generation backups, and use a durable commit/recovery point for all three outputs.",
+      "verification": [
+        "Inject failures after MP4 installation and before source/manifest installation; preserve a complete old or new set with recoverable evidence.",
+        "Verify every published manifest hash matches the installed output after recovery."
+      ],
+      "references": [],
+      "assumptions": [
+        "The run has explicit render and replacement approval.",
+        "Media operations and filesystem faults are faked; actual FFmpeg was not invoked.",
+        "Likelihood preconditions: Moderate under disk, access, rename, or interruption failures during an approved replacement.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: video-publication-failure-leaves-mixed-trio. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0132",
+      "title": "Header-only invalid PNGs pass automated image qualification",
+      "category": "correctness",
+      "bugType": "incomplete-media-validation",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The verifier accepts a 24-byte signature/IHDR/dimensions buffer with no valid image chunks or data. Adapter checks also accept malformed header-shaped payloads.",
+      "expectedBehavior": "Automated candidate qualification should establish that the artifact is a decodable, bounded PNG before requesting human fidelity review.",
+      "impact": "Unusable files can be described as rendered and automatically qualified candidates; no final-human-approval bypass is claimed.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+          "startLine": 190,
+          "endLine": 193,
+          "description": "PNG validation only reads the signature, IHDR marker, and two dimensions."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+          "startLine": 116,
+          "endLine": 125,
+          "description": "Adapter validation does not decode image data or validate chunk integrity."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
+          "startLine": 107,
+          "endLine": 111,
+          "description": "MAI checks only bounded encoded length, a minimum decoded length, and signature."
+        },
+        {
+          "path": "tests/project-visual-storytelling.test.mjs",
+          "startLine": 43,
+          "endLine": 48,
+          "description": "The success mock constructs a buffer with PNG header fields but no valid PNG data."
+        }
+      ],
+      "resolution": "Perform full bounded PNG decoding compatible with the supported dimensions and color formats, including chunk/CRC/data validation.",
+      "verification": [
+        "Reject signature-only, truncated, CRC-corrupt, missing-IDAT, and oversized-expansion PNGs.",
+        "Use an independent real PNG encoder for provider success fixtures."
+      ],
+      "references": [],
+      "assumptions": [
+        "Human review remains required for appearance, text, attribution, and evidence fidelity.",
+        "No browser image decoder vulnerability is alleged.",
+        "Likelihood preconditions: Moderate with truncated, corrupt, or malformed provider output; successful image tests currently use similarly invalid header-only fixtures.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: visual-invalid-png-qualification. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0133",
+      "title": "Preliminary image verifier does not compare the recorded artifact hash",
+      "category": "reliability",
+      "bugType": "missing-artifact-content-binding",
+      "securitySeverity": "none",
+      "confidence": "medium",
+      "observedBehavior": "The unchanged public verify CLI exits zero and returns identical requires-review output for the original PNG and a different valid same-dimension PNG whose bytes disagree with result.json. It repeats provider/plan provenance without detecting the replacement.",
+      "expectedBehavior": "If public verification is intended to validate the emitted artifact manifest, report image-byte drift before treating the candidate as the previously qualified render; otherwise explicitly expose that artifact identity is unchecked.",
+      "impact": "Candidate provenance and previously recorded hashes can silently diverge. The command still requires manual review and never grants complete or final approval.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+          "startLine": 202,
+          "endLine": 230,
+          "description": "verifyRender checks headers, dimensions, plan digest, and qualification flags, but neither artifact digest nor result.json."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+          "startLine": 762,
+          "endLine": 777,
+          "description": "create persists artifact digests in its partial result manifest."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+          "startLine": 804,
+          "endLine": 806,
+          "description": "The public verify dispatch prints the preliminary verification result without a failure exit code."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/references/renderer-contract.md",
+          "startLine": 15,
+          "endLine": 35,
+          "description": "The documented preliminary verifier lists metadata checks and explicitly retains final human review; it does not explicitly promise image-hash validation."
+        }
+      ],
+      "resolution": "Bind image bytes to qualification evidence and compare the digest during later verification, or explicitly document and report the narrower unchecked-artifact boundary.",
+      "verification": [
+        "Run the actual public verify command before and after replacing a valid PNG with another valid same-dimension PNG while retaining the original manifest.",
+        "Ensure any strengthened integrity check preserves the separate manual-review requirement."
+      ],
+      "references": [],
+      "assumptions": [
+        "Mechanism and public CLI behavior are corroborated; classification as a defect depends on whether manifest integrity belongs to the verifier's intended contract.",
+        "Treat as a low-priority integrity-hardening/requirement gap if the deliberately narrower documented verifier is authoritative.",
+        "This is not a claim that a replacement obtains final approval or bypasses manual review.",
+        "The public CLI source is unchanged; only filesystem inputs are virtual and read-only.",
+        "Likelihood preconditions: Conditional: a candidate is edited, overwritten, or replaced after the original result manifest was written.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-corroboration-results.json: visual-public-verify-replacement. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0134",
+      "title": "Plan parsing and hashing can bind different file revisions",
+      "category": "correctness",
+      "bugType": "read-hash-toctou",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "loadPlan parses one file read, awaits other operations, then rereads the file for hashing. A deterministic edit between these operations returns old narration with the new plan's digest.",
+      "expectedBehavior": "The returned plan and SHA-256 must refer to the same consumed bytes.",
+      "impact": "Generated media can appear bound to the current plan although it used earlier content.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 437,
+          "endLine": 441,
+          "description": "The initial read parses the plan."
+        },
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 458,
+          "endLine": 467,
+          "description": "After asynchronous evidence validation, a new file read computes the returned hash."
+        }
+      ],
+      "resolution": "Read the plan once and compute both its parsed representation and hash from that immutable byte snapshot; check separate evidence drift explicitly.",
+      "verification": [
+        "Inject a deterministic edit between parsing and hashing; never return mismatched content and digest.",
+        "Avoid sleep-dependent race tests."
+      ],
+      "references": [],
+      "assumptions": [
+        "The reproduction controls the interleaving through fake I/O rather than relying on timing.",
+        "This finding does not assert malicious editing of the plan.",
+        "Likelihood preconditions: Moderate with editor autosave or another writer during the validation/hash interval; no attacker is required.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: video-plan-read-hash-race. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0135",
+      "title": "The emitted third voice profile is rejected by four owned schemas",
+      "category": "configuration",
+      "bugType": "producer-schema-drift",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The producer emits jenny-professional for profile C, while the audition, selection, narration, and final-video schemas allow aria-professional instead.",
+      "expectedBehavior": "Every supported generated voice profile and its artifact paths must satisfy the owning schemas.",
+      "impact": "Every three-profile audition includes an invalid record; choosing C also yields invalid downstream artifacts.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 97,
+          "endLine": 102,
+          "description": "Canonical profile C is jenny-professional."
+        },
+        {
+          "path": "schemas/project-video-voice-samples.schema.json",
+          "startLine": 30,
+          "endLine": 33,
+          "description": "The sample ID and filename patterns instead permit aria-professional."
+        },
+        {
+          "path": "schemas/project-video-voice-selection.schema.json",
+          "startLine": 12,
+          "endLine": 16,
+          "description": "Selection ID and sample path reject the emitted C profile."
+        },
+        {
+          "path": "schemas/project-video-narration-manifest.schema.json",
+          "startLine": 16,
+          "endLine": 16,
+          "description": "Narration selection enum rejects the emitted C profile."
+        },
+        {
+          "path": "schemas/project-video-manifest.schema.json",
+          "startLine": 103,
+          "endLine": 103,
+          "description": "Final-video profile enum rejects the emitted C profile."
+        }
+      ],
+      "resolution": "Synchronize canonical profile definitions and schemas, with an explicit compatibility decision for existing artifacts.",
+      "verification": [
+        "Validate actual emitted A/B/C audition, selection, narration, and final-video artifacts against all owning schemas.",
+        "Do not limit assertions to producer-internal field equality."
+      ],
+      "references": [],
+      "assumptions": [
+        "This is a local contract defect independent of provider availability or Speech synthesis.",
+        "No schema validator or dependencies were installed.",
+        "Likelihood preconditions: High for generated Azure auditions because the complete A/B/C set always includes C.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: video-profile-c-schema-drift. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0136",
+      "title": "Selected-SKU quota falls back to another SKU's capacity",
+      "category": "correctness",
+      "bugType": "quota-sku-mismatch",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "A GlobalStandard request with only Standard usage evidence returns available and matchFound true because missing SKU matches fall back to the first model match.",
+      "expectedBehavior": "Report selected-model/SKU quota only from matching evidence; absent matching usage remains unknown.",
+      "impact": "Discovery can report deployable capacity for a SKU whose quota was never observed.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/azure-discovery/scripts/azure-discovery.ps1",
+          "startLine": 193,
+          "endLine": 207,
+          "description": "SKU filtering is bypassed by fallback at line 199 before capacity is reported."
+        }
+      ],
+      "resolution": "Use unambiguous model/SKU matching and remove fallback to a different quota bucket.",
+      "verification": [
+        "Supply Standard capacity but no GlobalStandard bucket; a GlobalStandard request must remain unknown.",
+        "Cover exhausted and available buckets across different SKUs and similarly prefixed model names."
+      ],
+      "references": [],
+      "assumptions": [
+        "The actual PowerShell function was executed with a local fake az function.",
+        "Availability evidence itself is not deployment authorization.",
+        "Likelihood preconditions: Moderate when usage results contain another SKU for the same model but not the chosen SKU.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: quota-unmatched-sku-fallback. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0137",
+      "title": "Private profile storage is accepted despite effective Git ignore negation",
+      "category": "privacy",
+      "bugType": "ineffective-ignore-policy-check",
+      "securitySeverity": "low",
+      "confidence": "high",
+      "observedBehavior": "The public profile status command reports valid when a recognized ignore rule is followed by a cancelling negation. Real git check-ignore reports the same rules do not ignore the target; the positive control does.",
+      "expectedBehavior": "Claim ignored private storage only after verifying effective ignore behavior and absence from the Git index.",
+      "impact": "Private personalization can become eligible for later broad staging and publication despite the helper claiming its storage prerequisite passed.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/user-personalization/scripts/user-personalization.mjs",
+          "startLine": 229,
+          "endLine": 235,
+          "description": "Presence of one recognized literal line substitutes for effective Git ignore evaluation."
+        },
+        {
+          "path": ".github/skills/user-personalization/scripts/user-personalization.mjs",
+          "startLine": 247,
+          "endLine": 254,
+          "description": "Status reports valid after the ineffective storage check."
+        }
+      ],
+      "resolution": "Use effective Git ignore and tracked-index checks, covering target and transaction sibling paths; fail closed for contradictory storage rules.",
+      "verification": [
+        "Use real Git with positive and negated ignore rules and compare the public helper result.",
+        "Test already-tracked profiles, nested overrides, and exact-file rules that leave backup/partial files exposed."
+      ],
+      "references": [],
+      "assumptions": [
+        "Repository-controlled ignore policy is less trusted than the user's expectation of private local profile storage.",
+        "Apply/status alone does not publish the profile.",
+        "The corroboration uses actual Git rule evaluation in an explicit session worktree with --no-index and optional locks disabled; repository metadata is read-only.",
+        "The unchanged public profile CLI consumes identical rules through a virtual .gitignore, not an on-disk target project.",
+        "Likelihood preconditions: Conditional: repository rules negate the recognized line, a nested override applies, or the target is already tracked; a later staging/publication action is needed for exposure.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-corroboration-results.json: profile-public-status-versus-git-ignore. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0138",
+      "title": "Rejected sensitive-looking profile content is copied into diagnostics",
+      "category": "privacy",
+      "bugType": "sensitive-data-in-error-output",
+      "securitySeverity": "low",
+      "confidence": "high",
+      "observedBehavior": "An unsupported list item is interpolated verbatim into an error before sensitive-content screening. Malformed JSON errors also retain parser-supplied input fragments. Status/main expose those messages.",
+      "expectedBehavior": "Reject invalid profile data using value-free diagnostics that do not copy private or sensitive-looking content to output.",
+      "impact": "Private candidate/profile content can move into terminal, agent, or CI logs even when validation rejects persistence.",
+      "likelihood": "low",
+      "evidence": [
+        {
+          "path": ".github/skills/user-personalization/scripts/user-personalization.mjs",
+          "startLine": 85,
+          "endLine": 89,
+          "description": "Unsupported list items are included verbatim in the thrown error."
+        },
+        {
+          "path": ".github/skills/user-personalization/scripts/user-personalization.mjs",
+          "startLine": 178,
+          "endLine": 178,
+          "description": "Sensitive-content screening occurs only after preceding validation may already throw."
+        },
+        {
+          "path": ".github/skills/user-personalization/scripts/user-personalization.mjs",
+          "startLine": 220,
+          "endLine": 224,
+          "description": "JSON parse diagnostics are preserved without sanitization."
+        },
+        {
+          "path": ".github/skills/user-personalization/scripts/user-personalization.mjs",
+          "startLine": 324,
+          "endLine": 327,
+          "description": "The public error handler prints the propagated message."
+        }
+      ],
+      "resolution": "Remove raw values from diagnostics and replace JSON parser messages with sanitized location/type errors; ensure rejected content never reaches summary or stderr.",
+      "verification": [
+        "Assert synthetic diagnostic canaries are absent from all public outputs for malformed JSON and each unsupported-list field.",
+        "Test both validate/apply failures and status on invalid stored profiles."
+      ],
+      "references": [],
+      "assumptions": [
+        "Only synthetic canaries were used; saved evidence and tool diagnostics record disclosure booleans, not canary values.",
+        "No live credential or actual private profile was inspected or disclosed.",
+        "Likelihood preconditions: Conditional: a user supplies malformed or misplaced confidential content in a candidate or existing profile.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: profile-enum-error-echo. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0139",
+      "title": "Future sync timestamps are reported healthy",
+      "category": "correctness",
+      "bugType": "future-timestamp-false-health",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "A last-success timestamp 26390 days ahead is treated as healthy because only old timestamps are rejected as stale.",
+      "expectedBehavior": "Future-dated observations should be rejected or reported unknown with a clock/evidence limitation.",
+      "impact": "Clock errors or invalid producer data can hide unhealthy/stale syncs for an arbitrarily long period.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-status/scripts/project-status.mjs",
+          "startLine": 45,
+          "endLine": 54,
+          "description": "Any finite non-stale timestamp is classified healthy, including future timestamps."
+        }
+      ],
+      "resolution": "Validate timestamps against the evaluation clock and define any allowed skew explicitly.",
+      "verification": [
+        "Test one-millisecond and large future offsets, invalid dates, stale past observations, and explicit failed status."
+      ],
+      "references": [],
+      "assumptions": [
+        "This is a health-correctness issue; no attacker-controlled service boundary is alleged.",
+        "Likelihood preconditions: Moderate with clock drift, date mistakes, or malformed upstream status data.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: status-future-success. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0140",
+      "title": "Documentation promotes planned items into verified claims",
+      "category": "correctness",
+      "bugType": "unsupported-status-promotion",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "build ignores each understanding item's status and constructs every retained claim with status verified. A planned item becomes a verified guide claim.",
+      "expectedBehavior": "Preserve planned or uncertain classifications instead of silently promoting them.",
+      "impact": "Downstream documentation can misrepresent intended or unverified behavior as delivered.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 36,
+          "endLine": 37,
+          "description": "The claim constructor unconditionally assigns verified."
+        },
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 92,
+          "endLine": 98,
+          "description": "Claim construction passes descriptions and evidence but ignores source classification."
+        }
+      ],
+      "resolution": "Preserve supported statuses, explicitly map uncertainty, or exclude unsupported assertions with a limitation.",
+      "verification": [
+        "Generate guides from verified, planned, inferred, and unknown source items; none may silently gain stronger assurance."
+      ],
+      "references": [],
+      "assumptions": [
+        "The understanding schema supports non-verified item classifications.",
+        "No claim that a feature's implementation was actually delivered was inferred from this reproduction.",
+        "Likelihood preconditions: Conditional: a complete understanding record contains planned or uncertain items, which its schema permits.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: guide-empty-markdown-and-planned-claim. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0141",
+      "title": "Empty understanding Markdown bypasses its digest check",
+      "category": "correctness",
+      "bugType": "empty-content-validation-bypass",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Documentation validation accepts an empty understanding Markdown string despite a stored digest for nonempty content.",
+      "expectedBehavior": "Validate the digest of every present input, including zero-byte content.",
+      "impact": "Truncated evidence can pass guide validation and appear correctly bound.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 125,
+          "endLine": 125,
+          "description": "A truthiness guard skips hashing an empty string."
+        },
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 162,
+          "endLine": 170,
+          "description": "Public validation consumes the empty content and can print a valid-guide result."
+        }
+      ],
+      "resolution": "Distinguish unavailable input from empty input and always hash supplied Markdown.",
+      "verification": [
+        "Truncate the understanding Markdown to zero bytes after generating a valid guide; validate must fail.",
+        "Retain tests for appended and replaced content."
+      ],
+      "references": [],
+      "assumptions": [
+        "The reproduction establishes the validation branch directly with exact empty content.",
+        "Build already checks this digest separately; the defect is in validation.",
+        "Likelihood preconditions: Conditional: the understanding Markdown file becomes empty while its JSON/report binding remains unchanged.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: guide-empty-markdown-and-planned-claim. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0142",
+      "title": "Documentation build publishes new verified guides from stale source snapshots",
+      "category": "reliability",
+      "bugType": "missing-consumer-current-source-gate",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "An unchanged, self-consistent snapshot was retained after deleting its original source and changing package.json and README. documentation-builder then created a new, later-dated guide containing the obsolete start command as verified and a verified claim referencing the deleted source. Its own guide validation succeeded. The build read only the archived report pair.",
+      "expectedBehavior": "Historical snapshots may remain valid. A consumer promising a current project guide must refresh or establish current-source evidence before publication, or explicitly emit a historical/as-of guide instead.",
+      "impact": "A newly generated guide can present commands and evidence that no longer exist as current/verified, despite an internally sound historical snapshot.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": ".github/skills/documentation-builder/SKILL.md",
+          "startLine": 58,
+          "endLine": 59,
+          "description": "The consumer requires every output command/path to be verified against the repository and says project-guide.json binds its claims to current evidence."
+        },
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 147,
+          "endLine": 156,
+          "description": "Current guide generation accepts snapshot completeness and pair digests, then writes new documentation without checking current source."
+        },
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 84,
+          "endLine": 98,
+          "description": "Claim evidence membership is checked only against archived scan.files, not current file contents or existence."
+        },
+        {
+          "path": ".github/skills/documentation-builder/scripts/documentation-builder.mjs",
+          "startLine": 45,
+          "endLine": 48,
+          "description": "The emitted guide describes the project in which the generator runs rather than identifying an intentionally historical snapshot."
+        }
+      ],
+      "resolution": "Preserve historical report-pair validation. Add or require a current-source gate at documentation generation, reusing the producer's bounded/excluded scan contract, or expose an explicitly historical mode with snapshot date/currency instead of current-source assurance.",
+      "verification": [
+        "Produce a genuine snapshot, then change the start command and README and delete the original source before generating a new guide; reject, refresh, or explicitly label the output historical.",
+        "Verify that snapshot-only validation continues to accept an unmodified historical report pair.",
+        "Ensure verified current claims do not retain obsolete commands or deleted source evidence."
+      ],
+      "references": [],
+      "assumptions": [
+        "H15 no longer identifies historical artifact validation itself as defective; the owning defect is the documentation consumer's missing current-source gate.",
+        "The producer and consumer function bodies are unchanged; a controlled clock and memory-only project prove newly generated output after source changes without repository writes.",
+        "The documented skill procedure says to build after a scan; that operational prerequisite mitigates the issue only when freshness remains true at consumption.",
+        "Likelihood preconditions: Conditional: source changes after the most recent scan and before a separate documentation build. Workflows that ensure a fresh scan and prevent intervening source changes mitigate this consumer gap.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-h15-results.json: documentation-build-publishes-stale-current-claims. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0143",
+      "title": "Media response caps are enforced only after full body buffering",
+      "category": "resource-management",
+      "bugType": "post-allocation-size-limit",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "Without Content-Length, Speech fully buffers a response before checking its 20 MiB cap. The reproduction allocated 20971521 bytes before rejection. Image JSON and error bodies are similarly consumed before output-length checks.",
+      "expectedBehavior": "Enforce body limits while streaming, before unbounded allocation, and cancel oversized responses.",
+      "impact": "Missing or inaccurate length metadata defeats the intended memory bound and can exhaust the worker on large responses.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-video/scripts/project-video.mjs",
+          "startLine": 943,
+          "endLine": 947,
+          "description": "arrayBuffer consumes the body before its actual byte length is checked."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+          "startLine": 152,
+          "endLine": 154,
+          "description": "Error text or JSON is buffered before truncation or image-length validation."
+        },
+        {
+          "path": ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
+          "startLine": 105,
+          "endLine": 110,
+          "description": "The MAI adapter repeats post-buffer validation."
+        }
+      ],
+      "resolution": "Use bounded streaming readers for successful and error responses; abort and release the response at the first exceeded limit.",
+      "verification": [
+        "Use fake chunked streams without Content-Length and assert early cancellation before accumulating more than the cap.",
+        "Cover false Content-Length and oversized image JSON/error bodies."
+      ],
+      "references": [],
+      "assumptions": [
+        "Transport was entirely faked; no real network or provider request occurred.",
+        "No arbitrary-attacker endpoint or demonstrated remote denial-of-service exploit is alleged.",
+        "Likelihood preconditions: Conditional: an approved provider or transport returns a large chunked, malformed, or incorrectly declared body.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: speech-size-cap-after-allocation. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0144",
+      "title": "A flat directory bypasses the repository file-count limit",
+      "category": "resource-management",
+      "bugType": "file-count-limit-bypass",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "walk checks the 30000-file bound only when entering a directory. A single directory with 30001 eligible files is accepted.",
+      "expectedBehavior": "Enforce the file-count bound before each accepted insertion.",
+      "impact": "The stated scan bound does not constrain flat directories, allowing excessive scan work and report growth.",
+      "likelihood": "medium",
+      "evidence": [
+        {
+          "path": ".github/skills/project-understanding/scripts/project-understanding.mjs",
+          "startLine": 57,
+          "endLine": 66,
+          "description": "The only limit check precedes the loop; each eligible file is then pushed without another check."
+        }
+      ],
+      "resolution": "Check and enforce the maximum on each insertion, with an explicit inclusive boundary.",
+      "verification": [
+        "Test 29999, 30000, and 30001 eligible files in one directory and across nested directories.",
+        "Assert the oversized scan fails before claiming complete coverage."
+      ],
+      "references": [],
+      "assumptions": [
+        "The reproduction uses in-memory directory entries.",
+        "Whole-file hashing and possible memory exhaustion are separate optional concerns, not part of this confirmed finding.",
+        "Likelihood preconditions: Conditional: a large flat source or generated directory is not excluded.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: understanding-flat-file-limit. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0145",
+      "title": "Default opted-in MCP services violate the environment schema",
+      "category": "configuration",
+      "bugType": "default-schema-mismatch",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "The default service list contains get_azure_bestpractices, but the environment schema's service-name pattern rejects underscores.",
+      "expectedBehavior": "Default supported configuration must validate against its owning schema.",
+      "impact": "Default MCP opt-in produces configuration rejected by a schema-respecting consumer or validator.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": ".github/skills/azure-discovery/scripts/azure-environment.ps1",
+          "startLine": 6,
+          "endLine": 8,
+          "description": "The default list includes an underscore-containing service identifier."
+        },
+        {
+          "path": "schemas/azure-environment.schema.json",
+          "startLine": 55,
+          "endLine": 58,
+          "description": "The permitted service-name pattern only allows lowercase letters, digits, and hyphens."
+        }
+      ],
+      "resolution": "Reconcile supported MCP service identifiers and schema syntax rather than weakening unrelated profile validation.",
+      "verification": [
+        "Schema-validate the complete default MCP-enabled profile and representative explicit service lists.",
+        "Retain default-disabled and Foundry Extensions opt-in gate tests."
+      ],
+      "references": [],
+      "assumptions": [
+        "The mismatch is confirmed statically from the actual default list and schema pattern; setup was not run.",
+        "This is a contract defect, not authorization to invoke MCP or any cloud service.",
+        "Likelihood preconditions: High when initial setup opts into the default MCP service list and schema validation is applied.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): helpers-repro-results.json: azure-default-mcp-schema-drift. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    },
+    {
+      "id": "AUD-0146",
+      "title": "Checkpoint collection fails when a legitimate Git diff exceeds one MiB",
+      "category": "operability",
+      "bugType": "implicit-subprocess-output-limit",
+      "securitySeverity": "none",
+      "confidence": "high",
+      "observedBehavior": "gitBuffer invokes spawnSync without an explicit output policy. On the audited dirty worktree after its report chain is emitted, git diff --binary exceeds Node's default 1,048,576-byte buffer. The child returns status null, signal SIGTERM and error ENOBUFS; the actual positional checkpoint command fails and the native audit contract test receives helperValidity.checkpoint=false. An otherwise identical read-only Git control with a four-MiB diagnostic buffer succeeds and returns the complete diff.",
+      "expectedBehavior": "Deterministically hash all in-scope diff bytes for supported worktrees using bounded streaming/spooling or an explicit documented output limit with an actionable diagnostic, without dropping findings, reports or source from the audited scope.",
+      "impact": "Ordinary large pending changes or a detailed audit's own reports prevent checkpoint creation, audit-evidence readiness and the pinned secret-scan wrapper from completing. The post-report regression fails even though the report schemas and their lineage validate.",
+      "likelihood": "high",
+      "evidence": [
+        {
+          "path": ".github/skills/audit-code/scripts/audit-validate.mjs",
+          "startLine": 177,
+          "endLine": 188,
+          "description": "The Git subprocess inherits the default maxBuffer; worktreeDigest requests the full tracked binary diff through it."
+        },
+        {
+          "path": ".github/skills/audit-code/scripts/audit-evidence.mjs",
+          "startLine": 129,
+          "endLine": 139,
+          "description": "Failed checkpoint execution makes helper validity false rather than supplying usable source-binding evidence."
+        },
+        {
+          "path": "tests/skill-contracts.test.mjs",
+          "startLine": 1313,
+          "endLine": 1339,
+          "description": "The native audit pipeline regression expects successful metadata/checkpoint/digest helpers and fails on the generated report worktree."
+        }
+      ],
+      "resolution": "Use bounded incremental subprocess-output hashing or safe spooling, preserve the exact existing digest semantics, and report subprocess errors explicitly without echoing raw diff content. Treat an explicit resource ceiling as a documented failure condition, not an undocumented one-MiB default. Do not exclude audit reports or reduce findings to evade the defect.",
+      "verification": [
+        "Exercise the actual checkpoint command with tracked textual and binary diffs below, at and above one MiB; compare its successful digest against an independent complete-byte reference.",
+        "Run audit-evidence and the pinned offline scanner against the large worktree and require valid metadata/checkpoint/digest results.",
+        "Run the post-report audit/contract suites with the complete current findings, review and plan, preserving all IDs and evidence.",
+        "Inject a real subprocess failure and confirm an actionable sanitized diagnostic rather than truncated output or a success-shaped fallback."
+      ],
+      "references": [],
+      "assumptions": [
+        "Reproduced on the actual current repository and unmodified public checkpoint CLI; no source, Git configuration, staging or history was changed.",
+        "The four-MiB Git invocation is a diagnostic control only, not a substitute completed checkpoint or a bypass of a required scan gate.",
+        "An earlier diagnostic invocation mistakenly supplied --root to this positional command; that usage error is excluded from evidence.",
+        "This is a local reliability/operability defect, not a demonstrated credential disclosure or remote exploit.",
+        "Private session reproduction (b9be041a-c060-4172-b294-67b388b84ba6): checkpoint-buffer-reproduction.mjs and post-report-tests.log. Source-body/injected-boundary results establish the stated mechanism, not live provider qualification."
+      ]
+    }
+  ],
+  "limitations": [
+    "Read-only audit of the dirty worktree, not only HEAD. No source, policy, dependency, credential, accepted workflow event, tenant, deployment, publication, commit, or push was changed.",
+    "The dedicated agent-deployment source review failed at its provider with HTTP 422 and returned no completed result. It was not retried or rerouted. Deployment-related repository tests passed, but they do not replace the missing independent source review. No unpublished deployment probes are counted as evidence.",
+    "Hosted GitHub controls/alerts/current workflow runs, remote-only refs, package registries/advisories, current external standards, and cloud/provider operations were not accessed because external access was not approved.",
+    "Unreachable/pruned objects, remote forks/pull-request refs, hosted Actions logs/artifacts/releases/packages, issues/discussions/wikis, organizational controls, and caches outside the local scan boundary remain unassessed.",
+    "The pinned Gitleaks run succeeded for its recorded pre-report input digest. Subsequent audit outputs change that digest (AUD-0108). The closing scan is BLOCKED by the production checkpoint failure in AUD-0146; reports/gitleaks-scan.json remains the earlier successful scan, not current post-publication evidence. No scan gate was bypassed and no broad report exclusions were introduced.",
+    "Current standards retrieval is blocked. The nine required standards rows retain the previous report's unverified 2026-09-23 accessedAt metadata because schema 2.2 has no null/unretrieved date. This is NOT an assertion that the authoritative URLs were accessed on that date, and no date was refreshed. All rows are informational and blocked.",
+    "Additional AI guidance was considered applicable or partly applicable: Microsoft SDL for AI and the conditional local catalog entries for OWASP GenAI LLM Top 10 2026, OWASP Agentic Top 10 2026, NIST AI RMF 1.0, and NIST AI 600-1. Their current versions/URLs were not externally verified; no authoritative access dates or conformance rows were fabricated.",
+    "PowerShell parsing is syntax-only. PSScriptAnalyzer and CodeQL CLI were unavailable. No independent Bicep compiler/policy-analyzer or generated-application type-check evidence was collected. No scanner or package was installed.",
+    "Fault injection uses original controlling functions with virtual filesystems or transport/process doubles. It does not qualify physical disk exhaustion, ACL/junction/symlink races, crash recovery on every filesystem, live cancellation/process-tree handling, or real cloud/device behavior.",
+    "No load, heap/handle, real-browser accessibility/device, production trace, or cross-platform qualification was performed. Performance findings concern demonstrable bounds, not invented benchmark results.",
+    "The first isolated npm gate failed 15 video cases at very long Windows fixture paths with unsigned-script diagnostics. The same source passed a short-path control and the complete gate after relocation; no execution policy or source change was made. Both logs are retained.",
+    "The final gate skipped one canonical-root-alias test because the temporary directory had no filesystem alias. It verified an unsigned candidate only, not a signed or independently approved production release.",
+    "Historical continuity reports remain September 22 snapshots, not current delivery authority. The already-documented joined JSONL records at physical line 71 of reports/execution-log.jsonl remain unchanged; full historical replay is not certified.",
+    "Empty external-reference arrays are intentional: proposed repairs are grounded in repository code and deterministic observations, not fabricated fresh citations. Approved standards/advisory retrieval and completion of blocked coverage are required before stronger assurance.",
+    "After the new reports were copied into the identical-source isolated snapshot, the focused audit/contract run had 38 passed, 1 failed, 1 skipped. AUD-0146 explains the required checkpoint failure on a diff exceeding Node's one-MiB default. The earlier full gate's 454/0/1 result predates report publication and is not a claim that the final repository gate is green."
+  ]
 }

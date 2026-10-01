@@ -2,7 +2,7 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { lstat, mkdir, readFile, readdir, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
+import { lstat, mkdir, open, readFile, readdir, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,15 @@ const JSON_OUTPUT = "reports/project-understanding.json";
 const MARKDOWN_OUTPUT = "reports/project-understanding.md";
 const EXCLUDED_DIRECTORIES = new Set([".git", ".skills-orchestrator", "node_modules", "dist", "build", "out", "bin", "obj", "coverage", "vendor", "venv", ".venv", "__pycache__"]);
 const EXCLUDED_FILES = new Set([JSON_OUTPUT, MARKDOWN_OUTPUT, "docs/PROJECT-GUIDE.md", "reports/project-guide.json"]);
+const DOWNSTREAM_ATTESTATIONS = new Set([
+  "reports/audit-remediation-execution.json", "reports/audit-remediation-execution.md",
+  "reports/current-execution-state.json", "reports/current-execution-state.md",
+  "reports/execution-log.jsonl", "reports/project-handoff.json", "reports/project-handoff.md",
+  "reports/current-work-state.json", "reports/change-review.json", "reports/change-review.md",
+  "reports/policy-evaluation.json", "reports/policy-evaluation.md", "reports/policy-decision-log.jsonl",
+  "reports/coordination-state.json", "reports/coordination-state.md",
+  "reports/regression-test-result.json", "reports/regression-test-result.md", "reports/gitleaks-scan.json"
+]);
 const SENSITIVE_FILE_PATTERNS = [".env and .env.*", "private key and certificate files", "credential and secret manifests", "SSH private keys"];
 const TEXT_EXTENSIONS = new Set([".md", ".json", ".jsonc", ".yaml", ".yml", ".toml", ".xml", ".txt", ".mjs", ".js", ".ts", ".tsx", ".jsx", ".py", ".ps1", ".bicep", ".tf", ".cs", ".java", ".go", ".rs", ".rb", ".php", ".sh"]);
 const MAX_TEXT_BYTES = 1024 * 1024;
@@ -53,8 +62,31 @@ async function digestFile(file) {
   return sha256(await readFile(file));
 }
 
+export async function validateCurrentSources(root, report) {
+  const records = report?.scan?.files;
+  if (!Array.isArray(records) || records.length !== report.scan.fileCount
+      || records.some((record) => !record || !safeRelative(record.path) || !/^[a-f0-9]{64}$/.test(record.sha256)
+        || !Number.isSafeInteger(record.bytes) || record.bytes < 0)) {
+    throw new Error("Project Understanding source evidence is invalid; run project-understanding scan");
+  }
+  const expected = new Map(records.map((record) => [record.path, record]));
+  const paths = await walk(root);
+  if (expected.size !== records.length || paths.length !== records.length || paths.some((relative) => !expected.has(relative))) {
+    throw new Error("Project Understanding source file set changed; run project-understanding scan");
+  }
+  for (const relative of paths) {
+    const file = path.join(root, relative);
+    const details = await lstat(file);
+    const recorded = expected.get(relative);
+    if (!details.isFile() || details.isSymbolicLink() || details.size !== recorded.bytes || await digestFile(file) !== recorded.sha256) {
+      throw new Error("Project Understanding source content is stale; run project-understanding scan");
+    }
+  }
+  const digest = sha256(records.map((record) => `${record.path}\0${record.bytes}\0${record.sha256}`).join("\n"));
+  if (digest !== report.scan.repositoryDigestSha256) throw new Error("Project Understanding source digest is invalid; run project-understanding scan");
+}
+
 async function walk(root, relative = "", files = []) {
-  if (files.length >= MAX_FILES) throw new Error(`Repository scan exceeded ${MAX_FILES} files`);
   const entries = await readdir(path.join(root, relative), { withFileTypes: true });
   entries.sort((left, right) => left.name.localeCompare(right.name));
   for (const entry of entries) {
@@ -63,7 +95,10 @@ async function walk(root, relative = "", files = []) {
     if (entry.isSymbolicLink()) throw new Error(`Repository scan refuses symbolic links: ${portable}`);
     if (entry.isDirectory()) {
       if (!EXCLUDED_DIRECTORIES.has(entry.name)) await walk(root, child, files);
-    } else if (entry.isFile() && !EXCLUDED_FILES.has(portable) && !isSensitiveFile(portable)) files.push(portable);
+    } else if (entry.isFile() && !EXCLUDED_FILES.has(portable) && !DOWNSTREAM_ATTESTATIONS.has(portable) && !isSensitiveFile(portable)) {
+      if (files.length >= MAX_FILES) throw new Error(`Repository scan exceeded ${MAX_FILES} files`);
+      files.push(portable);
+    }
   }
   return files;
 }
@@ -126,24 +161,52 @@ async function publishPair(root, report) {
   report.markdownSha256 = sha256(markdown(report));
   const json = `${JSON.stringify(report, null, 2)}\n`;
   const md = markdown(report);
-  let jsonBackedUp = false; let markdownBackedUp = false; let jsonPublished = false; let markdownPublished = false;
+  const outputs = [
+    { file: jsonFile, partial: jsonPartial, backup: jsonBackup, content: json },
+    { file: markdownFile, partial: markdownPartial, backup: markdownBackup, content: md }
+  ];
+  let committed = false;
+  let publicationError;
+  const recoveryErrors = [];
   try {
-    await writeFile(jsonPartial, json, { encoding: "utf8", flag: "wx" });
-    await writeFile(markdownPartial, md, { encoding: "utf8", flag: "wx" });
-    if (existsSync(jsonFile)) { await rename(jsonFile, jsonBackup); jsonBackedUp = true; }
-    if (existsSync(markdownFile)) { await rename(markdownFile, markdownBackup); markdownBackedUp = true; }
-    await rename(jsonPartial, jsonFile); jsonPublished = true;
-    await rename(markdownPartial, markdownFile); markdownPublished = true;
-    await Promise.all([rm(jsonBackup, { force: true }), rm(markdownBackup, { force: true })]);
+    for (const output of outputs) {
+      const handle = await open(output.partial, "wx", 0o600);
+      output.staged = true;
+      try { await handle.writeFile(output.content, "utf8"); }
+      finally { await handle.close(); }
+    }
+    for (const output of outputs) {
+      if (existsSync(output.file)) {
+        await rename(output.file, output.backup);
+        output.backedUp = true;
+      }
+    }
+    for (const output of outputs) {
+      await rename(output.partial, output.file);
+      output.published = true;
+    }
+    committed = true;
   } catch (error) {
-    if (jsonPublished) await rm(jsonFile, { force: true });
-    if (markdownPublished) await rm(markdownFile, { force: true });
-    if (jsonBackedUp && existsSync(jsonBackup)) await rename(jsonBackup, jsonFile);
-    if (markdownBackedUp && existsSync(markdownBackup)) await rename(markdownBackup, markdownFile);
-    throw error;
-  } finally {
-    await Promise.all([rm(jsonPartial, { force: true }), rm(markdownPartial, { force: true }), rm(jsonBackup, { force: true }), rm(markdownBackup, { force: true })]);
+    publicationError = error;
+    for (const output of outputs) {
+      try {
+        if (output.published) await rm(output.file, { force: true });
+        if (output.backedUp) await rename(output.backup, output.file);
+      } catch (recoveryError) {
+        recoveryErrors.push(recoveryError);
+      }
+    }
   }
+  if (recoveryErrors.length) throw new AggregateError([publicationError, ...recoveryErrors], "Project Understanding publication failed; recovery required. Preserve remaining backup and partial artifacts.");
+  const cleanup = await Promise.allSettled(outputs.flatMap((output) => [
+    ...(output.staged ? [rm(output.partial, { force: true })] : []),
+    ...(committed && output.backedUp ? [rm(output.backup, { force: true })] : [])
+  ]));
+  const cleanupErrors = cleanup.filter((result) => result.status === "rejected").map((result) => result.reason);
+  if (cleanupErrors.length) throw new AggregateError([...(publicationError ? [publicationError] : []), ...cleanupErrors], committed
+    ? "Project Understanding publication committed, but backup cleanup failed. Preserve remaining recovery artifacts."
+    : "Project Understanding publication failed; recovery required for remaining partial artifacts.");
+  if (publicationError) throw publicationError;
 }
 
 async function buildReport(root) {
@@ -191,6 +254,7 @@ async function buildReport(root) {
   const sourceFiles = files.filter((value) => /\.(?:mjs|js|ts|tsx|py|ps1|cs|java|go|rs|rb|php|bicep|tf)$/.test(value) && !value.startsWith("tests/") && !value.startsWith(".github/skills/"));
   const testFiles = files.filter((value) => /(^|\/)(?:tests?|specs?)(\/|$)|\.(?:test|spec)\./.test(value));
   const limitations = [];
+  limitations.push(`Current-code provenance excludes downstream operational attestations to avoid publication cycles: ${[...DOWNSTREAM_ATTESTATIONS].join(", ")}. Read those authoritative reports directly for live workflow/verification state; secret scanning still covers them.`);
   if (!readme) limitations.push("No README was found; purpose and usage require confirmation.");
   if (!sourceFiles.length) limitations.push("No application source files were found outside framework skills and tests.");
   if (!validation.length) limitations.push("No automated validation command was discovered in the primary package manifest.");
@@ -249,16 +313,18 @@ async function validateExisting(root) {
   return report.status === "complete" ? 0 : 2;
 }
 
-const { command, options } = parseArguments(process.argv.slice(2));
-const requestedRoot = path.resolve(String(options.root || DEFAULT_ROOT));
-try {
-  if (!existsSync(requestedRoot)) throw new Error(`Project root does not exist: ${requestedRoot}`);
-  const root = await realpath(requestedRoot);
-  if (command === "scan") process.exitCode = await scan(root);
-  else if (command === "validate") process.exitCode = await validateExisting(root);
-  else if (command === "help" || command === "--help") console.log("Project understanding helper\n\nCommands:\n  scan [--root PATH]\n  validate [--root PATH]");
-  else throw new Error(`Unknown command: ${command}`);
-} catch (error) {
-  console.error(error.message);
-  process.exitCode = 1;
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { command, options } = parseArguments(process.argv.slice(2));
+  const requestedRoot = path.resolve(String(options.root || DEFAULT_ROOT));
+  try {
+    if (!existsSync(requestedRoot)) throw new Error(`Project root does not exist: ${requestedRoot}`);
+    const root = await realpath(requestedRoot);
+    if (command === "scan") process.exitCode = await scan(root);
+    else if (command === "validate") process.exitCode = await validateExisting(root);
+    else if (command === "help" || command === "--help") console.log("Project understanding helper\n\nCommands:\n  scan [--root PATH]\n  validate [--root PATH]");
+    else throw new Error(`Unknown command: ${command}`);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }

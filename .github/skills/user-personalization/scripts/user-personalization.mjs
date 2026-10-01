@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { createHash, randomUUID } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { lstat, mkdir, open, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
+import os from "node:os";
 
 const PROFILE_PATH = ".skills-orchestrator/user-personalization.json";
 const LOCK_PATH = ".skills-orchestrator/user-personalization.lock";
@@ -32,6 +34,7 @@ function parseArgs(values) {
       continue;
     }
     const key = value.slice(2);
+    if (!["approve", "json", "project", "input"].includes(key)) throw new Error("Unknown command parameter");
     if (["approve", "json"].includes(key)) {
       options[key] = true;
       continue;
@@ -41,9 +44,6 @@ function parseArgs(values) {
     options[key] = next;
     index += 1;
   }
-  const allowed = new Set(["_", "project", "input", "approve", "json"]);
-  const unknown = Object.keys(options).filter((key) => !allowed.has(key));
-  if (unknown.length) throw new Error(`Unknown parameter: --${unknown[0]}`);
   return options;
 }
 
@@ -54,7 +54,7 @@ function isRecord(value) {
 function rejectUnknown(value, allowed, location) {
   if (!isRecord(value)) throw new Error(`${location} must be an object`);
   const unknown = Object.keys(value).filter((key) => !allowed.includes(key));
-  if (unknown.length) throw new Error(`Unknown ${location} field: ${unknown.join(", ")}`);
+  if (unknown.length) throw new Error(`Unknown ${location} field`);
 }
 
 function requireString(value, location, minimum = 1, maximum = 1000) {
@@ -86,7 +86,7 @@ function requireList(value, location, { minimum = 0, maximum = 24, itemMaximum =
   if (new Set(value).size !== value.length) throw new Error(`${location} must not contain duplicates`);
   for (const [index, item] of value.entries()) {
     requireString(item, `${location}[${index}]`, 1, itemMaximum);
-    if (allowed && !allowed.has(item)) throw new Error(`${location}[${index}] is unsupported: ${item}`);
+    if (allowed && !allowed.has(item)) throw new Error(`${location}[${index}] is unsupported`);
   }
 }
 
@@ -97,8 +97,8 @@ function inspectSensitiveContent(value, location = "profile") {
   }
   if (isRecord(value)) {
     for (const [key, item] of Object.entries(value)) {
-      if (FORBIDDEN_FIELD.test(key)) throw new Error(`${location}.${key} is a prohibited sensitive field`);
-      inspectSensitiveContent(item, `${location}.${key}`);
+      if (FORBIDDEN_FIELD.test(key)) throw new Error(`${location} contains a prohibited sensitive field`);
+      inspectSensitiveContent(item, `${location}.[field]`);
     }
     return;
   }
@@ -188,17 +188,17 @@ async function safeProjectRoot(requestedRoot) {
 }
 
 async function safeRelativeTarget(root, relative) {
-  if (!relative || path.isAbsolute(relative) || relative.includes("\\")) throw new Error(`Unsafe managed path: ${relative || "empty"}`);
+  if (!relative || path.isAbsolute(relative) || relative.includes("\\")) throw new Error("Unsafe managed path");
   const segments = relative.split("/");
   if (segments.some((segment) => !segment || segment === "." || segment === ".." || segment.includes(":"))) {
-    throw new Error(`Unsafe managed path: ${relative}`);
+    throw new Error("Unsafe managed path");
   }
   let current = root;
   for (const segment of segments) {
     current = path.join(current, segment);
     try {
       const details = await lstat(current);
-      if (details.isSymbolicLink()) throw new Error(`Symbolic links are not allowed in managed paths: ${relative}`);
+      if (details.isSymbolicLink()) throw new Error("Symbolic links are not allowed in managed paths");
     } catch (error) {
       if (error.code === "ENOENT") break;
       throw error;
@@ -221,18 +221,69 @@ async function readProfile(file) {
   try {
     value = JSON.parse(await readFile(file, "utf8"));
   } catch (error) {
-    throw new Error(`Invalid profile JSON: ${error.message}`);
+    if (error instanceof SyntaxError) throw new Error("Invalid profile JSON; correct the syntax without including private values in diagnostics");
+    throw new Error("Could not read the profile JSON", { cause: error });
   }
   return validateProfile(value);
 }
 
-async function assertProfileStorageIgnored(root) {
+async function assertProfileStorageIgnored(root, protectedPaths = [PROFILE_PATH]) {
   const ignoreFile = path.join(root, ".gitignore");
   if (!existsSync(ignoreFile)) throw new Error("Project .gitignore must ignore .skills-orchestrator/ before a profile is stored");
-  const lines = (await readFile(ignoreFile, "utf8")).split(/\r?\n/u).map((line) => line.trim());
-  if (!lines.some((line) => [".skills-orchestrator/", "/.skills-orchestrator/", ".skills-orchestrator/user-personalization.json", "/.skills-orchestrator/user-personalization.json"].includes(line))) {
-    throw new Error("Project .gitignore must ignore .skills-orchestrator/ or the exact User Personalization profile path");
+  const paths = new Set([PROFILE_PATH, ...protectedPaths]);
+  const target = await safeRelativeTarget(root, PROFILE_PATH);
+  if (existsSync(path.dirname(target))) {
+    for (const name of await readdir(path.dirname(target))) {
+      if (/^user-personalization\.json\..+\.(?:tmp|bak)$/.test(name)) paths.add(`.skills-orchestrator/${name}`);
+    }
   }
+  const env = { ...process.env, GIT_OPTIONAL_LOCKS: "0", GIT_NO_LAZY_FETCH: "1" };
+  for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR"]) delete env[key];
+  const invoke = (args) => {
+    const result = spawnSync("git", ["--no-pager", "-c", "core.fsmonitor=false", ...args], { cwd: root, env, encoding: "utf8", timeout: 30000, windowsHide: true, shell: false });
+    if (result.error) throw new Error("Git is required to verify private profile storage; the privacy check could not complete");
+    return result;
+  };
+  let repository = false;
+  for (let directory = root; ; directory = path.dirname(directory)) {
+    try {
+      await lstat(path.join(directory, ".git"));
+      repository = true;
+      break;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw new Error("Cannot verify the project's Git context");
+    }
+    if (path.dirname(directory) === directory) break;
+  }
+  let temporary;
+  try {
+    let prefix = ["-C", root];
+    if (!repository) {
+      temporary = await mkdtemp(path.join(os.tmpdir(), "pso-profile-git-"));
+      const gitDirectory = path.join(temporary, "git");
+      if (invoke(["init", "--bare", "--quiet", gitDirectory]).status !== 0) throw new Error("Cannot create the temporary Git privacy-check context");
+      prefix = [`--git-dir=${gitDirectory}`, `--work-tree=${root}`];
+    } else if (invoke([...prefix, "rev-parse", "--show-toplevel"]).status !== 0) {
+      throw new Error("Cannot verify the project's Git context");
+    }
+    for (const relative of paths) {
+      await safeRelativeTarget(root, relative);
+      const tracked = invoke([...prefix, "ls-files", "--error-unmatch", "--", relative]);
+      if (tracked.status === 0) throw new Error("Private profile or transaction data is already tracked by Git; remove it from tracking before proceeding");
+      if (tracked.status !== 1) throw new Error("Cannot verify Git tracking for private profile storage");
+      const ignored = invoke([...prefix, "check-ignore", "--no-index", "--quiet", "--", relative]);
+      if (ignored.status === 1) throw new Error("Private profile and transaction files must be effectively Git-ignored; check negations and nested ignore rules");
+      if (ignored.status !== 0) throw new Error("Cannot verify effective Git ignore rules for private profile storage");
+    }
+  } finally {
+    if (temporary) await rm(temporary, { recursive: true, force: true });
+  }
+}
+
+function safeDiagnostic(error) {
+  return typeof error.code === "string" && /^E[A-Z0-9]+$/.test(error.code)
+    ? `A local file or Git operation failed (${error.code}); check access and project state`
+    : error.message;
 }
 
 function summary(profile, status) {
@@ -251,12 +302,13 @@ async function status(root) {
     await assertProfileStorageIgnored(root);
     return summary(await readProfile(target), "valid");
   } catch (error) {
-    return { ...summary(null, "invalid"), errors: [error.message] };
+    return { ...summary(null, "invalid"), errors: [safeDiagnostic(error)] };
   }
 }
 
 async function writeTransactional(root, profile) {
-  await assertProfileStorageIgnored(root);
+  const transaction = randomUUID();
+  await assertProfileStorageIgnored(root, [PROFILE_PATH, LOCK_PATH, `${PROFILE_PATH}.${transaction}.tmp`, `${PROFILE_PATH}.${transaction}.bak`]);
   const target = await safeRelativeTarget(root, PROFILE_PATH);
   const lockPath = await safeRelativeTarget(root, LOCK_PATH);
   await mkdir(path.dirname(target), { recursive: true });
@@ -264,7 +316,6 @@ async function writeTransactional(root, profile) {
     if (error.code === "EEXIST") throw new Error("Another User Personalization write is in progress");
     throw error;
   });
-  const transaction = randomUUID();
   const temporary = `${target}.${transaction}.tmp`;
   const backup = `${target}.${transaction}.bak`;
   let movedExisting = false;
@@ -323,7 +374,7 @@ async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   main().catch((error) => {
-    console.error(`User Personalization stopped: ${error.message}`);
+    console.error(`User Personalization stopped: ${safeDiagnostic(error)}`);
     process.exitCode = 1;
   });
 }

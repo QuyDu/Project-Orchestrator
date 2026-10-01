@@ -7,6 +7,97 @@ import path from "node:path";
 import test from "node:test";
 import { inflateRawSync } from "node:zlib";
 
+test("Live Chat provider output boundaries are declared by the owning skill", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const source = await readFile(path.join(root, ".github", "skills", "live-chat-interaction", "SKILL.md"), "utf8");
+  assert.match(source, /max_completion_tokens/);
+  assert.match(source, /limits\.maxResponseBytes/);
+  assert.match(source, /64 KiB stream lines and 1 MiB total streaming input/);
+  assert.match(source, /Byte bounds are not a tokenizer/);
+});
+
+test("cleanup uses the deployment naming owner for all-project targets", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const source = await readFile(path.join(root, "templates", "project", "infra", "cleanup.ps1"), "utf8");
+  assert.match(source, /Join-Path \$PSScriptRoot 'deploy-infra\.ps1'/);
+  assert.match(source, /Get-AzureResourceName -ProjectName \$SiteName -ResourceType resourceGroup/);
+  assert.doesNotMatch(source, /function ConvertTo-AzureProjectToken/);
+  const script = [
+    `$ErrorActionPreference = 'Stop'`,
+    `. '${path.join(root, "templates", "project", "infra", "deploy-infra.ps1").replaceAll("'", "''")}'`,
+    `$names = @('simple', ('a' * 90), (('a' * 86) + '-ending'), '  A Long Name!!!  ')`,
+    `$names | ForEach-Object { Get-AzureResourceName -ProjectName $_ -ResourceType resourceGroup } | ConvertTo-Json -Compress`
+  ].join("\n");
+  const checked = spawnSync("pwsh", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { encoding: "utf8", timeout: 30000 });
+  assert.equal(checked.status, 0, checked.stderr);
+  const names = JSON.parse(checked.stdout);
+  assert.deepEqual(names, ["rg-simple", `rg-${"a".repeat(87)}`, `rg-${"a".repeat(86)}`, "rg-a-long-name"]);
+  assert.ok(names.every((name) => name.length <= 90 && !name.endsWith("-")));
+});
+
+test("Azure MCP profile schema accepts emitted service IDs without allowing command syntax", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const schema = JSON.parse(await readFile(path.join(root, "schemas", "azure-environment.schema.json"), "utf8"));
+  const pattern = new RegExp(schema.properties.mcp.properties.services.items.pattern);
+  assert.equal(pattern.test("get_azure_bestpractices"), true);
+  assert.equal(pattern.test("foundryextensions"), true);
+  for (const value of ["a;command", "two services", "../service", "--service"]) assert.equal(pattern.test(value), false);
+});
+
+test("legacy update provenance is explicit while target provenance remains required", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const schema = JSON.parse(await readFile(path.join(root, "schemas", "project-update-plan.schema.json"), "utf8"));
+  assert.ok(schema.$defs.source.required.includes("installedSource"));
+  assert.deepEqual(schema.$defs.source.properties.installedSource.anyOf, [
+    { $ref: "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" },
+    { type: "null" }
+  ]);
+  assert.deepEqual(schema.$defs.target.properties.installedSource, { $ref: "project-orchestrator-manifest.schema.json#/$defs/sourceIdentity" });
+});
+
+test("cleanup all-project preview uses the shared long name without authenticating or deleting in the offline fixture", async () => {
+  const fs = await import("node:fs/promises");
+  const os = await import("node:os");
+  const project = await fs.mkdtemp(path.join(os.tmpdir(), "pso-cleanup-name-"));
+  try {
+    const root = path.resolve(import.meta.dirname, "..");
+    for (const file of ["cleanup.ps1", "deploy-infra.ps1"]) await fs.copyFile(path.join(root, "templates", "project", "infra", file), path.join(project, file));
+    await fs.writeFile(path.join(project, "azure-environment.ps1"), `
+function Get-AzureEnvironmentProfilePath { return (Join-Path $PSScriptRoot 'fixture-profile.json') }
+function Initialize-AzureEnvironmentProfile { param([switch]$Gov,[switch]$Commercial,[switch]$InteractiveSetup,[string]$ProfilePath); return @{ cloud = 'AzureCloud' } }
+function Connect-AzureEnvironment { param($AzureContext,[string]$ProfilePath); return @{ name = 'offline fixture'; id = 'fixture' } }
+function global:az {
+  if ($args[0] -ne 'resource' -or $args[1] -ne 'list') { throw 'Unexpected Azure action in offline fixture' }
+  $index = [Array]::IndexOf($args, '--resource-group')
+  [IO.File]::WriteAllText($env:PSO_CLEANUP_GROUP, [string]$args[$index + 1])
+  $global:LASTEXITCODE = 0
+  return '[{"name":"fixture","type":"fixture/type","location":"fixture","id":"fixture-id"}]'
+}
+`);
+    const log = path.join(project, "group.txt");
+    for (const executable of process.platform === "win32" ? ["pwsh", "powershell.exe"] : ["pwsh"]) {
+      const script = `$ErrorActionPreference='Stop'; & '${path.join(project, "cleanup.ps1").replaceAll("'", "''")}' -All -SiteName ('a' * 90) -WhatIf`;
+      const result = spawnSync(executable, ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], {
+        encoding: "utf8", timeout: 30000, env: { ...process.env, PSO_CLEANUP_GROUP: log }
+      });
+
+      assert.equal(result.status, 0, `${executable} offline cleanup preview must succeed`);
+      assert.equal(await fs.readFile(log, "utf8"), `rg-${"a".repeat(87)}`);
+      assert.match(result.stdout, /Nothing was deleted/);
+    }
+  } finally {
+    await fs.rm(project, { recursive: true, force: true });
+  }
+});
+
+test("native push completion schema requires verified draft approval only for completed pushes", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const schema = JSON.parse(await readFile(path.join(root, "schemas", "copilot-studio-handoff.schema.json"), "utf8"));
+  const branch = schema.allOf.find((rule) => JSON.stringify(rule).includes('"draft"') && JSON.stringify(rule).includes('"push"'));
+  assert.ok(branch, "Draft approval must be an operation-specific schema condition");
+  assert.ok(JSON.stringify(branch).includes('"complete"'), "Partial handoffs must remain representable");
+});
+
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, ".github", "skills");
 
@@ -184,7 +275,10 @@ test("project video is a portable narrated MP4 capability", async () => {
   const projectUnderstanding = skills.get("project-understanding");
   assert.match(projectUnderstanding.metadata.description, /complete evidence-grounded scan/);
   assert.match(projectUnderstanding.source, /complete repository rescan/);
-  assert.match(projectUnderstanding.source, /atomically replace both understanding outputs/);
+  assert.match(projectUnderstanding.source, /retain the prior pair until both replacements succeed/);
+  assert.match(projectUnderstanding.source, /attempt each restoration independently/);
+  assert.match(projectUnderstanding.source, /preserves the complete new pair/);
+  assert.match(projectUnderstanding.source, /not an operating-system atomic multi-file transaction/);
   assert.ok(sectionItems(projectUnderstanding.source, "Outputs").includes("reports/project-understanding.json"));
   assert.ok(sectionItems(projectUnderstanding.source, "Outputs").includes("reports/project-understanding.md"));
   const understandingHelperPath = path.join(skillsRoot, "project-understanding", "scripts", "project-understanding.mjs");
@@ -231,11 +325,12 @@ test("project video is a portable narrated MP4 capability", async () => {
   assert.match(helper, /command === "production-preflight"/);
   assert.match(helper, /externalWorkAuthorized: false/);
   assert.doesNotMatch(helper, /clipchamp/i);
-  assert.match(helper, /AZURE_DISCOVERY_MAX_AGE_DAYS = 14/);
+  assert.match(helper, /import \{ ensureDiscovery, inspectCachedDiscovery \} from "\.\.\/\.\.\/azure-discovery\/scripts\/discovery-cache\.mjs"/);
+  assert.doesNotMatch(helper, /AZURE_DISCOVERY_MAX_AGE_DAYS|function validateAzureDiscovery/);
   assert.match(helper, /existingResourceQuerySucceeded/);
   assert.match(helper, /existingResourceKinds/);
-  assert.match(helper, /function validateAzureDiscovery/);
-  assert.match(helper, /Azure discovery speech/);
+  assert.match(helper, /inspectCachedDiscovery\(root/);
+  assert.match(helper, /ensureDiscovery\(root/);
   assert.match(helper, /previousManifest\?\.azureDiscoverySha256 !== settings\.discoverySha256/);
   assert.match(helper, /--approve-external/);
   assert.match(helper, /--approve-local/);
@@ -359,6 +454,9 @@ test("project video is a portable narrated MP4 capability", async () => {
   assert.equal(browserPreviewSchema.properties.capabilities.properties.portableMedia.const, false);
   const discoverySchema = JSON.parse(await readFile(path.join(root, "schemas", "azure-discovery.schema.json"), "utf8"));
   assert.equal(discoverySchema.properties.schemaVersion.const, "1.0.0");
+  assert.equal(discoverySchema.properties.expiresAt.format, "date-time");
+  assert.equal(discoverySchema.properties.contextSha256.pattern, "^[a-f0-9]{64}$");
+  assert.ok(!discoverySchema.required.includes("contextSha256"), "legacy discovery reports remain readable but must refresh before cache reuse");
   assert.ok(!discoverySchema.required.includes("imageGeneration"), "legacy 1.0.0 discovery reports remain valid");
   assert.equal(discoverySchema.properties.imageGeneration.additionalProperties, false);
   assert.ok(discoverySchema.properties.imageGeneration.required.includes("catalogQuerySucceeded"));
@@ -568,6 +666,36 @@ test("skill authoring has distinct create and update owners", async () => {
   assert.doesNotMatch(generatedInstructions, /Launch Pad boundary/);
 });
 
+test("project and agent creation instructions require verified workspace opening", async () => {
+  const instructionPaths = [
+    "AGENTS.md",
+    ".github/copilot-instructions.md",
+    "templates/project/.github/copilot-instructions.md"
+  ];
+  const sources = await Promise.all(instructionPaths.map((relative) => readFile(path.join(root, relative), "utf8")));
+  const sections = sources.map((source, index) => {
+    const section = source.match(/(?:^|\r?\n)(## Open created projects and agents\r?\n[\s\S]*?)(?=\r?\n## |\r?\n<!-- pso:end|$)/)?.[1].trim();
+    assert.ok(section, `${instructionPaths[index]} must require opening the created project or agent`);
+    assert.match(section, /After creating a new project or agent, open its owning project in VS Code before reporting completion/);
+    assert.match(section, /generated `\.code-workspace` file; otherwise open the project folder/);
+    assert.match(section, /new window for a different project/);
+    assert.match(section, /For a new agent, also open its definition/);
+    assert.match(section, /blueprint or review plan.*open that preview.*installation or deployment is still pending/);
+    assert.match(section, /`create-project`, include `--open`/);
+    assert.match(section, /Writing files or changing a shell directory is not the same as opening the project/);
+    assert.match(section, /only scope exception is an explicit user request to upgrade Project Orchestrator itself/);
+    assert.match(section, /new projects, agents, files, or other framework artifacts/);
+    assert.match(section, /Verify the target workspace opened/);
+    assert.match(section, /report the blocked opening step.*manual open command/);
+    assert.match(section, /Opening a workspace does not approve agent installation, deployment, publication, external mutation, commits, or pushes/);
+    return section.replaceAll("\r\n", "\n");
+  });
+  assert.equal(sections[1], sections[0], "repository instructions must agree on creation follow-through");
+  assert.equal(sections[2], sections[0], "shipped instructions must preserve the same rule and exception");
+  assert.match(sources[2], /<!-- pso:begin id=post-creation-workspace version=1 -->/);
+  assert.match(sources[2], /<!-- pso:end id=post-creation-workspace -->/);
+});
+
 test("skill actions have one slash-command owner", async () => {
   const skillNames = new Set((await loadSkills()).map((skill) => skill.metadata.name));
   for (const promptRoot of [path.join(root, ".github", "prompts"), path.join(root, "templates", "project", ".github", "prompts")]) {
@@ -624,6 +752,25 @@ test("workflow planning has a strict backward-compatible execution contract", as
   assert.match(runtime, /current-execution-state\.json/);
 });
 
+test("every governed skill has deterministic help coverage", async () => {
+  const skills = await loadSkills();
+  const rootHelp = await readFile(path.join(root, ".github", "prompts", "skills-help.prompt.md"), "utf8");
+  assert.match(rootHelp, /complete governed skill catalog/);
+  assert.match(rootHelp, /Composition and Dependencies/);
+  const normalize = (value) => value.replaceAll("\r\n", "\n").trimEnd();
+  for (const skill of skills) {
+    const skillName = skill.metadata.name;
+    const help = await readFile(path.join(root, ".github", "prompts", `${skillName}-help.prompt.md`), "utf8");
+    const generated = spawnSync(process.execPath, [path.join(root, "pso.mjs"), "help", skillName], { cwd: root, encoding: "utf8" });
+    assert.equal(generated.status, 0, generated.stderr);
+    assert.equal(normalize(help), normalize(generated.stdout), `${skillName} help must match its current contract`);
+    assert.match(help, /Explain this contract as help only\. Do not execute/);
+    for (const heading of ["Purpose", "Preconditions", "Inputs", "Approved Tools and Resources", "Read and Write Boundaries", "Procedure", "Validation", "Outputs", "Failure Behavior", "Approval Gates", "Composition and Dependencies", "Examples"]) {
+      assert.ok(help.includes(`## ${heading}`), `${skillName} help is missing ${heading}`);
+    }
+  }
+});
+
 test("every generated and adopted project carries the mandatory clarification protocol", async () => {
   const skills = new Map((await loadSkills()).map((skill) => [skill.metadata.name, skill]));
   const clarification = skills.get("clarify-the-ask");
@@ -637,21 +784,9 @@ test("every generated and adopted project carries the mandatory clarification pr
 
   const runtime = await readFile(path.join(root, "pso.mjs"), "utf8");
 
-test("every governed skill has deterministic help coverage", async () => {
-  const skills = await loadSkills();
-  const rootHelp = await readFile(path.join(root, ".github", "prompts", "skills-help.prompt.md"), "utf8");
-  assert.match(rootHelp, /complete governed skill catalog/);
-  assert.match(rootHelp, /Composition and Dependencies/);
-  const runtime = await readFile(path.join(root, "pso.mjs"), "utf8");
   assert.match(runtime, /async function printSkillHelp\(skillName\)/);
   assert.match(runtime, /Unknown skill:/);
-
-  for (const skill of skills) {
-    const skillName = skill.metadata.name;
-    assert.match(skill.source, /^## Composition and Dependencies$/m, `${skillName} must expose composition guidance`);
-    assert.match(runtime, /files\.set\(`\.github\/prompts\/\$\{skill\.name\}-help\.prompt\.md`/, `runtime must generate help for ${skillName}`);
-  }
-});
+  assert.match(runtime, /files\.set\(`\.github\/prompts\/\$\{skill\.name\}-help\.prompt\.md`/);
   assert.match(runtime, /const CLARIFICATION_PROTOCOL_HEADING = "## Engagement protocol \(mandatory, highest precedence\)"/);
   assert.match(runtime, /Ask one question round only:/);
   assert.match(runtime, /is missing the managed \$\{block\.id\} region/);
@@ -660,7 +795,10 @@ test("every governed skill has deterministic help coverage", async () => {
   const templateRoot = path.join(root, "templates", "project");
   const blueprint = JSON.parse(await readFile(path.join(root, "schemas", "project-blueprint.schema.json"), "utf8"));
   assert.equal(blueprint.$schema, "https://json-schema.org/draft/2020-12/schema");
-  assert.equal(blueprint.properties.schemaVersion.const, "1.0.0");
+  assert.deepEqual(blueprint.properties.schemaVersion.enum, ["1.0.0", "1.1.0"]);
+  assert.ok(blueprint.properties.project.properties.type.enum.includes("copilot-studio"));
+  assert.ok(blueprint.properties.delivery.properties.target.enum.includes("power-platform"));
+  assert.equal(blueprint.allOf[0].else.properties.stack.properties.runtime.const, "native-copilot-studio");
   assert.equal(blueprint.additionalProperties, false);
   assert.ok(blueprint.required.includes("project"));
   assert.ok(blueprint.required.includes("delivery"));
@@ -692,18 +830,28 @@ test("every governed skill has deterministic help coverage", async () => {
   assert.match(discovery.source, /\.github\/skills\/azure-discovery\/scripts\/azure-discovery\.ps1/);
   assert.ok(!existsSync(path.join(templateRoot, ".github", "prompts", "azure-discovery.prompt.md")));
   const discoveryScript = await readFile(path.join(templateRoot, "infra", "discover.ps1"), "utf8");
-  assert.match(discoveryScript, /azure-discovery\.json/);
-  assert.match(discoveryScript, /Get-AzureSpeechResourceSummary/);
+  assert.match(discoveryScript, /skills\\azure-discovery\\scripts\\azure-discovery\.ps1/);
+  assert.match(discoveryScript, /\. \$discoveryModule/);
+  assert.doesNotMatch(discoveryScript, /function Invoke-AzureDiscovery|az cognitiveservices/);
   const packagedDiscoveryScript = await readFile(path.join(skillsRoot, "azure-discovery", "scripts", "azure-discovery.ps1"), "utf8");
+  assert.match(packagedDiscoveryScript, /azure-discovery\.json/);
+  assert.match(packagedDiscoveryScript, /Get-AzureSpeechResourceSummary/);
   assert.match(packagedDiscoveryScript, /Get-AzureImageModelClassification/);
   assert.match(packagedDiscoveryScript, /Get-AzureImageQuotaSummary/);
   assert.match(packagedDiscoveryScript, /Get-AzureImageDeploymentSummary/);
   assert.match(packagedDiscoveryScript, /imageGeneration\s+=\s+\[ordered\]@\{/);
-  const normalizedPowerShell = (value) => value.replace(/^\uFEFF/, "").replaceAll("\r\n", "\n").trimEnd();
-  assert.equal(normalizedPowerShell(packagedDiscoveryScript), normalizedPowerShell(discoveryScript), "skill-owned and infrastructure discovery implementations must stay synchronized");
-  const environmentScript = await readFile(path.join(templateRoot, "infra", "azure-environment.ps1"), "utf8");
-  const packagedEnvironmentScript = await readFile(path.join(skillsRoot, "azure-discovery", "scripts", "azure-environment.ps1"), "utf8");
-  assert.equal(normalizedPowerShell(packagedEnvironmentScript), normalizedPowerShell(environmentScript), "skill-owned and infrastructure Azure environment implementations must stay synchronized");
+  assert.match(packagedDiscoveryScript, /discovery-cache\.mjs/);
+  assert.match(packagedDiscoveryScript, /\$cacheHelper inspect/);
+  assert.match(packagedDiscoveryScript, /\$cacheHelper publish/);
+  assert.match(discovery.source, /30 days inclusive/);
+  assert.match(discovery.source, /contextSha256/);
+  assert.match(discovery.source, /use this owner's shared validation and freshness policy/);
+  assert.match(discovery.source, /never silently rebinds/);
+  const environmentWrapper = await readFile(path.join(templateRoot, "infra", "azure-environment.ps1"), "utf8");
+  assert.match(environmentWrapper, /skills\\azure-discovery\\scripts\\azure-environment\.ps1/);
+  assert.match(environmentWrapper, /\. \$environmentModule/);
+  assert.doesNotMatch(environmentWrapper, /function Initialize-AzureEnvironmentProfile|az cloud/);
+  const environmentScript = await readFile(path.join(skillsRoot, "azure-discovery", "scripts", "azure-environment.ps1"), "utf8");
   assert.match(environmentScript, /return 'AzureCloud'/);
   assert.match(environmentScript, /az cloud set --name \$AzureContext\.cloud/);
   assert.match(environmentScript, /az login --identity/);
@@ -714,7 +862,13 @@ test("every governed skill has deterministic help coverage", async () => {
   assert.match(environmentScript, /cognitiveservices\.azure\.us/);
   assert.match(environmentScript, /tts\.speech\.azure\.us/);
   assert.match(environmentScript, /allowedDuringChat = \[bool\]\$AzureContext\.mcp\.enabled/);
-  assert.match(discoveryScript, /ChangeExtension\(\$DiscoveryOutputPath, '\.md'\)/);
+  const cacheHelper = await readFile(path.join(skillsRoot, "azure-discovery", "scripts", "discovery-cache.mjs"), "utf8");
+  assert.match(cacheHelper, /MAX_DISCOVERY_AGE_DAYS = 30/);
+  assert.match(cacheHelper, /azure-discovery\.schema\.json/);
+  const discoveryHelp = await readFile(path.join(root, ".github", "prompts", "azure-discovery-help.prompt.md"), "utf8");
+  const generatedDiscoveryHelp = spawnSync(process.execPath, [path.join(root, "pso.mjs"), "help", "azure-discovery"], { cwd: root, encoding: "utf8" });
+  assert.equal(generatedDiscoveryHelp.status, 0, generatedDiscoveryHelp.stderr);
+  assert.equal(discoveryHelp.replaceAll("\r\n", "\n").trimEnd(), generatedDiscoveryHelp.stdout.trimEnd());
   const environmentSchema = JSON.parse(await readFile(path.join(root, "schemas", "azure-environment.schema.json"), "utf8"));
   assert.equal(environmentSchema.additionalProperties, false);
   assert.deepEqual(environmentSchema.properties.cloud.enum, ["AzureCloud", "AzureUSGovernment"]);
@@ -843,7 +997,8 @@ test("every governed skill has deterministic help coverage", async () => {
     assert.ok(existsSync(path.join(root, relative)), `missing Agent Builder contract ${relative}`);
   }
   const agentBlueprint = JSON.parse(await readFile(path.join(root, "schemas", "agent-blueprint.schema.json"), "utf8"));
-  assert.deepEqual(agentBlueprint.properties.schemaVersion.enum, ["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0"]);
+  assert.deepEqual(agentBlueprint.properties.schemaVersion.enum, ["1.0.0", "2.0.0", "2.1.0", "2.2.0", "2.3.0", "3.0.0"]);
+  assert.ok(agentBlueprint.properties.agentType.enum.includes("copilot-studio"));
   assert.ok(agentBlueprint.properties.agentType.enum.includes("portable"));
   assert.equal(agentBlueprint.properties.autonomy.additionalProperties, false);
   assert.deepEqual(agentBlueprint.properties.autonomy.required, ["mode", "approvalRequiredFor", "webSafety"]);
@@ -869,7 +1024,7 @@ test("every governed skill has deterministic help coverage", async () => {
     "copilot-studio", "openai-api-application", "chatgpt-action-handoff"
   ]);
   const agentBuilderPlan = JSON.parse(await readFile(path.join(root, "schemas", "agent-builder-plan.schema.json"), "utf8"));
-  assert.deepEqual(agentBuilderPlan.properties.schemaVersion.enum, ["1.0.0", "1.1.0", "1.2.0"]);
+  assert.deepEqual(agentBuilderPlan.properties.schemaVersion.enum, ["1.0.0", "1.1.0", "1.2.0", "2.0.0"]);
   assert.deepEqual(agentBuilderPlan.properties.publication.type, ["object", "null"]);
   assert.equal(agentBuilderPlan.properties.deploymentInputSha256.$ref, "#/$defs/sha256");
   assert.ok(agentBuilderPlan.properties.distribution.anyOf.some((option) => option.type === "null"));
@@ -877,6 +1032,48 @@ test("every governed skill has deterministic help coverage", async () => {
     const source = await readFile(path.join(templateRoot, ".github", "agents", `${agent}.agent.md`), "utf8");
     assert.doesNotMatch(source, /tools:.*(?:fetch|githubRepo|microsoft-learn|problems|azure)/);
     assert.match(source, /tools: \["read", "search", "web"/);
+  }
+});
+
+test("Agent Builder shares deployment guidance without granting execution or introducing a dependency cycle", async () => {
+  const skills = new Map((await loadSkills()).map((skill) => [skill.metadata.name, skill]));
+  const builder = skills.get("agent-builder");
+  assert.match(builder.source, /before requirements, scaffolding, blueprint validation, or deployment handoff/);
+  assert.match(builder.source, /### Prerequisite Dependencies/);
+  assert.match(builder.source, /### Downstream Ownership Handoff/);
+  assert.ok(!dependencyItems(builder.source).includes("agent-deployment"), "deployment already depends on builder validation");
+  assert.ok(dependencyItems(skills.get("agent-deployment").source).includes("agent-builder"));
+
+  const guidePath = path.join(skillsRoot, "agent-builder", "references", "deployment-handoff.md");
+  const guide = await readFile(guidePath, "utf8");
+  for (const heading of [
+    "Ownership and Delivery Sequence", "Choose the Correct Product", "Native Copilot Studio Delivery",
+    "Target, Scope, and Prerequisites", "Create, Connect, and Synchronize", "Implement Real Behavior and State",
+    "Authentication, Connections, and DLP", "Validate and Evaluate in Layers",
+    "Solution ALM, Publication, and Recovery", "Version-Specific Observations"
+  ]) assert.ok(guide.includes(heading), `delivery guide must address ${heading}`);
+  for (const term of [
+    "agent-deployment", "Power CAT Copilot Agent Kit", "Microsoft 365 Agents Toolkit", "configuration.publishOnImport",
+    "mcsConnectionId", "runOnPublishedBot", "toolsConnections", "componentstate_Property", "not reproduced against a live tenant",
+    "fresh conversation", "operation-specific approval", "sample version", "missing", "manual", "unavailable"
+  ]) assert.ok(guide.includes(term), `delivery guide must preserve ${term}`);
+  assert.match(guide, /https:\/\/learn\.microsoft\.com\/en-us\/microsoft-copilot-studio\/guidance\/agent-samples/);
+  assert.doesNotMatch(guide, /[A-Z]:\\(?:repos|Users)\\|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}/i);
+  for (const match of guide.matchAll(/\]\((\.\.\/[^)#]+)(?:#[^)]*)?\)/g)) {
+    assert.ok(existsSync(path.resolve(path.dirname(guidePath), match[1])), `missing shared reference ${match[1]}`);
+  }
+
+  const { renderAgent } = await import("../.github/skills/agent-builder/scripts/agent-builder.mjs");
+  const rendered = renderAgent({
+    name: "Template Reference", description: "Compare the shared deployment handoff.", purpose: "Verify template parity.",
+    capabilities: ["read"], invocation: { userInvocable: true, modelInvocable: true }, subagents: [], handoffs: [],
+    instructions: { constraints: ["Remain read-only."], approach: ["Read evidence.", "Report findings."], outputFormat: "Return evidence." }
+  });
+  const guidance = rendered.slice(rendered.indexOf("## Deployment Guidance")).trimEnd();
+  for (const id of ["azure-architect", "security-reviewer", "documentation-writer"]) {
+    const source = await readFile(path.join(root, "templates", "project", ".github", "agents", `${id}.agent.md`), "utf8");
+    assert.equal(source.slice(source.indexOf("## Deployment Guidance")).replaceAll("\r\n", "\n").trimEnd(), guidance, `${id} must use the canonical renderer's handoff`);
+    assert.doesNotMatch(source.match(/^tools:.*$/m)[0], /execute|agent|todo/);
   }
 });
 
@@ -1168,6 +1365,11 @@ test("audit pipeline has stable handoffs and schemas", async () => {
   assert.match(audit.source, /automatically dispatch `audit-review-findings`/);
   assert.match(audit.source, /automatically dispatch `audit-plan-remediation`/);
   assert.match(audit.source, /approval-wait/);
+  assert.match(audit.source, /Checkpoint hashing consumes Git diff output and untracked regular-file bytes incrementally/);
+  assert.match(audit.source, /without publishing a partial digest/);
+  assert.match(audit.source, /GIT_SHALLOW_FILE/);
+  assert.match(audit.source, /atomic rename commit/);
+  assert.ok(sectionItems(audit.source, "Outputs").includes("reports/.gitleaks-scan-*.candidate.json"));
   const auditEvidenceScript = path.join(root, ".github", "skills", "audit-code", "scripts", "audit-evidence.mjs");
   const auditValidateScript = path.join(root, ".github", "skills", "audit-code", "scripts", "audit-validate.mjs");
   const gitleaksScript = path.join(root, ".github", "skills", "audit-code", "scripts", "gitleaks-scan.mjs");
@@ -1221,7 +1423,21 @@ test("audit pipeline has stable handoffs and schemas", async () => {
   assert.match(auditEvidenceSource, /const checkpointValid = checkpointState\.valid/);
   assert.match(auditEvidenceSource, /const scanDigestValid = scanDigestState\.valid/);
   assert.match(auditEvidenceSource, /const SECRET_EVIDENCE_MAX_AGE_HOURS = 24/);
-  assert.match(auditEvidenceSource, /status: specialistCompleted \? "completed" : pinnedScannerReady \? "ready" : "blocked"/);
+  assert.match(auditEvidenceSource, /const specialistCompleted = mode === "verify" && verificationIssues\.length === 0/);
+  assert.match(auditEvidenceSource, /status: specialistCompleted \? "completed" : mode === "capture" && pinnedScannerReady \? "ready" : "blocked"/);
+  assert.match(auditEvidenceSource, /--scan-sha256/);
+  assert.match(auditEvidenceSource, /pre-publication input binding/);
+  assert.match(gitleaksSource, /await cachedTool\(toolRoot\)/);
+  assert.match(gitleaksSource, /audit-scan-input-v3/);
+  assert.match(gitleaksSource, /localRefsDigest/);
+  assert.match(gitleaksSource, /indexDigest/);
+  assert.match(gitleaksSource, /historyDigest/);
+  assert.match(gitleaksSource, /GIT_NO_LAZY_FETCH: "1"/);
+  assert.match(auditEvidenceSource, /GIT_NO_LAZY_FETCH: "1"/);
+  assert.match(gitleaksSource, /"--parents", "--boundary", "--objects", "--no-object-names"/);
+  assert.match(gitleaksSource, /await rename\(candidate, output\)/);
+  assert.match(gitleaksSource, /canonical certificate unchanged/);
+  assert.match(gitleaksSource, /uncommitted candidate retained/);
   assert.match(auditEvidenceSource, /const requiredFindingBuckets = \["worktree", "staged", "history"\]/);
   assert.match(auditEvidenceSource, /const noSecretFindings = requiredFindingBuckets\.every/);
   assert.equal(auditEvidence.repository.shallow, false);

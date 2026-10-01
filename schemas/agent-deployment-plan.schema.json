@@ -5,7 +5,9 @@
   "type": "object", "additionalProperties": false,
   "required": ["schemaVersion", "planId", "planSha256", "generatedAt", "expiresAt", "status", "projectRoot", "requestPath", "requestSha256", "blueprintSha256", "packagePath", "packageSha256", "registrySha256", "implementationSha256", "profileSha256", "target", "agentId", "release", "adapter", "remote", "remoteSha256", "steps", "requiredApprovals", "permissions", "blastRadius", "costAndQuota", "identityChanges", "verification", "rollback", "limitations", "reason"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
+    "nativeStudioHandoffSha256": { "$ref": "#/$defs/sha256" },
+    "studioEvidence": { "$ref": "#/$defs/studioDeploymentEvidence" },
     "planId": { "type": "string", "pattern": "^DEP-[a-f0-9]{32}$" },
     "planSha256": { "$ref": "#/$defs/sha256" },
     "generatedAt": { "type": "string", "format": "date-time" },
@@ -48,6 +50,14 @@
   },
   "allOf": [
     {
+      "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+      "then": {
+        "required": ["nativeStudioHandoffSha256", "studioEvidence"],
+        "properties": { "target": { "const": "copilot-studio" } }
+      },
+      "else": { "not": { "anyOf": [{ "required": ["nativeStudioHandoffSha256"] }, { "required": ["studioEvidence"] }] } }
+    },
+    {
       "if": {
         "required": ["status", "remote"],
         "properties": {
@@ -73,6 +83,38 @@
     }
   ],
   "$defs": {
+    "studioDeploymentEvidence": {
+      "allOf": [{ "$ref": "#/$defs/studioEvidence" }],
+      "properties": {
+        "synchronized": { "properties": { "status": { "not": { "const": "verified" } } } },
+        "imported": { "properties": { "status": { "not": { "const": "verified" } } } },
+        "provisioned": { "properties": { "status": { "not": { "const": "verified" } } } },
+        "evaluated": { "properties": { "status": { "not": { "const": "verified" } } } },
+        "published": { "properties": { "status": { "not": { "const": "verified" } } } },
+        "channelVerified": { "properties": { "status": { "not": { "const": "verified" } } } }
+      }
+    },
+    "studioLayer": {
+      "type": "object", "additionalProperties": false, "required": ["status", "code", "evidenceSha256"],
+      "properties": {
+        "status": { "enum": ["not-requested", "pending", "blocked", "failed", "unknown", "verified"] },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,79}$" },
+        "evidenceSha256": { "$ref": "#/$defs/nullableDigest" }
+      }
+    },
+    "studioEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authored", "synchronized", "imported", "provisioned", "evaluated", "published", "channelVerified"],
+      "properties": {
+        "authored": { "$ref": "#/$defs/studioLayer" },
+        "synchronized": { "$ref": "#/$defs/studioLayer" },
+        "imported": { "$ref": "#/$defs/studioLayer" },
+        "provisioned": { "$ref": "#/$defs/studioLayer" },
+        "evaluated": { "$ref": "#/$defs/studioLayer" },
+        "published": { "$ref": "#/$defs/studioLayer" },
+        "channelVerified": { "$ref": "#/$defs/studioLayer" }
+      }
+    },
     "sha256": { "$ref": "agent-deployment-request.schema.json#/$defs/sha256" },
     "nullableDigest": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
     "nullableVersion": { "anyOf": [{ "type": "null" }, { "$ref": "agent-deployment-request.schema.json#/$defs/version" }] },

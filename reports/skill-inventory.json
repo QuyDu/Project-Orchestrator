@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0.0",
-  "runtimeVersion": "1.2.0",
-  "generatedAt": "2026-09-22T23:47:55.574Z",
+  "runtimeVersion": "1.3.0",
+  "generatedAt": "2026-10-01T19:23:41.475Z",
   "skills": [
     {
       "name": "agent-builder",
       "path": ".github/skills/agent-builder/SKILL.md",
-      "description": "Build, validate, preview, and transactionally install least-privilege custom agents with portable distribution intent for Foundry, Microsoft 365, Copilot Studio, and OpenAI application or ChatGPT Action handoffs. Use when creating, updating, or reviewing agent blueprints and .agent.md files; do not use for deployment, channel publication, or MCP installation.",
+      "description": "Build, validate, preview, and transactionally install least-privilege custom agents or explicitly prepare bounded native Copilot Studio source with capability-gap evidence. Use when creating, updating, or reviewing agent blueprints, .agent.md files, or local native Studio preparations; do not use for deployment, channel publication, or MCP installation.",
       "lifecycle": "draft",
       "confidence": "low",
       "dependencies": [
@@ -98,7 +98,8 @@
       "reports": [
         "reports/code-audit-findings.json",
         "reports/gitleaks-scan.json",
-        "reports/audit-evidence/*.json"
+        "reports/audit-evidence/*.json",
+        "reports/.gitleaks-scan-*.candidate.json"
       ]
     },
     {
@@ -174,7 +175,7 @@
     {
       "name": "azure-discovery",
       "path": ".github/skills/azure-discovery/SKILL.md",
-      "description": "Discover Azure Commercial or Azure US Government service, chat model, image-generation model and quota, and sanitized deployment availability for the current project, persist dated results, and identify when a refresh is needed.",
+      "description": "Discover Azure Commercial or Azure US Government service, model, quota, and sanitized deployment availability; own dated, context-bound evidence that consumers reuse for 30 days or refresh through this skill.",
       "lifecycle": "tested",
       "confidence": "medium",
       "dependencies": [
@@ -281,7 +282,8 @@
       "lifecycle": "tested",
       "confidence": "medium",
       "dependencies": [
-        "clarify-the-ask"
+        "clarify-the-ask",
+        "project-understanding"
       ],
       "reports": [
         "reports/documentation-plan.json",

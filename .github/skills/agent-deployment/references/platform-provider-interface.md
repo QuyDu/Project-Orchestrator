@@ -18,7 +18,7 @@ and resolves them before calling these factories. Its workspace is consistently
 Factories receive resolved project-relative output paths. Neither a request hash nor a plan ID
 belongs in a user's output configuration; there is no self-referential path calculation.
 
-Core calls always supply `workDirectory`. Native execution uses `runtime.kind: application`. The central schema's `copilotStudio` and `agentsToolkit` fragments are checked for exact equality with the leaf exports. Every adapter/helper/launcher is included in the reviewed implementation digest.
+Core calls always supply `workDirectory`. Legacy native execution uses `runtime.kind: application`; the explicit Studio `1.1.0` envelope uses `native-copilot-studio` and a reviewed `nativeStudioHandoff` reference. The central schema's `copilotStudio` and `agentsToolkit` fragments are checked for exact equality with the leaf exports. Every adapter/helper/launcher is included in the reviewed implementation digest; new native plans also bind the builder validator and shared source/handoff schemas.
 
 The skill owns the leaf-default checked workspace `reports/agent-deployment/platform-work/<tool>/<package-sha>/` as well as explicit per-run workspaces. A caller/default workspace must remain package-bound and disjoint from source inputs; staging or output elsewhere is not implied by the interface.
 
@@ -32,6 +32,8 @@ rollback(receipt) -> PlatformOutcome
 ```
 
 Operations are closed, code-defined identifiers, never arbitrary CLI arguments, executable paths, shell text, HTTP bodies or request URLs from a plan. The central engine derives them again from the reviewed request. PAC pack, import, publish and export are distinct operations. Toolkit provision, deploy, package, publish and update are distinct operations. Do not combine import/deploy with publication implicitly.
+
+PAC import inspects actual bounded solution XML/JSON, duplicate keys, bot identity, component membership and `publishOnImport` before any CLI call. Automatic publication is an unsupported combined mutation, not a draft-only import assumption. Complex security-bearing/ownership/channel metadata or unreviewed component types are not silently passed through. Connected workspaces remain intact when routed to supported solution ALM; exported incomplete artifacts stay retained and produce a partial outcome.
 
 `verify` is read-only. If publication/catalog acceptance cannot be established, return `publication-submitted`, `pending-admin-approval`, or `verification-required`, never `published`. A resource's absence must be proven by the documented missing-resource result, not any CLI failure. A mutation with an ambiguous outcome must throw a redacted `DeploymentError`/`stop` from `contracts.mjs`; the central journal keeps the started operation and prohibits blind replay.
 
@@ -77,6 +79,29 @@ Outcome:
 ```
 
 Only `published` may set `publicationVerified: true`, and `published` must set it. Imports, provisioning, packaging, deployment and submission never imply catalog publication. Version and identity probes must omit volatile timestamps from stable digests while including fields whose changes affect authorization or target selection. Never persist raw CLI output, tokens, secrets or authentication identifiers; use the stable identity digest.
+
+The current PAC contract cannot produce `published` at all: the central engine rejects that claim even from an injected provider. Native `1.1.0` plans/results/state add a separately constrained `studioEvidence` object with authored, synchronized, imported, provisioned, evaluated, published and channelVerified layers. Each layer has `{status,code,evidenceSha256}`. Only authored bytes can become verified in this deployed adapter contract; reviewed local evaluation/read-back evidence remains pending or reports its failure. Accepted CLI operations do not manufacture server publication timestamps. State is rederived from immutable source and accepted receipts to reject edited attestations.
+
+## Pure native evidence boundary
+
+`studio-evidence.mjs` exports bounded pure functions; none acquires credentials or performs HTTP/CLI operations:
+
+```js
+const scope = nativeStudioApprovalScope(request, handoff, reviewedTarget);
+validateStudioApproval(approval, scope, { now: reviewedClock });
+const admission = recordEvaluationAdmission(null, { status: 202, body }, evaluationSpec);
+// Persist admission, including runId. Ambiguity never authorizes another POST.
+const reconciled = reconcileEvaluationRun(admission, boundedReviewedRuns, evaluationSpec);
+const functional = assessEvaluationRun(evaluationSpec, completedRun);
+```
+
+`bindNativeStudioHandoff(request,blueprint,handoff,documents)` consumes a map of already hash-checked file bytes. Package loading invokes the builder's pure handoff/guide/spec/source validators before this binding; deployment remains downstream of builder, never the reverse. The binding consumes reviewed target, source, recovery, evaluation, setting, diagnostics and approval records described in `usage.md`. `nativeStudioReadiness(context,now)` enforces review/approval expiry before planning and every approved mutation.
+
+`resolveStudioEnvironment` requires one vetted environment record with exact URL/ID/tenant/cloud; it is not a discovery transport. `inspectStudioSolution` and `inspectStudioWorkspace` gate the existing PAC paths. `verifyStudioSetting`, `assessStudioDiagnostics` and `assertStudioSecurityInvariant` prevent no-op, off-channel and auth/DLP-workaround success claims. `assessStudioEvidence` can compare supplied independent publication/channel observations, but those local inputs cannot promote the live PAC outcome. A timestamp must advance, source/security/target must match and channel cases must contain actual fresh functional responses.
+
+The evaluation envelope binds `testSetId`, `testSetSha256`, `definitionSha256`, local `version: {kind,id}`, profile/tool connections and stable functional cases. Only the documented four fields go in `body`: `evaluationRunName`, `mcsConnectionId`, `runOnPublishedBot`, `toolsConnections`. There is no invented published-version body field. HTTP 200/202 admission is pending; an ambiguous failure retains any returned run ID and remains nonretryable. Callback validation allows only HTTPS `api.powerplatform.com` with the exact environment/bot/run path and reviewed API-version query. Functional checks reject connection boilerplate or unexplained NA grades even when graders Pass. Changed-run comparisons establish correlation, not a unique root cause after simultaneous changes.
+
+No evaluation transport, native clone/pull/push, server-setting mutation, channel installation or channel testing is implemented. The known `componentstate_Property` status-query incompatibility has a stable, redacted blocked outcome; no fallback changes Dataverse schema or weakens security. An operator may separately review documented bounded `pac env fetch` bot attributes. The fixed CLI whitelist and Windows bridge remain unchanged.
 
 ## CLI safety and packaging
 

@@ -1,6 +1,9 @@
 const MAX_SESSION_COST_USD = 0.1;
 const MAX_TRANSCRIPT_CHARS = 8000;
 const MAX_RESPONSE_TOKENS = 1500;
+const MAX_RESPONSE_BYTES = 64 * 1024;
+const MAX_STREAM_BYTES = 1024 * 1024;
+const MAX_STREAM_LINE_BYTES = 64 * 1024;
 
 export const providerCompatibilityMatrix = Object.freeze({
   AzureCloud: Object.freeze({
@@ -83,35 +86,57 @@ function createDeadline(signal, deadlineMs) {
     else signal.addEventListener("abort", abort, { once: true });
   }
   const timer = setTimeout(() => controller.abort(new Error("deadline exceeded")), deadlineMs);
-  return { signal: controller.signal, clear: () => { clearTimeout(timer); signal?.removeEventListener("abort", abort); } };
+  return { signal: controller.signal, abort: () => controller.abort(), clear: () => { clearTimeout(timer); signal?.removeEventListener("abort", abort); } };
 }
 
-async function* responseLines(body) {
+async function* responseChunks(body) {
   if (body && body[Symbol.asyncIterator]) {
-    let pending = "";
-    for await (const chunk of body) {
-      pending += Buffer.from(chunk).toString("utf8");
-      const lines = pending.split(/\r?\n/);
-      pending = lines.pop();
-      yield* lines;
-    }
-    if (pending) yield pending;
+    yield* body;
     return;
   }
   if (body?.getReader) {
     const reader = body.getReader();
-    const decoder = new TextDecoder();
-    let pending = "";
-    while (true) {
-      const next = await reader.read();
-      if (next.done) break;
-      pending += decoder.decode(next.value, { stream: true });
-      const lines = pending.split(/\r?\n/);
-      pending = lines.pop();
-      yield* lines;
+    let complete = false;
+    try {
+      while (true) {
+        const next = await reader.read();
+        if (next.done) { complete = true; break; }
+        yield next.value;
+      }
+    } finally {
+      try {
+        if (!complete) await reader.cancel();
+      } finally {
+        reader.releaseLock();
+      }
     }
-    if (pending) yield pending;
+    return;
   }
+  fail("invalid-output", "Provider returned no readable response body");
+}
+
+async function* responseLines(body) {
+  const decoder = new TextDecoder();
+  let pending = "";
+  let receivedBytes = 0;
+  for await (const chunk of responseChunks(body)) {
+    if (typeof chunk !== "string" && !(chunk instanceof Uint8Array)) fail("invalid-output", "Provider returned a non-byte stream chunk");
+    const length = typeof chunk === "string" ? Buffer.byteLength(chunk, "utf8") : chunk.byteLength;
+    receivedBytes += length;
+    if (receivedBytes > MAX_STREAM_BYTES) fail("response-limited", "Provider stream exceeds the byte ceiling");
+    const bytes = typeof chunk === "string" ? Buffer.from(chunk, "utf8") : chunk;
+    pending += decoder.decode(bytes, { stream: true });
+    const lines = pending.split(/\r?\n/);
+    pending = lines.pop();
+    for (const line of lines) {
+      if (Buffer.byteLength(line, "utf8") > MAX_STREAM_LINE_BYTES) fail("response-limited", "Provider stream line exceeds the byte ceiling");
+      yield line;
+    }
+    if (Buffer.byteLength(pending, "utf8") > MAX_STREAM_LINE_BYTES) fail("response-limited", "Provider stream line exceeds the byte ceiling");
+  }
+  pending += decoder.decode();
+  if (Buffer.byteLength(pending, "utf8") > MAX_STREAM_LINE_BYTES) fail("response-limited", "Provider stream line exceeds the byte ceiling");
+  if (pending) yield pending;
 }
 
 function retryable(status) { return status === 429 || status >= 500; }
@@ -125,6 +150,10 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
   const maxConcurrentPerIdentity = limits.maxConcurrentPerIdentity ?? 1;
   const maxTranscriptChars = limits.maxTranscriptChars ?? MAX_TRANSCRIPT_CHARS;
   const maxResponseTokens = limits.maxResponseTokens ?? MAX_RESPONSE_TOKENS;
+  const maxResponseBytes = limits.maxResponseBytes ?? MAX_RESPONSE_BYTES;
+  for (const [name, value] of Object.entries({ maxResponseTokens, maxResponseBytes })) {
+    if (!Number.isSafeInteger(value) || value < 1) fail("invalid-config", `${name} must be a positive safe integer`);
+  }
   const circuitFailureThreshold = limits.circuitFailureThreshold ?? 3;
   const circuitResetMs = limits.circuitResetMs ?? 30_000;
   const requests = new Map();
@@ -169,28 +198,29 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
     if (!Array.isArray(messages) || messages.some((message) => !message || typeof message.role !== "string" || typeof message.content !== "string")) fail("invalid-input", "messages must contain role and content strings");
     if (messages.some((message) => message.content.length > maxTranscriptChars) || (transcriptChars ?? messages.reduce((total, message) => total + message.content.length, 0)) > maxTranscriptChars) fail("transcript-limited", "Transcript length exceeds the approved ceiling");
     if (!Number.isInteger(responseTokens) || responseTokens < 0 || responseTokens > maxResponseTokens) fail("response-limited", "Response token request exceeds the approved ceiling");
-    if (estimatedCostUsd < 0 || estimatedCostUsd > MAX_SESSION_COST_USD) fail("cost-limited", "Estimated session cost exceeds the approved ceiling");
+    if (!Number.isFinite(estimatedCostUsd) || estimatedCostUsd < 0 || estimatedCostUsd > MAX_SESSION_COST_USD) fail("cost-limited", "Estimated session cost exceeds the approved ceiling");
     if (hooks.inputSafety && !(await hooks.inputSafety({ messages }))) fail("input-blocked", "Input safety policy blocked the request");
     guardCircuit(identity);
     const active = activeByIdentity.get(identity) ?? 0;
     if (active >= maxConcurrentPerIdentity) fail("concurrency-limited", "Identity already has an active request");
-    activeByIdentity.set(identity, active + 1);
     guardRate(sessionId);
     const requestUrl = new URL(`/openai/deployments/${encodeURIComponent(validated.openAI.deployment)}/chat/completions`, validated.openAI.endpoint);
     requestUrl.searchParams.set("api-version", validated.openAI.apiVersion);
-    const deadline = createDeadline(signal, deadlineMs);
     const started = now();
+    const deadline = createDeadline(signal, deadlineMs);
+    activeByIdentity.set(identity, active + 1);
     let response;
     try {
       for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
         if (deadline.signal.aborted) fail(signal?.aborted ? "cancelled" : "deadline-exceeded", signal?.aborted ? "Request cancelled" : "Request deadline exceeded");
-        response = await fetchImpl(requestUrl, { method: "POST", headers: { authorization: `Bearer ${await token()}`, "content-type": "application/json" }, body: JSON.stringify({ messages, stream: true }), signal: deadline.signal });
+        response = await fetchImpl(requestUrl, { method: "POST", headers: { authorization: `Bearer ${await token()}`, "content-type": "application/json" }, body: JSON.stringify({ messages, stream: true, max_completion_tokens: responseTokens || maxResponseTokens }), signal: deadline.signal });
         if (!retryable(response.status) || attempt === maxRetries) break;
         await sleep(2 ** attempt * 100);
       }
       telemetry({ event: "provider.request", provider: "azure-openai", status: response.status, attempts: Math.min(maxRetries + 1, 1), durationMs: now() - started });
       if (!response.ok) fail(response.status === 429 ? "rate-limited" : "provider-error", "Provider request failed", { status: response.status });
       let output = "";
+      let outputBytes = 0;
       for await (const line of responseLines(response.body)) {
         if (!line.startsWith("data:")) continue;
         const payload = line.slice(5).trim();
@@ -200,6 +230,8 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
         const text = parsed?.choices?.[0]?.delta?.content;
         if (text === undefined) continue;
         if (typeof text !== "string") fail("invalid-output", "Provider returned a non-string delta");
+        outputBytes += Buffer.byteLength(text, "utf8");
+        if (outputBytes > maxResponseBytes) fail("response-limited", "Provider output exceeds the byte ceiling");
         output += text;
         if (hooks.outputSafety && !(await hooks.outputSafety({ text, output }))) fail("output-blocked", "Output safety policy blocked the response");
         yield { type: "RESPONSE_DELTA", text };
@@ -208,13 +240,16 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
       recordSuccess(identity);
       telemetry({ event: "provider.complete", provider: "azure-openai", outputLength: output.length, durationMs: now() - started });
     } catch (error) {
-      if (error.code !== "cancelled" && error.code !== "deadline-exceeded" && error.code !== "rate-limited" && error.code !== "cost-limited") recordFailure(identity);
+      if (error.code !== "cancelled" && error.code !== "deadline-exceeded" && error.code !== "rate-limited" && error.code !== "cost-limited" && error.code !== "response-limited") recordFailure(identity);
       const code = deadline.signal.aborted ? (signal?.aborted ? "cancelled" : "deadline-exceeded") : error.code;
       telemetry({ event: "provider.error", provider: "azure-openai", code: code ?? "provider-error" });
       if (code && code !== error.code) fail(code, code === "cancelled" ? "Request cancelled" : "Request deadline exceeded");
       throw error;
     } finally {
-      activeByIdentity.set(identity, Math.max(0, (activeByIdentity.get(identity) ?? 1) - 1));
+      const remaining = (activeByIdentity.get(identity) ?? 1) - 1;
+      if (remaining > 0) activeByIdentity.set(identity, remaining);
+      else activeByIdentity.delete(identity);
+      deadline.abort();
       deadline.clear();
     }
   }

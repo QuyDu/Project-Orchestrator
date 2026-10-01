@@ -21,14 +21,7 @@ if ($Gov -and $Commercial) { throw 'Choose only one Azure cloud: -Gov or -Commer
 if ($Apply -and $WhatIf) { throw 'Choose either -Apply or -WhatIf, not both.' }
 
 . (Join-Path $PSScriptRoot 'azure-environment.ps1')
-
-function ConvertTo-AzureProjectToken {
-    param([Parameter(Mandatory)][string]$ProjectName)
-    $token = $ProjectName.Trim().ToLowerInvariant() -replace '[^a-z0-9]+', '-'
-    $token = $token.Trim('-')
-    if (-not $token) { throw 'Project name must contain at least one letter or number.' }
-    return $token
-}
+. (Join-Path $PSScriptRoot 'deploy-infra.ps1')
 
 $profilePath = Get-AzureEnvironmentProfilePath
 $environmentProfile = Initialize-AzureEnvironmentProfile -Gov:$Gov -Commercial:$Commercial `
@@ -36,7 +29,7 @@ $environmentProfile = Initialize-AzureEnvironmentProfile -Gov:$Gov -Commercial:$
 $cloud = [string]$environmentProfile.cloud
 $account = Connect-AzureEnvironment -AzureContext $environmentProfile -ProfilePath $profilePath
 
-$targetGroup = if ($All) { "rg-$(ConvertTo-AzureProjectToken $SiteName)" } elseif ($ResourceGroup) { $ResourceGroup } else { $RG }
+$targetGroup = if ($All) { Get-AzureResourceName -ProjectName $SiteName -ResourceType resourceGroup } elseif ($ResourceGroup) { $ResourceGroup } else { $RG }
 if (-not $targetGroup) { throw 'Specify -All -ResourceGroup <name>, -Resource <name> -RG <name>, or -ResourceGroup <name>.' }
 
 $resources = @(az resource list --resource-group $targetGroup -o json 2>$null | ConvertFrom-Json)

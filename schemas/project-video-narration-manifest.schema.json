@@ -13,7 +13,7 @@
     "voice": { "type": "string", "minLength": 1, "maxLength": 120 },
     "voiceSettings": { "$ref": "project-video-plan.schema.json#/properties/voice" },
     "voiceSettingsSha256": { "$ref": "#/$defs/sha256" },
-    "voiceSelectionProfile": { "enum": ["ava-hd-warm", "aria-hd-warm", "aria-professional"] },
+    "voiceSelectionProfile": { "enum": ["ava-hd-warm", "aria-hd-warm", "jenny-professional", "aria-professional"], "description": "Historical aria-professional records retain their original identity; never relabel existing audio as Jenny." },
     "voiceSelectionSha256": { "$ref": "#/$defs/sha256" },
     "cloud": { "enum": ["AzureCloud", "AzureUSGovernment"] },
     "region": { "type": "string", "pattern": "^[a-z0-9-]+$" },

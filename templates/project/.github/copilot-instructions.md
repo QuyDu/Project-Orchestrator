@@ -27,6 +27,27 @@ Apply this to every new user prompt, without exception, before any analysis, too
 Use `.github/skills/project-skills-orchestrator/SKILL.md` for project orchestration. Audit existing project state, inventory available skills, plan before execution, preserve repository-owned skills, and stop at approval gates.
 <!-- pso:end id=orchestration-routing -->
 
+<!-- pso:begin id=native-studio-routing version=1 -->
+## Native Copilot Studio routing
+
+- For native Copilot Studio creation, configuration, troubleshooting, evaluation, import, publication, or delivery, load `.github/instructions/copilot-studio.instructions.md` before requirements, scaffolding, blueprint validation, or handoff.
+- Use the existing orchestrator, agent-builder and agent-deployment owners. A local agent definition or distribution label is not a native runtime or proof of completed features.
+- Resolve an ambiguous Copilot destination once. Do not route ordinary apps, GitHub Copilot agents/SDK apps, Foundry agents or Agents Toolkit projects through the native Studio workflow.
+- Use the project-local scoped guide. If absent, stop for governed native project setup; do not fall back to another project's private files or guess a target.
+- Native Studio selection does not authorize remote operations, Azure hosting, sign-in, billing, DLP changes or audience expansion. Preserve explicit target and operation approvals.
+<!-- pso:end id=native-studio-routing -->
+
+<!-- pso:begin id=post-creation-workspace version=1 -->
+## Open created projects and agents
+
+- After creating a new project or agent, open its owning project in VS Code before reporting completion. Prefer the generated `.code-workspace` file; otherwise open the project folder. Use a new window for a different project so the current workspace is preserved.
+- For a new agent, also open its definition. If only a blueprint or review plan was created, open that preview and state that installation or deployment is still pending.
+- When using `create-project`, include `--open`; agent creation outside that command still requires an explicit workspace-opening step. Writing files or changing a shell directory is not the same as opening the project.
+- The only scope exception is an explicit user request to upgrade Project Orchestrator itself to include the new projects, agents, files, or other framework artifacts. Keep that work in the Project Orchestrator workspace instead.
+- Verify the target workspace opened. If VS Code is unavailable or opening fails, report the blocked opening step and provide the exact workspace path and manual open command; never silently skip it or claim it opened.
+- Opening a workspace does not approve agent installation, deployment, publication, external mutation, commits, or pushes.
+<!-- pso:end id=post-creation-workspace -->
+
 ## Target project work
 
 This repository is the target project. Build application code, tests, documentation, project-specific prompts, deployment configuration, and validation artifacts here when the user asks to implement this project's app or operations. Use the installed skills as project-local capabilities, keep generated evidence under `reports/`, and preserve the approval gates before Azure, deployment, external, destructive, privileged, commit, or push actions.

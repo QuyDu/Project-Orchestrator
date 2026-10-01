@@ -4,6 +4,7 @@ import { loadContext, verifyPackage, writePackage } from "./package.mjs";
 import { getCapabilities } from "./providers/registry.mjs";
 import { createMicrosoft365Provider } from "./providers/microsoft365.mjs";
 import { assertPlatformProvider, validatePlatformOutcome, validatePlatformSnapshot } from "./providers/platform-contract.mjs";
+import { assessStudioEvidence, nativeStudioReadiness } from "./providers/studio-evidence.mjs";
 
 const fields = {
   "microsoft-365-copilot-and-teams": "microsoft365",
@@ -16,8 +17,8 @@ const operationTable = {
   "m365-endpoint": ["endpoint", "endpoint-authorization", "Preserve all endpoint protocols, authorization entries and pinned routing while adding the reviewed Activity/Bot scheme."],
   "m365-publish": ["publish", "publication-submission", "Submit the reviewed v1 app metadata; submission is not catalog acceptance or conversation verification."],
   "pac-pack": ["pack", "local-package-execution", "Run the reviewed local PAC pack operation and validate its retained package artifact."],
-  "pac-import": ["import", "solution-import", "Import only the reviewed solution/settings into the explicit environment; do not publish implicitly."],
-  "pac-publish": ["publish", "agent-publication", "Submit the reviewed Copilot Studio agent publication, separately from import."],
+  "pac-import": ["import", "solution-import", "Inspect publication side effects and import only the reviewed solution/settings; automatic publication is blocked by this adapter."],
+  "pac-publish": ["publish", "agent-publication", "Submit the exact reviewed Copilot Studio agent publication across all connected channels, separately from import; approval covers the whole connected-channel audience, not one selected client."],
   "pac-export": ["export", "solution-export", "Export an exportable source solution into the approved target-project artifact path."],
   "atk-provision": ["provision", "toolkit-provision", "Execute only the reviewed frozen Toolkit provision lifecycle; code execution requires its separate approval."],
   "atk-deploy": ["deploy", "toolkit-deploy", "Execute only the reviewed frozen Toolkit deploy lifecycle; this does not publish a catalog listing."],
@@ -29,11 +30,11 @@ const allApprovals = new Set([...Object.values(operationTable).map((item) => ite
 const prefix = (plan) => `reports/agent-deployment/${plan.agentId}/runs/${plan.planId}`;
 const clock = (deps) => (deps.now ? deps.now() : new Date()).toISOString();
 const hashPlan = ({ planSha256, ...value }) => digest(value);
-export const hasPlatformConfiguration = (request) => Boolean(fields[request.target] && request[fields[request.target]]);
+export const hasPlatformConfiguration = (request) => Boolean(fields[request.target] && (request[fields[request.target]] || request.nativeStudioHandoff));
 export const isPlatformTarget = (target) => Object.hasOwn(fields, target);
 
 function workspaceFor(context) {
-  const tool = context.request.copilotStudio ? "pac" : context.request.agentsToolkit ? "atk" : "microsoft365";
+  const tool = context.request.target === "copilot-studio" ? "pac" : context.request.agentsToolkit ? "atk" : "microsoft365";
   return `reports/agent-deployment/platform-work/${tool}/${context.packageSha256}`;
 }
 
@@ -57,7 +58,7 @@ function stepsFor(request) {
       operation, approval: operation === "m365-publish" && request.microsoft365.publishScope === "Tenant" ? "tenant-publication" : item[1],
       executable: true,
       description: operation === "pac-import"
-        ? `Import only the reviewed ${request.copilotStudio.solutionType ?? "managed"} solution/settings into the explicit ${request.environment} environment; do not publish implicitly.`
+        ? `Import only the reviewed ${request.copilotStudio.solutionType ?? "managed"} solution/settings into the explicit ${request.environment} environment after inspecting publishOnImport; unsupported automatic publication is blocked.`
         : item[2]
     };
   });
@@ -77,6 +78,14 @@ function localOnly(request) {
 
 function readiness(context, now) {
   const { request, distribution } = context;
+  if (context.nativeStudioHandoff) {
+    try {
+      const reason = nativeStudioReadiness(context, now);
+      if (reason) return reason;
+    } catch (error) { return safeError(error).message; }
+  }
+  if (context.nativeStudioHandoff && !request.copilotStudio) return "The native handoff operation has no validated fixed adapter configuration. Preparation, synchronization, evaluation and channel operations remain explicit manual handoffs.";
+  if (context.nativeStudioHandoff && !localOnly(request) && !context.studioTarget) return "Native target readiness is missing or unverified. Supply reviewed Power Platform URL, ID, tenant and identity evidence; no Azure hosting subscription is inferred.";
   if (request.copilotStudio?.operation === "import" && request.copilotStudio.solutionType === "unmanaged"
       && request.environment !== "development") return "Unmanaged Copilot Studio import requires an explicit development environment; staging, production and missing stage are blocked.";
   if (request.cloud === "AzureUSGovernment") return "AzureUSGovernment remains unverified; no alternate routing is inferred.";
@@ -93,7 +102,7 @@ function readiness(context, now) {
     if ((cfg.publishScope === "Tenant") !== (request.audience === "tenant")) return "The app publish scope and reviewed audience do not match.";
     if (!proof || Date.parse(proof.verifiedAt) > Date.parse(now) || Date.parse(proof.expiresAt) <= Date.parse(now)
         || Date.parse(now) - Date.parse(proof.verifiedAt) > 86_400_000 || Date.parse(proof.expiresAt) <= Date.parse(proof.verifiedAt)) return "The pinned-agent verification receipt is missing, expired or older than 24 hours.";
-  } else if (request.runtime.kind !== "application") return "Native application/solution adapters require runtime.kind application; prompt/hosted labels cannot grant application authority.";
+  } else if (!["application", "native-copilot-studio"].includes(request.runtime.kind)) return "Native application/solution adapters require an explicit application or native Studio runtime; prompt/hosted labels cannot grant application authority.";
   return null;
 }
 
@@ -131,10 +140,11 @@ function buildPlan(context, remote, evidenceSha256, generatedAt, expiresAt, reas
   const request = context.request;
   const steps = reason ? [] : stepsFor(request);
   const body = {
-    schemaVersion: "1.0.0", generatedAt, expiresAt, status: reason ? "unavailable" : "review-required",
+    schemaVersion: context.nativeStudioHandoff ? "1.1.0" : "1.0.0", generatedAt, expiresAt, status: reason ? "unavailable" : "review-required",
+    ...(context.nativeStudioHandoff ? { nativeStudioHandoffSha256: request.nativeStudioHandoff.sha256, studioEvidence: context.studioEvidence } : {}),
     projectRoot: context.root, requestPath: context.requestPath, requestSha256: context.requestSha256,
     blueprintSha256: request.blueprint.sha256, packagePath: context.packagePath, packageSha256: context.packageSha256,
-    registrySha256: digest(getCapabilities()), implementationSha256: implementationDigest(), profileSha256: context.profileSha256 ?? null,
+    registrySha256: digest(getCapabilities()), implementationSha256: implementationDigest({ nativeStudio: Boolean(context.nativeStudioHandoff) }), profileSha256: context.profileSha256 ?? null,
     target: request.target, agentId: context.blueprint.id, release: request.release, adapter: context.capability.id,
     remote: remote ?? null, remoteSha256: remote ? digest(remote) : null, providerEvidenceSha256: evidenceSha256 ?? null,
     steps, requiredApprovals: reason ? [] : approvalsFor(request),
@@ -143,7 +153,8 @@ function buildPlan(context, remote, evidenceSha256, generatedAt, expiresAt, reas
       : ["Existing provider authentication and the explicit reviewed environment.", "Installed pinned CLI and prerequisites for the selected operation. No login, profile selection or installation is performed.",
         `Native outputDirectory/outputFile values are workspace-relative. The reviewed workspace is ${workspaceFor(context)}; source input paths remain target-project-relative.`],
     blastRadius: request.microsoft365 ? "The existing pinned agent's endpoint configuration, the named allowlisted Bot/Teams bridge, and one versioned Microsoft365 app submission. This is not agent deployment or tenant-admin acceptance."
-      : "Only the explicit native operation and reviewed application/solution working tree. Import, provisioning, deployment and publication are separate operations.",
+      : request.copilotStudio?.operation === "publish" ? "PAC publishes the exact reviewed bot to all connected channels. This is not a single-channel command; review the entire connected audience, authentication and data exposure before approval."
+        : "Only the explicit native operation and reviewed application/solution working tree. Import, provisioning, deployment and publication are separate operations.",
     costAndQuota: ["Operator review of provider quota, licensing, pricing and data boundaries remains required; no retail-price or capacity guarantee is inferred.",
       ...(request.microsoft365 ? ["Bot Service uses the documented F0/global bridge shape. Activity public exposure, when selected, requires its own approval. Publication does not invoke a model."]
         : request.agentsToolkit && ["provision", "deploy"].includes(request.agentsToolkit.operation)
@@ -215,7 +226,8 @@ async function reviewed(root, options, deps, action) {
   if (!hasPlatformConfiguration(context.request) || context.requestSha256 !== plan.requestSha256 || context.packageSha256 !== plan.packageSha256) stop("INPUT_DRIFT", "Reviewed platform request or package bytes changed.");
   await verifyPackage(context);
   Object.assign(context, await bindProfile(context));
-  if (context.profileSha256 !== plan.profileSha256 || digest(getCapabilities()) !== plan.registrySha256 || implementationDigest() !== plan.implementationSha256) stop("ENVIRONMENT_DRIFT", "Profile, allowlist, registry or implementation changed after review.");
+  if (context.profileSha256 !== plan.profileSha256 || digest(getCapabilities()) !== plan.registrySha256
+      || implementationDigest({ nativeStudio: Boolean(context.nativeStudioHandoff) }) !== plan.implementationSha256) stop("ENVIRONMENT_DRIFT", "Profile, allowlist, registry or implementation changed after review.");
   const reason = readiness(context, ["verify", "status"].includes(action) ? plan.generatedAt : clock(deps));
   if (reason) stop("PLATFORM_UNAVAILABLE", reason);
   const expected = buildPlan(context, plan.remote, plan.providerEvidenceSha256, plan.generatedAt, plan.expiresAt, null);
@@ -230,7 +242,18 @@ async function reviewed(root, options, deps, action) {
   return { plan, context };
 }
 
-async function readState(root, plan) {
+function nativeEvidence(context, state) {
+  const evidence = assessStudioEvidence({
+    ...(context.studioEvidence?.authored.status === "verified" ? { authoredSha256: context.studioEvidence.authored.evidenceSha256 } : {}),
+    ...(state?.platformReceipts?.length ? { operation: context.request.copilotStudio?.operation } : {})
+  });
+  for (const key of ["evaluated", "synchronized"]) {
+    if (context.studioEvidence?.[key]) evidence[key] = context.studioEvidence[key];
+  }
+  return evidence;
+}
+
+async function readState(root, plan, context) {
   const data = await readJson(root, `${prefix(plan)}/state.json`, { optional: true });
   if (!data) return null;
   const state = validateContract("state", data.value);
@@ -238,6 +261,10 @@ async function readState(root, plan) {
   if (state.planSha256 !== plan.planSha256 || state.projectRoot !== root || state.planId !== plan.planId
       || state.requestSha256 !== plan.requestSha256 || state.packageSha256 !== plan.packageSha256 || state.target !== plan.target
       || state.agentId !== plan.agentId || state.release !== plan.release || state.baselineSha256 !== plan.remoteSha256) stop("STATE_TAMPERED", "Platform state is not bound to this reviewed run.");
+  if (context.nativeStudioHandoff && (state.schemaVersion !== "1.1.0"
+      || state.nativeStudioHandoffSha256 !== plan.nativeStudioHandoffSha256 || stableJson(state.studioEvidence) !== stableJson(nativeEvidence(context, state)))) {
+    stop("STATE_TAMPERED", "Native evidence does not match the reviewed source and accepted operation. Local attestations cannot substitute for provider read-back.");
+  }
   const journal = (await readBytes(root, `${prefix(plan)}/journal.jsonl`)).toString("utf8");
   if (journal !== state.journal.map((entry) => `${JSON.stringify(entry)}\n`).join("")
       || state.journal.some((entry, index) => entry.sequence !== index + 1)) stop("JOURNAL_DIVERGED", "The durable journal diverged from state; reconcile before execution.");
@@ -267,7 +294,8 @@ async function event(context, plan, state, operation, status, id, code, deps) {
 
 function result(action, plan, state, overrides = {}) {
   return validateContract("result", {
-    schemaVersion: "1.0.0", action, status: state?.status === "applying" ? "unverified" : state?.status ?? "unverified",
+    schemaVersion: plan.schemaVersion, action, status: state?.status === "applying" ? "unverified" : state?.status ?? "unverified",
+    ...(plan.schemaVersion === "1.1.0" ? { nativeStudioHandoffSha256: plan.nativeStudioHandoffSha256, studioEvidence: state?.studioEvidence ?? plan.studioEvidence } : {}),
     target: plan.target, agentId: plan.agentId, planId: plan.planId, planSha256: plan.planSha256,
     packagePath: plan.packagePath, packageSha256: plan.packageSha256, statePath: state ? `${prefix(plan)}/state.json` : null,
     activeVersion: null, previousVersion: null, identityId: null, verifiedAt: null,
@@ -293,6 +321,7 @@ function checkOutcome(context, step, value) {
   validatePlatformOutcome(value);
   const operation = operationTable[step.operation][0];
   if (["pack", "package", "import", "export", "provision", "deploy", "update"].includes(operation) && value.publicationVerified) stop("PUBLICATION_CLAIM", "A local/import/deploy operation cannot prove publication.");
+  if (context.request.copilotStudio && value.publicationVerified) stop("PUBLICATION_CLAIM", "The current PAC contract cannot independently prove publication or channel behavior; local attestation and status text are insufficient.");
   if (step.operation === "m365-publish" && (value.publicationVerified
       || value.status !== (context.request.microsoft365.publishScope === "Tenant" ? "pending-admin-approval" : "publication-submitted"))) stop("PUBLICATION_CLAIM", "M365 submission must preserve its explicit admin/catalog verification boundary.");
 }
@@ -305,7 +334,7 @@ export async function runPlatform(action, root, options, deps) {
     options = { ...options, plan: `${prefix(state)}/plan.json` };
   }
   const { context, plan } = await reviewed(root, options, deps, action);
-  let state = await readState(root, plan);
+  let state = await readState(root, plan, context);
   if (action === "rollback") stop("MANUAL_RECOVERY_REQUIRED", "This provider has no reviewed automatic rollback/unpublish. Retain accepted IDs and artifacts for separately approved compatible recovery.");
   if (action !== "apply" && !state) return result(action, plan, null);
   if (action === "apply" && state && ["partial", "applying", "rollback-partial"].includes(state.status)) stop("RUN_RECONCILIATION_REQUIRED", "An interrupted or partial platform run cannot replay mutations; reconcile it and review a new plan.");
@@ -322,6 +351,7 @@ export async function runPlatform(action, root, options, deps) {
     const last = stepsFor(context.request).at(-1);
     checkOutcome(context, last, outcome);
     state.platformOutcome = { ...outcome, mutationAccepted: false };
+    if (context.nativeStudioHandoff) state.studioEvidence = nativeEvidence(context, state);
     state.status = outcome.status;
     state.observedRemoteSha256 = digest(await probe(provider));
     state.message = `Read-only provider evidence: ${outcome.messageCode}. No model invocation or automatic admin approval occurred.`;
@@ -332,7 +362,8 @@ export async function runPlatform(action, root, options, deps) {
   if (state) return writeResult(root, result(action, plan, state));
   const at = clock(deps);
   state = {
-    schemaVersion: "1.0.0", planId: plan.planId, planSha256: plan.planSha256, requestSha256: plan.requestSha256,
+    schemaVersion: plan.schemaVersion, planId: plan.planId, planSha256: plan.planSha256, requestSha256: plan.requestSha256,
+    ...(context.nativeStudioHandoff ? { nativeStudioHandoffSha256: plan.nativeStudioHandoffSha256, studioEvidence: nativeEvidence(context, null) } : {}),
     packageSha256: plan.packageSha256, projectRoot: root, target: plan.target, agentId: plan.agentId, release: plan.release,
     status: "applying", previousVersion: null, createdVersion: null, activeVersion: null, identityId: null,
     baselineSha256: plan.remoteSha256, observedRemoteSha256: digest(initial), startedAt: at, updatedAt: at,
@@ -358,6 +389,7 @@ export async function runPlatform(action, root, options, deps) {
         validatePlatformOutcome(receipt);
         if (!receipt.mutationAccepted) stop("CHECKPOINT_INVALID", "A mutation checkpoint must identify a genuinely accepted mutation.");
         state.platformReceipts.push({ operation: step.operation, outcome: receipt });
+        if (context.nativeStudioHandoff) state.studioEvidence = nativeEvidence(context, state);
         checkpointed = true;
         await event(context, plan, state, step.operation, "accepted", receipt.responseId, null, deps);
       };
@@ -369,6 +401,7 @@ export async function runPlatform(action, root, options, deps) {
           else state.platformReceipts.push({ operation: step.operation, outcome });
         } else state.platformReceipts.at(-1).outcome = outcome;
         state.platformOutcome = outcome;
+        if (context.nativeStudioHandoff) state.studioEvidence = nativeEvidence(context, state);
         const after = await probe(provider);
         if (after.identitySha256 !== before.identitySha256) stop("IDENTITY_DRIFT", "Provider identity changed during the accepted operation.");
         if (!outcome.mutationAccepted && digest(after) !== digest(before)) stop("REMOTE_DRIFT", "A no-op operation observed unrelated provider drift.");

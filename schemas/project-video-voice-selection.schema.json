@@ -9,11 +9,11 @@
     "schemaVersion": { "const": "1.0.0" },
     "selectedAt": { "type": "string", "format": "date-time" },
     "auditionManifestSha256": { "$ref": "#/$defs/sha256" },
-    "profile": { "enum": ["ava-hd-warm", "aria-hd-warm", "aria-professional"] },
+    "profile": { "enum": ["ava-hd-warm", "aria-hd-warm", "jenny-professional", "aria-professional"], "description": "aria-professional is a readable historical profile, not an alias for jenny-professional; new selection or synthesis requires re-audition." },
     "slot": { "enum": ["A", "B", "C"] },
     "label": { "type": "string", "minLength": 1, "maxLength": 120 },
     "voice": { "$ref": "project-video-voice-samples.schema.json#/$defs/voice" },
-    "sampleFile": { "type": "string", "pattern": "^reports/project-video/voice-samples/(ava-hd-warm|aria-hd-warm|aria-professional)\\.mp3$" },
+    "sampleFile": { "type": "string", "pattern": "^reports/project-video/voice-samples/(ava-hd-warm|aria-hd-warm|jenny-professional|aria-professional)\\.mp3$" },
     "sampleSha256": { "$ref": "#/$defs/sha256" }
   },
   "$defs": {

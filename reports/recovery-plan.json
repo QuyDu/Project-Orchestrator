@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "recoveryId": "RECOVERY-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
+  "generatedAt": "2026-10-01T00:14:22.471Z",
+  "status": "ready-for-new-run",
+  "strategy": "new approved run from the corroborated completed terminal snapshot; not legacy resume",
+  "historyAnchor": {
+    "bytes": 41760,
+    "sha256": "7d85b36ed62a1a977969c60c1862eac49fd703656fb0673c11674d46f8f3d23d",
+    "lastSequence": 79,
+    "lastCheckpoint": "CP-LIVE-CHAT-HANDED-OFF",
+    "strictJsonlValid": false,
+    "joinedLine": 71,
+    "timestampRegressionSequence": 56,
+    "legacyActorMissing": "sequences 1-31",
+    "currentSchemaConformanceClaimed": false
+  },
+  "rationale": [
+    "The accepted prefix is byte-bound and unambiguously parses into 79 contiguous legacy JSON objects.",
+    "Legacy framing, actor omissions, and wall-clock regression remain explicit limitations; no old record or approval is repaired or reused.",
+    "The matching completed terminal snapshot permits a new workflow, not a manual override of an active run.",
+    "Only the newly appended, schema-valid suffix is used to derive this remediation run's materialized state."
+  ],
+  "controls": [
+    "Never change the accepted prefix.",
+    "Verify the anchor and contiguous suffix before every append.",
+    "Stop on concurrent writes, incomplete framing, unexpected identifiers, or snapshot mismatch.",
+    "Do not claim strict historical JSONL/current-schema conformance.",
+    "Obtain fresh authority for any external/destructive/privileged action."
+  ],
+  "checkpointRepair": "The first approved item repairs checkpoint collection before post-item checkpoints; this is not -Resume and no failed checkpoint is labeled valid."
+}

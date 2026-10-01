@@ -1,7 +1,12 @@
-# Policy Evaluation
+# Versioned Delivery Policy
 
-Decision: **allow** one reviewed female Ava narration commit followed by one normal push of `feat/agent-builder-latest` to its configured upstream.
+Decision: **allow with controls** for the current explicit version/date, commit and normal upstream push request.
 
-The user explicitly requested `Commit and Push`, and the current clarification round applied the autonomous one-commit, upstream-only default. The change must remain within the reviewed Ava assets, metadata, generator, documentation, test, and evidence boundary; `Demo/~$Project-Orchestrator-Demo.pptx` must remain unstaged; and `npm run check` must pass. Any remote rejection is a stop condition.
+Target: existing public QuyDu/Project-Orchestrator, origin/release/1.1.2.
 
-Force push, pull request creation, merge, tag, release, signing, publication, deployment, hosted-agent creation, MCP installation, and Azure mutation remain prohibited. P4 release assurance remains blocked.
+- Current bounded review and required full validation must pass.
+- Stage an explicit reviewed path list; exclude ignored profiles, credentials, temporary outputs and unrelated changes.
+- No force push, branch rename, history rewrite, tag, GitHub Release, package publication or deployment.
+- Stop on authentication/protection/non-fast-forward rejection; do not bypass protections.
+- Include the required Copilot co-author trailer.
+- Retain historical records and pending PNG scope honestly.

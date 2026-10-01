@@ -45,6 +45,8 @@ Produce and refresh human-facing documentation that is verified against the repo
 1. Determine which documents are required, which exist, and which are stale relative to the code they describe.
 2. Run `node .github/skills/documentation-builder/scripts/documentation-builder.mjs build` from the target project after `project-understanding scan`. The helper builds `docs/PROJECT-GUIDE.md` and `reports/project-guide.json` for that project's own evidence, not the orchestrator source repository.
 3. Run `node .github/skills/documentation-builder/scripts/documentation-builder.mjs validate` before relying on the guide. It rejects missing or stale Project Understanding digests and unsupported claim evidence.
+   Both build and validation reuse the `project-understanding` owner's current-source checker. Added, removed, or changed scanned files require a fresh owner scan; a self-consistent historical report pair alone does not prove current source.
+   The producer explicitly identifies downstream operational attestations excluded from current-code provenance, preventing guide/checkpoint/certificate publication cycles. This guide is not a cached substitute for current workflow status or secret-scan evidence.
 4. Fix one audience per additional document: new contributor, operator, security reviewer, or executive.
 5. Extract verified facts from the repository: prerequisites, setup, run and test commands, configuration keys, endpoints, and environments.
 4. Verify every command and path by inspection; discard any claim that cannot be confirmed.
@@ -58,6 +60,8 @@ Produce and refresh human-facing documentation that is verified against the repo
 - Every command, path, and configuration key in the output was verified against the repository.
 - `docs/PROJECT-GUIDE.md` is the canonical shared narrative and `reports/project-guide.json` binds its claims to current evidence.
 - Each document addresses exactly one audience and contains one top-level heading.
+- Preserve `verified` and `planned` claim classifications. Map `inferred` and `unknown` source claims to unavailable verification evidence, with their original uncertainty label visible in the guide; never promote them to verified behavior.
+- Validate the understanding Markdown digest even when its content is empty, and compare guide claims with their current source classifications.
 - Unverified or planned behavior is explicitly marked.
 - No secrets, identifiers, or personal data appear in any output.
 - Contradictions with `reports/` artifacts are reported, not silently reconciled.
@@ -83,6 +87,7 @@ Require explicit approval before creating a new document, restructuring an exist
 ## Composition and Dependencies
 
 - clarify-the-ask
+- project-understanding
 
 ## Examples
 

@@ -59,7 +59,10 @@ function planHash(plan) {
 
 function resultFor(action, context = null, plan = null, state = null, overrides = {}) {
   const result = {
-    schemaVersion: "1.0.0", action, status: state?.status === "applying" ? "unverified" : state?.status ?? "unverified",
+    schemaVersion: context?.nativeStudioHandoff ? "1.1.0" : "1.0.0", action, status: state?.status === "applying" ? "unverified" : state?.status ?? "unverified",
+    ...(context?.nativeStudioHandoff ? {
+      nativeStudioHandoffSha256: context.request.nativeStudioHandoff.sha256, studioEvidence: context.studioEvidence
+    } : {}),
     target: context?.request.target ?? plan?.target ?? null, agentId: context?.blueprint.id ?? plan?.agentId ?? null,
     planId: plan?.planId ?? null, planSha256: plan?.planSha256 ?? null,
     packagePath: context?.packagePath ?? plan?.packagePath ?? null, packageSha256: context?.packageSha256 ?? plan?.packageSha256 ?? null,
@@ -676,7 +679,10 @@ Requests and plans contain data only, never commands, credentials or arbitrary e
 Foundry prompt and prebuilt hosted v1 Commercial are preview-only, pinned and explicitly approval-gated.
 Hosted execution requires an allowlisted OCI digest, SBOM, tested source version and fresh test evidence.
 Government is unavailable; other control planes retain their declared provider-specific gates.
-No login, cloud/account switching, dependency installation, RBAC, deletion or publication is performed.
+No login, cloud/account switching, dependency installation, RBAC or deletion is performed.
+Publication is limited to separately approved fixed adapters; catalog/channel acceptance is never inferred.
+Native Studio requests use schema 1.1.0, runtime native-copilot-studio and a reviewed nativeStudioHandoff reference.
+Evaluation, synchronization and channel transports are manual; source/evidence validation is not live verification.
 `;
 
 function parseArgs(argv) {

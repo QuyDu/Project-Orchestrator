@@ -1,19 +1,60 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://project-skills.dev/schemas/agent-builder-result/1.0.0",
+  "$id": "https://project-skills.dev/schemas/agent-builder-result/2.0.0",
   "title": "Agent Builder Result",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "completedAt", "status", "action", "targetPath", "blueprintSha256", "renderedSha256", "transactionId"],
+  "required": ["schemaVersion", "completedAt", "status", "action", "targetPath", "blueprintSha256", "transactionId"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "enum": ["1.0.0", "2.0.0"] },
     "completedAt": { "type": "string", "format": "date-time" },
-    "status": { "const": "applied" },
-    "action": { "enum": ["create", "update", "unchanged"] },
-    "targetPath": { "type": "string", "pattern": "^\\.github/agents/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\.agent\\.md$" },
-    "blueprintSha256": { "$ref": "#/$defs/sha256" },
+    "status": { "enum": ["applied", "prepared", "blocked"] },
+    "action": { "enum": ["create", "update", "unchanged", "prepare"] },
+    "targetPath": { "type": "string" },
+    "blueprintSha256": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
     "renderedSha256": { "$ref": "#/$defs/sha256" },
-    "transactionId": { "type": ["string", "null"], "pattern": "^AGT-[a-f0-9-]{36}$" }
+    "transactionId": { "type": ["string", "null"], "pattern": "^AGT-[a-f0-9-]{36}$" },
+    "runtime": { "const": "native-copilot-studio" },
+    "complete": { "const": false },
+    "planSha256": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "handoff": { "anyOf": [{ "type": "null" }, { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" }] },
+    "diagnostics": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false, "required": ["code", "message"],
+        "properties": { "code": { "type": "string", "minLength": 1 }, "message": { "type": "string", "minLength": 1 } }
+      }
+    }
   },
+  "allOf": [{
+    "if": { "properties": { "schemaVersion": { "const": "2.0.0" } }, "required": ["schemaVersion"] },
+    "then": {
+      "required": ["runtime", "complete", "planSha256", "handoff", "diagnostics"],
+      "properties": {
+        "status": { "enum": ["prepared", "blocked"] }, "action": { "const": "prepare" },
+        "targetPath": { "pattern": "^copilot-studio/[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" }
+      },
+      "not": { "required": ["renderedSha256"] },
+      "if": { "properties": { "status": { "const": "prepared" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "planSha256": { "$ref": "#/$defs/sha256" }, "blueprintSha256": { "$ref": "#/$defs/sha256" },
+          "handoff": { "$ref": "copilot-studio-handoff.schema.json#/$defs/reference" }, "transactionId": { "type": "string" }
+        }
+      },
+      "else": { "properties": { "diagnostics": { "minItems": 1 } } }
+    },
+    "else": {
+      "required": ["renderedSha256"],
+      "properties": {
+        "status": { "const": "applied" }, "action": { "enum": ["create", "update", "unchanged"] },
+        "targetPath": { "pattern": "^\\.github/agents/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\.agent\\.md$" },
+        "blueprintSha256": { "$ref": "#/$defs/sha256" }
+      },
+      "not": { "anyOf": [
+        { "required": ["runtime"] }, { "required": ["complete"] }, { "required": ["planSha256"] },
+        { "required": ["handoff"] }, { "required": ["diagnostics"] }
+      ] }
+    }
+  }],
   "$defs": { "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }
 }

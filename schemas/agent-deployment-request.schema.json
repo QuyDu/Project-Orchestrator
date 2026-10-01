@@ -6,8 +6,9 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "blueprint", "target", "release", "mode", "cloud", "environment", "audience", "data", "runtime", "verification", "rollback", "acceptPreview"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
     "blueprint": { "$ref": "#/$defs/file" },
+    "nativeStudioHandoff": { "$ref": "#/$defs/file" },
     "target": { "$ref": "#/$defs/target" },
     "release": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$" },
     "mode": { "enum": ["create", "update", "promote", "rollback"] },
@@ -27,7 +28,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["kind", "tools", "acknowledgeLocalCapabilitiesOmitted"],
       "properties": {
-        "kind": { "enum": ["prompt", "hosted", "application"] },
+        "kind": { "enum": ["prompt", "hosted", "application", "native-copilot-studio"] },
         "tools": { "type": "array", "maxItems": 0 },
         "acknowledgeLocalCapabilitiesOmitted": { "const": true }
       }
@@ -106,6 +107,22 @@
   },
   "allOf": [
     {
+      "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+      "then": {
+        "required": ["nativeStudioHandoff"],
+        "properties": {
+          "target": { "const": "copilot-studio" },
+          "runtime": { "properties": { "kind": { "const": "native-copilot-studio" } } },
+          "audience": { "enum": ["individual", "tenant", "private"] },
+          "rollback": { "properties": { "strategy": { "const": "manual" }, "version": { "type": "null" } } }
+        }
+      },
+      "else": {
+        "not": { "required": ["nativeStudioHandoff"] },
+        "properties": { "runtime": { "properties": { "kind": { "enum": ["prompt", "hosted", "application"] } } } }
+      }
+    },
+    {
       "if": {
         "required": ["copilotStudio"],
         "properties": {
@@ -125,7 +142,7 @@
     },
     {
       "if": { "required": ["copilotStudio"] },
-      "then": { "properties": { "target": { "const": "copilot-studio" }, "runtime": { "properties": { "kind": { "const": "application" } } }, "rollback": { "properties": { "strategy": { "const": "manual" }, "version": { "type": "null" } } } } }
+      "then": { "properties": { "target": { "const": "copilot-studio" }, "runtime": { "properties": { "kind": { "enum": ["application", "native-copilot-studio"] } } }, "rollback": { "properties": { "strategy": { "const": "manual" }, "version": { "type": "null" } } } } }
     },
     {
       "if": { "required": ["agentsToolkit"] },

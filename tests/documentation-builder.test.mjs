@@ -67,3 +67,112 @@ test("documentation-builder creates and validates a guide for its target project
     await rm(project, { recursive: true, force: true });
   }
 });
+
+test("documentation consumes only a snapshot of the current source and leaves prior guides unchanged on drift", async (context) => {
+  for (const mutation of ["changed-command", "deleted-source", "new-source"]) {
+    await context.test(mutation, async () => {
+      const project = await mkdtemp(path.join(os.tmpdir(), "pso-guide-freshness-"));
+      try {
+        await mkdir(path.join(project, "src"));
+        await writeFile(path.join(project, "README.md"), "# Current Project\n\nSource freshness fixture.\n");
+        await writeFile(path.join(project, "package.json"), JSON.stringify({ name: "current-project", scripts: { start: "node src/app.mjs" } }));
+        await writeFile(path.join(project, "src", "app.mjs"), "export const ready = true;\n");
+        assert.equal(run(project, understanding, "scan").status, 0);
+        assert.equal(run(project, helper, "build").status, 0);
+        const guide = await readFile(path.join(project, "docs", "PROJECT-GUIDE.md"));
+        if (mutation === "changed-command") await writeFile(path.join(project, "package.json"), JSON.stringify({ name: "current-project", scripts: { start: "node src/new.mjs" } }));
+        if (mutation === "deleted-source") await rm(path.join(project, "src", "app.mjs"));
+        if (mutation === "new-source") await writeFile(path.join(project, "src", "new.mjs"), "export const newer = true;\n");
+        assert.equal(run(project, understanding, "validate").status, 0, "Historical snapshot validity is separate from current-source freshness");
+        for (const command of ["build", "validate"]) {
+          const stale = run(project, helper, command);
+          assert.equal(stale.status, 1, `${command} must reject ${mutation}`);
+          assert.match(stale.stderr, /source.*stale|source.*changed/i);
+        }
+        assert.deepEqual(await readFile(path.join(project, "docs", "PROJECT-GUIDE.md")), guide);
+        if (mutation === "deleted-source") await writeFile(path.join(project, "src", "replacement.mjs"), "export const replacement = true;\n");
+        assert.equal(run(project, understanding, "scan").status, 0);
+        assert.equal(run(project, helper, "build").status, 0);
+        assert.equal(run(project, helper, "validate").status, 0);
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("documentation preserves planned and uncertain classifications rather than verifying them", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-guide-classification-"));
+  try {
+    await mkdir(path.join(project, "src"));
+    await writeFile(path.join(project, "README.md"), "# Classified Project\n\nClassified project evidence.\n");
+    await writeFile(path.join(project, "src", "app.mjs"), "export const ready = true;\n");
+    assert.equal(run(project, understanding, "scan").status, 0);
+    const file = path.join(project, "reports", "project-understanding.json");
+    const snapshot = JSON.parse(await readFile(file, "utf8"));
+    snapshot.features = ["verified", "planned", "inferred", "unknown"].map((status) => ({
+      name: `feature-${status}`, description: `Capability marked ${status}.`, status, evidence: ["src/app.mjs"]
+    }));
+    await writeFile(file, JSON.stringify(snapshot));
+    const built = run(project, helper, "build");
+    assert.equal(built.status, 0, built.stderr);
+    const report = JSON.parse(await readFile(path.join(project, "reports", "project-guide.json"), "utf8"));
+    const classified = report.claims.filter((claim) => claim.statement.startsWith("Capability marked "));
+    assert.deepEqual(classified.map((claim) => claim.status), ["verified", "planned", "unavailable", "unavailable"]);
+    const guide = await readFile(path.join(project, "docs", "PROJECT-GUIDE.md"), "utf8");
+    assert.match(guide, /feature-planned.*\[planned\]/);
+    assert.match(guide, /feature-inferred.*\[inferred; unverified\]/);
+    assert.match(guide, /feature-unknown.*\[unknown; unverified\]/);
+    assert.equal(run(project, helper, "validate").status, 0);
+    const reportFile = path.join(project, "reports", "project-guide.json");
+    report.claims.find((claim) => claim.statement === "Capability marked planned.").status = "verified";
+    await writeFile(reportFile, JSON.stringify(report));
+    const promoted = run(project, helper, "validate");
+    assert.equal(promoted.status, 1);
+    assert.match(promoted.stderr, /classifications and evidence/);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("documentation validates the digest of an understanding Markdown file truncated to empty", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-guide-empty-"));
+  try {
+    await mkdir(path.join(project, "src"));
+    await writeFile(path.join(project, "README.md"), "# Nonempty Project\n\nCurrent source.\n");
+    await writeFile(path.join(project, "src", "app.mjs"), "export const ready = true;\n");
+    assert.equal(run(project, understanding, "scan").status, 0);
+    assert.equal(run(project, helper, "build").status, 0);
+    await writeFile(path.join(project, "reports", "project-understanding.md"), "");
+    const result = run(project, helper, "validate");
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Markdown content is stale/);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("current-code guides stay valid across downstream attestation updates but not authored report changes", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-guide-attestation-"));
+  try {
+    await mkdir(path.join(project, "src"));
+    await mkdir(path.join(project, "reports"));
+    await writeFile(path.join(project, "README.md"), "# Stable Source\n\nA current-code fixture.\n");
+    await writeFile(path.join(project, "src", "app.mjs"), "export const ready = true;\n");
+    await writeFile(path.join(project, "reports", "authored-input.json"), '{"requirement":"original"}');
+    for (const file of ["current-work-state.json", "audit-remediation-execution.json", "gitleaks-scan.json"]) {
+      await writeFile(path.join(project, "reports", file), '{"state":"before"}');
+    }
+    assert.equal(run(project, understanding, "scan").status, 0);
+    assert.equal(run(project, helper, "build").status, 0);
+    for (const file of ["current-work-state.json", "audit-remediation-execution.json", "gitleaks-scan.json"]) {
+      await writeFile(path.join(project, "reports", file), '{"state":"after"}');
+    }
+    const current = run(project, helper, "validate");
+    assert.equal(current.status, 0, "Downstream attestations must not form a freshness cycle with their own guide/checkpoint inputs");
+    await writeFile(path.join(project, "reports", "authored-input.json"), '{"requirement":"changed"}');
+    assert.equal(run(project, helper, "validate").status, 1, "Other meaningful reports remain part of current-source evidence");
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});

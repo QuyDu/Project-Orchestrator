@@ -1,37 +1,37 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-22T23:58:16.322Z",
-  "runtimeVersion": "1.2.0",
-  "repositoryRevision": "83e6f053a0fa7aea212bcb76ee3532e755542e28",
+  "generatedAt": "2026-10-01T19:23:52.927Z",
+  "runtimeVersion": "1.3.0",
+  "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
   "sourceDirty": true,
-  "inventorySha256": "a1c759a0b9c914bab6ca04f817d4b26b3915c6dfddc09a0bddc4ff7e430c52cc",
+  "inventorySha256": "3d382c1604bd01529ee5973c5bcf1edbf64649a604b183692799d7c403e0acd6",
   "status": "passed",
   "edgeDirection": "consumer-to-dependency",
   "skillCount": 50,
   "graph": {
     "agent-builder": [
-      "azure-discovery",
       "clarify-the-ask",
-      "policy-engine"
+      "policy-engine",
+      "azure-discovery"
     ],
     "agent-deployment": [
-      "agent-builder",
-      "architecture-review",
-      "azure-discovery",
       "clarify-the-ask",
-      "deployment-review",
+      "agent-builder",
       "policy-engine",
-      "project-handoff",
+      "azure-discovery",
+      "architecture-review",
       "security-review",
+      "deployment-review",
       "workflow-state-manager",
-      "workflow-telemetry"
+      "workflow-telemetry",
+      "project-handoff"
     ],
     "architecture-review": [
       "clarify-the-ask"
     ],
     "artifact-upgrade": [
-      "skill-dependency-manager",
-      "skill-inventory"
+      "skill-inventory",
+      "skill-dependency-manager"
     ],
     "audit-azure-environment": [],
     "audit-code": [],
@@ -40,24 +40,24 @@
       "policy-engine"
     ],
     "audit-remediation": [
-      "audit-code",
       "audit-plan-remediation",
-      "change-review",
       "policy-engine",
-      "project-handoff",
-      "regression-test-development",
-      "systematic-debugging",
+      "workflow-state-manager",
       "workflow-recovery",
-      "workflow-state-manager"
+      "change-review",
+      "systematic-debugging",
+      "regression-test-development",
+      "project-handoff",
+      "audit-code"
     ],
     "audit-review-findings": [
-      "audit-azure-environment",
-      "audit-code"
+      "audit-code",
+      "audit-azure-environment"
     ],
     "azure-cleanup": [
       "azure-discovery",
-      "policy-engine",
-      "project-handoff"
+      "project-handoff",
+      "policy-engine"
     ],
     "azure-discovery": [
       "project-handoff"
@@ -67,8 +67,8 @@
     ],
     "ci-failure-triage": [
       "policy-engine",
-      "regression-test-development",
       "systematic-debugging",
+      "regression-test-development",
       "workflow-state-manager"
     ],
     "clarify-the-ask": [],
@@ -86,19 +86,20 @@
       "workflow-state-manager"
     ],
     "documentation-builder": [
-      "clarify-the-ask"
+      "clarify-the-ask",
+      "project-understanding"
     ],
     "environment-update": [
       "development-environment-readiness",
       "policy-engine"
     ],
     "framework-health-check": [
-      "skill-dependency-manager",
-      "skill-inventory"
+      "skill-inventory",
+      "skill-dependency-manager"
     ],
     "linkedin-post": [
-      "documentation-builder",
       "project-handoff",
+      "documentation-builder",
       "user-personalization"
     ],
     "live-chat-interaction": [
@@ -108,8 +109,8 @@
       "regression-test-development"
     ],
     "multi-agent-coordinator": [
-      "workflow-scheduler",
-      "workflow-state-manager"
+      "workflow-state-manager",
+      "workflow-scheduler"
     ],
     "policy-engine": [],
     "prepare-commit": [
@@ -130,31 +131,31 @@
     ],
     "project-skills-orchestrator": [
       "clarify-the-ask",
-      "policy-engine",
-      "skill-inventory",
-      "skill-update",
       "workflow-planner",
-      "workflow-state-manager"
+      "skill-inventory",
+      "policy-engine",
+      "workflow-state-manager",
+      "skill-update"
     ],
     "project-status": [
-      "audit-azure-environment",
       "project-handoff",
-      "workflow-telemetry"
+      "workflow-telemetry",
+      "audit-azure-environment"
     ],
     "project-understanding": [
       "clarify-the-ask"
     ],
     "project-video": [
-      "azure-discovery",
       "clarify-the-ask",
+      "project-understanding",
       "documentation-builder",
-      "project-understanding"
+      "azure-discovery"
     ],
     "project-visual-storytelling": [
-      "agent-builder",
-      "azure-discovery",
+      "user-personalization",
       "project-understanding",
-      "user-personalization"
+      "agent-builder",
+      "azure-discovery"
     ],
     "regression-test-development": [
       "policy-engine",
@@ -164,25 +165,25 @@
       "audit-code"
     ],
     "skill-create": [
-      "documentation-builder",
-      "project-understanding",
+      "skill-inventory",
       "skill-dependency-manager",
-      "skill-inventory"
+      "project-understanding",
+      "documentation-builder"
     ],
     "skill-dependency-manager": [
       "skill-inventory"
     ],
     "skill-inventory": [],
     "skill-registry": [
-      "policy-engine",
+      "skill-inventory",
       "skill-dependency-manager",
-      "skill-inventory"
+      "policy-engine"
     ],
     "skill-update": [
-      "documentation-builder",
-      "project-understanding",
+      "skill-inventory",
       "skill-dependency-manager",
-      "skill-inventory"
+      "project-understanding",
+      "documentation-builder"
     ],
     "systematic-debugging": [
       "policy-engine",
@@ -195,20 +196,20 @@
     ],
     "workflow-planner": [
       "clarify-the-ask",
-      "skill-dependency-manager",
-      "skill-inventory"
+      "skill-inventory",
+      "skill-dependency-manager"
     ],
     "workflow-recovery": [
-      "project-handoff",
-      "workflow-state-manager"
+      "workflow-state-manager",
+      "project-handoff"
     ],
     "workflow-scheduler": [
-      "policy-engine",
-      "workflow-state-manager"
+      "workflow-state-manager",
+      "policy-engine"
     ],
     "workflow-simulator": [
-      "policy-engine",
-      "workflow-planner"
+      "workflow-planner",
+      "policy-engine"
     ],
     "workflow-state-manager": [
       "workflow-planner"
@@ -251,5 +252,7 @@
   },
   "limitations": [
     "This is local source/contract conformance evidence, not provider availability, release signing, tenant approval or live deployment verification."
-  ]
+  ],
+  "cycles": [],
+  "missingDependencies": []
 }
