@@ -1,6 +1,6 @@
 # Skill Details
 
-Generated: 2026-10-01T19:23:41.475Z
+Generated: 2026-10-06T10:43:21.877Z
 
 | Skill | Lifecycle | Confidence | Audit | Dependencies |
 | --- | --- | --- | --- | --- |
@@ -18,14 +18,19 @@ Generated: 2026-10-01T19:23:41.475Z
 | change-review | draft | low | passed | policy-engine |
 | ci-failure-triage | draft | low | passed | policy-engine, systematic-debugging, regression-test-development, workflow-state-manager |
 | clarify-the-ask | tested | medium | passed | None |
+| copilot-instructions-builder | draft | low | passed | clarify-the-ask, project-understanding, documentation-builder, policy-engine |
+| copilot-sdk-development | draft | low | passed | clarify-the-ask, agent-builder, architecture-review, regression-test-development |
 | dependency-maintenance | draft | low | passed | policy-engine, regression-test-development, workflow-state-manager |
 | deployment-review | draft | low | passed | architecture-review, security-review |
 | development-environment-readiness | tested | medium | passed | policy-engine, workflow-state-manager |
 | documentation-builder | tested | medium | passed | clarify-the-ask, project-understanding |
 | environment-update | draft | low | passed | development-environment-readiness, policy-engine |
 | framework-health-check | draft | low | passed | skill-inventory, skill-dependency-manager |
+| github-security-automation | draft | low | passed | security-review, dependency-maintenance, policy-engine, regression-test-development |
 | linkedin-post | draft | low | passed | project-handoff, documentation-builder, user-personalization |
 | live-chat-interaction | draft | low | passed | clarify-the-ask, policy-engine, project-understanding, regression-test-development |
+| microsoft-agent-framework-development | draft | low | passed | microsoft-reference, agent-builder, architecture-review, regression-test-development |
+| microsoft-reference | draft | low | passed | clarify-the-ask |
 | multi-agent-coordinator | draft | low | passed | workflow-state-manager, workflow-scheduler |
 | policy-engine | draft | low | passed | None |
 | prepare-commit | draft | low | passed | change-review |
@@ -37,7 +42,8 @@ Generated: 2026-10-01T19:23:41.475Z
 | project-status | tested | medium | passed | project-handoff, workflow-telemetry, audit-azure-environment |
 | project-understanding | draft | low | passed | clarify-the-ask |
 | project-video | draft | low | passed | clarify-the-ask, project-understanding, documentation-builder, azure-discovery |
-| project-visual-storytelling | draft | low | passed | user-personalization, project-understanding, agent-builder, azure-discovery |
+| project-visual-storytelling | draft | low | passed | user-personalization, project-understanding, agent-builder, azure-discovery, visual-companion-builder |
+| refactoring | draft | low | passed | clarify-the-ask, workflow-planner, regression-test-development, change-review |
 | regression-test-development | draft | low | passed | policy-engine, workflow-state-manager |
 | security-review | draft | low | passed | audit-code |
 | skill-create | draft | low | passed | skill-inventory, skill-dependency-manager, project-understanding, documentation-builder |

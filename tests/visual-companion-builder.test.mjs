@@ -12,7 +12,7 @@ import { once } from "node:events";
 import vm from "node:vm";
 import test from "node:test";
 import { capabilities, createCompanionBuilder } from "../.github/skills/visual-companion-builder/scripts/visual-companion-builder.mjs";
-import { decodePng, encodePng, PNG_LIMITS } from "../.github/skills/visual-companion-builder/scripts/png.mjs";
+import { decodePng, encodePng, PNG_DECODE_PROFILES, PNG_LIMITS } from "../.github/skills/visual-companion-builder/scripts/png.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillRoot = path.join(root, ".github", "skills", "visual-companion-builder");
@@ -784,6 +784,35 @@ test("PNG codec emits independent valid RGBA PNGs and rejects truncation, CRC er
     rawPng(2, 1, Buffer.alloc(9), { interlace: 1 }),
     rawPng(2, 1, Buffer.from([5, ...pixels]))
   ]) assert.throws(() => decodePng(invalid), /PNG|limit|CRC|format|filter|inflate|data|truncat|RGBA/i);
+});
+
+test("PNG decoder project-visual profile validates independent RGB images and larger supported canvases", () => {
+  const pillowRgb = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGPkUbJwsnAGAANZASWOEMgpAAAAAElFTkSuQmCC", "base64");
+  assert.throws(() => decodePng(pillowRgb), /RGBA/i);
+  assert.deepEqual(
+    decodePng(pillowRgb, { profile: "project-visual", expectedWidth: 2, expectedHeight: 1 }),
+    { width: 2, height: 1, pixels: Buffer.from([12, 34, 56, 255, 78, 90, 123, 255]) }
+  );
+  assert.throws(
+    () => decodePng(pillowRgb, { profile: "project-visual", expectedWidth: 1, expectedHeight: 1 }),
+    /dimensions/i
+  );
+
+  const width = 1920;
+  const height = 1080;
+  const scanlines = Buffer.alloc((width * 3 + 1) * height);
+  const canvas = rawPng(width, height, scanlines, { colorType: 2 });
+  const decoded = decodePng(canvas, { profile: "project-visual", expectedWidth: width, expectedHeight: height });
+  assert.equal(decoded.pixels.length, width * height * 4);
+  assert.equal(PNG_DECODE_PROFILES["project-visual"].maxPixels, 8_294_400);
+
+  for (const invalid of [
+    rawPng(PNG_DECODE_PROFILES["project-visual"].maxDimension + 1, 1, Buffer.alloc(1), { colorType: 2 }),
+    rawPng(3_840, 2_161, Buffer.alloc(1), { colorType: 2 }),
+    Buffer.concat([pillowRgb.subarray(0, 33), pngChunk("IEND", Buffer.alloc(0))])
+  ]) {
+    assert.throws(() => decodePng(invalid, { profile: "project-visual" }), /PNG|limit|dimensions|data/i);
+  }
 });
 
 test("PNG decoder reconstructs all five PNG scanline filters", () => {

@@ -6,6 +6,7 @@ import path from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
+import { deflateSync } from "node:zlib";
 import { generateAzureOpenAIImage, inspectAzureOpenAIImage, supportsAzureOpenAIImageDimensions } from "../.github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs";
 import { generateMaiImage, inspectMaiImage, supportsMaiImageDimensions } from "../.github/skills/project-visual-storytelling/scripts/mai-image-render.mjs";
 import { azureProfile, discoveryReport, imageGeneration, seedDiscovery, installDiscoveryPackage, installFakeAzureCli } from "./helpers/azure-discovery-fixture.mjs";
@@ -25,6 +26,7 @@ function run(args, cwd = root, env = process.env) {
 
 async function installMockAzureImageProvider(project) {
   const preload = path.join(project, "mock-image-fetch.mjs");
+  const imageBase64 = VALID_RGB_PNG.toString("base64");
   await seedDiscovery(project, imageReport(), governmentProfile);
   await mkdir(path.join(project, ".skills-orchestrator"), { recursive: true });
   const requestLog = path.join(project, ".skills-orchestrator", "mock-image-requests.log");
@@ -47,11 +49,7 @@ globalThis.fetch = async () => {
     process.disconnect();
   }
   if (process.env.PSO_VISUAL_FAKE_FAILURE === "1") return new Response("Offline image failure", { status: 503 });
-  const image = Buffer.alloc(1024);
-  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image, 0);
-  image.write("IHDR", 12, "ascii");
-  image.writeUInt32BE(1200, 16);
-  image.writeUInt32BE(800, 20);
+  const image = Buffer.from(${JSON.stringify(imageBase64)}, "base64");
   return new Response(JSON.stringify({ data: [{ b64_json: image.toString("base64") }] }), { headers: { "content-type": "application/json" } });
 };
 `, "utf8");
@@ -89,9 +87,47 @@ const imageAdapters = [
   { provider: "mai-image", generate: generateMaiImage, endpoint: "https://visual.services.ai.azure.us", deploymentModel: "MAI-Image-2.6" }
 ];
 
-function headerPng() {
+const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+function pngCrc(data) {
+  let crc = 0xffffffff;
+  for (const byte of data) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type, data) {
+  const output = Buffer.alloc(data.length + 12);
+  output.writeUInt32BE(data.length);
+  output.write(type, 4, "ascii");
+  data.copy(output, 8);
+  output.writeUInt32BE(pngCrc(output.subarray(4, -4)), output.length - 4);
+  return output;
+}
+
+function independentPng(width = 1200, height = 800, { colorType = 2, scanlines } = {}) {
+  const bytesPerPixel = colorType === 2 ? 3 : 4;
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(width);
+  header.writeUInt32BE(height, 4);
+  header[8] = 8;
+  header[9] = colorType;
+  const pixels = scanlines ?? Buffer.alloc((width * bytesPerPixel + 1) * height);
+  return Buffer.concat([
+    PNG_SIGNATURE,
+    pngChunk("IHDR", header),
+    pngChunk("IDAT", deflateSync(pixels)),
+    pngChunk("IEND", Buffer.alloc(0))
+  ]);
+}
+
+const VALID_RGB_PNG = independentPng();
+
+function headerOnlyPng() {
   const image = Buffer.alloc(1024);
-  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image);
+  PNG_SIGNATURE.copy(image);
   image.write("IHDR", 12, "ascii");
   image.writeUInt32BE(1200, 16);
   image.writeUInt32BE(800, 20);
@@ -99,7 +135,7 @@ function headerPng() {
 }
 
 function imageResponsePrefix() {
-  return Buffer.from(JSON.stringify({ note: "Provider ☁ detail", data: [{ b64_json: headerPng().toString("base64") }] }));
+  return Buffer.from(JSON.stringify({ note: "Provider ☁ detail", data: [{ b64_json: VALID_RGB_PNG.toString("base64") }] }));
 }
 
 function* paddedResponseChunks(prefix, bytes, trailing = false) {
@@ -175,7 +211,7 @@ test("REM-0143 image adapters bound streamed JSON and error bytes at limit minus
               if (ok && delta <= 0) {
                 const report = await generateTrackedImage(adapter, response, outputPath);
                 assert.equal(report.provider, adapter.provider);
-                assert.deepEqual(await readFile(outputPath), headerPng());
+                assert.deepEqual(await readFile(outputPath), VALID_RGB_PNG);
               } else {
                 await assert.rejects(generateTrackedImage(adapter, response, outputPath), (error) => {
                   if (delta > 0) assert.match(error.message, new RegExp(`${limit}-byte limit`));
@@ -237,6 +273,31 @@ test("REM-0143 image stream failures cancel and release without full-body fallba
     }
   } finally {
     await rm(project, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("AUD-0132 image adapters reject header-only, truncated, CRC-corrupt, missing-data, and oversized-expansion PNGs", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-image-png-validation-"));
+  try {
+    const valid = VALID_RGB_PNG;
+    const corrupt = Buffer.from(valid);
+    corrupt[corrupt.length - 1] ^= 1;
+    const header = valid.subarray(8, 33);
+    const missingData = Buffer.concat([PNG_SIGNATURE, header, pngChunk("IEND", Buffer.alloc(0))]);
+    const oversized = independentPng(1200, 800, { scanlines: Buffer.alloc((1200 * 3 + 1) * 800 + 1) });
+    const invalidImages = [headerOnlyPng(), valid.subarray(0, -1), corrupt, missingData, oversized];
+    let index = 0;
+    for (const adapter of imageAdapters) {
+      for (const image of invalidImages) {
+        const outputPath = path.join(project, `${adapter.provider}-${index++}.png`);
+        const payload = Buffer.from(JSON.stringify({ data: [{ b64_json: image.toString("base64") }] }));
+        const { response } = trackedImageResponse([payload]);
+        await assert.rejects(generateTrackedImage(adapter, response, outputPath), /PNG|chunk|CRC|data|decompress|size|limit/i);
+        assert.equal(existsSync(outputPath), false);
+      }
+    }
+  } finally {
+    await rm(project, { recursive: true, force: true });
   }
 });
 
@@ -598,6 +659,13 @@ test("refreshing a reviewed render requires a new plan; a failed image request n
     const verified = run(["verify", "--project", project, "--run-id", result.runId], project, environment);
     assert.equal(verified.status, 0, verified.stderr);
     assert.deepEqual(await readFile(fake.log), calls);
+    const candidate = path.join(directory, "diorama-azure-openai-candidate.png");
+    const validCandidate = await readFile(candidate);
+    await writeFile(candidate, headerOnlyPng());
+    const invalidCandidate = run(["verify", "--project", project, "--run-id", result.runId], project, environment);
+    assert.notEqual(invalidCandidate.status, 0);
+    assert.match(invalidCandidate.stderr, /valid PNG|file size|image data/i);
+    await writeFile(candidate, validCandidate);
 
     const dualProviderReport = imageReport();
     dualProviderReport.imageGeneration.models.push(imageGeneration("MAI-Image-2.6", governmentProfile.location).models[0]);
@@ -986,8 +1054,7 @@ test("MAI-Image qualification is Azure Government and discovery bound", async ()
     assert.equal(supportsMaiImageDimensions(1_200, 800), true);
     assert.equal(supportsMaiImageDimensions(1_920, 1_080), false);
 
-    const image = Buffer.alloc(1_024);
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image, 0);
+    const image = VALID_RGB_PNG;
     let request;
     const outputPath = path.join(project, "candidate.png");
     const report = await generateMaiImage({
@@ -1053,11 +1120,7 @@ test("Azure OpenAI image qualification and generation are Government discovery b
     assert.equal(supportsAzureOpenAIImageDimensions(1_920, 1_080), false);
     assert.equal(supportsAzureOpenAIImageDimensions(-1_024, -1_024), false);
 
-    const image = Buffer.alloc(1_024);
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image, 0);
-    image.write("IHDR", 12, "ascii");
-    image.writeUInt32BE(1_200, 16);
-    image.writeUInt32BE(800, 20);
+    const image = VALID_RGB_PNG;
     let request;
     const outputPath = path.join(project, "candidate.png");
     const report = await generateAzureOpenAIImage({

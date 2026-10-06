@@ -1,34 +1,54 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-01T19:45:45.335Z",
-  "reviewId": "REVIEW-VERSION-DELIVERY-20261001",
+  "generatedAt": "2026-10-06T10:26:01.826Z",
+  "reviewId": "REVIEW-SKILLS-DEMO-DELIVERY-20261006",
   "status": "passed",
-  "scope": "Current1.3.0/9.2.0/date metadata plus previously approved and verified framework work selected for normal source commit/push",
-  "baseRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+  "scope": "Working-tree changes since the delivered base: bounded PNG qualification, six new skills and eight contract enhancements, deterministic help and profiles, Chat/PowerShell onboarding, reusable demo scheduling, and directly associated tests and generated evidence.",
+  "baseRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
   "findings": [],
+  "resolvedFindings": [
+    {
+      "id": "REVIEW-20261006-001",
+      "severity": "medium",
+      "file": "reports/skill-dependency-graph.json",
+      "issue": "The generated graph declared success while omitting every prerequisite edge.",
+      "resolution": "Rebuilt from the native validated inventory, checked cycles, ownership, and profile closure, and added a regression requiring exact equality with all contract declarations.",
+      "result": "56 skills and 136 verified prerequisite edges; the regression failed before regeneration and passed afterward."
+    }
+  ],
   "validation": {
     "command": "npm run check",
     "exitCode": 0,
     "tests": {
-      "total": 948,
-      "passed": 945,
+      "total": 953,
+      "passed": 950,
       "failed": 0,
       "skipped": 3
     },
-    "logSha256": "21ca6a8241c4c009bdfedb5a393ce0855bfff30214c85f6ad826145fb6d1f1c3",
-    "currentInputFilesMatched": 496
+    "logSha256": "16e7b7e72e8bf3c5606cfdc8850642db01aa41cda0e6c372a7d16884352382ee",
+    "postGateChanges": "Generated evidence refresh and repository-defined whitespace normalization only.",
+    "postGateValidation": {
+      "pngAndImageProviderTests": { "total": 110, "passed": 110, "failed": 0 },
+      "contractHelpGraphAndDemoTests": { "total": 6, "passed": 6, "failed": 0 },
+      "securityCheck": "passed",
+      "projectUnderstanding": "complete",
+      "projectGuideValidation": "passed",
+      "whitespace": "passed"
+    }
   },
   "evidence": [
-    "Metadata consistency regression:runtime/package/lock/framework/readme/overview/security source table agree.",
-    "Runtime functional source is byte-identical to the accepted implementation when only its two version constants are restored.",
-    "Retained M1/M2/M3/M4-M5 independent reviews and current full gate cover the completed local repairs.",
-    "Candidate boundary check excludes ignored profiles/local caches and found no workstation paths in45candidate reports.",
-    "Scoped diff whitespace check passed."
+    "Reviewed the shared PNG decoder, both image adapters, final artifact verifier, independent fixtures, and malformed-input regressions.",
+    "Reviewed skill contracts, profile membership, generated help, and exact dependency evidence.",
+    "Reviewed separate Chat/PowerShell onboarding, purpose/no-purpose examples, optional live scheduling, and the presenter-notes update.",
+    "The full npm run check gate passed, including security checks, unsigned candidate verification, 953 tests, inventory, and framework verification.",
+    "The approved credential-free origin is QuyDu/Project-Orchestrator; the existing release/1.1.2 upstream matched the local base and was not protected at inspection."
   ],
   "limitations": [
-    "REM-0132 shared PNG decoder expansion remains pending and is not included as implemented.",
-    "AUD-0133 remains unconfirmed/deferred.",
-    "Whole deployed/hosted/provider and original deployment-specific audit coverage remain limited; no formal release or universal security assurance.",
-    "Package publication,release tags,force push,branch rename and cloud deployment remain prohibited."
+    "This is a bounded source-change review, not a fresh repository-wide or live-provider audit.",
+    "The pre-existing lightweight security-check source digest includes its transient release lock. Stable final-input verification uses the cached Gitleaks certificate and native scanInputDigest instead.",
+    "Three platform-dependent test skips remain explicit; hosted, tenant, device, and live image-provider qualification were not performed.",
+    "The formal release remains blocked by signing, independent release review, and operational evidence.",
+    "Approval covers a normal commit and push to the existing upstream only; no force push, default-branch merge, tag, package publication, or deployment.",
+    "The delivery checkpoint precedes commit creation. Actual commit and remote delivery must be verified from Git rather than inferred from this report."
   ]
 }

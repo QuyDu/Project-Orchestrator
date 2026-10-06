@@ -52,7 +52,7 @@ Create a new original sprite from operator-supplied pixel grids and RGBA palette
 ## Validation
 
 - Request and command result/plan conform to the request and result schemas; unknown fields fail closed.
-- PNGs are non-interlaced 8-bit RGBA, CRC-valid, fully decompressed within limits, and canonically re-encoded without metadata. RGB, indexed, interlaced, APNG, truncated, and oversized inputs are rejected.
+- Companion PNGs are non-interlaced 8-bit RGBA, CRC-valid, fully decompressed within limits, and canonically re-encoded without metadata. The shared decoder also has an explicit `project-visual` profile for bounded 8-bit RGB/RGBA provider output up to a 3,840-pixel edge and 8,294,400 pixels; it converts RGB to opaque RGBA and can enforce exact expected dimensions. Indexed, interlaced, APNG, truncated, CRC-corrupt, missing-data, trailing-data, and oversized inputs are rejected.
 - Limits: 2 MiB request; 512 KiB plan; 64 KiB notices; 8 MiB PNG; 2048-pixel maximum atlas edge; 1,048,576 atlas pixels; 256-pixel frame edges; 64 frames; 16 states; 100–60,000 ms per animation step.
 - Every used frame contains both visible and fully transparent pixels; unused atlas cells are transparent. Idle state is required; all referenced frames, default state, anchors, and fallback are in bounds.
 - The manifest records provenance, geometry, timing, anchors, accessibility, and per-file digests. Its package digest is SHA-256 of canonical key-sorted manifest JSON excluding `packageDigestSha256`; the plan also hashes the full manifest bytes.

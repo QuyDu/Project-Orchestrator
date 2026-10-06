@@ -36,6 +36,10 @@ profiles:
       - project-status
       - workflow-telemetry
       - live-chat-interaction
+      - copilot-instructions-builder
+      - refactoring
+      - github-security-automation
+      - microsoft-reference
   durable:
     extends: core
     required:
@@ -64,3 +68,5 @@ profiles:
       - policy-engine
       - workflow-simulator
       - skill-registry
+      - copilot-sdk-development
+      - microsoft-agent-framework-development

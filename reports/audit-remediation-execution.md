@@ -2,7 +2,7 @@
 
 Execution: EXEC-9b2e557d-657b-433b-944b-fe6064f1aad0
 
-Selection: all. Status: **approval-wait**.
+Selection: all. Status: **completed**.
 
 | Item | Finding | Phase | Status |
 |---|---|---|---|
@@ -45,17 +45,18 @@ Selection: all. Status: **approval-wait**.
 | REM-0143 | AUD-0143 | M4 | completed |
 | REM-0113 | AUD-0113 | M4 | completed |
 | REM-0124 | AUD-0124 | M4 | completed |
-| REM-0132 | AUD-0132 | M4 | approval-wait |
+| REM-0132 | AUD-0132 | M4 | completed |
 | REM-0140 | AUD-0140 | M4 | completed |
 | REM-0141 | AUD-0141 | M4 | completed |
 | REM-0119 | AUD-0119 | M5 | completed |
 | REM-0144 | AUD-0144 | M5 | completed |
 | REM-0145 | AUD-0145 | M5 | completed |
 
-Next action: Confirm --Proceed for the exact shared PNG decoder scope in the retained REM-0132 proposal; all other selected items have passed final local verification.
+Next action: No audit remediation item remains. Review the uncommitted worktree and obtain separate approval before any commit, push, release, deployment, or publication.
 
 - Local approval only; no external operations or release authority.
 - Legacy prefix remains unchanged and explicitly nonconformant in formatting/metadata; this fresh run uses a validated typed suffix.
 - No item is resolved merely because an edit ran; current acceptance evidence and post-fix audit verification are required.
-- REM-0132 was not silently widened or implemented with a reduced compatible image-format policy. User unavailability is not approval.
-- Final complete gate passed on current implementation source. The current generated guide is separately validated; closing cached-only secret scanning and read-only verification are performed after these reports are frozen.
+- REM-0132 is complete after separately approved shared-decoder, consumer-integration, and cleanup scopes; supported RGB/RGBA behavior is preserved.
+- Final complete gate passed on current implementation source with 951 tests: 948 passed, 0 failed and 3 explicit platform skips.
+- No live-provider/tenant/device, deployment, publication, release signing, commit or push verification is implied.

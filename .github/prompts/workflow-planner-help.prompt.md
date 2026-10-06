@@ -26,6 +26,7 @@ Convert user intent into an ordered, validated workflow plan with inputs, output
 - Ready clarification result from `clarify-the-ask`, including confirmed requirements, project facts, and accepted assumptions.
 - Skill catalog and ownership map from `skill-inventory`.
 - Dependency graph and cycle checks from `skill-dependency-manager`.
+- For implementation or refactoring work: affected files and symbols, compatibility constraints, validation commands, rollout expectations, and rollback boundaries.
 
 ## Approved Tools and Resources
 
@@ -43,17 +44,19 @@ Convert user intent into an ordered, validated workflow plan with inputs, output
 
 1. Validate that clarification is ready and resolve its confirmed objective into candidate workflow steps owned by available skills.
 2. Define step inputs, expected outputs, and completion criteria per skill boundary.
-3. Order steps using dependency graph evidence and reject cyclic plans.
-4. Assign every step either one existing skill owner or one explicit operator owner. Operator steps are approval gates, never inferred executable skills.
-5. Insert checkpoints, rollback points, explicit approval classes, and terminal handoff routes where mutation risk or interruption exists.
-6. Define `onBlocked` and `onFailed` recovery branches for every nonterminal step and require both routes to reach the `project-handoff` terminal step.
-7. Emit schema 1.1 machine-readable and Markdown workflow plans with identical ordering. Continue to read legacy schema 1.0 plans, but require schema 1.1 for new execution lineage.
-8. Validate unique step IDs, owner resolution, prerequisite references, acyclic dependencies, approval consistency, exactly one ready prerequisite-free step, and terminal-route reachability.
-9. Append one `workflow-planned` event and derive synchronized current execution state for the same workflow and run IDs without rewriting accepted event records.
+3. For code changes, map each step to affected files or symbols, state preserved behavior and compatibility constraints, and define focused validation, rollout, and rollback evidence.
+4. Order steps using dependency graph evidence and reject cyclic plans.
+5. Assign every step either one existing skill owner or one explicit operator owner. Operator steps are approval gates, never inferred executable skills.
+6. Insert checkpoints, rollback points, explicit approval classes, and terminal handoff routes where mutation risk or interruption exists.
+7. Define `onBlocked` and `onFailed` recovery branches for every nonterminal step and require both routes to reach the `project-handoff` terminal step.
+8. Emit schema 1.1 machine-readable and Markdown workflow plans with identical ordering. Continue to read legacy schema 1.0 plans, but require schema 1.1 for new execution lineage.
+9. Validate unique step IDs, owner resolution, prerequisite references, acyclic dependencies, approval consistency, exactly one ready prerequisite-free step, and terminal-route reachability.
+10. Append one `workflow-planned` event and derive synchronized current execution state for the same workflow and run IDs without rewriting accepted event records.
 
 ## Validation
 
 - Every step has one owner, clear prerequisites, and deterministic success criteria.
+- Code-change plans identify affected surfaces, preserved behavior, compatibility risk, focused checks, rollout, and rollback without pretending implementation occurred.
 - Planning does not proceed while the clarification result is blocked by material ambiguity.
 - Ordering respects dependency constraints and contains no unresolved cycles.
 - Approval gates are tied to concrete mutation or external-impact operations.

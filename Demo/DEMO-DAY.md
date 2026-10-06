@@ -1,5 +1,16 @@
 # Demo Day Runbook
 
+## Schedule for the current demo
+
+Use the current event's date when supplying `--demo-date YYYY-MM-DD`; it is optional metadata,
+not a complete countdown schedule. Record the presenter-confirmed start time with its UTC
+offset in the generated project's `docs/PROJECT-BRIEF.md`. Do not reuse another demo's date
+or infer a start time from a date-only brief.
+
+The generated app defaults to test mode, which works without a live schedule. Show live mode
+only after configuring the current start time. Until then, `?mode=live` must display
+**Live schedule not configured**, not an ended-session message.
+
 ## 60-minute presenter plan
 
 The PowerPoint speaker notes are the detailed presenter guide. Rehearse to these targets; they total 60 minutes and reserve 15 minutes for the live project workflow.

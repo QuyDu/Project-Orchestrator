@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-01T19:23:55.337Z",
+  "generatedAt": "2026-10-06T10:45:18.006Z",
   "projectUnderstanding": {
     "json": "reports/project-understanding.json",
-    "jsonSha256": "a89a9611973a44d48beb10dd59d00cf9b4f518896664331135042979461ad7ce",
+    "jsonSha256": "269c9832a1970a8bcf773867eb430797d68df92849f5d6445e7134a0720d4761",
     "markdown": "reports/project-understanding.md",
-    "markdownSha256": "99c6def981948b841a56871174e31b5cdb1e50625a9e37bf43648ceb59eecf9f"
+    "markdownSha256": "024a02dd54aef5070e4384aaf022ba8c12a99512f16baebda1f26080584d777a"
   },
   "guide": "docs/PROJECT-GUIDE.md",
-  "guideSha256": "f35ba984ec3520a42cd36b904eecd23729486dff3159119ac769d5888fd1812a",
+  "guideSha256": "7e9d691de6b9cd7fe09d9bc55f5871d8d0e2ac2bae49f603a1b041780b2b9854",
   "claims": [
     {
       "id": "claim-01-azure",
@@ -23,7 +23,7 @@
       "id": "claim-02-github",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "Top-level project boundary containing 163 scanned files.",
+      "statement": "Top-level project boundary containing 175 scanned files.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -131,7 +131,7 @@
       "id": "claim-14-md",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "190 scanned files use this extension.",
+      "statement": "202 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ]
@@ -356,7 +356,7 @@
       "id": "claim-39-governed-skill-workflows",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "50 installed skills provide bounded project actions.",
+      "statement": "56 installed skills provide bounded project actions.",
       "evidence": [
         ".github/skills/agent-builder/SKILL.md",
         ".github/skills/agent-deployment/SKILL.md",
@@ -369,7 +369,7 @@
       "id": "claim-40-reusable-prompt-workflows",
       "topic": "project-understanding",
       "status": "verified",
-      "statement": "58 prompt files provide user-invoked workflows.",
+      "statement": "64 prompt files provide user-invoked workflows.",
       "evidence": [
         ".github/prompts/agent-builder-help.prompt.md",
         ".github/prompts/agent-deployment-help.prompt.md",

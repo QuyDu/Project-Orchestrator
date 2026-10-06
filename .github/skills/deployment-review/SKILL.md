@@ -43,14 +43,17 @@ Determine whether a release candidate can be deployed safely to a named environm
 
 1. Identify the exact candidate under review and the environment it targets, and record the blast radius of a failed deployment.
 2. Verify build reproducibility: pinned dependencies, committed lock files, pinned pipeline actions, and a deterministic artifact.
-3. Verify configuration completeness: every required setting and secret reference exists for the target environment and resolves without a literal value in source.
-4. Verify environment parity: differences between the candidate's validated environment and the target, including region, cloud, scale, and data volume.
-5. Verify that unresolved blocking findings from `security-review` and `architecture-review` are closed or explicitly accepted by a named owner.
-6. Verify data safety: schema migrations are backward compatible or gated, backups are current, and restore has been exercised.
-7. Verify observability: health signals, alerts, and dashboards exist and will show a failed deployment.
-8. Define the post-deployment verification procedure and the specific signals that constitute success.
-9. Define the rollback route, its trigger conditions, its time cost, and any irreversible step that rollback cannot undo.
-10. Emit a readiness decision of `ready`, `conditional`, or `blocked`, with every unmet gate enumerated.
+3. Review GitHub Actions efficiency when applicable: redundant triggers, unnecessary matrix expansion, ineffective caches, repeated setup, artifact retention, concurrency, and avoidable hosted-runner minutes.
+4. For Azure infrastructure, require validated Bicep or equivalent IaC, target-scope and permission evidence, parameter completeness, and a current non-mutating what-if or explain why it is unavailable.
+5. For MCP releases, verify protocol compatibility, declared capabilities, transport configuration, server/client version support, package provenance, smoke tests, and rollback instructions.
+6. Verify configuration completeness: every required setting and secret reference exists for the target environment and resolves without a literal value in source.
+7. Verify environment parity: differences between the candidate's validated environment and the target, including region, cloud, scale, and data volume.
+8. Verify that unresolved blocking findings from `security-review` and `architecture-review` are closed or explicitly accepted by a named owner.
+9. Verify data safety: schema migrations are backward compatible or gated, backups are current, and restore has been exercised.
+10. Verify observability: health signals, alerts, and dashboards exist and will show a failed deployment.
+11. Define the post-deployment verification procedure and the specific signals that constitute success.
+12. Define the rollback route, its trigger conditions, its time cost, and any irreversible step that rollback cannot undo.
+13. Emit a readiness decision of `ready`, `conditional`, or `blocked`, with every unmet gate enumerated.
 
 ## Validation
 
@@ -59,6 +62,7 @@ Determine whether a release candidate can be deployed safely to a named environm
 - The rollback route is concrete, time-bounded, and names irreversible steps.
 - Post-deployment verification signals are specific and observable.
 - A `ready` decision is never emitted while any blocking gate is unmet.
+- Applicable workflow-efficiency, Azure preflight, and MCP release gates have explicit evidence or a blocking unavailable status.
 - The report validates against `schemas/deployment-review.schema.json` and the Markdown view derives from it.
 
 ## Outputs

@@ -1,13 +1,15 @@
 # Project Orchestrator
 
-Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 50 governed skills — installed consistently, verified after every run, and safe to rerun.
+Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 56 governed skills — installed consistently, verified after every run, and safe to rerun.
+
+**Choose your starting point:** [VS Code Chat](#how-to-use-in-the-vs-code-chat-window) (recommended) | [PowerShell](#how-to-use-with-powershell) | [Command reference](#command-reference)
 
 | Item | Value |
 | --- | --- |
 | Runtime version | `1.3.0` |
 | Source version date | October 1, 2026 |
 | Framework version | `9.2.0` |
-| Skill catalog | 50 governed skills |
+| Skill catalog | 56 governed skills |
 | Supported Node.js | 22, 24, 26 |
 | Dependencies | None |
 | Distribution | Authorized internal use only |
@@ -39,7 +41,7 @@ It has two halves.
 
 **A command-line runtime** (`pso.mjs`) that creates or adopts projects and dispatches governed authoring and packaging workflows. Its core uses Node.js built-ins, with no runtime packages or registry access. Managed project changes are planned, journaled, and verified; provider workflows have their own explicit tooling and approval prerequisites.
 
-**A catalog of 50 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
+**A catalog of 56 skills** installed into `.github/skills/`, invoked from GitHub Copilot Chat in Agent mode. Each skill is a bounded contract: what it owns, what it reads, what it writes, when it must stop and ask you.
 
 The `live-chat-interaction` skill ships a provider-neutral local conversation reducer, approved-manifest grounding, credential-free session boundary, and accessible text/guided fallback assets. Informational turns can submit after endpoint acceptance; consequential intent always requires explicit confirmation. No cloud provider or raw audio persistence is part of this local capability.
 
@@ -89,7 +91,161 @@ This tool modifies repositories. Back up your work, review the dry run, and test
 
 ---
 
-## Use it
+## How to use in the VS Code Chat window
+
+Use this path to describe your goal and let Copilot coordinate the setup and project workflows.
+Complete [installation](#install) first. The examples in this section belong in **Copilot Chat**,
+not the terminal. Chat uses the same local runtime and approval gates as PowerShell; it is not a
+separate project generator.
+
+### Open the Launch Pad
+
+Open your cloned Project Orchestrator folder in VS Code and select **Agent** mode in Copilot Chat.
+This source repository is the **Launch Pad**: use it to create or adopt a separate project, not
+as the location for your application's source or agent definitions.
+
+Copilot may request permission to use tools or run terminal commands. Review those requests;
+selecting Agent mode does not approve every action.
+
+### Create a project from Chat
+
+Use **`/project-skills-orchestrator`** to request a new project from the Launch Pad's Copilot Chat
+window in **Agent** mode. Choose one of the following examples and paste the entire block as
+one message.
+
+#### With a project purpose
+
+Use this when you know what the application should do:
+
+```text
+/project-skills-orchestrator Create a new project named "My Project" under "C:\repos".
+Purpose: Build an internal task tracker where employees create tasks, assign owners, set deadlines, and track completion.
+Save this purpose as the project intent.
+Show the setup plan and wait for my approval before creating files.
+Open the new project in a new VS Code window. Do not implement the application yet.
+```
+
+#### Without a project purpose
+
+Use this when you want to start with the project foundation and define its function later:
+
+```text
+/project-skills-orchestrator Create a new project named "My Project" under "C:\repos".
+Show the setup plan and wait for my approval before creating files.
+Open the new project in a new VS Code window. Do not implement the application yet.
+```
+
+#### What to replace and what happens next
+
+- Replace `My Project` with your project name.
+- Replace `C:\repos` with an existing parent directory outside the Launch Pad.
+- In the first example, replace the `Purpose:` sentence with what your application should do
+  and who will use it. `Purpose:` is part of the Chat message, not a separate command.
+- If you know the stack, add a line such as `Use TypeScript and the durable profile.` Otherwise,
+  let Copilot help clarify the setup choices.
+
+The purpose is optional for creating the workspace. Omitting it does not authorize Copilot to
+invent an application; establish the purpose and acceptance criteria before implementation.
+When supplied, the purpose is recorded as the project intent rather than treated as an
+instruction to build the whole application immediately.
+
+Answer the clarification round and review the destination, stack, planned files, and local risk
+before approving setup. Both examples use the existing `create-project` runtime. With the
+example name and destination, the expected result is a governed workspace at
+`C:\repos\my-project`, not a finished application. The agent must use `--open` and confirm that
+the new workspace opened; if opening fails, use the reported workspace path to open it manually.
+
+**Only after the target workspace is open**, run `/project-start` there to
+[plan the application](#plan-the-application-in-its-new-workspace). `/project-start` plans work
+in the current project; it is not the command for creating a new project from the Launch Pad.
+
+For an existing repository, ask for an **adoption dry run** instead and review its proposed
+changes before approving application. See [adoption behavior](#adopt-an-existing-project).
+
+### First run in Visual Studio Code
+
+Two prompts appear the first time, and both are expected:
+
+1. **Workspace trust** — review the source and select *Yes, I trust the authors* only if you trust it. Tasks, debugging, and MCP servers stay disabled until you do. This cannot be pre-approved from inside a workspace, by design.
+2. **Recommended extensions** — review the recommendations and select *Install* to get the language extensions for your stack.
+
+The customization files live in the locations Visual Studio Code discovers:
+
+| Location | Discovered as |
+| --- | --- |
+| `.github/copilot-instructions.md`, `AGENTS.md` | Always-on instructions |
+| `.github/instructions/` | Pattern-scoped instructions |
+| `.github/prompts/` | Slash commands, surfaced as recommendations in a new chat |
+| `.github/agents/` | Entries in the agent picker |
+| `.github/skills/` | The governed skill catalog |
+
+When setup uses `--intent` with `--open`, the initial brief opens in Copilot Chat **Ask** mode.
+Read it first; select **Agent** mode when you are ready to run the governed workflows below.
+
+### Plan the application in its new workspace
+
+Confirm that the active VS Code window is the new project, not the Launch Pad. Then enter:
+
+```text
+/project-start
+```
+
+This establishes or validates the project blueprint, architecture, environment readiness, and
+first implementation plan. Review the purpose, intended users, features, constraints, and
+acceptance criteria before approving implementation. Keep all application work in this target
+project. Local setup approval does not approve deployment, publication, commits, or pushes.
+
+### Create an agent from Chat
+
+Open the agent's owning project first. If it does not exist yet, create its workspace using the
+steps above. Then describe the agent's function and permissions:
+
+```text
+/agent-builder Create a GitHub Copilot agent named "Project Reviewer" in this project.
+It should review the project's code and report findings with file locations.
+Allow read and search only; no file edits or command execution.
+Prepare the blueprint and review plan first, and wait for my approval before installation.
+```
+
+Review the generated preview, especially its purpose, capabilities, constraints, output format,
+and destination. After you approve installation, the agent definition is written under the
+target project's `.github/agents/` and must be opened in its owning workspace. A preview is
+not an installed agent. This example creates a local GitHub Copilot custom agent, not a hosted
+Foundry agent or a native Copilot Studio agent.
+
+### Get help and continue work in Chat
+
+| Enter in Copilot Chat | Purpose |
+| --- | --- |
+| `/skills-help` | Browse the skill catalog and choose the right command |
+| `/agent-builder-help` | Read the agent creation contract without executing it |
+| `/project-validate` | Check the generated project foundation |
+| `/project-understanding` | Explain the project from repository evidence once meaningful source exists |
+| `/project-status` | Review current project status and outstanding work |
+| `/project-handoff` | Record continuity before stopping |
+
+See [Using the skills](#using-the-skills) for more workflows. Slash commands and natural-language
+requests belong in Chat; commands beginning with `node .\pso.mjs` belong in a terminal.
+
+### Demo prompt
+
+Run `/demo-create-project` for the normal reusable demo workspace. Use `/demo-create-project --Test`
+to create the same prepared demo under `C:\repos\skills-orchestrator-demo-test` without deleting
+it after the run. An optional `--demo-date YYYY-MM-DD` records the scheduled event, for example
+`/demo-create-project --demo-date 2026-10-09`. Replace the example with your event's date.
+The date is metadata only; it does not set a live countdown start time or authorize
+deployment, cleanup, publication, commits, or pushes.
+
+---
+
+## How to use with PowerShell
+
+Use Windows PowerShell, PowerShell, or a **PowerShell terminal** opened through VS Code's
+**Terminal > New Terminal** menu. Run these commands from your cloned Project Orchestrator
+folder, where `pso.mjs` is located, not from a newly generated application folder.
+
+Replace example names and destinations with your own. `--accept-risk` acknowledges the
+reviewed local changes; do not add it before reviewing the intended operation.
 
 ### Guided setup
 
@@ -107,16 +263,31 @@ node .\pso.mjs create-project `
   --destination "C:\Projects" `
   --profile durable `
   --stack typescript `
+  --intent "Build an internal task tracker where employees create tasks, assign owners, set deadlines, and track completion." `
   --color "#004578" `
   --open `
   --accept-risk
 ```
 
-`--profile` is optional and defaults to `durable`, which requires the continuity skills and `audit-azure-environment` in addition to the `core` set. Pass `--profile core` for a smaller required set that excludes the deployed-environment Azure audit.
+The parent destination `C:\Projects` must already exist. This example creates
+`C:\Projects\my-project`; that child destination must be absent or empty. The project is
+published locally only after installation verification passes.
+
+`--intent` is an optional description of what the application should do. It records the brief
+but does not choose a stack or implement the application. See [the intent handoff](#hand-the-first-task-over-with---intent)
+for its file output and Ask-mode behavior.
+
+`--profile` is optional and defaults to `durable`. All 56 skills are installed; the profile
+determines which skills are required for conformance, not which packages are copied. Pass
+`--profile core` for a smaller required set; both `core` and `durable` include `audit-azure-environment`.
+See [Conformance profiles](#conformance-profiles).
 
 `--stack` is optional and accepts a comma-separated list. It decides which scoped instruction files are installed, what the build and test tasks run, which debug configurations are written, and what the generated CI workflow actually executes.
 
 Supported values: `typescript`, `javascript`, `csharp`, `python`, `powershell`, `bicep`, `terraform`, `java`, `ruby`, `php`, `go`, `rust`, `swift`, `tests`.
+
+Without `--stack`, you get the universal standards and a CI workflow that **fails until you configure it**.
+That is deliberate — a pipeline that passes without testing anything is worse than no pipeline.
 
 `--color` is optional and accepts a six-digit hexadecimal color. It defaults to `#004578`. New projects use it for the active title bar and status bar, set the window title to `🚀 <project name> • ${rootName}`, and choose black or white foreground text automatically for contrast. The values are written to `.vscode/settings.json` for direct-folder use and to the generated `.code-workspace` file used by **Preferences: Open Workspace Settings (JSON)**. The guided prompts accept the same value.
 
@@ -130,23 +301,49 @@ The lifecycle entry points are `/project-start`, `/project-blueprint`, `/project
 `/project-status`; stack-specific editor tasks, launch configurations, and extensions remain
 conditional so a Python project does not show misleading .NET or Terraform commands.
 
-Start a new project with `/project-start`, which uses `/project-blueprint` before implementation. It records the confirmed
-purpose, project type, stack, delivery target, Azure cloud and region, quality requirements,
-assumptions, and acceptance criteria in a versioned blueprint that can be handed to setup,
-architecture review, and workflow planning.
-
 The generated project is a development foundation rather than a business application: it provides
-the governed workspace and empty `src/` and `tests/` boundaries for the user to build within. Use
-`/project-validate` to check the foundation and `/project-status` to identify authoritative blocked,
-stale, or pending work.
+the governed workspace and empty `src/` and `tests/` boundaries for the user to build within.
+Continue with [the Chat planning steps](#plan-the-application-in-its-new-workspace) in the opened
+target workspace, or use the [command reference](#command-reference) for further CLI operations.
 
-Use `/linkedin-post` to analyze a project and prepare an evidence-grounded, profile-aware short-form
-draft for Microsoft employees and the technical community. It enforces a focused why-care opening,
-readable bullets, a discussion prompt, a 3,000-character limit, three to five final hashtags, and an
-approved-media readiness check. Without approved media, it includes a media brief and returns `Not ready`.
-Use `/linkedin-post --update` to compare against `reports/linkedin-post-history.md` and describe only
-verified changes. Drafts are saved to `reports/linkedin-post-draft.md`; publication always remains a
-user-approved external action.
+### Create an agent with PowerShell
+
+The target project must already exist. Start the interactive builder with an explicit agent type
+and identity:
+
+```powershell
+node .\pso.mjs agent build `
+  --project "C:\Projects\my-project" `
+  --type copilot `
+  --id project-reviewer `
+  --name "Project Reviewer"
+```
+
+The builder asks for missing purpose, capabilities, constraints, approach, and output details.
+It writes a blueprint and review plan into the target project; it does not install the agent yet.
+Open that project's workspace and read `reports/agent-builder-plan.md` before continuing.
+
+Only after reviewing and approving the unchanged plan, run:
+
+```powershell
+node .\pso.mjs agent apply `
+  --project "C:\Projects\my-project" `
+  --blueprint "C:\Projects\my-project\reports\agent-blueprints\project-reviewer.json" `
+  --plan "C:\Projects\my-project\reports\agent-builder-plan.json" `
+  --accept-risk
+```
+
+After application, open `.github/agents/project-reviewer.agent.md` in that project's VS Code
+workspace. The agent CLI does not open the editor for you. Installation is local and does not
+deploy or publish the agent. See [the full Agent Builder example](#build-a-governed-custom-agent)
+for explicit parameters, validation commands, and blueprint format.
+
+---
+
+## Reference and advanced workflows
+
+The sections below expand on the two usage paths: updates, detailed agent configuration,
+optional capabilities, adoption, and operational reference.
 
 ### Update the Launch Pad checkout
 
@@ -267,10 +464,6 @@ For troubleshooting, regenerate a plan when a digest or destination is stale; re
 `UNRESOLVED_ASSET`, `INCOMPATIBLE_DEPENDENCY`, `INCOMPATIBLE_PIN`, or `INCOMPATIBLE_PROFILE`
 conflict instead of forcing the whole update; and inspect the transaction journal when recovery is
 required.
-
-Without `--stack`, you get the universal standards and a CI workflow that **fails until you configure it**. That is deliberate — a pipeline that passes without testing anything is worse than no pipeline.
-
-The destination must be absent or empty. The project is published only after installation verification passes.
 
 ### Get help for any skill
 
@@ -489,14 +682,6 @@ VSIX packaging, installation, and marketplace publication remain separate action
 Verification proves local package integrity, not host installation or publication; license
 declarations record operator attestations, not automated legal verification.
 
-### Demo prompt
-
-Run `/demo-create-project` for the normal reusable demo workspace. Use `/demo-create-project --Test`
-to create the same prepared demo under `C:\repos\skills-orchestrator-demo-test` without deleting
-it after the run. An optional `--demo-date YYYY-MM-DD` records the scheduled event, for example
-`/demo-create-project --demo-date 2026-09-17`. The date is metadata only and does not authorize
-deployment, cleanup, publication, commits, or pushes.
-
 ### Hand the first task over with `--intent`
 
 `--intent` records what you want built first, so the new workspace opens with the work already in front of the agent.
@@ -523,25 +708,6 @@ Ask mode is deliberate. A newly created folder has not been trusted yet, and the
 Relative times are left alone. `--intent` is never parsed for dates; the agent resolves "10:30 am" against the recorded creation timestamp and asks if that is ambiguous.
 
 If Visual Studio Code cannot be launched, project creation still succeeds and the composed prompt is printed for you to paste.
-
-### First run in Visual Studio Code
-
-Two prompts appear the first time, and both are expected:
-
-1. **Workspace trust** — select *Yes, I trust the authors*. Tasks, debugging, and MCP servers stay disabled until you do. This cannot be pre-approved from inside a workspace, by design.
-2. **Recommended extensions** — select *Install* to get the language extensions for your stack.
-
-Everything else is discovered automatically. Instructions, prompts, agents, and skills all live in the locations Visual Studio Code searches by default, so there is nothing to configure:
-
-| Location | Discovered as |
-| --- | --- |
-| `.github/copilot-instructions.md`, `AGENTS.md` | Always-on instructions |
-| `.github/instructions/` | Pattern-scoped instructions |
-| `.github/prompts/` | Slash commands, surfaced as recommendations in a new chat |
-| `.github/agents/` | Entries in the agent picker |
-| `.github/skills/` | The governed skill catalog |
-
-Open Copilot Chat in Agent mode and your first prompt triggers the three-question clarification protocol.
 
 ### Copilot cloud agent and code review
 
@@ -613,7 +779,7 @@ Clones into an isolated staging directory, provisions, verifies, and only then p
 | `.github/instructions/` | Scoped standards applied by glob — only the ones your stack needs |
 | `.github/prompts/` | Prompt-only commands such as `/create-adr`, `/project-blueprint`, `/review-architecture`, `/executive-summary`, and `/new-component`, plus skill help prompts; skill-owned names are not duplicated here |
 | `.github/agents/` | Azure Architect, Security Reviewer, Documentation Writer |
-| `.github/skills/` | The 50-skill catalog |
+| `.github/skills/` | The 56-skill catalog |
 | `.github/workflows/ci.yml` | Stack-aware pipeline, SHA-pinned actions (new projects only) |
 | `.github/workflows/copilot-setup-steps.yml` | Preinstalls dependencies for Copilot cloud agent and Copilot code review (new projects with a stack) |
 | `.vscode/tasks.json` | Build and test tasks for the stack — `Ctrl+Shift+B` and Test Explorer work immediately |
@@ -704,6 +870,14 @@ Open the project in VS Code, start Copilot Chat in **Agent** mode, and invoke a 
 /change-review            Review this diff before commit
 /project-handoff          Record continuity before you stop
 ```
+
+Use `/linkedin-post` to analyze a project and prepare an evidence-grounded, profile-aware short-form
+draft for Microsoft employees and the technical community. It enforces a focused why-care opening,
+readable bullets, a discussion prompt, a 3,000-character limit, three to five final hashtags, and an
+approved-media readiness check. Without approved media, it includes a media brief and returns `Not ready`.
+Use `/linkedin-post --update` to compare against `reports/linkedin-post-history.md` and describe only
+verified changes. Drafts are saved to `reports/linkedin-post-draft.md`; publication always remains a
+user-approved external action.
 
 ### Local User Personalization
 

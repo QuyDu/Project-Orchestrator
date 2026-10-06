@@ -51,18 +51,20 @@ Produce and refresh human-facing documentation that is verified against the repo
    Both build and validation reuse the `project-understanding` owner's current-source checker. Added, removed, or changed scanned files require a fresh owner scan; a self-consistent historical report pair alone does not prove current source.
    The producer explicitly identifies downstream operational attestations excluded from current-code provenance, preventing guide/checkpoint/certificate publication cycles. This guide is not a cached substitute for current workflow status or secret-scan evidence.
 4. Fix one audience per additional document: new contributor, operator, security reviewer, or executive.
-5. Extract verified facts from the repository: prerequisites, setup, run and test commands, configuration keys, endpoints, and environments.
-4. Verify every command and path by inspection; discard any claim that cannot be confirmed.
-5. Draft or update each document, leading with the outcome and following with the procedure.
-6. Mark planned or unimplemented behavior explicitly and never describe it as available.
-7. Reconcile documentation against accepted decision records and authoritative reports, and flag contradictions rather than resolving them silently.
-8. Record which documents were created, updated, left unchanged, or blocked, with the evidence used for each.
+5. Classify each additional document by Diátaxis intent: tutorial for learning, how-to for a goal, reference for exact facts, or explanation for understanding. Do not mix intents without an explicit navigation boundary.
+6. Extract verified facts from the repository: prerequisites, setup, run and test commands, configuration keys, endpoints, and environments.
+7. Verify every command and path by inspection; discard any claim that cannot be confirmed.
+8. Draft or update each document, leading with the outcome and following with the procedure.
+9. Mark planned or unimplemented behavior explicitly and never describe it as available.
+10. Reconcile documentation against accepted decision records and authoritative reports, and flag contradictions rather than resolving them silently.
+11. Record which documents were created, updated, left unchanged, or blocked, with the evidence used for each.
 
 ## Validation
 
 - Every command, path, and configuration key in the output was verified against the repository.
 - `docs/PROJECT-GUIDE.md` is the canonical shared narrative and `reports/project-guide.json` binds its claims to current evidence.
 - Each document addresses exactly one audience and contains one top-level heading.
+- Each additional document has one primary Diátaxis intent, and its structure matches that intent.
 - Preserve `verified` and `planned` claim classifications. Map `inferred` and `unknown` source claims to unavailable verification evidence, with their original uncertainty label visible in the guide; never promote them to verified behavior.
 - Validate the understanding Markdown digest even when its content is empty, and compare guide claims with their current source classifications.
 - Unverified or planned behavior is explicitly marked.

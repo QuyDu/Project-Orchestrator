@@ -4,12 +4,12 @@ Generated from a complete repository scan. This guide describes the project in w
 
 ## Purpose
 
-Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 50 governed skills — installed consistently, verified after every run, and safe to rerun.
+Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 56 governed skills — installed consistently, verified after every run, and safe to rerun.
 
 ## Architecture
 
 - **.azure**: Top-level project boundary containing 1 scanned files.
-- **.github**: Top-level project boundary containing 163 scanned files.
+- **.github**: Top-level project boundary containing 175 scanned files.
 - **.vscode**: Top-level project boundary containing 2 scanned files.
 - **Demo**: Top-level project boundary containing 15 scanned files.
 - **artifacts**: Top-level project boundary containing 26 scanned files.
@@ -24,7 +24,7 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 ## Technology
 
-- **.md**: 190 scanned files use this extension.
+- **.md**: 202 scanned files use this extension.
 - **.json**: 140 scanned files use this extension.
 - **.mjs**: 72 scanned files use this extension.
 - **.mp3**: 22 scanned files use this extension.
@@ -55,8 +55,8 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 ## Capabilities
 
-- **Governed skill workflows**: 50 installed skills provide bounded project actions.
-- **Reusable prompt workflows**: 58 prompt files provide user-invoked workflows.
+- **Governed skill workflows**: 56 installed skills provide bounded project actions.
+- **Reusable prompt workflows**: 64 prompt files provide user-invoked workflows.
 - **Machine-readable contracts**: Schemas validate governed plans, reports, and runtime evidence.
 - **Automated validation**: Repository tests protect contracts and implementation behavior.
 

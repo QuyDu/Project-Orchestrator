@@ -94,7 +94,8 @@ Create repository-aware architecture diagrams, whiteboards, and miniature dioram
 - Whiteboards and dioramas include readable source attribution, the profile-provided signature, the creation date in the configured timezone, and concise alt text; generated images are never claimed when only a specification was produced.
 - A delivered `diorama.png` records an approved `bitmap-generation` renderer. A flat HTML/CSS/SVG screenshot, faux-isometric diagram, or card layout with simulated depth fails validation.
 - A `bitmap-generation` qualification records the approved raster capability, Azure Government processing boundary, authentication method, prompt and plan digests, and reference-pixel status.
-- A final PNG has a valid raster signature, expected dimensions, meaningful nonblank pixels, and a completed visual inspection; renaming a prototype or non-PNG file fails validation.
+- Every provider and verification PNG is fully decoded with the bounded shared `project-visual` profile before qualification. Accepted images are non-interlaced 8-bit RGB or RGBA with valid chunks, CRCs, contiguous image data, exact expected dimensions, bounded decompression, and no trailing data.
+- Header-only, truncated, corrupt, missing-data, unsupported-format, and oversized-expansion PNGs fail closed.
 - Render plans validate against `schemas/project-visual-scene.schema.json`, match the preflight source digest and current profile, and contain no executable content, network source, external asset, credential, or arbitrary output path.
 - Technical requests and results validate against `schemas/project-visual-request.schema.json` and `schemas/project-visual-result.schema.json`, preserve the run ID and source digests, and write only beneath the reserved run directory.
 - A missing or incompatible agent is reported as a decision point. Azure Foundry discovery, Azure CLI login, resource creation, Copilot Studio creation, and publication are never inferred from a local diagram request.
@@ -147,6 +148,7 @@ Create repository-aware architecture diagrams, whiteboards, and miniature dioram
 - project-understanding
 - agent-builder
 - azure-discovery
+- visual-companion-builder
 
 ### Ownership Handoffs
 

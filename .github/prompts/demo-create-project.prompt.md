@@ -25,9 +25,13 @@ Use `--demo-date YYYY-MM-DD` to record the scheduled demo date in the project br
 This is optional and supports any future invitation; for example:
 
 ```text
-/demo-create-project --demo-date 2026-09-17
-/demo-create-project --Test --demo-date 2026-09-17
+/demo-create-project --demo-date 2026-10-09
+/demo-create-project --Test --demo-date 2026-10-09
 ```
+
+Replace the example date with the current event's date. A date-only argument does not supply
+a live countdown start time. The app uses the current project's confirmed schedule when
+available and otherwise remains usable in test mode.
 
 If `--demo-date` is omitted, do not invent a date. Record that the demo date was not supplied.
 The date is metadata only and does not authorize deployment, cleanup, publication, commit, or push.

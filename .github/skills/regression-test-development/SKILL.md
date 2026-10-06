@@ -22,6 +22,7 @@ Convert a confirmed behavior requirement or defect into focused, maintainable au
 - Expected behavior, defect reproduction, or acceptance criterion.
 - Relevant production path, neighboring tests, fixtures, and test commands.
 - Debugging evidence from `systematic-debugging` when the input is a defect.
+- Optional audit mode with a bounded source surface, existing coverage evidence, risk model, and explicit exclusions.
 
 ## Approved Tools and Resources
 
@@ -37,13 +38,15 @@ Convert a confirmed behavior requirement or defect into focused, maintainable au
 
 ## Procedure
 
-1. Locate the nearest existing test boundary and state the behavior in observable terms.
-2. Add the smallest test that fails for the missing or defective behavior for the expected reason.
-3. Run the focused test and capture the failing command, assertion, and outcome.
-4. Apply or coordinate the minimum production change needed to satisfy the behavior.
-5. Rerun the focused test, then the narrowest relevant neighboring suite.
-6. Check determinism, isolation, cleanup, boundary cases, and whether the test would fail if the defect returned.
-7. Record changed files, red-green evidence, residual gaps, and the exact validation commands.
+1. Inventory the bounded behavior surface, existing tests, untested branches and failure paths, and risk-critical inputs before selecting work.
+2. In audit mode, publish a risk-ranked test-gap list with evidence and stop before mutation unless test creation is approved.
+3. Locate the nearest existing test boundary and state the selected behavior in observable terms.
+4. Add the smallest test that fails for the missing or defective behavior for the expected reason.
+5. Run the focused test and capture the failing command, assertion, and outcome.
+6. Apply or coordinate the minimum production change needed to satisfy the behavior.
+7. Rerun the focused test, then the narrowest relevant neighboring suite.
+8. Check determinism, isolation, cleanup, boundary cases, and whether the test would fail if the defect returned.
+9. Record changed files, red-green evidence, residual gaps, and the exact validation commands.
 
 ## Validation
 
@@ -51,6 +54,7 @@ Convert a confirmed behavior requirement or defect into focused, maintainable au
 - Green evidence comes from current execution of the focused and relevant neighboring tests.
 - Assertions verify externally meaningful behavior and do not rely on timing or uncontrolled external state.
 - Skips, retries, broad snapshots, and fixture changes are justified explicitly.
+- Test-gap findings identify the uncovered behavior, concrete risk, nearest test boundary, and recommended assertion without equating line coverage with correctness.
 
 ## Outputs
 

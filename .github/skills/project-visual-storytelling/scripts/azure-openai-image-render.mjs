@@ -4,11 +4,11 @@ import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { inspectCachedDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
+import { decodePng } from "../../visual-companion-builder/scripts/png.mjs";
 
 const ENVIRONMENT_PATH = ".azure/environment.json";
 const GPT_IMAGE_MODEL_PATTERN = /^gpt-image-2(?:$|[-.][A-Za-z0-9][A-Za-z0-9.-]{0,80})$/u;
 const GOVERNMENT_ENDPOINT_PATTERN = /^https:\/\/[a-z0-9-]+\.openai\.azure\.us$/u;
-const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const MAX_IMAGE_JSON_BYTES = 33 * 1024 * 1024;
 const MAX_IMAGE_ERROR_BYTES = 8 * 1024;
 
@@ -164,15 +164,16 @@ export async function readImageResponse(response, label) {
   }
 }
 
-function decodePng(encoded, width, height) {
+export function decodeProviderPng(encoded, width, height, label) {
   if (typeof encoded !== "string" || encoded.length < 100 || encoded.length > 32 * 1024 * 1024 || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)) {
-    throw new Error("Azure OpenAI response does not contain one bounded base64 PNG");
+    throw new Error(`${label} response does not contain one bounded base64 PNG`);
   }
   const image = Buffer.from(encoded, "base64");
-  if (image.length < 1_024 || !image.subarray(0, 8).equals(PNG_SIGNATURE) || image.toString("ascii", 12, 16) !== "IHDR") {
-    throw new Error("Azure OpenAI response is not a valid nonempty PNG");
+  try {
+    decodePng(image, { profile: "project-visual", expectedWidth: width, expectedHeight: height });
+  } catch (error) {
+    throw new Error(`${label} response is not a valid bounded PNG: ${error.message}`, { cause: error });
   }
-  if (image.readUInt32BE(16) !== width || image.readUInt32BE(20) !== height) throw new Error("Azure OpenAI PNG dimensions do not match the request");
   return image;
 }
 
@@ -201,7 +202,7 @@ export async function generateAzureOpenAIImage({ capability, prompt, width, heig
     signal: AbortSignal.timeout(120_000)
   });
   const result = await readImageResponse(response, "Azure OpenAI image");
-  const image = decodePng(result?.data?.[0]?.b64_json, width, height);
+  const image = decodeProviderPng(result?.data?.[0]?.b64_json, width, height, "Azure OpenAI image");
   await writeFile(outputPath, image, { flag: "wx", mode: 0o600 });
   return {
     schemaVersion: "1.0.0",

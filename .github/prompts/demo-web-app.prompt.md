@@ -35,13 +35,17 @@ Build a functional web app for the demo session titled **Skills Orchestrator**.
 
 ## Schedule
 
-- Scheduled start: **2:00 PM Central Time on September 17, 2026**. Use the ISO value `2026-09-17T14:00:00-05:00`; the `-05:00` offset is correct because Central is on daylight time in September.
+- Read the current project's `docs/PROJECT-BRIEF.md` for a presenter-confirmed schedule.
+- Keep `scheduledStart` in the application configuration as an ISO 8601 timestamp with an explicit UTC offset, or `null` when a complete start time has not been supplied. A date-only `--demo-date` value is not enough to set it; do not invent a start time or reuse another event's schedule.
 - The session lasts **60 minutes**.
 - Render all displayed times through `Intl.DateTimeFormat` with time zone `America/Chicago` so they stay correct on any machine.
+- Keep the start, duration, and display time zone in one configuration module so the presenter can prepare each new session without changing phase logic.
+
+If `?mode=live` is selected while `scheduledStart` is missing or invalid, show **Live schedule not configured** and explain that the presenter must supply the current event's start time. Do not substitute a previous date, silently enter test mode, or show a completed-session message.
 
 ## Behavior
 
-Three phases, driven by the current time:
+For a configured live schedule or the simulated test schedule, three phases are driven by the current time:
 
 1. **Before the start time** - show `Starting soon`, the scheduled start time, and a live countdown until the start.
 2. **Between start and start + 60 minutes** - show a live countdown to the end of the session.
@@ -52,7 +56,7 @@ Three phases, driven by the current time:
 - Provide a test mode that reads the current date and time and sets the start time to **30 minutes before now**, so the page is mid-session with a visibly moving countdown.
 - Test mode is the default. A `?mode=live` query parameter selects the real schedule and `?mode=test` forces test mode.
 - Show a visible badge indicating which mode is active, so the wrong mode is never presented by accident.
-- Support an `?at=<ISO timestamp>` override that pins the clock, so any phase can be previewed instantly during rehearsal.
+- Support an `?at=<ISO timestamp>` override that pins the evaluation clock, so any phase can be previewed instantly during rehearsal. It must not supply or change the configured start time.
 
 ## Presenter information
 
@@ -82,7 +86,7 @@ Generate every code as an SVG at build time using `qrcode` as an exact-pinned de
 
 - TypeScript compiled with `tsc`, matching the project's declared stack. No runtime dependencies; QR generation happens at build time only.
 - Keep all schedule and phase logic in a pure module with no DOM access, so it is unit testable.
-- Add unit tests using `node:test` covering: the published start time formats as 2:00 PM CDT on September 17 2026, test mode backdates the start by 30 minutes, phase boundaries at start and at start + 60 minutes, countdown formatting, and that countdowns never go negative.
+- Add unit tests using `node:test` covering: configured timestamps format in the display time zone, missing or invalid live starts show the unconfigured state, a date-only brief does not invent a start time, test mode works without a live start and backdates its start by 30 minutes, phase boundaries at start and at start + 60 minutes, the `?at=` clock override, countdown formatting, and that countdowns never go negative. Use fixed test fixtures rather than an event date embedded in application logic.
 - Wire `npm run build`, `npm test`, and `npm start`. `npm start` must serve the app locally with a zero-dependency Node static server that refuses to serve files outside the project root.
 - Follow the scoped instructions in `.github/instructions/`.
 

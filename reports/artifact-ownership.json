@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-01T19:23:41.475Z",
+  "generatedAt": "2026-10-06T10:43:21.877Z",
   "artifacts": [
     {
       "report": "artifacts/project-visual-storytelling/<run-id>/",
@@ -183,6 +183,22 @@
       "producer": "multi-agent-coordinator"
     },
     {
+      "report": "reports/copilot-instructions-plan.json",
+      "producer": "copilot-instructions-builder"
+    },
+    {
+      "report": "reports/copilot-instructions-plan.md",
+      "producer": "copilot-instructions-builder"
+    },
+    {
+      "report": "reports/copilot-sdk-development-plan.json",
+      "producer": "copilot-sdk-development"
+    },
+    {
+      "report": "reports/copilot-sdk-development-report.md",
+      "producer": "copilot-sdk-development"
+    },
+    {
       "report": "reports/current-execution-state.json",
       "producer": "workflow-state-manager"
     },
@@ -255,6 +271,14 @@
       "producer": "framework-health-check"
     },
     {
+      "report": "reports/github-security-automation-plan.json",
+      "producer": "github-security-automation"
+    },
+    {
+      "report": "reports/github-security-automation-report.md",
+      "producer": "github-security-automation"
+    },
+    {
       "report": "reports/gitleaks-scan.json",
       "producer": "audit-code"
     },
@@ -269,6 +293,22 @@
     {
       "report": "reports/linkedin-post-draft.md",
       "producer": "linkedin-post"
+    },
+    {
+      "report": "reports/microsoft-agent-framework-plan.json",
+      "producer": "microsoft-agent-framework-development"
+    },
+    {
+      "report": "reports/microsoft-agent-framework-report.md",
+      "producer": "microsoft-agent-framework-development"
+    },
+    {
+      "report": "reports/microsoft-reference.json",
+      "producer": "microsoft-reference"
+    },
+    {
+      "report": "reports/microsoft-reference.md",
+      "producer": "microsoft-reference"
     },
     {
       "report": "reports/policy-decision-log.jsonl",
@@ -393,6 +433,14 @@
     {
       "report": "reports/recovery-plan.md",
       "producer": "workflow-recovery"
+    },
+    {
+      "report": "reports/refactoring-plan.json",
+      "producer": "refactoring"
+    },
+    {
+      "report": "reports/refactoring-result.md",
+      "producer": "refactoring"
     },
     {
       "report": "reports/regression-test-result.json",

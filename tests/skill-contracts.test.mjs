@@ -149,14 +149,19 @@ const expectedSkillIds = [
   "change-review",
   "ci-failure-triage",
   "clarify-the-ask",
+  "copilot-instructions-builder",
+  "copilot-sdk-development",
   "dependency-maintenance",
   "deployment-review",
   "development-environment-readiness",
   "documentation-builder",
   "environment-update",
   "framework-health-check",
+  "github-security-automation",
   "linkedin-post",
   "live-chat-interaction",
+  "microsoft-agent-framework-development",
+  "microsoft-reference",
   "multi-agent-coordinator",
   "policy-engine",
   "prepare-commit",
@@ -169,6 +174,7 @@ const expectedSkillIds = [
   "project-understanding",
   "project-video",
   "project-visual-storytelling",
+  "refactoring",
   "regression-test-development",
   "security-review",
   "skill-create",
@@ -1035,6 +1041,33 @@ test("every generated and adopted project carries the mandatory clarification pr
   }
 });
 
+test("demo scheduling is session-specific and missing live dates are explicit", async () => {
+  const demo = await readFile(path.join(root, ".github", "prompts", "demo-web-app.prompt.md"), "utf8");
+  const schedule = demo.match(/^## Schedule\r?\n([\s\S]*?)(?=^## )/m)?.[1] ?? "";
+  assert.ok(schedule.includes("`scheduledStart`"), "Demo start must come from configuration, not a prior event");
+  assert.ok(schedule.includes("`null`"), "An unspecified live start must remain unset");
+  assert.ok(schedule.includes("PROJECT-BRIEF.md"), "The current project brief must supply the schedule");
+  assert.doesNotMatch(schedule, /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/);
+  assert.ok(demo.includes("Live schedule not configured"), "Missing live timing must be visible to the presenter");
+  assert.ok(demo.includes("Test mode is the default"), "Rehearsal must work without a live schedule");
+  assert.ok(demo.includes("date-only"), "A demo date alone must not invent a start time");
+
+  const originalDate = /2026-09-17|September 17(?:,)? 2026/;
+  for (const relative of [
+    "README.md",
+    ".github/prompts/demo-create-project.prompt.md",
+    ".github/prompts/demo-web-app.prompt.md",
+    "Demo/DEMO-DAY.md",
+    "scripts/update-demo-speaker-notes.ps1"
+  ]) {
+    const source = await readFile(path.join(root, relative), "utf8");
+    assert.ok(!originalDate.test(source), `${relative} must not carry the original event date`);
+  }
+  const deck = await readFile(path.join(root, "Demo", "Project-Orchestrator-Demo.pptx"));
+  const notes = readZipEntry(deck, "ppt/notesSlides/notesSlide10.xml").toString("utf8");
+  assert.ok(!originalDate.test(notes), "The shipped presenter notes must not carry the original event date");
+});
+
 test("Agent Builder shares deployment guidance without granting execution or introducing a dependency cycle", async () => {
   const skills = new Map((await loadSkills()).map((skill) => [skill.metadata.name, skill]));
   const builder = skills.get("agent-builder");
@@ -1103,6 +1136,35 @@ test("profiles are dependency-closed", async () => {
   assert.ok(effective("core").has("agent-builder"), "core profile must include the governed Agent Builder");
   assert.ok(effective("durable").has("agent-deployment"), "durable profile must include governed agent deployment");
   assert.ok(effective("durable").has("visual-companion-builder"), "durable profile must include local companion packaging");
+  assert.ok(effective("core").has("copilot-instructions-builder"), "core profile must include governed Copilot instructions");
+  assert.ok(effective("core").has("refactoring"), "core profile must include behavior-preserving refactoring");
+  assert.ok(effective("core").has("github-security-automation"), "core profile must include local GitHub security automation");
+  assert.ok(effective("core").has("microsoft-reference"), "core profile must include current Microsoft reference evidence");
+  assert.ok(effective("advanced").has("copilot-sdk-development"), "advanced profile must include Copilot SDK development");
+  assert.ok(effective("advanced").has("microsoft-agent-framework-development"), "advanced profile must include Microsoft Agent Framework development");
+});
+
+test("published dependency graph preserves every declared prerequisite", async () => {
+  const skills = await loadSkills();
+  const published = JSON.parse(await readFile(path.join(root, "reports", "skill-dependency-graph.json"), "utf8"));
+  const expected = Object.fromEntries(skills.map((skill) => [
+    skill.metadata.name,
+    dependencyItems(skill.source)
+  ]));
+  assert.equal(published.skillCount, skills.length);
+  assert.equal(published.edgeDirection, "consumer-to-dependency");
+  assert.equal(published.status, "passed");
+  assert.deepEqual(published.graph, expected, "Published dependency evidence must not lose or invent contract edges");
+});
+
+test("new high-value skills preserve repository and authority boundaries", async () => {
+  const skills = new Map((await loadSkills()).map((skill) => [skill.metadata.name, skill]));
+  assert.match(skills.get("copilot-instructions-builder").source, /explicit approval before creating or modifying repository instructions/);
+  assert.match(skills.get("refactoring").source, /Supported behavior and public contracts remain unchanged/);
+  assert.match(skills.get("github-security-automation").source, /Never enable settings, create secrets, merge alerts, or mutate the remote repository/);
+  assert.match(skills.get("copilot-sdk-development").source, /only in the explicit target project/);
+  assert.match(skills.get("microsoft-reference").source, /not presented as proof of deployment or runtime success/);
+  assert.match(skills.get("microsoft-agent-framework-development").source, /only in the explicit target project/);
 });
 
 test("deployment and companion engines survive provisioning with read-only capability discovery", async () => {
@@ -1193,7 +1255,7 @@ test("project visual storytelling requires one local profile owner", async () =>
   assert.ok(personalization, "user-personalization skill must exist");
   assert.ok(content, "project-visual-storytelling skill must exist");
   assert.deepEqual(dependencyItems(personalization.source), []);
-  assert.deepEqual(dependencyItems(content.source), ["user-personalization", "project-understanding", "agent-builder", "azure-discovery"]);
+  assert.deepEqual(dependencyItems(content.source), ["user-personalization", "project-understanding", "agent-builder", "azure-discovery", "visual-companion-builder"]);
   assert.ok(sectionItems(personalization.source, "Outputs").includes(".skills-orchestrator/user-personalization.json"));
   assert.ok(sectionItems(content.source, "Outputs").includes("artifacts/project-visual-storytelling/<run-id>/"));
   assert.match(content.source, /Every run uses a freshly rebuilt understanding of the current project as its sole topic and source/);

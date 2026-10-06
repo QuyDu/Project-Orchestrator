@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "updatedAt": "2026-10-01T19:45:45.335Z",
-  "status": "waiting-approval",
+  "updatedAt": "2026-10-06T10:26:01.826Z",
+  "status": "completed",
   "project": {
     "name": "project-skills-orchestrator",
     "repository": "QuyDu/Project-Orchestrator",
@@ -9,30 +9,30 @@
     "frameworkVersion": "9.2.0",
     "sourceVersionDate": "2026-10-01",
     "branch": "release/1.1.2",
-    "sourceRevisionAtSnapshot": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+    "sourceRevisionAtSnapshot": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
     "upstream": "origin/release/1.1.2",
-    "upstreamRevisionAtSnapshot": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+    "upstreamRevisionAtSnapshot": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
     "sourceDirty": true
   },
   "activeMilestone": {
     "name": "Approved 45-finding local audit remediation",
-    "status": "waiting-approval",
+    "status": "completed",
     "phase": "M4"
   },
   "workflow": {
     "schemaVersion": "1.0.0",
-    "status": "waiting-approval",
-    "currentStep": 42,
+    "status": "completed",
+    "currentStep": 48,
     "totalSteps": 48,
-    "activeSkill": "skill-update",
-    "lastCompletedStep": 47,
-    "resumeFromStep": 42,
+    "activeSkill": "project-handoff",
+    "lastCompletedStep": 48,
+    "resumeFromStep": 48,
     "workflowId": "WF-REMEDIATION-4da7d0e8-28fc-43a9-8ac5-3c9f80009aac",
     "runId": "RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
     "lastSequence": 136,
-    "updatedAt": "2026-10-01T18:45:59.445Z",
-    "historical": false,
-    "eventStateAdvanced": true
+    "updatedAt": "2026-10-02T00:30:36.938Z",
+    "historical": true,
+    "eventStateAdvanced": false
   },
   "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
   "immutablePlan": {
@@ -41,13 +41,19 @@
   },
   "executionReport": "reports/audit-remediation-execution.json",
   "lastCompletedAction": {
-    "action": "REM-0145",
-    "status": "completed",
+    "action": "Validated source delivery candidate: PNG qualification, skill expansion, onboarding, demo scheduling, and repaired dependency evidence",
+    "status": "validated-for-delivery",
     "evidence": [
-      "reports/policy-evaluation.json",
-      "reports/recovery-plan.json",
-      "reports/current-execution-state.json",
-      "reports/audit-remediation-execution.json"
+      "reports/audit-remediation-execution.json",
+      ".github/skills/visual-companion-builder/scripts/png.mjs",
+      ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+      "tests/project-visual-storytelling.test.mjs",
+      "config/profiles.yaml",
+      "tests/skill-contracts.test.mjs",
+      "reports/skill-inventory.json",
+      "reports/skill-dependency-graph.json",
+      "reports/project-understanding.json",
+      "docs/PROJECT-GUIDE.md"
     ]
   },
   "completedItemIds": [
@@ -94,7 +100,8 @@
     "REM-0141",
     "REM-0119",
     "REM-0144",
-    "REM-0145"
+    "REM-0145",
+    "REM-0132"
   ],
   "completedFindingIds": [
     "AUD-0146",
@@ -140,19 +147,14 @@
     "AUD-0141",
     "AUD-0119",
     "AUD-0144",
-    "AUD-0145"
-  ],
-  "remainingItemIds": [
-    "REM-0132"
-  ],
-  "remainingFindingIds": [
+    "AUD-0145",
     "AUD-0132"
   ],
+  "remainingItemIds": [],
+  "remainingFindingIds": [],
   "blockedItemIds": [],
-  "pendingApprovals": [
-    "REM-0132: approve the explicit visual-companion-builder shared-decoder scope: .github/skills/visual-companion-builder/scripts/png.mjs; tests/visual-companion-builder.test.mjs; .github/skills/visual-companion-builder/SKILL.md; .github/prompts/visual-companion-builder-help.prompt.md"
-  ],
-  "currentApproval": "User: proceed with all changes --Proceed (2026-09-30T23:55:42.714Z); local reversible M1-M5 only",
+  "pendingApprovals": [],
+  "currentApproval": "User: update the github repo --Proceed (2026-10-06T05:57:38.543-04:00); normal commit and push of the reviewed Project Orchestrator change set to the existing origin/release/1.1.2 branch.",
   "priorDeliveryApproval": {
     "historical": true,
     "usableForCurrentWork": false
@@ -185,11 +187,11 @@
   "blockers": [],
   "validationStatus": {
     "status": "passed",
-    "scope": "44 implemented items; pending scope remains unimplemented",
+    "scope": "Current publication candidate passed the full gate. The evidence object retains the historical remediation checkpoint; the publication gate has its own log digest below.",
     "evidence": {
-      "id": "CP-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-VERIFIED",
-      "createdAt": "2026-10-01T18:45:59.441Z",
-      "status": "valid",
+      "id": "CP-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-REM-0132-COMPLETE",
+      "createdAt": "2026-10-02T00:30:36.938Z",
+      "status": "terminal",
       "completedItemIds": [
         "REM-0146",
         "REM-0108",
@@ -234,49 +236,52 @@
         "REM-0141",
         "REM-0119",
         "REM-0144",
-        "REM-0145"
-      ],
-      "remainingItemIds": [
+        "REM-0145",
         "REM-0132"
       ],
-      "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
-      "worktreeDigest": "d79a723b0b362e46978ab87ee7b85be4d633042a7d32dd41583b64319ffc158f"
+      "remainingItemIds": [],
+      "repositoryRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
+      "worktreeDigest": "d2624302f7d069b4f60c26b2bbcc7b26cee591d98c5cade6f2c11b205888713f"
     },
     "releaseApproval": "not-granted",
     "sourceVersion": "1.3.0",
     "frameworkVersion": "9.2.0",
     "command": "npm run check",
+    "logSha256": "16e7b7e72e8bf3c5606cfdc8850642db01aa41cda0e6c372a7d16884352382ee",
     "tests": {
-      "total": 948,
-      "passed": 945,
+      "total": 953,
+      "passed": 950,
       "failed": 0,
       "skipped": 3
     }
   },
   "limitations": [
-    "Local approval only; no external operations or release authority.",
+    "The approved delivery is a normal source commit and push only; no release, deployment, or other external mutation is authorized.",
     "Legacy prefix remains unchanged and explicitly nonconformant in formatting/metadata; this fresh run uses a validated typed suffix.",
     "No item is resolved merely because an edit ran; current acceptance evidence and post-fix audit verification are required.",
-    "REM-0132 was not silently widened or implemented with a reduced compatible image-format policy. User unavailability is not approval.",
-    "Final complete gate passed on current implementation source. The current generated guide is separately validated; closing cached-only secret scanning and read-only verification are performed after these reports are frozen.",
     "No source finding is described as resolved without its recorded current acceptance and post-fix audit verification.",
     "No live-provider/tenant/device, hosted, advisory or current external standards qualification is implied.",
     "The historical event prefix remains unchanged; its legacy metadata and framing limitations are retained.",
-    "The current delivery request separately authorizes a normal source commit and upstream push, but not tags,formal releases,deployments or PNG decoder implementation. This is a pre-commit snapshot, not proof that delivery already occurred."
+    "The prior source delivery and pre-commit upstream base were verified at 0c7c05a11b8603237d3f0f0877ce632b521636a9. Verify the new delivery from Git.",
+    "REM-0132 local verification rejects header-only, truncated, CRC-corrupt, missing-IDAT and oversized-expansion PNGs across the shared decoder and project-visual adapters.",
+    "The governed catalog now contains 56 dependency-closed skills with deterministic help, refreshed inventory, current Project Understanding and a validated Project Guide.",
+    "The current full gate passed with 953 tests: 950 passed, 0 failed and 3 explicit platform skips.",
+    "This checkpoint is written before commit and push. It does not pre-claim remote delivery; actual Git state is authoritative."
   ],
   "nextAction": {
-    "status": "approval-required",
-    "action": "Confirm --Proceed for the exact shared PNG decoder scope in the retained REM-0132 proposal; all other selected items have passed final local verification."
+    "status": "ready",
+    "action": "Complete the approved normal commit and push to origin/release/1.1.2, verify local/upstream equality, then return to demo rehearsal. If this checkpoint is already delivered, verify Git before taking any further delivery action."
   },
-  "generatedAt": "2026-10-01T19:45:45.335Z",
-  "snapshotPhase": "pre-commit",
+  "generatedAt": "2026-10-06T10:26:01.826Z",
+  "snapshotPhase": "pre-commit-delivery-checkpoint",
   "deliveryApproval": {
-    "status": "explicitly-authorized",
-    "request": "update versioning date info and commit and push --Proceed",
-    "scope": "Current reviewed source work plus version/date metadata; one normal commit and push to existing origin/release/1.1.2",
+    "status": "bound-to-current-change-set",
+    "request": "update the github repo --Proceed",
+    "scope": "One normal commit of the reviewed and validated current source change set, followed by a push to existing origin/release/1.1.2",
     "repositoryVisibility": "public",
     "excludes": [
-      "PNG decoder scope implementation",
+      "changes to XAVIER",
+      "default-branch merge",
       "force push",
       "branch rename",
       "tag",
@@ -286,16 +291,18 @@
     ]
   },
   "deliveryStatus": {
-    "status": "validated-pre-commit-snapshot",
+    "status": "verify-from-git",
     "commit": null,
     "push": null,
+    "expectedUpstream": "origin/release/1.1.2",
+    "baseRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
     "tests": {
-      "total": 948,
-      "passed": 945,
+      "total": 953,
+      "passed": 950,
       "failed": 0,
       "skipped": 3
     },
-    "evidenceSha256": "21ca6a8241c4c009bdfedb5a393ce0855bfff30214c85f6ad826145fb6d1f1c3",
+    "evidenceSha256": "16e7b7e72e8bf3c5606cfdc8850642db01aa41cda0e6c372a7d16884352382ee",
     "actualDeliveryMustBeVerifiedFromGit": true
   }
 }

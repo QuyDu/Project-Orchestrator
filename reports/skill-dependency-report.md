@@ -1,6 +1,6 @@
 # Skill Dependency Report
 
-50 canonical skills; all dependencies resolve and the graph is acyclic.
+56 canonical skills; all dependencies resolve and the graph is acyclic.
 
 - agent-builder: clarify-the-ask, policy-engine, azure-discovery
 - agent-deployment: clarify-the-ask, agent-builder, policy-engine, azure-discovery, architecture-review, security-review, deployment-review, workflow-state-manager, workflow-telemetry, project-handoff
@@ -16,14 +16,19 @@
 - change-review: policy-engine
 - ci-failure-triage: policy-engine, systematic-debugging, regression-test-development, workflow-state-manager
 - clarify-the-ask: none
+- copilot-instructions-builder: clarify-the-ask, project-understanding, documentation-builder, policy-engine
+- copilot-sdk-development: clarify-the-ask, agent-builder, architecture-review, regression-test-development
 - dependency-maintenance: policy-engine, regression-test-development, workflow-state-manager
 - deployment-review: architecture-review, security-review
 - development-environment-readiness: policy-engine, workflow-state-manager
 - documentation-builder: clarify-the-ask, project-understanding
 - environment-update: development-environment-readiness, policy-engine
 - framework-health-check: skill-inventory, skill-dependency-manager
+- github-security-automation: security-review, dependency-maintenance, policy-engine, regression-test-development
 - linkedin-post: project-handoff, documentation-builder, user-personalization
 - live-chat-interaction: clarify-the-ask, policy-engine, project-understanding, regression-test-development
+- microsoft-agent-framework-development: microsoft-reference, agent-builder, architecture-review, regression-test-development
+- microsoft-reference: clarify-the-ask
 - multi-agent-coordinator: workflow-state-manager, workflow-scheduler
 - policy-engine: none
 - prepare-commit: change-review
@@ -35,7 +40,8 @@
 - project-status: project-handoff, workflow-telemetry, audit-azure-environment
 - project-understanding: clarify-the-ask
 - project-video: clarify-the-ask, project-understanding, documentation-builder, azure-discovery
-- project-visual-storytelling: user-personalization, project-understanding, agent-builder, azure-discovery
+- project-visual-storytelling: user-personalization, project-understanding, agent-builder, azure-discovery, visual-companion-builder
+- refactoring: clarify-the-ask, workflow-planner, regression-test-development, change-review
 - regression-test-development: policy-engine, workflow-state-manager
 - security-review: audit-code
 - skill-create: skill-inventory, skill-dependency-manager, project-understanding, documentation-builder

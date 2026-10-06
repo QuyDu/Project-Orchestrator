@@ -49,9 +49,12 @@ Identify exploitable security weaknesses in a bounded scope, prove each one with
 5. Review outbound and network posture: server-side request forgery, certificate validation, public exposure, cross-origin policy, and firewall breadth.
 6. Review identity and platform configuration: role scope, key-based authentication where federated identity is available, and over-permissive assignments.
 7. Review supply chain: dependency advisories, unpinned actions or images, lock-file integrity, and install-time script execution.
-8. Review data handling and logging for secret, credential, or personal-data leakage and for missing audit trails on privileged actions.
-9. Record each finding with location, weakness class, exploitable path, impact, severity, confidence, and the smallest correct fix, separating proven weaknesses from hardening opportunities.
-10. Enumerate scope that could not be assessed and the reason, then emit the report and route remediation to `audit-plan-remediation`.
+8. For GitHub Actions, review untrusted expression interpolation, trigger exposure, fork and pull-request boundaries, token permissions, environment approvals, runner trust, artifact provenance, and action pinning.
+9. For agentic systems, map applicable OWASP Agentic/ASI risks across goals, memory, tools, identity, human approval, inter-agent trust, and untrusted content.
+10. For MCP components, review server provenance, transport security, capability exposure, tool poisoning, confused-deputy paths, schema trust, sampling, roots, and release compatibility.
+11. Review data handling and logging for secret, credential, or personal-data leakage and for missing audit trails on privileged actions.
+12. Record each finding with location, weakness class, exploitable path, impact, severity, confidence, and the smallest correct fix, separating proven weaknesses from hardening opportunities.
+13. Enumerate scope that could not be assessed and the reason, then emit the report and route remediation to `audit-plan-remediation`.
 
 ## Validation
 
@@ -60,6 +63,7 @@ Identify exploitable security weaknesses in a bounded scope, prove each one with
 - Severity and confidence are assigned independently and are not inflated by category alone.
 - No secret material appears in the report.
 - Unassessed scope is enumerated with a reason.
+- GitHub Actions, agentic, and MCP checks are included only when those surfaces exist, with the applicable framework or protocol version recorded.
 - The report validates against `schemas/security-review.schema.json` and the Markdown view derives from it.
 
 ## Outputs

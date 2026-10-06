@@ -4,12 +4,11 @@ import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { inspectCachedDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
-import { readImageResponse } from "./azure-openai-image-render.mjs";
+import { decodeProviderPng, readImageResponse } from "./azure-openai-image-render.mjs";
 
 const ENVIRONMENT_PATH = ".azure/environment.json";
 const MAI_MODEL_PATTERN = /^MAI-Image-(?:2\.5(?:-Pro|-Flash)?|2\.6(?:-Flash)?)$/u;
 const GOVERNMENT_ENDPOINT_PATTERN = /^https:\/\/[a-z0-9-]+\.services\.ai\.azure\.us$/u;
-const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -104,10 +103,7 @@ export async function generateMaiImage({ capability, prompt, width, height, outp
     signal: AbortSignal.timeout(120_000)
   });
   const result = await readImageResponse(response, "MAI-Image");
-  const encoded = result?.data?.[0]?.b64_json;
-  if (typeof encoded !== "string" || encoded.length < 100 || encoded.length > 32 * 1024 * 1024) throw new Error("MAI-Image response does not contain one bounded base64 PNG");
-  const image = Buffer.from(encoded, "base64");
-  if (image.length < 1024 || !image.subarray(0, 8).equals(PNG_SIGNATURE)) throw new Error("MAI-Image response is not a valid nonempty PNG");
+  const image = decodeProviderPng(result?.data?.[0]?.b64_json, width, height, "MAI-Image");
   await writeFile(outputPath, image, { flag: "wx", mode: 0o600 });
   return {
     schemaVersion: "1.0.0",

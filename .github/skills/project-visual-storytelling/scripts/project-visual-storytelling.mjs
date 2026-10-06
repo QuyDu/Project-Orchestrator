@@ -9,6 +9,7 @@ import { PROFILE_PATH, assertProfileStorageIgnored, validateProfile } from "../.
 import { generateAzureOpenAIImage, inspectAzureOpenAIImage, supportsAzureOpenAIImageDimensions } from "./azure-openai-image-render.mjs";
 import { generateMaiImage, inspectMaiImage, supportsMaiImageDimensions } from "./mai-image-render.mjs";
 import { ensureDiscovery } from "../../azure-discovery/scripts/discovery-cache.mjs";
+import { decodePng } from "../../visual-companion-builder/scripts/png.mjs";
 
 const OUTPUT_TYPES = new Set(["whiteboard", "whiteboard-specification", "diorama", "diorama-specification"]);
 const DIAGRAM_TYPES = new Set(["architecture", "component", "deployment", "data-flow", "sequence", "process", "agent-topology", "executive-overview"]);
@@ -188,9 +189,12 @@ async function loadRun(root, runId) {
 }
 
 function readPngDimensions(source) {
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  if (source.length < 24 || !source.subarray(0, 8).equals(signature) || source.toString("ascii", 12, 16) !== "IHDR") throw new Error("Rendered artifact is not a valid PNG");
-  return { width: source.readUInt32BE(16), height: source.readUInt32BE(20) };
+  try {
+    const { width, height } = decodePng(source, { profile: "project-visual" });
+    return { width, height };
+  } catch (error) {
+    throw new Error(`Rendered artifact is not a valid PNG: ${error.message}`, { cause: error });
+  }
 }
 
 function bitmapCandidateName(visualStyle, provider) {

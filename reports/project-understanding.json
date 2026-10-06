@@ -1,20 +1,20 @@
 {
   "schemaVersion": "1.0.0",
   "status": "complete",
-  "generatedAt": "2026-10-01T19:23:54.359Z",
+  "generatedAt": "2026-10-06T10:45:16.444Z",
   "generator": "project-understanding",
   "project": {
     "name": "project-skills-orchestrator",
     "displayName": "Project Orchestrator",
-    "purpose": "Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 50 governed skills — installed consistently, verified after every run, and safe to rerun.",
+    "purpose": "Turn any repository into a governed GitHub Copilot workspace: agent instructions, scoped standards, reusable prompts, specialist agents, and 56 governed skills — installed consistently, verified after every run, and safe to rerun.",
     "evidence": [
       "README.md"
     ]
   },
   "scan": {
     "mode": "full-rebuild",
-    "repositoryDigestSha256": "58ae24333d7ea1ffef726b9b9e5e5767ca9439dbecb95a912f1866571bb76839",
-    "fileCount": 467,
+    "repositoryDigestSha256": "70753da8beafd512950d82632a697a64f921b667845b8be673820f021ffd3cef",
+    "fileCount": 479,
     "sourceFileCount": 21,
     "testFileCount": 29,
     "excludedDirectories": [
@@ -71,8 +71,8 @@
       },
       {
         "path": ".github/prompts/agent-builder-help.prompt.md",
-        "bytes": 28732,
-        "sha256": "02c2092a80dbd90a6414443f73d8846b7dea7634dc68150491cac0f6502253db"
+        "bytes": 29121,
+        "sha256": "5439321799ab384f0ce8de688083298e29ad2d909af7bab75f14bfa130cbc6b5"
       },
       {
         "path": ".github/prompts/agent-deployment-help.prompt.md",
@@ -81,8 +81,8 @@
       },
       {
         "path": ".github/prompts/architecture-review-help.prompt.md",
-        "bytes": 5031,
-        "sha256": "a5a78d3afb370cfcb5212fdbf25bcc7b53e11cddedd408c907653c21c58783ad"
+        "bytes": 5436,
+        "sha256": "8a63b5d2f185cd8ebea377687b0e0d8340bc7f0911840448c4293c074904276c"
       },
       {
         "path": ".github/prompts/artifact-upgrade-help.prompt.md",
@@ -140,14 +140,24 @@
         "sha256": "a962a31e4fa51e28e57fbb2df2b5e67023152b936fedf26785b8418754f9cbf4"
       },
       {
+        "path": ".github/prompts/copilot-instructions-builder-help.prompt.md",
+        "bytes": 3801,
+        "sha256": "614a9444034be2820a5759725c29258cb4bda7922bd8972f6f03136c75134470"
+      },
+      {
+        "path": ".github/prompts/copilot-sdk-development-help.prompt.md",
+        "bytes": 3928,
+        "sha256": "ff65eccf055788f22288dc51fac4710bd4686ae28390af8c2320965c92d4b6de"
+      },
+      {
         "path": ".github/prompts/demo-create-project.prompt.md",
-        "bytes": 8692,
-        "sha256": "0105a1c5e9630a63cd9469596f1aed21a4ec118b57bdd16a839580a51c86e1ed"
+        "bytes": 8785,
+        "sha256": "c1cba3b9a46760787639dd17e1046c35c5320ea726ebd8e753276dd77367c998"
       },
       {
         "path": ".github/prompts/demo-web-app.prompt.md",
-        "bytes": 8916,
-        "sha256": "4ffadcb00fef84c078bc078fa63260bf2043296add95418d11070faf65b6d43f"
+        "bytes": 9786,
+        "sha256": "b7fc516bb41aef28d68dfaa5b488fc7e1e250968a71f4874ba7dff5d5a4e22c4"
       },
       {
         "path": ".github/prompts/dependency-maintenance-help.prompt.md",
@@ -156,8 +166,8 @@
       },
       {
         "path": ".github/prompts/deployment-review-help.prompt.md",
-        "bytes": 5148,
-        "sha256": "03c11bf8bfe62a7a1a375412dd117aabbecfa7b5c92e26762bd0bb5966689f45"
+        "bytes": 5884,
+        "sha256": "ffdff836add116b4aa53bcd01b0fb1cdba07f31b39d8664a9841a5c05657ba1f"
       },
       {
         "path": ".github/prompts/development-environment-readiness-help.prompt.md",
@@ -166,8 +176,8 @@
       },
       {
         "path": ".github/prompts/documentation-builder-help.prompt.md",
-        "bytes": 6614,
-        "sha256": "b7d8393fe0554d3d35fc638c4e1821a6d7f43edd37151ca6771038254b6308dd"
+        "bytes": 6937,
+        "sha256": "47408de7586f2876a55f72cadb2ad293144830fd37ac4da2c46166e755a96eab"
       },
       {
         "path": ".github/prompts/environment-update-help.prompt.md",
@@ -180,6 +190,11 @@
         "sha256": "9ebebcb866dbb180fb452736c952cd5f3c3d90277a14b35b94e521e078bebebc"
       },
       {
+        "path": ".github/prompts/github-security-automation-help.prompt.md",
+        "bytes": 3955,
+        "sha256": "9c9eae4f04f67d335cab8da19ff47e635e38978371e41617c02a7767eb23f9c3"
+      },
+      {
         "path": ".github/prompts/linkedin-post-help.prompt.md",
         "bytes": 10613,
         "sha256": "a7fcf7b0269bef4a325992984697dde859cf17e5d39c7cd827b9678ea95df165"
@@ -188,6 +203,16 @@
         "path": ".github/prompts/live-chat-interaction-help.prompt.md",
         "bytes": 7339,
         "sha256": "a00460eabccc95805726479107f99e53959e5aed6e88d4cf7bc184b9aa17cb96"
+      },
+      {
+        "path": ".github/prompts/microsoft-agent-framework-development-help.prompt.md",
+        "bytes": 4116,
+        "sha256": "745abdf59033f7eaec4330fae8b7a87857795121fd2ce135df1c2c39454401ab"
+      },
+      {
+        "path": ".github/prompts/microsoft-reference-help.prompt.md",
+        "bytes": 3499,
+        "sha256": "d2c251aaa6e24d22aa456c2d367fdcf8d285157d6a9f28cf04c911eeedc81a01"
       },
       {
         "path": ".github/prompts/multi-agent-coordinator-help.prompt.md",
@@ -201,8 +226,8 @@
       },
       {
         "path": ".github/prompts/prepare-commit-help.prompt.md",
-        "bytes": 3221,
-        "sha256": "716aa36ec8d6f0c7ae08c794d37928c8b8bff3ace5ba63cc22e7192f2b73aced"
+        "bytes": 3570,
+        "sha256": "bfd05400a70f2c57d7ad89a856d7a289f60cda81c23e011ed4fce1889a1b0fac"
       },
       {
         "path": ".github/prompts/project-blueprint.prompt.md",
@@ -266,13 +291,18 @@
       },
       {
         "path": ".github/prompts/project-visual-storytelling-help.prompt.md",
-        "bytes": 26365,
-        "sha256": "7266976a004d9b4884da3a833ead940e0a98d7bfe1bf87fd047ab82aad2d9945"
+        "bytes": 26619,
+        "sha256": "45798ae0f6b31bd7bb477e09d56f9a05d745030c787f64c3fa7c8c54e7d1fd62"
+      },
+      {
+        "path": ".github/prompts/refactoring-help.prompt.md",
+        "bytes": 3708,
+        "sha256": "870dbbe76c65f37c5c3f14d55da1751ffe32321c2161eed1ba762ef620d892dd"
       },
       {
         "path": ".github/prompts/regression-test-development-help.prompt.md",
-        "bytes": 3967,
-        "sha256": "9ba421b453267cbdb01749f53b254fcffe51e692d8ffa009ffe20756cd168417"
+        "bytes": 4531,
+        "sha256": "86865e99920a1f0bf5a7390bb98d9b40418c1f3701892e433653c3e02ad1fcd1"
       },
       {
         "path": ".github/prompts/release-readiness.prompt.md",
@@ -281,8 +311,8 @@
       },
       {
         "path": ".github/prompts/security-review-help.prompt.md",
-        "bytes": 5510,
-        "sha256": "3bafcbce7d09cde7e827c8cb0bda59c386bdbface983050faeabc4972be107c4"
+        "bytes": 6222,
+        "sha256": "87e78ba9ec680c567b54c4ef12bc16f112fbb925c65f262b57face29477f52e4"
       },
       {
         "path": ".github/prompts/skill-create-help.prompt.md",
@@ -326,13 +356,13 @@
       },
       {
         "path": ".github/prompts/visual-companion-builder-help.prompt.md",
-        "bytes": 11973,
-        "sha256": "fff1ae7e029214f7f3c9f399c84cc6c226b911d9ba5491e971368a9d1579e310"
+        "bytes": 12249,
+        "sha256": "23f5b878252cf339e7b9f04d8e1da35ca4488bdcb33643781a81d6db1d4fb2c0"
       },
       {
         "path": ".github/prompts/workflow-planner-help.prompt.md",
-        "bytes": 4912,
-        "sha256": "bf793e67c225f384851f908af0d3214ab5ec6f5db0f8e75785f8a4e54281ea16"
+        "bytes": 5432,
+        "sha256": "e06d32a1fe2c99c443f119635e0014e0bc6f264a404e163ec7da5b6b05af281a"
       },
       {
         "path": ".github/prompts/workflow-recovery-help.prompt.md",
@@ -381,8 +411,8 @@
       },
       {
         "path": ".github/skills/agent-builder/SKILL.md",
-        "bytes": 28538,
-        "sha256": "06a6589d604a8705f1c001384ff58797ee3b2ef859d7c393286fce70f1c3fd69"
+        "bytes": 28748,
+        "sha256": "aa84510c3b01f988f7cf559a02571ab978ef79e9c8edf04f41a0ff75e3f093e8"
       },
       {
         "path": ".github/skills/agent-deployment/references/platform-provider-interface.md",
@@ -486,8 +516,8 @@
       },
       {
         "path": ".github/skills/architecture-review/SKILL.md",
-        "bytes": 4720,
-        "sha256": "e989ed7f3b6d07f5b9a08d1c65cb4a0721cdc4d0f2a9bb45fc2e55cce2b41919"
+        "bytes": 5040,
+        "sha256": "c7b18e564dd4463435d98d68b3e048756cdfe96059b942a300bf1c7148cb5960"
       },
       {
         "path": ".github/skills/artifact-upgrade/SKILL.md",
@@ -590,14 +620,24 @@
         "sha256": "d9329a1157b3bcc18d12a5ff0565c55df0dc71f1180e760bd3c05a60601e3c4a"
       },
       {
+        "path": ".github/skills/copilot-instructions-builder/SKILL.md",
+        "bytes": 3369,
+        "sha256": "df764bb07cd036b2985c82c66641940fbbe5816e26b2288d01d8043f847fe374"
+      },
+      {
+        "path": ".github/skills/copilot-sdk-development/SKILL.md",
+        "bytes": 3516,
+        "sha256": "ec9b92e6ca2c104d6f6a758b6210802e70609e794657aff9ce95cf83307bf4f2"
+      },
+      {
         "path": ".github/skills/dependency-maintenance/SKILL.md",
         "bytes": 4045,
         "sha256": "3f011cc2a872c4f4c688d5452b16f00c3c1f254342d53418f9c98ef10b30cd3a"
       },
       {
         "path": ".github/skills/deployment-review/SKILL.md",
-        "bytes": 4847,
-        "sha256": "26c74a856b0eb1bea94ad12e79509b64f55196b13bded3811fb06f7a1f40d86d"
+        "bytes": 5496,
+        "sha256": "66d8ba40ad72bcee71756b636d1a2d9d1c45f3846a40add2bcc01156c08079a0"
       },
       {
         "path": ".github/skills/development-environment-readiness/SKILL.md",
@@ -611,8 +651,8 @@
       },
       {
         "path": ".github/skills/documentation-builder/SKILL.md",
-        "bytes": 6309,
-        "sha256": "88672a347c90ddcf98a93d0dfb2c5d1070ee9d4aa8bdc2e0c11deead6f33bd71"
+        "bytes": 6537,
+        "sha256": "a6d4dfba3cd1a0850d682c0dec4e6b82b0143c40218b7f69f9136e25f219aced"
       },
       {
         "path": ".github/skills/environment-update/SKILL.md",
@@ -623,6 +663,11 @@
         "path": ".github/skills/framework-health-check/SKILL.md",
         "bytes": 3242,
         "sha256": "91b1d7401140d518914dc687a31f311369b5649988d26f464f0f07d0f9b26945"
+      },
+      {
+        "path": ".github/skills/github-security-automation/SKILL.md",
+        "bytes": 3531,
+        "sha256": "32e83ebb346938881d3bbb706354c81ea9037e2d760e18cbeb57081d569e8bde"
       },
       {
         "path": ".github/skills/linkedin-post/references/linkedin-best-practices.md",
@@ -640,6 +685,16 @@
         "sha256": "536ebdd1bc38675120d715e6b76c70307210a470f9d23e4d3136a6cf2c46dc1d"
       },
       {
+        "path": ".github/skills/microsoft-agent-framework-development/SKILL.md",
+        "bytes": 3648,
+        "sha256": "43d63dc0133b2a20038fa9f14e3b3ef725740e3ff0fbb2c827f82fcf3f287aa0"
+      },
+      {
+        "path": ".github/skills/microsoft-reference/SKILL.md",
+        "bytes": 3103,
+        "sha256": "e78a568b0475b8522fba5a68078df84437cffd7a3fbab9b114c22f5e63b27a01"
+      },
+      {
         "path": ".github/skills/multi-agent-coordinator/SKILL.md",
         "bytes": 2982,
         "sha256": "bf43fc45705d656fa28804d43f702eee48453f9f901ae11dabcd5bde142bd620"
@@ -651,8 +706,8 @@
       },
       {
         "path": ".github/skills/prepare-commit/SKILL.md",
-        "bytes": 2845,
-        "sha256": "3f9d8ed72859a7a8d3a3f8fe757358dc4c400849e2c66d73dac4d63ab64f5125"
+        "bytes": 3194,
+        "sha256": "1c789c60caeb5f8241bb20e99fcf401782db94aa7816d17999cd0e9b3766bda4"
       },
       {
         "path": ".github/skills/project-handoff/SKILL.md",
@@ -731,33 +786,38 @@
       },
       {
         "path": ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
-        "bytes": 11025,
-        "sha256": "7a44ceabeaae9e7b4ee28d82815fa014199818b1770cd82d09d0d2478a3f3f18"
+        "bytes": 10742,
+        "sha256": "f6eaf9f08f940e495308a89d10465c0e71240ebb9623613e62abd5b947473dee"
       },
       {
         "path": ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
-        "bytes": 7487,
-        "sha256": "f17435a1e287905194c440752acedeaff7106d4e45e4e95ac8ff862a0403b98b"
+        "bytes": 6990,
+        "sha256": "dea04ed8a5c782b698566747afbe0c8d3678d5f3c88a1f4ad37f0a2fd7ff5dba"
       },
       {
         "path": ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
-        "bytes": 48679,
-        "sha256": "56189059a2332e2026c7b65dc82f186d0f92b2685ff2e64e3189338867955680"
+        "bytes": 48674,
+        "sha256": "d1dfc03da9e9c43e671f0a444cc49a1ca3a2628b31bb318c0a550f07d87bc47c"
       },
       {
         "path": ".github/skills/project-visual-storytelling/SKILL.md",
-        "bytes": 25936,
-        "sha256": "6dbde68c5e2b16acccb3c0859910e9f4a6fad4bfffaca44caebe6722b378f487"
+        "bytes": 26190,
+        "sha256": "62f2db76e6557f1e732f9f771c59ecbb1b466f5efeab956ecfaa783ac43d968d"
+      },
+      {
+        "path": ".github/skills/refactoring/SKILL.md",
+        "bytes": 3344,
+        "sha256": "0c9694e1c406c98c80b2ed6c905ab3a27258817d0086eb858dde91b1af03ed2f"
       },
       {
         "path": ".github/skills/regression-test-development/SKILL.md",
-        "bytes": 3615,
-        "sha256": "38a57dc009eb527aecf3054a1cbe24c7f83eeba1214e56f6359092a949689239"
+        "bytes": 4102,
+        "sha256": "9cc8ea7ede58adf9dae2f1fe716ec4a037a1f40657a9c928562f7e0a6eb233c7"
       },
       {
         "path": ".github/skills/security-review/SKILL.md",
-        "bytes": 5218,
-        "sha256": "3e41314595179d172acc0de36702d9edef457f02f77e325b39b8d955e85bb8c0"
+        "bytes": 5842,
+        "sha256": "84d983f78949aeee753fa3344614239298e8b1f0dd3fda157eb79fc699f5bf81"
       },
       {
         "path": ".github/skills/skill-create/SKILL.md",
@@ -811,8 +871,8 @@
       },
       {
         "path": ".github/skills/visual-companion-builder/scripts/png.mjs",
-        "bytes": 6778,
-        "sha256": "06ef9a55b8e98dcd89e24af0656280e26abff122756a0a6fc3181bb0ec953f07"
+        "bytes": 9639,
+        "sha256": "589b75685eb8fd03dc2f4ad2de4323e5da10930952b66cdbbcbdca400e366809"
       },
       {
         "path": ".github/skills/visual-companion-builder/scripts/visual-companion-builder.mjs",
@@ -821,13 +881,13 @@
       },
       {
         "path": ".github/skills/visual-companion-builder/SKILL.md",
-        "bytes": 11685,
-        "sha256": "fddd88d2a5c6d9716d99cdba7fda20e0bda6ad6dca4fe80c63db14962b294b3e"
+        "bytes": 11833,
+        "sha256": "b3d2db4b0408e861b0f6950c82d5989d5a48bbedefc8250d221bf10f9c264aee"
       },
       {
         "path": ".github/skills/workflow-planner/SKILL.md",
-        "bytes": 4528,
-        "sha256": "09fbf4b60cf9b114905a7816fbe1f92cac2dc760faaba27f1d89117f15bc9a64"
+        "bytes": 5048,
+        "sha256": "5a4f9cb6f48ae2ffbaf90330e3321e409f238fddf2b925ff8fa9934e77cb81ce"
       },
       {
         "path": ".github/skills/workflow-recovery/SKILL.md",
@@ -1036,8 +1096,8 @@
       },
       {
         "path": "config/profiles.yaml",
-        "bytes": 1638,
-        "sha256": "b976f7526fbeb8539eaa55dc62275867809ae917f5840f594bb09e090a991de7"
+        "bytes": 1836,
+        "sha256": "4c74fe1232b8cc9e488c3bf4d7149c127c2c6987bf5e024442b341efefe0eaf2"
       },
       {
         "path": "config/skills-orchestrator.json",
@@ -1106,13 +1166,13 @@
       },
       {
         "path": "Demo/DEMO-DAY.md",
-        "bytes": 10006,
-        "sha256": "214eb402ede0f04e694c30c6f0ce6f447e023bf496d109089c297de2e14b6a48"
+        "bytes": 10607,
+        "sha256": "cd1899da49393aa6280407c93f976c38dcd8354f57c15e8901ca2de28d7ab4f1"
       },
       {
         "path": "Demo/Project-Orchestrator-Demo.pptx",
-        "bytes": 100654,
-        "sha256": "0e418d71d520f68e68f22046bb98eea9fb6eb8b6d7a44135206fdb1d44330274"
+        "bytes": 97115,
+        "sha256": "c23f30d8e4327a54479991ce7bef123fc8b3d7ab3517971b1043f1b402fa43b6"
       },
       {
         "path": "Demo/project-skills-orchestrator-animation.html",
@@ -1181,8 +1241,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 61922,
-        "sha256": "ed15d210a22f3794e7eb16d6575943a49f798b9df5c00e7a0a423d88654b4d3a"
+        "bytes": 70331,
+        "sha256": "2a1219563add044e21e26be4dcc3da2faaf68a8ee3df5848a7350162efb21f1c"
       },
       {
         "path": "release/release-manifest.json",
@@ -1231,8 +1291,8 @@
       },
       {
         "path": "reports/artifact-ownership.json",
-        "bytes": 12604,
-        "sha256": "081d7d084f02b33c4890c3771f602b0c90016f456cb0d5ec3ca5c132d6864163"
+        "bytes": 13990,
+        "sha256": "b6be07d479d0d810587a0927199e95e6b6d49730c96bf7186398a38296a1cf3e"
       },
       {
         "path": "reports/artifact-upgrade-plan.json",
@@ -1577,7 +1637,7 @@
       {
         "path": "reports/security-check.json",
         "bytes": 342,
-        "sha256": "6a722e98c164dd5354b23a695470e05b6563876640ee7684c63eab7c970ec9e0"
+        "sha256": "f7b633aabf2b846c928caf6e82e348cb2bed4e361ffb8fcbc31961c0f4bf5875"
       },
       {
         "path": "reports/security-review.json",
@@ -1591,33 +1651,33 @@
       },
       {
         "path": "reports/skill-dependency-graph.json",
-        "bytes": 6116,
-        "sha256": "165aff8153ed9e510fe26b7d2507dc40abbb28f658892858d1ccd0794bba1303"
+        "bytes": 6958,
+        "sha256": "f7d0bc9a1ea393874a8656e6eacc7f5926629941d6cd56e0fd8f7c1d8c795175"
       },
       {
         "path": "reports/skill-dependency-report.md",
-        "bytes": 3425,
-        "sha256": "7e55b2de00b7c1bbb34fd91f30c8159f9ae5d18c6ac41fa5b66b40b539e28ece"
+        "bytes": 4040,
+        "sha256": "9ea2ece50c9aae40bab93450bf1d1b1fe894dc7989f97f44a8513990b3985dfd"
       },
       {
         "path": "reports/skill-details.json",
-        "bytes": 44890,
-        "sha256": "9814ea398f673bc47bd645f0c2d181571e9a35f4d3c23d2671b218c41d5da7f8"
+        "bytes": 50706,
+        "sha256": "44b052ba6cd9c920096310def3b35dad6c97b6e76e204b3a59e632f8711d7ee6"
       },
       {
         "path": "reports/skill-details.md",
-        "bytes": 4809,
-        "sha256": "894e0184bcf1b14576c15fe6804c67815276859a04cdf52bd2f3e4ba46a9c0c8"
+        "bytes": 5580,
+        "sha256": "bdd8222370e0f24e1b2134aa5a1b6419cb1815ce50f9322c376816137214a717"
       },
       {
         "path": "reports/skill-inventory.json",
-        "bytes": 34390,
-        "sha256": "3d382c1604bd01529ee5973c5bcf1edbf64649a604b183692799d7c403e0acd6"
+        "bytes": 38946,
+        "sha256": "a26025968580f2ef489a4884d0dd85ad74493ec7fb634b71cec6c13fe16eecc3"
       },
       {
         "path": "reports/skill-inventory.md",
-        "bytes": 14823,
-        "sha256": "2e3387ca11b18d49a65ca2674c634eb96993cad0532047ae10d5cc07218360fb"
+        "bytes": 16750,
+        "sha256": "9880f68387001e93c74bf921f80b7389acd9cbe89e264fa8087067903295546f"
       },
       {
         "path": "reports/workflow-completion.json",
@@ -2036,8 +2096,8 @@
       },
       {
         "path": "scripts/update-demo-speaker-notes.ps1",
-        "bytes": 43570,
-        "sha256": "b073071823c256cf5f54ae80bfbf5f7678f6a488439136006005311fab575e5a"
+        "bytes": 43692,
+        "sha256": "bc96d09277c9a13e871d20c5bdbb59d9f8a54c4cabafdcd447e4bfcc76b7efb0"
       },
       {
         "path": "scripts/verify-release.mjs",
@@ -2351,8 +2411,8 @@
       },
       {
         "path": "tests/project-visual-storytelling.test.mjs",
-        "bytes": 65788,
-        "sha256": "1d6fc4e7409449534ff9f0d1dac34f017a91839824a2ddc6e768d05f5b38a723"
+        "bytes": 68401,
+        "sha256": "a86a506e7a6e857291af0ba1803747f991bd5c2918462268a5c35aa8c302cebe"
       },
       {
         "path": "tests/security-fuzz.test.mjs",
@@ -2361,8 +2421,8 @@
       },
       {
         "path": "tests/skill-contracts.test.mjs",
-        "bytes": 116817,
-        "sha256": "e7d180051236831565a4fa95c382be75c1743e175a32d21db7cc188d84eb5988"
+        "bytes": 121084,
+        "sha256": "ec211abcaab84165d0dd1ff72a184d0ae8c7efe7219ab7a39c287f812ae4e35f"
       },
       {
         "path": "tests/user-personalization.test.mjs",
@@ -2371,8 +2431,8 @@
       },
       {
         "path": "tests/visual-companion-builder.test.mjs",
-        "bytes": 44168,
-        "sha256": "2bc6cc649b1e4a952006c8d72d158744aa28b5bd74f0f0c9774f7c49e3b5c695"
+        "bytes": 44843,
+        "sha256": "7a82be5b3d50508865d69c1a7abcabdcd7e5c849f6319a60902f4c85425b7719"
       }
     ]
   },
@@ -2387,7 +2447,7 @@
     },
     {
       "name": ".github",
-      "description": "Top-level project boundary containing 163 scanned files.",
+      "description": "Top-level project boundary containing 175 scanned files.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ],
@@ -2485,7 +2545,7 @@
   "technology": [
     {
       "name": ".md",
-      "description": "190 scanned files use this extension.",
+      "description": "202 scanned files use this extension.",
       "evidence": [
         ".github/agents/visual-storytelling-director.agent.md"
       ],
@@ -2689,7 +2749,7 @@
   "features": [
     {
       "name": "Governed skill workflows",
-      "description": "50 installed skills provide bounded project actions.",
+      "description": "56 installed skills provide bounded project actions.",
       "evidence": [
         ".github/skills/agent-builder/SKILL.md",
         ".github/skills/agent-deployment/SKILL.md",
@@ -2701,7 +2761,7 @@
     },
     {
       "name": "Reusable prompt workflows",
-      "description": "58 prompt files provide user-invoked workflows.",
+      "description": "64 prompt files provide user-invoked workflows.",
       "evidence": [
         ".github/prompts/agent-builder-help.prompt.md",
         ".github/prompts/agent-deployment-help.prompt.md",
@@ -2963,6 +3023,24 @@
         "invocation": "/clarify-the-ask"
       },
       {
+        "name": "copilot-instructions-builder",
+        "description": "Analyze a target repository and create or review concise GitHub Copilot instructions that preserve existing guidance, reflect verified project conventions, and avoid secrets or unsupported claims. Use when `.github/copilot-instructions.md` is missing, stale, or needs a governed refresh.",
+        "evidence": [
+          ".github/skills/copilot-instructions-builder/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/copilot-instructions-builder"
+      },
+      {
+        "name": "copilot-sdk-development",
+        "description": "Design and validate GitHub Copilot SDK applications in an explicit target project, including sessions, streaming, tools, custom agents, and bounded MCP connections. Use for Copilot SDK application work; do not create target application code inside the Project Orchestrator launch pad.",
+        "evidence": [
+          ".github/skills/copilot-sdk-development/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/copilot-sdk-development"
+      },
+      {
         "name": "dependency-maintenance",
         "description": "Assess and update application package dependencies with provenance, advisory, compatibility, lockfile, and test evidence. Use for package upgrades or vulnerability remediation; do not use for Agent Skill graph dependencies or schema migrations.",
         "evidence": [
@@ -3017,6 +3095,15 @@
         "invocation": "/framework-health-check"
       },
       {
+        "name": "github-security-automation",
+        "description": "Plan, create, and validate repository-local CodeQL and Dependabot configuration with least privilege, pinned actions, accurate ecosystem detection, and CI evidence. Use when GitHub security automation is missing or misconfigured; do not enable remote repository settings without separate approval.",
+        "evidence": [
+          ".github/skills/github-security-automation/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/github-security-automation"
+      },
+      {
         "name": "linkedin-post",
         "description": "Analyze the current project and prepare an evidence-grounded, profile-aware LinkedIn short-form post draft that follows platform best practices, including update posts based on project history.",
         "evidence": [
@@ -3033,6 +3120,24 @@
         ],
         "status": "verified",
         "invocation": "/live-chat-interaction"
+      },
+      {
+        "name": "microsoft-agent-framework-development",
+        "description": "Design and validate Microsoft Agent Framework applications in explicit .NET or Python target projects using current reference evidence, bounded tools, state, orchestration, telemetry, and tests. Use for Microsoft Agent Framework implementation; use agent-builder for portable agent definitions.",
+        "evidence": [
+          ".github/skills/microsoft-agent-framework-development/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/microsoft-agent-framework-development"
+      },
+      {
+        "name": "microsoft-reference",
+        "description": "Retrieve and verify current Microsoft Learn, API, SDK, and product-reference guidance with dated citations, version context, and repository applicability. Use when implementation depends on current Microsoft signatures or service behavior; do not use as deployment evidence.",
+        "evidence": [
+          ".github/skills/microsoft-reference/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/microsoft-reference"
       },
       {
         "name": "multi-agent-coordinator",
@@ -3141,6 +3246,15 @@
         ],
         "status": "verified",
         "invocation": "/project-visual-storytelling"
+      },
+      {
+        "name": "refactoring",
+        "description": "Perform behavior-preserving code refactoring through characterization tests, small reversible steps, focused review, and measurable validation. Use when code structure needs improvement without changing its public behavior; use systematic-debugging instead when the primary goal is defect diagnosis.",
+        "evidence": [
+          ".github/skills/refactoring/SKILL.md"
+        ],
+        "status": "verified",
+        "invocation": "/refactoring"
       },
       {
         "name": "regression-test-development",
@@ -3415,6 +3529,24 @@
         "invocation": "/clarify-the-ask-help"
       },
       {
+        "name": "copilot-instructions-builder-help",
+        "description": "Help for the copilot-instructions-builder skill.",
+        "evidence": [
+          ".github/prompts/copilot-instructions-builder-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/copilot-instructions-builder-help"
+      },
+      {
+        "name": "copilot-sdk-development-help",
+        "description": "Help for the copilot-sdk-development skill.",
+        "evidence": [
+          ".github/prompts/copilot-sdk-development-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/copilot-sdk-development-help"
+      },
+      {
         "name": "demo-create-project",
         "description": "Demo step 1 - provision the Skills Orchestrator Demo project and prepare it for automated follow-up prompts.",
         "evidence": [
@@ -3487,6 +3619,15 @@
         "invocation": "/framework-health-check-help"
       },
       {
+        "name": "github-security-automation-help",
+        "description": "Help for the github-security-automation skill.",
+        "evidence": [
+          ".github/prompts/github-security-automation-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/github-security-automation-help"
+      },
+      {
         "name": "linkedin-post-help",
         "description": "Help for the linkedin-post skill.",
         "evidence": [
@@ -3503,6 +3644,24 @@
         ],
         "status": "verified",
         "invocation": "/live-chat-interaction-help"
+      },
+      {
+        "name": "microsoft-agent-framework-development-help",
+        "description": "Help for the microsoft-agent-framework-development skill.",
+        "evidence": [
+          ".github/prompts/microsoft-agent-framework-development-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/microsoft-agent-framework-development-help"
+      },
+      {
+        "name": "microsoft-reference-help",
+        "description": "Help for the microsoft-reference skill.",
+        "evidence": [
+          ".github/prompts/microsoft-reference-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/microsoft-reference-help"
       },
       {
         "name": "multi-agent-coordinator-help",
@@ -3647,6 +3806,15 @@
         ],
         "status": "verified",
         "invocation": "/project-visual-storytelling-help"
+      },
+      {
+        "name": "refactoring-help",
+        "description": "Help for the refactoring skill.",
+        "evidence": [
+          ".github/prompts/refactoring-help.prompt.md"
+        ],
+        "status": "verified",
+        "invocation": "/refactoring-help"
       },
       {
         "name": "regression-test-development-help",
@@ -4430,5 +4598,5 @@
     "Current-code provenance excludes downstream operational attestations to avoid publication cycles: reports/audit-remediation-execution.json, reports/audit-remediation-execution.md, reports/current-execution-state.json, reports/current-execution-state.md, reports/execution-log.jsonl, reports/project-handoff.json, reports/project-handoff.md, reports/current-work-state.json, reports/change-review.json, reports/change-review.md, reports/policy-evaluation.json, reports/policy-evaluation.md, reports/policy-decision-log.jsonl, reports/coordination-state.json, reports/coordination-state.md, reports/regression-test-result.json, reports/regression-test-result.md, reports/gitleaks-scan.json. Read those authoritative reports directly for live workflow/verification state; secret scanning still covers them."
   ],
   "markdown": "reports/project-understanding.md",
-  "markdownSha256": "99c6def981948b841a56871174e31b5cdb1e50625a9e37bf43648ceb59eecf9f"
+  "markdownSha256": "024a02dd54aef5070e4384aaf022ba8c12a99512f16baebda1f26080584d777a"
 }

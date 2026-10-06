@@ -39,16 +39,18 @@ Prepare a minimal, validated change set and commit summary without pushing, depl
 ## Procedure
 
 1. Inspect repository status and isolate only files relevant to the requested change.
-2. Remove accidental scope creep by excluding unrelated modifications from the proposed commit set.
-3. Run required validation checks for the touched scope and capture failing checks with evidence.
-4. Prepare a commit message summary that explains intent, impact, and validation results.
-5. Present a final pre-commit checklist including blocked items that prevent safe commit creation.
+2. Group relevant changes into logical staging units and explain why files belong together without staging them unless separately approved.
+3. Remove accidental scope creep by excluding unrelated modifications from the proposed commit set.
+4. Run required validation checks for the touched scope and capture failing checks with evidence.
+5. Prepare a repository-conformant conventional commit proposal that explains intent, impact, and validation results without inventing issue references or execution claims.
+6. Present a final pre-commit checklist including blocked items that prevent safe commit creation.
 
 ## Validation
 
 - Proposed change set is minimal and maps directly to the requested objective.
 - Validation outcomes are current for the selected files and are not inferred.
 - Commit summary reflects actual diffs and does not claim push/deploy execution.
+- Proposed staging groups are cohesive, exclude unrelated changes, and remain suggestions rather than performed Git mutation.
 - Repository protection constraints are preserved.
 
 ## Outputs

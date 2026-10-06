@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-01T19:23:52.927Z",
+  "generatedAt": "2026-10-06T10:43:22.056Z",
   "runtimeVersion": "1.3.0",
-  "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
+  "repositoryRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
   "sourceDirty": true,
-  "inventorySha256": "3d382c1604bd01529ee5973c5bcf1edbf64649a604b183692799d7c403e0acd6",
+  "inventorySha256": "a26025968580f2ef489a4884d0dd85ad74493ec7fb634b71cec6c13fe16eecc3",
   "status": "passed",
   "edgeDirection": "consumer-to-dependency",
-  "skillCount": 50,
+  "skillCount": 56,
   "graph": {
     "agent-builder": [
       "clarify-the-ask",
@@ -72,6 +72,18 @@
       "workflow-state-manager"
     ],
     "clarify-the-ask": [],
+    "copilot-instructions-builder": [
+      "clarify-the-ask",
+      "project-understanding",
+      "documentation-builder",
+      "policy-engine"
+    ],
+    "copilot-sdk-development": [
+      "clarify-the-ask",
+      "agent-builder",
+      "architecture-review",
+      "regression-test-development"
+    ],
     "dependency-maintenance": [
       "policy-engine",
       "regression-test-development",
@@ -97,6 +109,12 @@
       "skill-inventory",
       "skill-dependency-manager"
     ],
+    "github-security-automation": [
+      "security-review",
+      "dependency-maintenance",
+      "policy-engine",
+      "regression-test-development"
+    ],
     "linkedin-post": [
       "project-handoff",
       "documentation-builder",
@@ -107,6 +125,15 @@
       "policy-engine",
       "project-understanding",
       "regression-test-development"
+    ],
+    "microsoft-agent-framework-development": [
+      "microsoft-reference",
+      "agent-builder",
+      "architecture-review",
+      "regression-test-development"
+    ],
+    "microsoft-reference": [
+      "clarify-the-ask"
     ],
     "multi-agent-coordinator": [
       "workflow-state-manager",
@@ -155,7 +182,14 @@
       "user-personalization",
       "project-understanding",
       "agent-builder",
-      "azure-discovery"
+      "azure-discovery",
+      "visual-companion-builder"
+    ],
+    "refactoring": [
+      "clarify-the-ask",
+      "workflow-planner",
+      "regression-test-development",
+      "change-review"
     ],
     "regression-test-development": [
       "policy-engine",
@@ -221,26 +255,26 @@
   "profiles": {
     "core": {
       "extends": null,
-      "declaredCount": 35,
-      "effectiveCount": 35,
+      "declaredCount": 39,
+      "effectiveCount": 39,
       "dependencyClosed": true
     },
     "durable": {
       "extends": "core",
       "declaredCount": 13,
-      "effectiveCount": 46,
+      "effectiveCount": 50,
       "dependencyClosed": true
     },
     "distributed": {
       "extends": "durable",
       "declaredCount": 3,
-      "effectiveCount": 48,
+      "effectiveCount": 52,
       "dependencyClosed": true
     },
     "advanced": {
       "extends": "distributed",
-      "declaredCount": 3,
-      "effectiveCount": 50,
+      "declaredCount": 5,
+      "effectiveCount": 56,
       "dependencyClosed": true
     }
   },
@@ -251,7 +285,7 @@
     "blockers": []
   },
   "limitations": [
-    "This is local source/contract conformance evidence, not provider availability, release signing, tenant approval or live deployment verification."
+    "Local source and contract evidence only; not deployment, release signing, tenant approval, or provider qualification."
   ],
   "cycles": [],
   "missingDependencies": []

@@ -2,7 +2,7 @@
   "schemaVersion": "3.1.0",
   "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
   "executionId": "EXEC-9b2e557d-657b-433b-944b-fe6064f1aad0",
-  "generatedAt": "2026-10-01T18:45:59.452Z",
+  "generatedAt": "2026-10-02T00:30:36.938Z",
   "sourcePlan": {
     "path": "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
     "planId": "PLAN-b9be041a-c060-4172-b294-67b388b84ba6",
@@ -14,7 +14,7 @@
     "value": null,
     "includedPrerequisites": []
   },
-  "status": "approval-wait",
+  "status": "completed",
   "items": [
     {
       "id": "REM-0146",
@@ -2427,16 +2427,55 @@
       "phaseIds": [
         "M4"
       ],
-      "status": "approval-wait",
-      "changedPaths": [],
-      "validation": [],
+      "status": "completed",
+      "changedPaths": [
+        ".github/skills/visual-companion-builder/scripts/png.mjs",
+        "tests/visual-companion-builder.test.mjs",
+        ".github/skills/visual-companion-builder/SKILL.md",
+        ".github/prompts/visual-companion-builder-help.prompt.md",
+        ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
+        ".github/skills/project-visual-storytelling/scripts/azure-openai-image-render.mjs",
+        ".github/skills/project-visual-storytelling/scripts/mai-image-render.mjs",
+        "tests/project-visual-storytelling.test.mjs",
+        ".github/skills/project-visual-storytelling/SKILL.md",
+        ".github/prompts/project-visual-storytelling-help.prompt.md",
+        "tests/skill-contracts.test.mjs"
+      ],
+      "validation": [
+        {
+          "command": "node --test --test-name-pattern \"AUD-0132|PNG codec emits\" tests\\project-visual-storytelling.test.mjs tests\\visual-companion-builder.test.mjs",
+          "status": "passed",
+          "exitCode": 0,
+          "evidence": "2 passed, 0 failed. Provider adapters and the shared decoder reject header-only, truncated, CRC-corrupt, missing-IDAT, oversized-expansion, and unsupported PNG inputs."
+        },
+        {
+          "command": "node --test tests\\project-visual-storytelling.test.mjs tests\\visual-companion-builder.test.mjs",
+          "status": "passed",
+          "exitCode": 0,
+          "evidence": "110 passed, 0 failed after consumer integration and decoder refactoring."
+        },
+        {
+          "command": "node --test tests\\skill-contracts.test.mjs",
+          "status": "passed",
+          "exitCode": 0,
+          "evidence": "28 passed, 0 failed; dependency closure and deterministic help coverage are current."
+        },
+        {
+          "command": "npm run check",
+          "status": "passed",
+          "exitCode": 0,
+          "evidence": "951 tests: 948 passed, 0 failed, 3 explicit platform skips; security scan, unsigned release-candidate verification, 56-skill inventory, dependency closure, and framework verification passed."
+        }
+      ],
       "approvals": [
         "User: proceed with all changes --Proceed (2026-09-30T23:55:42.714Z); local reversible M1-M5 only",
-        "POLICY-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8"
+        "POLICY-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
+        "User: continue --Proceed; exact local reversible shared-decoder and project-visual-storytelling integration scopes",
+        "User: continue --Proceed; professional cleanup and directly coupled contract assertion"
       ],
-      "residualRisk": "The existing bounded PNG decoder is the correct reusable owner, but its fixed pixel ceiling and RGBA-only policy cannot validate the already-supported visual-storytelling canvas and RGB outputs without a scoped extension. The exact scope was presented through the approval tool; the user was unavailable. No new --Proceed approval was inferred.",
+      "residualRisk": "Local bounded decoding and regression evidence cover supported RGB/RGBA project visuals and malformed PNG rejection. Live image-provider behavior remains separately unverified, and no deployment, publication, commit, or push is implied.",
       "rollbackStatus": "not-required",
-      "checkpointId": null
+      "checkpointId": "CP-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-REM-0132-COMPLETE"
     },
     {
       "id": "REM-0140",
@@ -5169,31 +5208,79 @@
       ],
       "repositoryRevision": "2b581dbd11d95d2f8c4266d4f0a507feeea38457",
       "worktreeDigest": "d79a723b0b362e46978ab87ee7b85be4d633042a7d32dd41583b64319ffc158f"
+    },
+    {
+      "id": "CP-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-REM-0132-COMPLETE",
+      "createdAt": "2026-10-02T00:30:36.938Z",
+      "status": "terminal",
+      "completedItemIds": [
+        "REM-0146",
+        "REM-0108",
+        "REM-0106",
+        "REM-0128",
+        "REM-0110",
+        "REM-0111",
+        "REM-0122",
+        "REM-0129",
+        "REM-0130",
+        "REM-0131",
+        "REM-0121",
+        "REM-0115",
+        "REM-0116",
+        "REM-0137",
+        "REM-0138",
+        "REM-0101",
+        "REM-0102",
+        "REM-0103",
+        "REM-0104",
+        "REM-0105",
+        "REM-0107",
+        "REM-0109",
+        "REM-0112",
+        "REM-0114",
+        "REM-0117",
+        "REM-0118",
+        "REM-0120",
+        "REM-0123",
+        "REM-0125",
+        "REM-0126",
+        "REM-0127",
+        "REM-0134",
+        "REM-0135",
+        "REM-0136",
+        "REM-0139",
+        "REM-0142",
+        "REM-0143",
+        "REM-0113",
+        "REM-0124",
+        "REM-0132",
+        "REM-0140",
+        "REM-0141",
+        "REM-0119",
+        "REM-0144",
+        "REM-0145"
+      ],
+      "remainingItemIds": [],
+      "repositoryRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
+      "worktreeDigest": "d2624302f7d069b4f60c26b2bbcc7b26cee591d98c5cade6f2c11b205888713f"
     }
   ],
   "remaining": {
-    "itemIds": [
-      "REM-0132"
-    ],
-    "findingIds": [
-      "AUD-0132"
-    ],
-    "phaseIds": [
-      "M4"
-    ]
+    "itemIds": [],
+    "findingIds": [],
+    "phaseIds": []
   },
-  "pendingApprovals": [
-    "REM-0132: approve the explicit visual-companion-builder shared-decoder scope: .github/skills/visual-companion-builder/scripts/png.mjs; tests/visual-companion-builder.test.mjs; .github/skills/visual-companion-builder/SKILL.md; .github/prompts/visual-companion-builder-help.prompt.md"
-  ],
+  "pendingApprovals": [],
   "limitations": [
     "Local approval only; no external operations or release authority.",
     "Legacy prefix remains unchanged and explicitly nonconformant in formatting/metadata; this fresh run uses a validated typed suffix.",
     "No item is resolved merely because an edit ran; current acceptance evidence and post-fix audit verification are required.",
-    "REM-0132 was not silently widened or implemented with a reduced compatible image-format policy. User unavailability is not approval.",
-    "Final complete gate passed on current implementation source. The current generated guide is separately validated; closing cached-only secret scanning and read-only verification are performed after these reports are frozen."
+    "REM-0132 is complete after separately approved shared-decoder, consumer-integration, and cleanup scopes; supported RGB/RGBA behavior is preserved.",
+    "Final complete gate passed on current implementation source with 951 tests: 948 passed, 0 failed and 3 explicit platform skips.",
+    "No live-provider/tenant/device, deployment, publication, release signing, commit or push verification is implied."
   ],
   "nextAction": {
-    "status": "approval-required",
-    "action": "Confirm --Proceed for the exact shared PNG decoder scope in the retained REM-0132 proposal; all other selected items have passed final local verification."
+    "status": "complete",
+    "action": "No audit remediation item remains. Review the uncommitted worktree and obtain separate approval before any commit, push, release, deployment, or publication."
   }
 }

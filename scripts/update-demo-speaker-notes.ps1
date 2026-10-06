@@ -357,7 +357,7 @@ Confirm `C:\repos\skills-orchestrator-demo` does not already exist. Keep credent
 
 PROMPT 1: ESTABLISH
 In Copilot Chat Agent mode in the Project Orchestrator source workspace, run:
-`/demo-create-project --demo-date 2026-09-17`
+`/demo-create-project --demo-date 2026-10-09`
 
 WHILE IT RUNS
 Explain that the source framework is creating a separate durable TypeScript/test project. It verifies installation, confirms 47 skills, includes Azure discovery and infrastructure scaffolding, copies the bounded build prompt, and opens a fresh temporary workspace identity so old browser tabs are not restored.
@@ -381,7 +381,7 @@ The second prompt begins by checking the generated-project marker and authoritat
 The application phase remains inside the generated repository. Source, tests, documentation, and local run evidence belong there, not in the Project Orchestrator launch pad. This ownership boundary is what lets the source framework remain stable while every generated application evolves independently.
 
 SHOW THE APP
-Use test mode first so the countdown is visibly moving. Then show the live schedule and the `?at=` override for before, during, and after phases. Mention that time formatting uses `America/Chicago` and phase logic is pure and unit tested. On the thank-you state, show the locally generated QR codes and readable contact links.
+Use test mode first so the countdown is visibly moving. Show live mode only after the current event's start time is configured; otherwise show the explicit unconfigured message. Use the `?at=` clock override to rehearse phase boundaries without changing the schedule. Mention that time formatting uses `America/Chicago` and phase logic is pure and unit tested. On the thank-you state, show the locally generated QR codes and readable contact links.
 
 DEPLOYMENT GATE
 When the workflow reaches Azure mutation, stop and read the proposed resource group, region, SKU, public endpoint, and expected cost boundary. Do not approve deployment unless this demo explicitly includes that approved step. A clean stop at approval is a successful governance demonstration.
