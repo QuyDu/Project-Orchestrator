@@ -1,6 +1,6 @@
 # Project Orchestrator: Complete Project Overview
 
-> **Source metadata:** Runtime version `1.3.0`, framework version `9.2.0`, dated 2026-10-01. The architecture narrative retains its prior review baseline; current verified capabilities and limitations are recorded in [PROJECT-GUIDE.md](PROJECT-GUIDE.md) and the machine-readable artifacts under `reports/`. A version/date update is not a new hosted-security or formal-release attestation.
+> **Source metadata:** Runtime version `1.4.0`, framework version `9.3.0`, dated 2026-10-07. The architecture narrative retains its prior review baseline; current verified capabilities and limitations are recorded in [PROJECT-GUIDE.md](PROJECT-GUIDE.md) and the machine-readable artifacts under `reports/`. A version/date update is not a new hosted-security or formal-release attestation.
 
 ## Executive Summary
 
@@ -9,7 +9,7 @@ Project Orchestrator turns a repository into a governed GitHub Copilot workspace
 The product has two main parts:
 
 1. A registry-free Node.js command-line runtime that creates a governed project, adopts an existing repository, updates an installed project, and verifies the resulting framework.
-2. A catalog of 50 governed skills that GitHub Copilot can use for planning, implementation support, audit, remediation, security review, documentation, personalized communication, Azure discovery, agent deployment, visual companions, continuity, and other bounded workflows.
+2. A catalog of 56 governed skills that GitHub Copilot can use for planning, implementation support, audit, remediation, security review, documentation, personalized communication, Azure discovery, agent deployment, visual companions, continuity, and other bounded workflows.
 
 Its central value is not simply generating files. Its value is making AI-assisted work **repeatable, reviewable, recoverable, and evidence-based**:
 
@@ -25,7 +25,7 @@ Project Orchestrator is currently an **unsigned internal candidate** for authori
 
 ## The 30-Second Explanation
 
-Most teams can make Copilot useful in one repository. The harder problem is making it consistent, safe, maintainable, and auditable across many repositories. Project Orchestrator packages that operating model into a registry-free installer and 50 governed skills. It adapts to the target stack, preserves existing work, requires approval at consequential boundaries, records machine-readable evidence, and can roll back failed installation changes.
+Most teams can make Copilot useful in one repository. The harder problem is making it consistent, safe, maintainable, and auditable across many repositories. Project Orchestrator packages that operating model into a registry-free installer and 56 governed skills. It adapts to the target stack, preserves existing work, requires approval at consequential boundaries, records machine-readable evidence, and can roll back failed installation changes.
 
 ## Why This Project Exists
 
@@ -71,7 +71,7 @@ Project adoption uses canonical path checks, symbolic-link rejection, destinatio
 
 ### Reuse instead of reinvention
 
-The 50-skill catalog covers common engineering, governance, deployment, visual-companion, and personalized communication workflows. The inventory and dependency system helps teams reuse an existing skill before creating another overlapping capability.
+The 56-skill catalog covers common engineering, governance, deployment, visual-companion, and personalized communication workflows. The inventory and dependency system helps teams reuse an existing skill before creating another overlapping capability.
 
 ### Evidence instead of optimistic claims
 
@@ -118,10 +118,10 @@ Project Orchestrator is not:
 | --- | --- |
 | Product name | Project Orchestrator |
 | Compatibility names | `pso`, `pso.mjs`, `project-skills-orchestrator`, and `.skills-orchestrator` remain stable interfaces |
-| Runtime version | `1.3.0` |
-| Source version date | October 1, 2026 |
-| Framework version | `9.2.0` |
-| Governed skills | 50 |
+| Runtime version | `1.4.0` |
+| Source version date | October 7, 2026 |
+| Framework version | `9.3.0` |
+| Governed skills | 56 |
 | Core runtime dependencies | 0 third-party packages |
 | Supported Node.js majors | 22, 24, and 26 |
 | Default new-project profile | `durable` |
@@ -144,7 +144,7 @@ flowchart TD
 
     J[Repository context] --> B
     J --> C
-    K[50 skill contracts] --> C
+    K[56 skill contracts] --> C
     L[Schemas and profiles] --> D
     L --> G
     M[Transaction journal and backups] --> F
@@ -487,7 +487,7 @@ All framework skills are copied into a standalone project. The selected profile 
 
 Profiles are dependency-closed and validated for cycles.
 
-## The 50 Governed Skills
+## The 56 Governed Skills
 
 The inventory below groups the current skill catalog by the problem each skill primarily owns. Lifecycle labels vary; a passing contract audit does not mean every skill is production-certified.
 
@@ -523,6 +523,9 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `skill-registry` | Governs skill provenance, lifecycle promotion, deprecation, retirement, and revocation proposals. |
 | `agent-builder` | Builds and transactionally installs least-privilege custom agents and non-executing publication handoff plans. |
 | `agent-deployment` | Packages validated agents and performs separately approved Foundry, Microsoft 365, Copilot Studio, and Agents Toolkit operations with digest-bound plans and durable recovery evidence. |
+| `copilot-instructions-builder` | Creates or reviews concise repository-local Copilot instructions from verified project conventions without overwriting existing guidance. |
+| `copilot-sdk-development` | Designs and validates GitHub Copilot SDK applications in an explicit target project with bounded sessions, tools, agents, and MCP connections. |
+| `microsoft-agent-framework-development` | Designs and validates Microsoft Agent Framework applications in an explicit .NET or Python target project. |
 | `visual-companion-builder` | Creates original or licensed sprites, accessible browser companions, standalone VS Code extension source, static icons, and licensed Pets-fork handoffs without native installation or publication. |
 | `live-chat-interaction` | Supplies provider-neutral local conversation state, approved grounding, credential-free session boundaries, and accessible guided/text fallbacks. |
 
@@ -539,6 +542,7 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `architecture-review` | Evaluates designed architecture across reliability, security, cost, operations, and performance. |
 | `change-review` | Reviews a bounded diff for defects, regressions, requirement gaps, and missing tests. |
 | `deployment-review` | Assesses whether a release candidate is deployable without performing deployment. |
+| `github-security-automation` | Plans and validates repository-local CodeQL and Dependabot configuration with least privilege and pinned actions. |
 | `prepare-commit` | Prepares a minimal validated change set and commit summary without committing or pushing. |
 
 ### Engineering, maintenance, and recovery
@@ -551,6 +555,7 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `dependency-maintenance` | Updates application dependencies with advisory, provenance, compatibility, lockfile, and test evidence. |
 | `artifact-upgrade` | Plans and validates schema or artifact migrations with compatibility and rollback. |
 | `environment-update` | Inventories installed development tools and updates only user-selected existing tools. |
+| `refactoring` | Performs behavior-preserving refactoring through characterization tests, reversible steps, and focused validation. |
 | `workflow-recovery` | Analyzes interrupted workflows and produces a safe recovery plan. |
 
 ### Advanced orchestration and telemetry
@@ -569,6 +574,7 @@ The inventory below groups the current skill catalog by the problem each skill p
 | `documentation-builder` | Produces evidence-grounded guides, READMEs, decision records, deployment guides, and runbooks. |
 | `project-knowledge-capture` | Preserves reusable decisions, lessons, patterns, anti-patterns, and architecture discoveries. |
 | `project-memory` | Maintains durable operational preferences while keeping current instructions and evidence authoritative. |
+| `microsoft-reference` | Retrieves current Microsoft Learn, API, SDK, and product guidance with dated citations and repository applicability. |
 | `linkedin-post` | Produces an evidence-grounded, profile-aware short-form project post with LinkedIn structure, media-readiness, confidentiality, and public-context checks; publication remains separately approved. |
 | `user-personalization` | Builds and validates one local, Git-ignored profile of user-approved voice, perspective, visual, and safety preferences. |
 | `project-visual-storytelling` | Refreshes Project Understanding and uses the current repository as its sole source for technical Mermaid diagrams, profile-aware whiteboards, and architectural/conceptual dioramas under `artifacts/project-visual-storytelling/<run-id>/`. Its one-shot `create --request` path prioritizes meaningful project capabilities, builds evidence-backed labels and captions, and renders a photographed handcrafted whiteboard or miniature diorama through a qualified Azure Government GPT Image or MAI deployment after current-invocation approval. The packaged Node adapters require no separately installed rendering application. PNGs remain review-required candidates, and unavailable image providers fail clearly without claiming a rendered artifact. |
@@ -743,16 +749,15 @@ Reports are useful because they can be validated, compared, consumed by automati
 
 ## Current Validation Evidence
 
-The most recent full gate associated with the current implementation snapshot reported:
+The October 6, 2026 full gate associated with the feature-expanded implementation reported:
 
-- 341 tests discovered;
-- 340 tests passed;
+- 953 tests discovered;
+- 950 tests passed;
 - 0 tests failed;
-- 1 platform-specific test skipped because the temporary directory had no filesystem alias;
-- 50 skills inventoried and audited;
-- 50 skill audits passed;
-- 323 files security-scanned with no findings and zero package dependencies;
-- 226 release-candidate files verified by checksum;
+- 3 explicit platform-dependent tests skipped;
+- 56 skills inventoried with 136 verified dependency edges;
+- security and Gitleaks scans passed with no findings and zero package dependencies;
+- unsigned release-candidate build and checksum verification passed;
 - distribution verification passed for skills, schemas, profiles, dependencies, ownership, and the audit pipeline.
 
 Run the current gate rather than relying indefinitely on these historical counts:
@@ -934,7 +939,7 @@ Use current source, configuration, and machine-readable reports before relying o
 - [Runtime](../pso.mjs): implemented command behavior and safety controls.
 - [Profiles](../config/profiles.yaml): conformance profile definitions.
 - [Orchestrator configuration](../config/orchestrator.yaml): framework runtime and policy configuration.
-- [Current skill inventory](../reports/skill-inventory.json): the 50-skill catalog and dependencies.
+- [Current skill inventory](../reports/skill-inventory.json): the 56-skill catalog and dependencies.
 - [Artifact ownership](../reports/artifact-ownership.json): report producer ownership.
 - [Security policy](../SECURITY.md): operating requirements and release gates.
 - [Threat model](THREAT-MODEL.md): threats, controls, residual risks, and invariants.

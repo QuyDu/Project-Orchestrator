@@ -1,25 +1,20 @@
-# Source Delivery Review
+# Version 1.4.0 Delivery Review
 
-Status: **passed with stated limitations** for the pending runtime 1.3.0 / framework 9.2.0 source changes.
+Status: **passed with no findings and stated limitations** for the pending runtime
+1.4.0 / framework 9.3.0 source-metadata delivery.
 
 The review boundary is the working-tree change set since
-`0c7c05a11b8603237d3f0f0877ce632b521636a9`: bounded PNG qualification, the expanded
-skill catalog and help, profile wiring, Chat/PowerShell onboarding, reusable demo
-scheduling, associated tests, and generated evidence.
-
-One publication-blocking report defect was found and resolved: the dependency
-graph had lost every prerequisite edge. It now records 56 skills and 136 edges,
-with cycle, ownership, profile-closure, and exact contract-edge checks.
+`19aed483a451f7aef16bd148f86d74677ca9355a`: canonical version metadata, the October 7
+source date, synchronized release/demo documentation, generated inventory and security
+evidence, and the pre-commit handoff checkpoint.
 
 The full `npm run check` gate passed: **953 tests, 950 passed, 0 failed, 3 skipped**.
-Afterward, only generated evidence and repository-defined whitespace were refreshed.
-The 110 PNG/image-provider tests and 6 focused contract/help/graph/demo checks passed,
-as did the refreshed security scan and current-source project-guide validation.
+Security scanned 389 files with no findings, the unsigned 1.4.0 candidate verified
+238 checksum-covered files, and all 56 governed skills passed inventory/audit and
+framework verification. Post-gate checks confirmed valid handoff JSON, clean whitespace,
+consistent 1.4.0 metadata, and an exact 56-of-56 overview-to-inventory match.
 
-- No unresolved finding remains in this bounded review.
-- The pre-existing lightweight scanner includes its transient writer lock in its
-  source digest. Final-input verification uses the cached Gitleaks certificate and
-  native `scanInputDigest`, not that transient digest.
+- No finding was identified in this bounded review.
 - Live provider, tenant, device, and deployment qualification remain outside scope.
 - Signing, independent release-review, and operational gates still block a formal release.
 - User approval covers one normal source commit and push to the existing

@@ -6,9 +6,9 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 | Item | Value |
 | --- | --- |
-| Runtime version | `1.3.0` |
-| Source version date | October 1, 2026 |
-| Framework version | `9.2.0` |
+| Runtime version | `1.4.0` |
+| Source version date | October 7, 2026 |
+| Framework version | `9.3.0` |
 | Skill catalog | 56 governed skills |
 | Supported Node.js | 22, 24, 26 |
 | Dependencies | None |
@@ -19,7 +19,7 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 > `.skills-orchestrator` state directory remain stable compatibility interfaces for existing
 > projects and automation.
 
-> **Release status.** Version `1.3.0` is a source update dated October 1, 2026. No GitHub Release or package is published. The formal release remains blocked by trusted signing, independent release-review evidence, and operational readiness evidence tracked in [release/release-manifest.json](release/release-manifest.json). The completed code/security reviews do not substitute for those release attestations. See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+> **Release status.** Version `1.4.0` is a source update dated October 7, 2026. No GitHub Release or package is published. The formal release remains blocked by trusted signing, independent release-review evidence, and operational readiness evidence tracked in [release/release-manifest.json](release/release-manifest.json). The completed code/security reviews do not substitute for those release attestations. See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 > **Security and use notice.** Reasonable security efforts do not eliminate all risk. Before using this software, read [DISCLAIMER.md](DISCLAIMER.md), perform independent checks appropriate to your environment, and comply with the internal-use terms in [LICENSE](LICENSE).
 

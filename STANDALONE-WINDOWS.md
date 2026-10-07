@@ -25,7 +25,7 @@ node .\pso.mjs verify
 Expected result:
 
 ```text
-Verified registry-free distribution: 47 skills
+Verified registry-free distribution: 56 skills
 ```
 
 ## Create a project

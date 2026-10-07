@@ -1,23 +1,23 @@
 {
   "schemaVersion": "1.0.0",
-  "updatedAt": "2026-10-06T10:26:01.826Z",
+  "updatedAt": "2026-10-07T10:04:30.585Z",
   "status": "completed",
   "project": {
     "name": "project-skills-orchestrator",
     "repository": "QuyDu/Project-Orchestrator",
-    "version": "1.3.0",
-    "frameworkVersion": "9.2.0",
-    "sourceVersionDate": "2026-10-01",
+    "version": "1.4.0",
+    "frameworkVersion": "9.3.0",
+    "sourceVersionDate": "2026-10-07",
     "branch": "release/1.1.2",
-    "sourceRevisionAtSnapshot": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
+    "sourceRevisionAtSnapshot": "19aed483a451f7aef16bd148f86d74677ca9355a",
     "upstream": "origin/release/1.1.2",
-    "upstreamRevisionAtSnapshot": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
+    "upstreamRevisionAtSnapshot": "19aed483a451f7aef16bd148f86d74677ca9355a",
     "sourceDirty": true
   },
   "activeMilestone": {
-    "name": "Approved 45-finding local audit remediation",
+    "name": "Version 1.4.0 source metadata delivery",
     "status": "completed",
-    "phase": "M4"
+    "phase": "pre-commit"
   },
   "workflow": {
     "schemaVersion": "1.0.0",
@@ -41,19 +41,20 @@
   },
   "executionReport": "reports/audit-remediation-execution.json",
   "lastCompletedAction": {
-    "action": "Validated source delivery candidate: PNG qualification, skill expansion, onboarding, demo scheduling, and repaired dependency evidence",
+    "action": "Validated runtime 1.4.0, framework 9.3.0, October 7 source metadata, synchronized release documentation, and refreshed generated evidence",
     "status": "validated-for-delivery",
     "evidence": [
-      "reports/audit-remediation-execution.json",
-      ".github/skills/visual-companion-builder/scripts/png.mjs",
-      ".github/skills/project-visual-storytelling/scripts/project-visual-storytelling.mjs",
-      "tests/project-visual-storytelling.test.mjs",
-      "config/profiles.yaml",
-      "tests/skill-contracts.test.mjs",
+      "package.json",
+      "package-lock.json",
+      "pso.mjs",
+      "config/orchestrator.yaml",
+      "README.md",
+      "SECURITY.md",
+      "docs/PROJECT-OVERVIEW.md",
+      "Demo/DEMO-DAY.md",
+      "reports/security-check.json",
       "reports/skill-inventory.json",
-      "reports/skill-dependency-graph.json",
-      "reports/project-understanding.json",
-      "docs/PROJECT-GUIDE.md"
+      "reports/artifact-ownership.json"
     ]
   },
   "completedItemIds": [
@@ -154,7 +155,7 @@
   "remainingFindingIds": [],
   "blockedItemIds": [],
   "pendingApprovals": [],
-  "currentApproval": "User: update the github repo --Proceed (2026-10-06T05:57:38.543-04:00); normal commit and push of the reviewed Project Orchestrator change set to the existing origin/release/1.1.2 branch.",
+  "currentApproval": "User: make sure this latest version is committed and pushed including updated Versioning and release date (2026-10-07T05:29:39.368-04:00); normal commit and push of the validated version-metadata change set to the existing origin/release/1.1.2 branch.",
   "priorDeliveryApproval": {
     "historical": true,
     "usableForCurrentWork": false
@@ -240,14 +241,14 @@
         "REM-0132"
       ],
       "remainingItemIds": [],
-      "repositoryRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
-      "worktreeDigest": "d2624302f7d069b4f60c26b2bbcc7b26cee591d98c5cade6f2c11b205888713f"
+      "repositoryRevision": "19aed483a451f7aef16bd148f86d74677ca9355a",
+      "worktreeDigest": "9dd680ddf3bc1ce9939503fcf6b8f5ca32a949bf8c24413dc2aa64ea0036ebf3"
     },
     "releaseApproval": "not-granted",
-    "sourceVersion": "1.3.0",
-    "frameworkVersion": "9.2.0",
+    "sourceVersion": "1.4.0",
+    "frameworkVersion": "9.3.0",
     "command": "npm run check",
-    "logSha256": "16e7b7e72e8bf3c5606cfdc8850642db01aa41cda0e6c372a7d16884352382ee",
+    "logSha256": "754699f24fa8ff7b7341453d4c51179c05c3b963585d7f951845146b406e8542",
     "tests": {
       "total": 953,
       "passed": 950,
@@ -262,8 +263,8 @@
     "No source finding is described as resolved without its recorded current acceptance and post-fix audit verification.",
     "No live-provider/tenant/device, hosted, advisory or current external standards qualification is implied.",
     "The historical event prefix remains unchanged; its legacy metadata and framing limitations are retained.",
-    "The prior source delivery and pre-commit upstream base were verified at 0c7c05a11b8603237d3f0f0877ce632b521636a9. Verify the new delivery from Git.",
-    "REM-0132 local verification rejects header-only, truncated, CRC-corrupt, missing-IDAT and oversized-expansion PNGs across the shared decoder and project-visual adapters.",
+    "The prior source delivery and pre-commit upstream base were verified at 19aed483a451f7aef16bd148f86d74677ca9355a. Verify the new delivery from Git.",
+    "The unsigned 1.4.0 release candidate contains 238 checksum-covered files; formal release remains blocked by the release contract.",
     "The governed catalog now contains 56 dependency-closed skills with deterministic help, refreshed inventory, current Project Understanding and a validated Project Guide.",
     "The current full gate passed with 953 tests: 950 passed, 0 failed and 3 explicit platform skips.",
     "This checkpoint is written before commit and push. It does not pre-claim remote delivery; actual Git state is authoritative."
@@ -275,8 +276,8 @@
   "snapshotPhase": "pre-commit-delivery-checkpoint",
   "deliveryApproval": {
     "status": "bound-to-current-change-set",
-    "request": "update the github repo --Proceed",
-    "scope": "One normal commit of the reviewed and validated current source change set, followed by a push to existing origin/release/1.1.2",
+    "request": "make sure this latest version is committed and pushed including updated Versioning and release date",
+    "scope": "One normal commit of the validated runtime 1.4.0, framework 9.3.0, October 7 source-date change set, followed by a push to existing origin/release/1.1.2",
     "repositoryVisibility": "public",
     "excludes": [
       "changes to XAVIER",
@@ -294,14 +295,14 @@
     "commit": null,
     "push": null,
     "expectedUpstream": "origin/release/1.1.2",
-    "baseRevision": "0c7c05a11b8603237d3f0f0877ce632b521636a9",
+    "baseRevision": "19aed483a451f7aef16bd148f86d74677ca9355a",
     "tests": {
       "total": 953,
       "passed": 950,
       "failed": 0,
       "skipped": 3
     },
-    "evidenceSha256": "16e7b7e72e8bf3c5606cfdc8850642db01aa41cda0e6c372a7d16884352382ee",
+    "evidenceSha256": "754699f24fa8ff7b7341453d4c51179c05c3b963585d7f951845146b406e8542",
     "actualDeliveryMustBeVerifiedFromGit": true
   }
 }

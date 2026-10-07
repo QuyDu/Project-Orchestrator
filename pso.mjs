@@ -8,8 +8,8 @@ import { createHash, randomUUID } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 
-const VERSION = "1.3.0";
-const FRAMEWORK_VERSION = "9.2.0";
+const VERSION = "1.4.0";
+const FRAMEWORK_VERSION = "9.3.0";
 const RISK_ACCEPTANCE_VERSION = "1.0.0";
 const DIGEST_ALGORITHM = "sha256-normalized-text-v1";
 const PROJECT_MANIFEST_SCHEMA_VERSION = "1.1.0";

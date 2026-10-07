@@ -42,7 +42,7 @@ Deliver the opening, visual walkthrough, and core story first. Use project-depth
 5. Confirm Node.js and Visual Studio Code are available for the local project-creation flow. Use `/demo-create-project --Test` during rehearsal so the test workspace remains available for inspection.
 6. Before Act 3's deployment decision, confirm Azure CLI is already signed in to the intended Azure US Government subscription. Do not project credentials, device codes, tokens, keys, tenant identifiers, or subscription identifiers.
 7. Confirm the audience can see the slides, terminal, editor, and browser. Keep the generated-app browser tab ready to show the `?mode=test` view and the three `?at=` phase overrides.
-8. Keep the latest successful `npm run check` evidence visible and confirm all 47 skills were verified. The candidate remains unsigned and P4 release assurance remains blocked.
+8. Keep the latest successful `npm run check` evidence visible and confirm all 56 skills were verified. The candidate remains unsigned and P4 release assurance remains blocked.
 
 ## Act 1: introduce the governed foundation
 
