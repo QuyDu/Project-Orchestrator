@@ -25,6 +25,21 @@ const approvalGates = [
   "destructive-or-irreversible-action"
 ];
 
+function pureModuleLoader(modulePath, source) {
+  return `
+    import * as moduleRuntime from "node:module";
+    const guardedModuleUrl = ${JSON.stringify(pathToFileURL(modulePath).href)};
+    const guardedModuleSource = ${JSON.stringify(source)};
+    moduleRuntime.registerHooks?.({
+      load(url, context, nextLoad) {
+        return url === guardedModuleUrl
+          ? { format: "module", source: guardedModuleSource, shortCircuit: true }
+          : nextLoad(url, context);
+      }
+    });
+  `;
+}
+
 function run(project, command, blueprint, extra = []) {
   return spawnSync(process.execPath, [builder, command, "--project", project, "--blueprint", blueprint, ...extra], {
     cwd: root,
@@ -126,6 +141,7 @@ test("Agent Builder copy-only installation imports, renders, normalizes and vali
       distribution: originals.normalizeDistribution(candidate)
     }));
     const code = `
+      ${pureModuleLoader(installed, await readFile(installed, "utf8"))}
       import assert from "node:assert/strict";
       import fs from "node:fs";
       import fsp from "node:fs/promises";
@@ -156,7 +172,7 @@ test("Agent Builder copy-only installation imports, renders, normalizes and vali
       assert.throws(() => renderAgent(native), /Native|native/);
       console.log("copy-only legacy APIs are synchronous and pure");
     `;
-    const imported = spawnSync(process.execPath, ["--input-type=module", "-e", code], { cwd: project, encoding: "utf8" });
+    const imported = spawnSync(process.execPath, ["--input-type=module"], { input: code, cwd: project, encoding: "utf8" });
     assert.equal(imported.status, 0, imported.stderr);
     assert.equal(imported.stdout.trim(), "copy-only legacy APIs are synchronous and pure");
     assert.equal(imported.stderr, "");
@@ -169,7 +185,7 @@ test("Agent Builder copy-only installation imports, renders, normalizes and vali
       assert.deepEqual(JSON.parse(validated.stdout), { status: "valid", id: candidate.id });
     }
     await writeFile(path.join(project, "native-studio.mjs"), 'throw new Error("Native module must not load for classic work");\n');
-    const nativeNotLoaded = spawnSync(process.execPath, ["--input-type=module", "-e", code], { cwd: project, encoding: "utf8" });
+    const nativeNotLoaded = spawnSync(process.execPath, ["--input-type=module"], { input: code, cwd: project, encoding: "utf8" });
     assert.equal(nativeNotLoaded.status, 0, nativeNotLoaded.stderr);
     const classicCommand = spawnSync(process.execPath, [installed, "validate", "--project", project, "--blueprint", blueprintPath, "--json"], { cwd: project, encoding: "utf8" });
     assert.equal(classicCommand.status, 0, classicCommand.stderr);
@@ -238,9 +254,10 @@ test("Native Studio handoff validator is pure, strict, and never treats absent e
     mutate(invalid);
     assert.throws(() => validateNativeStudioHandoff(invalid));
   }
-  const imported = spawnSync(process.execPath, ["--input-type=module", "-e",
-    `import * as fs from 'node:fs';import * as fsp from 'node:fs/promises';import cp from 'node:child_process';import {syncBuiltinESMExports} from 'node:module';fs.default.readFileSync=()=>{throw Error('Unexpected sync filesystem access')};fsp.default.readFile=()=>{throw Error('Unexpected async filesystem access')};cp.spawnSync=()=>{throw Error('Unexpected CLI execution')};syncBuiltinESMExports();await import(${JSON.stringify(pathToFileURL(nativeModule).href)});`
-  ], { cwd: root, encoding: "utf8" });
+  const imported = spawnSync(process.execPath, ["--input-type=module"], {
+    input: `${pureModuleLoader(nativeModule, await readFile(nativeModule, "utf8"))}import * as fs from 'node:fs';import * as fsp from 'node:fs/promises';import cp from 'node:child_process';import {syncBuiltinESMExports} from 'node:module';fs.default.readFileSync=()=>{throw Error('Unexpected sync filesystem access')};fsp.default.readFile=()=>{throw Error('Unexpected async filesystem access')};cp.spawnSync=()=>{throw Error('Unexpected CLI execution')};syncBuiltinESMExports();await import(${JSON.stringify(pathToFileURL(nativeModule).href)});`,
+    cwd: root, encoding: "utf8"
+  });
   assert.equal(imported.status, 0, imported.stderr);
   assert.equal(imported.stdout, "");
 });
@@ -251,7 +268,8 @@ test("Native Studio pure helpers load independently without a reverse builder im
     const copied = path.join(project, "native-studio.mjs");
     await copyFile(nativeModule, copied);
     const value = nativeHandoff();
-    const imported = spawnSync(process.execPath, ["--input-type=module", "-e", `
+    const imported = spawnSync(process.execPath, ["--input-type=module"], { input: `
+      ${pureModuleLoader(copied, await readFile(copied, "utf8"))}
       import assert from "node:assert/strict";
       import fs from "node:fs";
       import fsp from "node:fs/promises";
@@ -262,12 +280,33 @@ test("Native Studio pure helpers load independently without a reverse builder im
       const helper = await import(${JSON.stringify(pathToFileURL(copied).href)});
       const candidate = ${JSON.stringify(value)};
       assert.equal(helper.validateNativeStudioHandoff(candidate), candidate);
-    `], { cwd: project, encoding: "utf8" });
+    `, cwd: project, encoding: "utf8" });
     assert.equal(imported.status, 0, imported.stderr);
     assert.equal(imported.stdout, "");
     assert.equal(existsSync(path.join(project, "agent-builder.mjs")), false);
     assert.equal(existsSync(path.join(project, "schemas")), false);
   } finally { await rm(project, { recursive: true, force: true }); }
+});
+
+test("pure import harness still rejects filesystem access in module bodies", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-pure-import-negative-"));
+  try {
+    const modulePath = path.join(project, "impure.mjs");
+    const source = 'import { readFileSync } from "node:fs"; readFileSync("unexpected.txt");\n';
+    await writeFile(modulePath, source);
+    const imported = spawnSync(process.execPath, ["--input-type=module", "-e", `
+      ${pureModuleLoader(modulePath, source)}
+      import fs from "node:fs";
+      import { syncBuiltinESMExports } from "node:module";
+      fs.readFileSync = () => { throw new Error("Module body filesystem access denied"); };
+      syncBuiltinESMExports();
+      await import(${JSON.stringify(pathToFileURL(modulePath).href)});
+    `], { cwd: project, encoding: "utf8" });
+    assert.notEqual(imported.status, 0);
+    assert.match(imported.stderr, /Module body filesystem access denied/);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
 });
 
 test("Native Studio complete cannot omit security, read-back, approval or recovery evidence", async () => {

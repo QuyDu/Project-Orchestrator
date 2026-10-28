@@ -1098,7 +1098,9 @@ test("adoption installs only the scoped instructions the detected stack needs", 
     const instructions = await readdir(path.join(project, ".github", "instructions"));
     assert.ok(instructions.includes("clarification.instructions.md"));
     assert.ok(instructions.includes("security.instructions.md"));
-    for (const absent of ["bicep.instructions.md", "powershell.instructions.md", "csharp.instructions.md", "typescript.instructions.md"]) {
+    assert.ok(instructions.includes("best-practices.instructions.md"));
+    assert.ok(instructions.includes("python.instructions.md"));
+    for (const absent of ["bicep.instructions.md", "powershell.instructions.md", "csharp.instructions.md", "dotnet.instructions.md", "typescript.instructions.md", "node.instructions.md"]) {
       assert.ok(!instructions.includes(absent), `${absent} must not be installed into a Python-only repository`);
     }
 
@@ -1108,6 +1110,63 @@ test("adoption installs only the scoped instructions the detected stack needs", 
     for (const action of skipped) assert.match(action.reason, /No detected stack matches/);
   } finally {
     await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("source-aligned standards reach generated projects without unrelated language guidance", async (context) => {
+  const cases = [
+    { stack: "javascript", included: ["typescript.instructions.md", "node.instructions.md"], excluded: ["csharp.instructions.md", "dotnet.instructions.md", "python.instructions.md"] },
+    { stack: "csharp", included: ["csharp.instructions.md", "dotnet.instructions.md"], excluded: ["typescript.instructions.md", "node.instructions.md", "python.instructions.md"] },
+    { stack: "python", included: ["python.instructions.md"], excluded: ["typescript.instructions.md", "node.instructions.md", "csharp.instructions.md", "dotnet.instructions.md"] }
+  ];
+  for (const scenario of cases) {
+    await context.test(scenario.stack, async () => {
+      const parent = await mkdtemp(path.join(os.tmpdir(), "pso-standards-create-"));
+      try {
+        const result = spawnSync(process.execPath, [runtime, "create-project", "--name", "Standards Fixture", "--destination", parent, "--profile", "core", "--stack", scenario.stack, "--accept-risk"], {
+          cwd: root, encoding: "utf8", maxBuffer: 10 * 1024 * 1024
+        });
+        assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+        const project = path.join(parent, "standards-fixture");
+        const instructions = await readdir(path.join(project, ".github", "instructions"));
+        const expected = ["best-practices.instructions.md", "azure-deployment.instructions.md", ...scenario.included];
+        for (const file of expected) {
+          assert.ok(instructions.includes(file), `${file} must be present for ${scenario.stack}`);
+          assert.equal(await readFile(path.join(project, ".github", "instructions", file), "utf8"), await readFile(path.join(root, "templates", "project", ".github", "instructions", file), "utf8"));
+        }
+        for (const file of scenario.excluded) assert.ok(!instructions.includes(file), `${file} must not be present for ${scenario.stack}`);
+        const lock = JSON.parse(await readFile(path.join(project, "project-orchestrator.lock.json"), "utf8"));
+        for (const file of expected) assert.ok(lock.entries.some((entry) => entry.path === `.github/instructions/${file}`));
+      } finally {
+        await rm(parent, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("source-aligned standards reach adopted projects and preserve customized guidance on rerun", async (context) => {
+  const cases = [
+    { marker: "package.json", content: '{"name":"standards-fixture"}\n', included: ["typescript.instructions.md", "node.instructions.md"], excluded: ["python.instructions.md", "csharp.instructions.md", "dotnet.instructions.md"] },
+    { marker: "Fixture.csproj", content: '<Project Sdk="Microsoft.NET.Sdk"></Project>\n', included: ["csharp.instructions.md", "dotnet.instructions.md"], excluded: ["python.instructions.md", "typescript.instructions.md", "node.instructions.md"] }
+  ];
+  for (const scenario of cases) {
+    await context.test(scenario.marker, async () => {
+      const project = await mkdtemp(path.join(os.tmpdir(), "pso-standards-adopt-"));
+      try {
+        await writeFile(path.join(project, scenario.marker), scenario.content, "utf8");
+        runAdoption(project, "--apply");
+        const instructions = await readdir(path.join(project, ".github", "instructions"));
+        for (const file of ["best-practices.instructions.md", "azure-deployment.instructions.md", ...scenario.included]) assert.ok(instructions.includes(file), `${file} must be provisioned`);
+        for (const file of scenario.excluded) assert.ok(!instructions.includes(file), `${file} must remain inapplicable`);
+        const customizedPath = path.join(project, ".github", "instructions", scenario.included.at(-1));
+        const customized = `${await readFile(customizedPath, "utf8")}\nProject-owned compatibility note: retain the approved application baseline.\n`;
+        await writeFile(customizedPath, customized, "utf8");
+        runAdoption(project, "--apply");
+        assert.equal(await readFile(customizedPath, "utf8"), customized, "Rerunning adoption must preserve customized standards");
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    });
   }
 });
 

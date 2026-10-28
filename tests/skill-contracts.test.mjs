@@ -101,6 +101,54 @@ test("native push completion schema requires verified draft approval only for co
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, ".github", "skills");
 
+test("Microsoft and industry best-practice standards cover all seven technology areas", async () => {
+  const manifest = JSON.parse(await readFile(path.join(root, "templates", "scaffold-manifest.json"), "utf8"));
+  const standards = [
+    { file: "node.instructions.md", requires: ["typescript", "javascript"], host: "nodejs.org" },
+    { file: "dotnet.instructions.md", requires: ["csharp"], host: "learn.microsoft.com" },
+    { file: "python.instructions.md", requires: ["python"], host: "peps.python.org" },
+    { file: "powershell.instructions.md", requires: ["powershell"], host: "learn.microsoft.com" },
+    { file: "typescript.instructions.md", requires: ["typescript", "javascript"], host: "developer.mozilla.org" },
+    { file: "csharp.instructions.md", requires: ["csharp"], host: "learn.microsoft.com" },
+    { file: "azure-deployment.instructions.md", requires: "always", host: "learn.microsoft.com" }
+  ];
+  for (const standard of standards) {
+    const relative = `.github/instructions/${standard.file}`;
+    const entry = manifest.templates.find((template) => template.path === relative);
+    assert.ok(entry, `${standard.file} must be provisioned by the scaffold manifest`);
+    assert.equal(entry.kind, "scoped-instructions");
+    assert.deepEqual(entry.requires, standard.requires);
+    const source = await readFile(path.join(root, "templates", "project", relative), "utf8");
+    assert.equal(source.match(/^applyTo: "([^"]+)"$/m)?.[1], entry.applyTo);
+    assert.match(source, /^description: .+/m);
+    assert.match(source, /^Reviewed: \d{4}-\d{2}-\d{2}$/m);
+    assert.match(source, /^## References$/m);
+    const referenceUrls = [...source.matchAll(/https:\/\/[^\s)]+/g)].map((match) => new URL(match[0]));
+    assert.ok(referenceUrls.some((url) => url.hostname === standard.host), `${standard.file} needs an authoritative reference`);
+  }
+  const router = ".github/instructions/best-practices.instructions.md";
+  const routingTemplate = manifest.templates.find((template) => template.path === router);
+  assert.equal(routingTemplate?.requires, "always");
+  const routingSource = await readFile(path.join(root, "templates", "project", router), "utf8");
+  assert.equal(await readFile(path.join(root, router), "utf8"), routingSource, "Launch Pad and shipped routing must agree");
+  for (const { file } of standards) assert.ok(routingSource.includes(file), `Routing must include ${file}`);
+  assert.match(routingSource, /templates\/project\/\.github\/instructions/);
+  assert.match(routingSource, /not.*certification/i);
+  const dotnet = await readFile(path.join(root, "templates", "project", ".github", "instructions", "dotnet.instructions.md"), "utf8");
+  assert.match(dotnet, /IHttpClientFactory/);
+  assert.match(dotnet, /PooledConnectionLifetime/);
+});
+
+test("Azure environment automation instructions retain the complete canonical safety rules", async () => {
+  const agents = await readFile(path.join(root, "AGENTS.md"), "utf8");
+  const copilot = await readFile(path.join(root, ".github", "copilot-instructions.md"), "utf8");
+  const azureRules = (source) => (source.match(/^## Azure environment automation\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m)?.[1] ?? "")
+    .split(/\r?\n/).filter((line) => line.startsWith("- "));
+  const rules = azureRules(agents);
+  assert.ok(rules.length >= 4, "Canonical Azure context, authentication, and MCP opt-in rules must be present");
+  assert.deepEqual(azureRules(copilot), rules);
+});
+
 function readZipEntry(archive, expectedName) {
   let endOfCentralDirectory = archive.length - 22;
   while (endOfCentralDirectory >= 0 && archive.readUInt32LE(endOfCentralDirectory) !== 0x06054b50) {

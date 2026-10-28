@@ -51,6 +51,7 @@ The opt-in server adapter forwards its configured completion-token limit to the 
 
 - **Every prompt gets one bounded clarification round.** Provisioned projects normally receive three useful questions; complex, confusing, high-impact, or potentially damaging requests may receive up to five. After the answers, the agent asks no more clarification questions for that prompt.
 - **It adapts to your repository.** A Python repo does not get C# standards. Detection drives what gets installed.
+- **Source-aligned standards.** Dated, referenced guidance covers PowerShell, JavaScript, Node.js, C#, .NET, Python, and Azure services. The [routing guide](templates/project/.github/instructions/best-practices.instructions.md) selects relevant standards; contract and fixture tests verify provisioning, not Microsoft certification or application-wide compliance.
 - **It will not duplicate your work.** If your repo already has a security instruction file, it reports that coverage instead of adding a second one.
 - **Everything is reversible.** Every mutation is journaled under `.skills-orchestrator/transactions/` before it happens, with automatic rollback and manual recovery.
 - **Reports are machine-readable and authoritative.** JSON under `reports/`, validated against schemas in `schemas/`. Markdown views are derived.

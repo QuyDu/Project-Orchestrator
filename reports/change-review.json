@@ -1,43 +1,64 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-07T10:07:02.581Z",
-  "reviewId": "REVIEW-VERSION-1.4.0-DELIVERY-20261007",
+  "generatedAt": "2026-10-28T17:57:43.920Z",
+  "reviewId": "REVIEW-STANDARDS-COMMIT-20261028",
   "status": "passed",
-  "scope": "Working-tree changes since the delivered base: runtime 1.4.0, framework 9.3.0, October 7 source metadata, synchronized release and demo documentation, refreshed generated inventory/security evidence, and the pre-commit handoff checkpoint.",
-  "baseRevision": "19aed483a451f7aef16bd148f86d74677ca9355a",
+  "scope": "Selected standards guidance, stack-aware provisioning, Node pure-import harness repair, and regenerated documentation evidence. Excludes unrelated pending framework, Skills.sh proposal, and recovery changes.",
+  "baseRevision": "c0dff7a6dd76d5e7512b45658e7f19f36a291f6c",
+  "files": [
+    ".github/copilot-instructions.md",
+    ".github/instructions/best-practices.instructions.md",
+    "README.md",
+    "docs/PROJECT-GUIDE.md",
+    "reports/microsoft-reference.json",
+    "reports/microsoft-reference.md",
+    "reports/project-guide.json",
+    "reports/project-understanding.json",
+    "reports/project-understanding.md",
+    "templates/project/.github/instructions/azure-deployment.instructions.md",
+    "templates/project/.github/instructions/best-practices.instructions.md",
+    "templates/project/.github/instructions/csharp.instructions.md",
+    "templates/project/.github/instructions/dotnet.instructions.md",
+    "templates/project/.github/instructions/node.instructions.md",
+    "templates/project/.github/instructions/powershell.instructions.md",
+    "templates/project/.github/instructions/python.instructions.md",
+    "templates/project/.github/instructions/typescript.instructions.md",
+    "templates/scaffold-manifest.json",
+    "tests/adoption-rerun.test.mjs",
+    "tests/agent-builder.test.mjs",
+    "tests/skill-contracts.test.mjs"
+  ],
   "findings": [],
-  "resolvedFindings": [],
   "validation": {
     "command": "npm run check",
     "exitCode": 0,
+    "runtime": "v24.22.1",
     "tests": {
-      "total": 953,
-      "passed": 950,
+      "total": 958,
+      "passed": 954,
       "failed": 0,
-      "skipped": 3
+      "skipped": 4
     },
-    "logSha256": "754699f24fa8ff7b7341453d4c51179c05c3b963585d7f951845146b406e8542",
-    "postGateChanges": "Synchronized project handoff/current-work reports and refreshed the focused security certificate only; no shipped candidate input changed.",
-    "postGateValidation": {
-      "versionConsistency": "passed",
-      "overviewInventory": { "inventory": 56, "listed": 56, "missing": 0, "extra": 0 },
-      "securityCheck": "passed",
-      "handoffJson": "passed",
-      "whitespace": "passed"
-    }
+    "logSha256": "70360b538b5c87b308a426e6e0f7e15f43f8cb57b49b3a3d3ec31c8d1ef422c9",
+    "isolation": "Index-derived snapshot, not all original working-tree changes.",
+    "focusedRepairTests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "postGateChanges": "Only reference/review metadata and owner-generated guide bindings; no runtime, instructions, or test implementation changes."
   },
   "evidence": [
-    "Runtime, package, lockfile, and orchestrator configuration consistently identify runtime 1.4.0 and framework 9.3.0.",
-    "README, security policy, project overview, standalone guide, and Demo Day runbook consistently identify the October 7 source version and 56-skill catalog.",
-    "The project overview lists all 56 inventory skill IDs exactly once with no missing or extra entries.",
-    "The full npm run check gate passed, including 389-file security scanning, a 238-file unsigned candidate verification, 953 tests, inventory, and framework verification.",
-    "The current release/1.1.2 branch and origin/release/1.1.2 shared base revision 19aed483a451f7aef16bd148f86d74677ca9355a before this approved delivery."
+    "All seven standards have dated authoritative references and tested stack-aware provisioning.",
+    "Current import guards still deny module-body IO; exact source is supplied only for the subject being loaded.",
+    "A negative regression proves module-body filesystem access remains denied.",
+    "Generated and adopted projects receive applicable standards and preserve customized guidance.",
+    "Git index isolates earlier user-owned mixed-file hunks; protected working-file hashes are unchanged."
   ],
   "limitations": [
-    "This is a bounded version-metadata and documentation review, not a fresh repository-wide or live-provider audit.",
-    "Three platform-dependent test skips remain explicit; hosted, tenant, device, and live-provider qualification were not performed.",
-    "The formal release remains blocked by signing, independent release review, and operational evidence.",
-    "Approval covers a normal commit and push to the existing upstream only; no force push, default-branch merge, tag, package publication, or deployment.",
-    "The delivery checkpoint precedes commit creation. Actual commit and remote delivery must be verified from Git rather than inferred from this report."
+    "Four platform/environment-dependent skips remain explicit.",
+    "No independent security certification or live-cloud/provider verification is implied.",
+    "Formal release signing/publication requirements are unchanged.",
+    "Only normal commit/push to the existing upstream is approved; no force push, hooks bypass, deployment, or package publication.",
+    "Original user-modified working reports remain preserved and may differ from the selected, rebuilt candidate."
   ]
 }

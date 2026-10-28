@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "1.0.0",
+  "referenceId": "MSREF-BEST-PRACTICES-20261028",
+  "generatedAt": "2026-10-28T16:34:03.043Z",
+  "status": "references-verified-full-commit-gate-passed",
+  "objective": "Provide source-aligned PowerShell, JavaScript, Node.js, C#, .NET, Python, and Azure service guidance for the Launch Pad and stack-aware generated/adopted projects without new runtime dependencies.",
+  "context": {
+    "reviewedAt": "2026-10-28",
+    "versionPolicy": "Preserve each project's supported versions, module format, SDK/TFM policy, formatter, and CI matrix. Reverify official lifecycle and API guidance before upgrades; no runtime or SDK versions were changed.",
+    "frameworkNodeCompatibility": [22, 24, 26],
+    "productionNodeRecommendation": "Prefer Active or Maintenance LTS; framework compatibility and production LTS recommendations are distinct.",
+    "cloudPolicy": "Reuse the saved project cloud and verify service-specific endpoint, API, model, quota, and feature availability. Documentation is not subscription or deployment evidence.",
+    "azureMcpUsed": false,
+    "cloudOperationsPerformed": false,
+    "packagesOrAnalyzersInstalled": false
+  },
+  "coverage": [
+    {
+      "area": "PowerShell",
+      "guide": "templates/project/.github/instructions/powershell.instructions.md",
+      "provisioning": { "requires": ["powershell"] },
+      "conclusion": "Supported-host compatibility, idiomatic authoring, real ShouldProcess mutation guards, explicit native exit handling, object output, secret safety, and configured PSScriptAnalyzer/Pester checks.",
+      "references": [
+        { "url": "https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/overview", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Analyzer purpose and configurable PowerShell quality rules; availability is not evidence that the analyzer ran." },
+        { "url": "https://learn.microsoft.com/en-us/powershell/scripting/learn/deep-dives/everything-about-shouldprocess", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "ShouldProcess must guard the mutation; WhatIf propagation across script modules requires verification." },
+        { "url": "https://learn.microsoft.com/en-us/powershell/scripting/dev-cross-plat/performance/script-authoring-considerations", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Prefer readable idiomatic PowerShell unless measured performance justifies a different implementation." }
+      ]
+    },
+    {
+      "area": "JavaScript",
+      "guide": "templates/project/.github/instructions/typescript.instructions.md",
+      "provisioning": { "requires": ["typescript", "javascript"] },
+      "conclusion": "Language-level module compatibility, explicit absence/coercion, promise/error handling, resource cleanup, boundary validation, and TypeScript narrowing without forcing JavaScript projects to adopt TypeScript.",
+      "references": [
+        { "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", "authority": "MDN Web Docs", "retrievedAt": "2026-10-28", "supports": "JavaScript language, modules, promises, equality, and resource-management concepts; runtime/browser support still needs project-specific verification." },
+        { "url": "https://www.typescriptlang.org/tsconfig/strict.html", "authority": "Microsoft TypeScript", "retrievedAt": "2026-10-28", "supports": "Strict checking strengthens static checks; TypeScript upgrades may introduce additional diagnostics and do not replace runtime validation." }
+      ]
+    },
+    {
+      "area": "Node.js",
+      "guide": "templates/project/.github/instructions/node.instructions.md",
+      "provisioning": { "requires": ["typescript", "javascript"] },
+      "conclusion": "Dedicated runtime guidance separates production LTS selection from compatibility, protects the event loop, bounds resources/processes, handles shutdown, and preserves reproducible dependency installation.",
+      "references": [
+        { "url": "https://nodejs.org/en/about/previous-releases", "authority": "Node.js / OpenJS Foundation", "retrievedAt": "2026-10-28", "supports": "Production applications should use Active or Maintenance LTS. Do not copy a temporary latest-version label into permanent policy." },
+        { "url": "https://nodejs.org/en/learn/getting-started/security-best-practices", "authority": "Node.js / OpenJS Foundation", "retrievedAt": "2026-10-28", "supports": "Application-level limits, dependency trust, lockfiles, CI installs, unsafe object merges, and debug-interface exposure." },
+        { "url": "https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop", "authority": "Node.js / OpenJS Foundation", "retrievedAt": "2026-10-28", "supports": "Nonblocking request work, bounded input/CPU complexity, and the distinction between server hot paths and bounded CLI/startup work." }
+      ]
+    },
+    {
+      "area": "C#",
+      "guide": "templates/project/.github/instructions/csharp.instructions.md",
+      "provisioning": { "requires": ["csharp"] },
+      "conclusion": "Language/API conventions respect the existing style and compiler support, preserve nullable analysis, propagate async cancellation, and dispose only owned resources.",
+      "references": [
+        { "url": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Microsoft explicitly describes its documentation/sample conventions as adaptable examples, not a universal authoritative style mandate." },
+        { "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Readable, isolated, repeatable behavior tests; coverage alone does not demonstrate test or code quality." }
+      ]
+    },
+    {
+      "area": ".NET",
+      "guide": "templates/project/.github/instructions/dotnet.instructions.md",
+      "provisioning": { "requires": ["csharp"], "compatibilityNote": "Reuse the existing csharp stack tag for .NET project files, including F#/VB project files; do not impose C# language rules on other .NET languages." },
+      "conclusion": "Separate SDK/TFM, dependency, analyzer, DI/hosting, cancellation, and HTTP-lifetime guidance corrects the former factory-only HttpClient rule.",
+      "references": [
+        { "url": "https://learn.microsoft.com/en-us/dotnet/core/versions/", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "SDK and runtime versioning are distinct; runtime upgrades still require compatibility assessment and retesting." },
+        { "url": "https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Both factory-created short-lived clients and appropriately pooled long-lived clients are documented strategies; evaluate DNS and cookie-container ownership." },
+        { "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Keep infrastructure-dependent integration checks separate from deterministic unit tests." }
+      ]
+    },
+    {
+      "area": "Python",
+      "guide": "templates/project/.github/instructions/python.instructions.md",
+      "provisioning": { "requires": ["python"] },
+      "conclusion": "Add first-class Python conventions, environment isolation, supported-interpreter compatibility, verified typing, structured exceptions, context-managed resources, and project-selected testing/linting.",
+      "references": [
+        { "url": "https://peps.python.org/pep-0008/", "authority": "Python PEP authors", "retrievedAt": "2026-10-28", "supports": "Readable conventions, explicit absence, specific exceptions, resource management, and preserving local style and backward compatibility rather than applying style mechanically." },
+        { "url": "https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/", "authority": "Python Packaging Authority", "retrievedAt": "2026-10-28", "supports": "Project-isolated environments and explicit package/dependency management; examples do not authorize installations or a particular supported-version floor." }
+      ]
+    },
+    {
+      "area": "Azure Services",
+      "guide": "templates/project/.github/instructions/azure-deployment.instructions.md",
+      "provisioning": { "requires": "always", "applicationSdkRouting": "The shared best-practices router explicitly applies service guidance to SDK work outside infra/." },
+      "conclusion": "Cover five-pillar tradeoffs, identity and least privilege, bounded transport behavior, redacted observability, data/network controls, discovery evidence, and cloud-specific availability without enabling Azure MCP or performing remote operations.",
+      "references": [
+        { "url": "https://learn.microsoft.com/en-us/azure/well-architected/", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Reliability, Security, Cost Optimization, Operational Excellence, and Performance Efficiency require workload-specific design tradeoffs and review." },
+        { "url": "https://azure.github.io/azure-sdk/general_implementation.html", "authority": "Microsoft Azure SDK", "retrievedAt": "2026-10-28", "supports": "Use documented SDK pipelines, redacted diagnostics, correlation, and mockable/offline tests. SDK-author parameter-validation guidance does not remove application-boundary validation requirements." },
+        { "url": "https://learn.microsoft.com/en-us/azure/azure-government/compare-azure-government-global-azure", "authority": "Microsoft Learn", "retrievedAt": "2026-10-28", "supports": "Endpoints, feature configuration, and availability can differ between Azure Government and global Azure; confirm the selected service and cloud instead of copying public-cloud assumptions." }
+      ]
+    }
+  ],
+  "routing": {
+    "workspace": ".github/instructions/best-practices.instructions.md",
+    "shipped": "templates/project/.github/instructions/best-practices.instructions.md",
+    "canonicalGuideRoot": "templates/project/.github/instructions/",
+    "targetProjectGuideRoot": ".github/instructions/",
+    "manifest": "templates/scaffold-manifest.json",
+    "newRuntimeDependencies": []
+  },
+  "validation": {
+    "coverageRed": "Failed as expected before implementation: node.instructions.md was absent from the scaffold manifest.",
+    "azureRuleRed": "Failed as expected before repair: the root Copilot instruction block contained one truncated line instead of four canonical rules.",
+    "focusedContracts": { "status": "passed", "passed": 2, "failed": 0, "command": "node --test --test-reporter=spec --test-name-pattern=\"Microsoft and industry best-practice standards|Azure environment automation instructions\" tests/skill-contracts.test.mjs" },
+    "provisioning": { "status": "passed", "passed": 8, "failed": 0, "command": "node --test --test-reporter=spec --test-name-pattern=\"source-aligned standards|adoption installs only the scoped instructions\" tests/adoption-rerun.test.mjs", "scope": "Generated JavaScript/.NET/Python projects, Python-only adoption, JavaScript/.NET adoption, and preservation of customized guidance on rerun." },
+    "previousFullRepositoryGate": {
+      "status": "failed",
+      "command": "npm run check",
+      "exitCode": 1,
+      "runtime": "Node.js v24.22.1",
+      "isolation": "Executed in a byte-matched source snapshot with copied Git metadata; original generated reports were not overwritten.",
+      "snapshotFiles": 519,
+      "sourceDigestSha256": "79a57b355b61d57b483f255d47cbc8c208d7d9cd60bbc95da87b085e938f006c",
+      "localLog": ".skills-orchestrator/validation/best-practices-20261028/npm-check.log",
+      "tests": { "total": 957, "passed": 949, "failed": 4, "skipped": 4 },
+      "durationMs": 1145353.3092,
+      "stages": { "securityScan": "passed", "releaseBuild": "passed", "releaseCandidateVerification": "passed", "tests": "failed", "finalFrameworkVerification": "not-run-after-test-failure" },
+      "blockers": [
+        { "file": "tests/agent-builder.test.mjs", "line": 103, "test": "Agent Builder copy-only installation imports, renders, normalizes and validates legacy blueprints without native files", "observation": "The pure-import filesystem guard intercepts Node.js v24.22.1 module-loader getSourceSync reads before the tested helper loads." },
+        { "file": "tests/agent-builder.test.mjs", "line": 220, "test": "Native Studio handoff validator is pure, strict, and never treats absent evidence as completion", "observation": "The pure-import filesystem guard intercepts Node.js v24.22.1 module-loader getSourceSync reads before the tested helper loads." },
+        { "file": "tests/agent-builder.test.mjs", "line": 248, "test": "Native Studio pure helpers load independently without a reverse builder import", "observation": "The pure-import filesystem guard intercepts Node.js v24.22.1 module-loader getSourceSync reads before the tested helper loads." },
+        { "file": "tests/documentation-builder.test.mjs", "line": 22, "test": "repository project guide binding matches current guide and understanding evidence", "observation": "The unchanged original project guide report expects understanding digest 269c9832a1970a8bcf773867eb430797d68df92849f5d6445e7134a0720d4761, while the existing understanding report hashes to c4f27636a086c2dc5d56829794a293f2bbb9525734e635ee373dd9b39300f8cd." }
+      ],
+      "baselineVerification": "Both failing test files match committed text after normalizing Git checkout line endings. The guide, guide report, and understanding pair are byte-identical between the original worktree and validation snapshot. No unrelated test guards, assertions, or evidence bindings were changed to make the gate pass.",
+      "resolution": "The later commit-and-push request authorized bounded repairs. Preserve this failed attempt as historical evidence, not the current gate status."
+    },
+    "fullRepositoryGate": {
+      "status": "passed",
+      "command": "npm run check",
+      "exitCode": 0,
+      "runtime": "Node.js v24.22.1",
+      "scope": "Isolated index-derived commit candidate containing the standards update and bounded validation repairs; excludes unrelated pending framework, Skills.sh proposal, and workflow-recovery changes.",
+      "tests": { "total": 958, "passed": 954, "failed": 0, "skipped": 4 },
+      "durationMs": 1077066.8482,
+      "stages": { "securityScan": "passed", "releaseBuild": "passed", "releaseCandidateVerification": "passed", "tests": "passed", "finalFrameworkVerification": "passed" },
+      "localLog": ".skills-orchestrator/validation/standards-commit/npm-check.log",
+      "repairs": [
+        "Allow Node's loader to receive the exact preloaded test-subject source while keeping module-body filesystem and process access guarded; large test scripts use stdin for Windows compatibility.",
+        "Add a negative regression confirming filesystem access inside a loaded module is still rejected.",
+        "Rebuild candidate understanding and guide through their owning helpers, without overwriting original user-modified working reports."
+      ],
+      "focusedRepairValidation": { "passed": 7, "failed": 0, "scope": "Three formerly failing pure imports, a negative I/O guard, the guide binding, and the two standards instruction contracts." },
+      "postGateEvidence": "Only source-evidence and review metadata plus their generated guide/understanding bindings are refreshed after the gate; rerun owner validation and focused binding checks before committing. No runtime, instruction, or test implementation changes follow the passing gate.",
+      "remainingScope": "Unstaged work remains outside this validation and commit; four platform/environment-dependent skips remain explicit."
+    }
+  },
+  "limitations": [
+    "Source-aligned guidance and passing framework contracts are not Microsoft certification, application-wide compliance, or independent security assurance.",
+    "References were checked on the recorded date; supported releases, SDK signatures, and cloud features must be reverified before upgrades or deployment.",
+    "No external analyzer, language runtime, package, cloud identity, Azure service, or deployment was installed or validated by this instruction update.",
+    "The passing gate covers the isolated selected commit, not all unrelated pending changes in the original working tree. Four skips and live-cloud/provider qualification limits remain explicit.",
+    "The existing Skills.sh proposal remains unactivated. No third-party instruction packages, commits, pushes, or remote mutations are part of this work."
+  ]
+}

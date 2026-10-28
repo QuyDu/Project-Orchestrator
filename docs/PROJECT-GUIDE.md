@@ -8,23 +8,22 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 ## Architecture
 
-- **.azure**: Top-level project boundary containing 1 scanned files.
-- **.github**: Top-level project boundary containing 175 scanned files.
+- **.github**: Top-level project boundary containing 176 scanned files.
 - **.vscode**: Top-level project boundary containing 2 scanned files.
 - **Demo**: Top-level project boundary containing 15 scanned files.
 - **artifacts**: Top-level project boundary containing 26 scanned files.
 - **config**: Top-level project boundary containing 4 scanned files.
 - **docs**: Top-level project boundary containing 6 scanned files.
 - **release**: Top-level project boundary containing 1 scanned files.
-- **reports**: Top-level project boundary containing 92 scanned files.
+- **reports**: Top-level project boundary containing 94 scanned files.
 - **schemas**: Top-level project boundary containing 66 scanned files.
 - **scripts**: Top-level project boundary containing 13 scanned files.
-- **templates**: Top-level project boundary containing 35 scanned files.
+- **templates**: Top-level project boundary containing 39 scanned files.
 - **tests**: Top-level project boundary containing 29 scanned files.
 
 ## Technology
 
-- **.md**: 202 scanned files use this extension.
+- **.md**: 208 scanned files use this extension.
 - **.json**: 140 scanned files use this extension.
 - **.mjs**: 72 scanned files use this extension.
 - **.mp3**: 22 scanned files use this extension.
@@ -78,4 +77,4 @@ Turn any repository into a governed GitHub Copilot workspace: agent instructions
 
 ## Evidence
 
-The companion report at `reports/project-guide.json` contains 51 claims bound to the Project Understanding digests used for this guide.
+The companion report at `reports/project-guide.json` contains 50 claims bound to the Project Understanding digests used for this guide.
