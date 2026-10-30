@@ -1,148 +1,41 @@
 {
   "schemaVersion": "1.0.0",
-  "reviewId": "SEC-2026091801",
-  "generatedAt": "2026-09-18T16:00:53.000Z",
+  "reviewId": "SEC-20261029",
+  "generatedAt": "2026-10-29T19:41:23.296Z",
   "scope": {
-    "kind": "component",
+    "kind": "diff",
     "included": [
-      "LIVE-CHAT-001 local-first browser, server-session, transport, adapter, and grounding design",
-      "Microphone consent, browser permission, raw-audio, transcript, spoken-output, and retention defaults",
-      "Prompt injection, input/output validation, content safety, source citation, and explicit unknown behavior",
-      "Authentication, authorization, server secrets, least-privilege RBAC, rate, retry, health, and telemetry contracts",
-      "Historical finding SECF-0205"
+      "pso.mjs",
+      "tests/skill-contracts.test.mjs",
+      "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+      "tests/live-chat-provider-adapter.test.mjs",
+      "tests/security-fuzz.test.mjs",
+      "tests/native-copilot-studio.test.mjs",
+      "docs/THREAT-MODEL.md",
+      "reports/project-guide.json"
     ],
     "excluded": [
-      "Source, skill, runtime, schema, template, test, documentation, or control implementation",
-      "Credential validation and secret values",
-      "Network, Azure, service, model, Speech, quota, pricing, and deployed-environment inspection",
-      "Exploit execution, external processing, commit, push, deployment, publication, and release"
+      "Pre-existing user edits outside the remediation hunks",
+      "Hosted, cloud, live credentials, new advisory/standards retrieval and unavailable analyzers"
     ],
     "trustBoundaries": [
-      "User notice and consent to browser microphone permission and ephemeral capture",
-      "Browser transcript and commands to authenticated server transport",
-      "Authenticated identity to isolated server session and turn state",
-      "Server orchestration to future speech and response adapters",
-      "Approved grounding manifest to untrusted retrieved content",
-      "Generated response to validation, content safety, citation, and optional speech output",
-      "Runtime state to redacted operational telemetry",
-      "Historical protected source to independent human review"
+      "CLI planner/report publisher to protected local managed files and accepted history",
+      "Server-side provider metadata/messages to credential and fake transport boundaries",
+      "Per-session bookkeeping and identity ownership across cancellation, deadline and cleanup"
     ]
   },
-  "findings": [
-    {
-      "id": "SECF-2026091801",
-      "title": "Microphone and conversation data require explicit privacy and consent controls",
-      "path": "reports/workflow-plan.json",
-      "line": null,
-      "category": "data-handling",
-      "classification": "hardening-opportunity",
-      "severity": "high",
-      "confidence": "high",
-      "impact": "Starting capture without clear notice, retaining raw audio, persisting transcripts by default, or speaking responses without opt-in could expose sensitive conversation content and create inaccessible or surprising behavior.",
-      "exploitPath": null,
-      "evidence": [
-        "STEP-003 requires consent and privacy analysis before microphone or cloud use.",
-        "The approved defaults are no raw-audio retention, session-only transcripts, disabled transcript analytics, and spoken responses off until explicit opt-in.",
-        "The browser must expose listening, transcript, correction, cancellation, permission-denied, unavailable, and fallback states."
-      ],
-      "resolution": "Require concise notice before permission, an affirmative microphone action, a persistent visible listening indicator, immediate stop and cancel controls, transcript correction before endpoint acceptance, session expiry deletion, no raw-audio persistence, no content logs, spoken output opt-in per session, and equivalent keyboard, screen-reader, reduced-motion, text-only, and guided-only paths.",
-      "requiresRotation": false,
-      "references": [
-        "reports/workflow-plan.json STEP-002 and STEP-003",
-        "reports/architecture-review.json ARCF-2026091802 and ARCF-2026091804"
-      ]
-    },
-    {
-      "id": "SECF-2026091802",
-      "title": "Grounding and generated output remain untrusted across the model boundary",
-      "path": "reports/workflow-plan.json",
-      "line": null,
-      "category": "prompt-injection",
-      "classification": "hardening-opportunity",
-      "severity": "high",
-      "confidence": "high",
-      "impact": "User transcripts or retrieved documents could attempt to override policy, request unavailable actions, disclose hidden context, or produce unsafe and unsupported claims.",
-      "exploitPath": null,
-      "evidence": [
-        "STEP-003 requires prompt-injection and output-safety controls.",
-        "STEP-008 requires approved versioned sources, citations, explicit unknowns, stale-source handling, and output validation.",
-        "No web grounding, external content retrieval, or model processing is authorized in Steps 1-4."
-      ],
-      "resolution": "Separate instructions from user and retrieved data; allowlist corpus manifests; cap and normalize inputs; treat retrieved instructions as inert text; restrict tools and actions to none for informational turns; validate response schema, capability claims, citations, corpus version, and URLs; run content safety on input and output when a provider is later approved; fail to explicit unknown, refusal, or guided fallback on injection, unsupported claims, unsafe content, stale sources, or validator failure.",
-      "requiresRotation": false,
-      "references": [
-        "reports/workflow-plan.json STEP-003 and STEP-008",
-        "reports/architecture-review.json ARCF-2026091803"
-      ]
-    },
-    {
-      "id": "SECF-2026091803",
-      "title": "Session identity, authorization, and secrets must terminate at the server boundary",
-      "path": "reports/workflow-plan.json",
-      "line": null,
-      "category": "authorization",
-      "classification": "hardening-opportunity",
-      "severity": "high",
-      "confidence": "high",
-      "impact": "Browser credentials, cross-session event replay, over-broad service roles, or unauthenticated reconnect could expose conversations or permit another user to resume, cancel, or confirm a turn.",
-      "exploitPath": null,
-      "evidence": [
-        "STEP-002 separates browser and server sessions and requires cancellation and reconnect contracts.",
-        "STEP-003 requires authentication, least-privilege RBAC, and server secret controls.",
-        "The architecture assigns service credentials, grounding policy, and privileged adapters exclusively to the server."
-      ],
-      "resolution": "Authenticate before session creation; authorize every event against user, session, turn, and intended operation; use unguessable short-lived session and resume tokens bound to identity and last acknowledged sequence; reject replay and cross-session IDs; require explicit confirmation for consequential actions; keep credentials in server-managed identity or secret storage; prohibit browser secrets and log redaction; scope future AzureUSGovernment RBAC to the minimum data-plane actions and resource boundary.",
-      "requiresRotation": false,
-      "references": [
-        "reports/workflow-plan.json STEP-002, STEP-003, and STEP-015",
-        "reports/architecture-review.json ARCF-2026091802"
-      ]
-    },
-    {
-      "id": "SECF-2026091804",
-      "title": "Abuse and dependency failures need bounded rate, retry, health, and telemetry behavior",
-      "path": "reports/workflow-plan.json",
-      "line": null,
-      "category": "logging-and-audit",
-      "classification": "hardening-opportunity",
-      "severity": "medium",
-      "confidence": "high",
-      "impact": "Unbounded utterances, sessions, retries, reconnects, or response streams can amplify cost and denial of service, while content-rich logs can leak transcripts, prompts, retrieved text, responses, credentials, or authorization metadata.",
-      "exploitPath": null,
-      "evidence": [
-        "STEP-003 requires rate limits, bounded retries, health, metrics, and redacted structured logs.",
-        "STEP-004 requires deterministic service-unavailable, reconnect, cost, and fallback outcomes.",
-        "Session-only transcripts and no raw-audio retention prohibit routine conversation-content telemetry."
-      ],
-      "resolution": "Enforce per-identity and per-session concurrency, utterance duration, event size, turn rate, token/output, reconnect, and daily cost ceilings; use deadlines and at most two transient retries with jitter and Retry-After; open a circuit after repeated dependency failure; expose liveness and readiness; propagate cancellation; log only pseudonymous correlation IDs, state, duration bucket, error category, retry count, rate decision, correction, cancellation, reconnect, citation count, and fallback without conversation or secret content.",
-      "requiresRotation": false,
-      "references": [
-        "reports/workflow-plan.json STEP-003 and STEP-004",
-        "reports/architecture-review.json ARCF-2026091804 and ARCF-2026091805"
-      ]
-    },
-    {
-      "id": "SECF-0205",
-      "title": "Independent human review is not enforced for source changes",
-      "path": "github.com/QuyDu/Skills-Orchestrator",
-      "line": null,
-      "category": "supply-chain",
-      "classification": "proven-weakness",
-      "severity": "medium",
-      "confidence": "high",
-      "impact": "A compromised or mistaken sole maintainer can submit code that passes automated checks without a second person reviewing design intent, trust boundaries, or release consequences.",
-      "exploitPath": "The sole write-capable administrator submits a change that satisfies automated checks but contains a human-reviewable logic or governance defect; no approving reviewer is required before merge.",
-      "evidence": ["Main requires strict Aggregate cross-platform evidence and JavaScript security analysis checks with admin enforcement.", "Force pushes and deletions are disabled; linear history and conversation resolution are required.", "Secret scanning, push protection, Dependabot security updates, vulnerability alerts, automated fixes, and private vulnerability reporting are enabled.", "Actions are restricted to GitHub-owned actions, CodeQL has zero open alerts, but required pull-request reviews are unset because only one write-capable collaborator exists."],
-      "resolution": "Provision a distinct qualified collaborator or team, require at least one approving review, and assign CODEOWNERS to security-sensitive source; retain separately signed independent release review.",
-      "requiresRotation": false,
-      "references": ["SECURITY.md Release Gates", "GitHub REST read-only repository evidence collected 2026-09-05"]
-    }
-  ],
+  "findings": [],
   "limitations": [
-    "This is a pre-implementation threat model; controls are requirements and are not claimed as implemented or tested.",
-    "No credential, secret, source change, runtime, browser, model, Speech service, network, Azure environment, or deployed endpoint was inspected or exercised.",
-    "Content-safety capability and AzureUSGovernment availability remain unknown until separately approved discovery; no provider was selected.",
-    "SECF-0205 is preserved as unrelated current-project security history and is not a LIVE-CHAT-001 defect.",
-    "A signed independent review must come from a distinct trusted reviewer; this assessment does not satisfy that release gate."
+    "No additional exploitable weakness confirmed in the bounded remediation changes; not a claim that the repository is secure.",
+    "All eight original failures are no longer reproduced by the targeted local audit follow-up; this is not a new whole-repository assurance assessment.",
+    "The original audit conclusion remains insufficient-evidence for hosted security, current external standards/advisories, unavailable specialist analyzers and live-service behavior.",
+    "Verification used Windows and the recorded Node 26.13.0 executable only; no new Linux/macOS qualification is claimed.",
+    "No independent release approval, signing, production readiness, installation, cloud operation, external publication, commit or push was performed or authorized.",
+    "Accepted legacy event bytes remain unchanged; strict JSONL/current-schema conformance is claimed only for the new remediation suffix.",
+    "Inventory report publication is recoverable, not multi-file operating-system atomicity. Abrupt termination or rollback conflicts require review of retained local journals/backups.",
+    "Session and circuit histories use finite default capacities of 1000 each with lazy expiry. Capacity admission fails closed without evicting live rate windows.",
+    "The first full gate failed five checks: four planner fixtures needed installed schemas/current event fields/independent plans, and the historical guide binding had two stale digests. Diagnostics are retained; only the passing rerun establishes the full gate.",
+    "The guide content and historical producer outputs were preserved; repairing their saved digest binding does not establish a fresh project-understanding scan.",
+    "Current-request inverse edits reconstruct pre-remediation normalized source; pre-existing source edits are retained, and historical line-ending bytes are not independently certified."
   ]
 }

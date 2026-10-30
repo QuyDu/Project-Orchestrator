@@ -1,13 +1,11 @@
-# Standards Change Review
+# Audit-Only Commit Review
 
-Review: REVIEW-STANDARDS-COMMIT-20261028
+No unresolved finding confirmed in the selected audit-remediation boundary.
 
-Status: passed; no actionable findings in the selected scope.
+Full candidate gate: 1001 tests, 997 passed, 0 failed, 4 skipped. Focused checks: 49 passed.
 
-Selected standards guidance, stack-aware provisioning, Node pure-import harness repair, and regenerated documentation evidence. Excludes unrelated pending framework, Skills.sh proposal, and recovery changes.
-
-Validation: npm run check passed in the index-derived candidate: 958 tests, 954 passed, 0 failed, 4 skipped, plus final framework verification. Focused repair checks: 7 passed.
-
-The Node loader compatibility fix retains module-body I/O denial and adds a negative regression. Source-backed guidance and stack-aware creation/adoption tests cover all seven requested areas.
-
-Original user-modified source and reports remain outside this commit where unrelated. Reference/review metadata and their generated documentation bindings are the only post-gate changes; owner validation and focused binding checks must pass before commit. No hook, protection, signing, or publication requirement is bypassed.
+- Only the audit-remediation boundary and required evidence are reviewed; unrelated pending changes are preserved and excluded.
+- The historical source audit remains insufficient-evidence for hosted security, unavailable analyzers, current external standards and live services.
+- Windows and recorded Node 26.13.0 only; skipped platform checks and independent release approval remain separate.
+- The committed secret certificate remains historical remediation evidence. The fresh independently verified pre-commit receipt is retained outside this commit because staging a newly generated certificate changes the index bound by the receipt; no claim survives HEAD/ref/input changes automatically.
+- Accepted execution and policy history bytes are preserved, including documented legacy formatting defects.

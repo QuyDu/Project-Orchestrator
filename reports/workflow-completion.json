@@ -1,33 +1,38 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-18T14:53:52.2836707Z",
-  "workflowId": "WF-SAFE-PROJECT-UPDATE-20260917",
-  "runId": "RUN-SAFE-PROJECT-UPDATE-PLAN-20260917-01",
+  "generatedAt": "2026-10-29T19:41:23.296Z",
+  "workflowId": "WF-REMEDIATION-b02206bb-f6f7-42f6-9da7-3acceb241e3c",
+  "runId": "RUN-REMEDIATION-cef842bb-45e3-4f66-ae32-02302b914457",
+  "auditRunId": "b02206bb-f6f7-42f6-9da7-3acceb241e3c",
   "status": "completed",
-  "executed": [
-    "Managed-asset dependency and ownership mapping",
-    "Manifest-lock migration and rollback design",
-    "Explicit product-owner implementation approval",
-    "Normalized provenance and complete three-way classification",
-    "Safe-all, additive, and selective update planning",
-    "Track, pin, fork, keep, replace, fork, remove, and exact-force policy handling",
-    "Transactional apply, rollback, recovery, and update-aware verification",
-    "Legacy migration and adversarial security hardening",
-    "Compatibility, dependency closure, documentation, and bounded change review",
-    "Validated 37-file commit candidate preparation and terminal handoff"
+  "completedItemIds": [
+    "REM-0147",
+    "REM-0148",
+    "REM-0149",
+    "REM-0150",
+    "REM-0151",
+    "REM-0152",
+    "REM-0154",
+    "REM-0153"
   ],
-  "skipped": [
-    "Commit",
-    "Push",
-    "Pull request and merge",
-    "Release and publication",
-    "Deployment and Azure mutation",
-    "LIVE-CHAT-001 implementation"
+  "blockedItemIds": [],
+  "pendingApprovals": [],
+  "evidence": [
+    "reports/audit-remediation-execution.json",
+    "reports/regression-test-result.json",
+    "reports/security-review.json"
   ],
-  "blocked": [],
-  "pending": [
-    "Explicit operator approval to create local commit feat: add provenance-safe project updates",
-    "Separate later approval for push or other external publication"
+  "limitations": [
+    "All eight original failures are no longer reproduced by the targeted local audit follow-up; this is not a new whole-repository assurance assessment.",
+    "The original audit conclusion remains insufficient-evidence for hosted security, current external standards/advisories, unavailable specialist analyzers and live-service behavior.",
+    "Verification used Windows and the recorded Node 26.13.0 executable only; no new Linux/macOS qualification is claimed.",
+    "No independent release approval, signing, production readiness, installation, cloud operation, external publication, commit or push was performed or authorized.",
+    "Accepted legacy event bytes remain unchanged; strict JSONL/current-schema conformance is claimed only for the new remediation suffix.",
+    "Inventory report publication is recoverable, not multi-file operating-system atomicity. Abrupt termination or rollback conflicts require review of retained local journals/backups.",
+    "Session and circuit histories use finite default capacities of 1000 each with lazy expiry. Capacity admission fails closed without evicting live rate windows.",
+    "The first full gate failed five checks: four planner fixtures needed installed schemas/current event fields/independent plans, and the historical guide binding had two stale digests. Diagnostics are retained; only the passing rerun establishes the full gate.",
+    "The guide content and historical producer outputs were preserved; repairing their saved digest binding does not establish a fresh project-understanding scan.",
+    "Current-request inverse edits reconstruct pre-remediation normalized source; pre-existing source edits are retained, and historical line-ending bytes are not independently certified."
   ],
-  "nextAction": "Explicitly approve creating the local commit 'feat: add provenance-safe project updates'."
+  "nextAction": "Review the completed local change set; commits, pushes and external operations require a separate request."
 }

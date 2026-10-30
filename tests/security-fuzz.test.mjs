@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -14,6 +14,7 @@ function run(...args) {
 }
 
 async function installWorkflowOwners(project) {
+  await cp(path.join(root, "schemas"), path.join(project, "schemas"), { recursive: true });
   const definitions = {
     "project-skills-orchestrator": "Routes governed workflows.",
     "project-handoff": "Publishes workflow continuity.",
@@ -372,7 +373,7 @@ test("workflow planning emits governed plan, markdown, event, and matching state
     assert.equal(plan.steps[0].status, "ready");
     assert.deepEqual(plan.steps[0].owner, { type: "skill", id: "project-skills-orchestrator" });
     assert.match(markdown, /STEP-001.*skill:project-skills-orchestrator/);
-    assert.equal(event.event, "workflow-planned");
+    assert.equal(event.eventType, "workflow-planned");
     assert.equal(event.workflowId, plan.workflowId);
     assert.equal(event.runId, plan.runId);
     assert.equal(state.workflowId, plan.workflowId);

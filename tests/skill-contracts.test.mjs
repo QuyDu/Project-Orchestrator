@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 import { inflateRawSync } from "node:zlib";
 
 test("Live Chat provider output boundaries are declared by the owning skill", async () => {
@@ -100,6 +102,141 @@ test("native push completion schema requires verified draft approval only for co
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, ".github", "skills");
+
+async function withRemediationRuntimeFixture(action) {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-remediation-runtime-"));
+  try {
+    await cp(skillsRoot, path.join(project, ".github", "skills"), { recursive: true });
+    await cp(path.join(root, "schemas"), path.join(project, "schemas"), { recursive: true });
+    await mkdir(path.join(project, "reports"));
+    const run = (args, hook) => spawnSync(process.execPath, [
+      ...(hook ? ["--import", pathToFileURL(hook).href] : []), path.join(root, "pso.mjs"), ...args, "--root", project
+    ], { cwd: project, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
+    await action(project, run);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+}
+
+test("remediation planner preserves every nonterminal workflow", async () => {
+  await withRemediationRuntimeFixture(async (project, run) => {
+    const first = run(["plan", "--intent", "documentation"]);
+    assert.equal(first.status, 0, first.stderr);
+    const paths = ["workflow-plan.json", "workflow-plan.md", "execution-log.jsonl", "current-execution-state.json", "current-execution-state.md"];
+    const baseline = new Map(await Promise.all(paths.map(async (file) => [file, await readFile(path.join(project, "reports", file))])));
+    const initial = JSON.parse(baseline.get("current-execution-state.json"));
+    for (const status of ["planned", "running", "waiting-approval", "paused", "recovering", "blocked"]) {
+      for (const [file, bytes] of baseline) await writeFile(path.join(project, "reports", file), bytes);
+      const state = { ...initial, status };
+      await writeFile(path.join(project, "reports", "current-execution-state.json"), JSON.stringify(state));
+      const before = new Map(await Promise.all(paths.map(async (file) => [file, await readFile(path.join(project, "reports", file))])));
+      const result = run(["plan", "--intent", "security-review"]);
+      assert.notEqual(result.status, 0, `Planning must reject ${status}`);
+      assert.match(result.stderr, /active|existing|approval|nonterminal/i);
+      for (const [file, bytes] of before) assert.deepEqual(await readFile(path.join(project, "reports", file)), bytes, `${file} must remain unchanged for ${status}`);
+    }
+  });
+});
+
+test("remediation planner emits schema-compatible events with replayable state", async () => {
+  await withRemediationRuntimeFixture(async (project, run) => {
+    const result = run(["plan", "--intent", "documentation"]);
+    assert.equal(result.status, 0, result.stderr);
+    const event = JSON.parse((await readFile(path.join(project, "reports", "execution-log.jsonl"), "utf8")).trim());
+    const schema = JSON.parse(await readFile(path.join(root, "schemas", "workflow-event.schema.json"), "utf8"));
+    for (const field of schema.required) assert.ok(Object.hasOwn(event, field), `Event must include ${field}`);
+    for (const field of Object.keys(event)) assert.ok(Object.hasOwn(schema.properties, field), `Event must not add ${field}`);
+    assert.equal(event.eventType, "workflow-planned");
+    assert.equal(event.sequence, 1);
+    assert.deepEqual(event.payload.state, JSON.parse(await readFile(path.join(project, "reports", "current-execution-state.json"), "utf8")));
+  });
+});
+
+test("remediation planner respects the shared event-store lock", async () => {
+  await withRemediationRuntimeFixture(async (project, run) => {
+    const lockPath = path.join(project, "reports", "execution-log.lock");
+    await writeFile(lockPath, "another-event-publisher");
+    const blocked = run(["plan", "--intent", "documentation"]);
+    assert.notEqual(blocked.status, 0);
+    assert.deepEqual(await readdir(path.join(project, "reports")), ["execution-log.lock"]);
+    assert.equal(await readFile(lockPath, "utf8"), "another-event-publisher");
+    await rm(lockPath);
+    const retried = run(["plan", "--intent", "documentation"]);
+    assert.equal(retried.status, 0, retried.stderr);
+  });
+});
+
+test("remediation planner validates the shipped event contract before append", async () => {
+  await withRemediationRuntimeFixture(async (project, run) => {
+    const schemaPath = path.join(project, "schemas", "workflow-event.schema.json");
+    const schema = JSON.parse(await readFile(schemaPath, "utf8"));
+    schema.properties.actor.const = "a-different-approved-publisher";
+    await writeFile(schemaPath, JSON.stringify(schema));
+    const result = run(["plan", "--intent", "documentation"]);
+    assert.notEqual(result.status, 0);
+    assert.deepEqual(await readdir(path.join(project, "reports")), []);
+  });
+});
+
+test("remediation planner validates legacy anchors and logical sequence continuity", async () => {
+  await withRemediationRuntimeFixture(async (project, run) => {
+    const first = run(["plan", "--intent", "documentation"]);
+    assert.equal(first.status, 0, first.stderr);
+    const statePath = path.join(project, "reports", "current-execution-state.json");
+    const prior = { ...JSON.parse(await readFile(statePath, "utf8")), status: "completed", lastSequence: 3 };
+    await writeFile(statePath, JSON.stringify(prior));
+    const record = (sequence) => JSON.stringify({ eventId: `fixture-${sequence}`, eventType: "fixture.completed", occurredAt: prior.updatedAt, sequence, workflowId: prior.workflowId, runId: prior.runId, actor: "fixture", payload: { state: { ...prior, lastSequence: sequence } } });
+    const prefix = Buffer.from(record(1) + record(2) + "\n");
+    const accepted = Buffer.concat([prefix, Buffer.from(record(3) + "\n")]);
+    const logPath = path.join(project, "reports", "execution-log.jsonl");
+    for (const history of [record(1) + "\n" + record(1) + "\n", record(1) + "\n" + record(3) + "\n", record(1) + "\n", record(1)]) {
+      await writeFile(logPath, history);
+      assert.notEqual(run(["plan", "--intent", "documentation"]).status, 0, "Duplicate, missing, stale or incomplete records must fail closed");
+      assert.equal(await readFile(logPath, "utf8"), history);
+    }
+    await writeFile(logPath, accepted);
+    const unbound = run(["plan", "--intent", "documentation"]);
+    assert.notEqual(unbound.status, 0, "Unbound malformed history must be rejected");
+    assert.deepEqual(await readFile(logPath), accepted);
+    const recoveryPath = path.join(project, "reports", "recovery-plan.json");
+    await writeFile(recoveryPath, JSON.stringify({ historyAnchor: { bytes: prefix.length, sha256: "f".repeat(64), lastSequence: 2 } }));
+    assert.notEqual(run(["plan", "--intent", "documentation"]).status, 0, "A mismatched anchor must fail closed");
+    assert.deepEqual(await readFile(logPath), accepted);
+    await writeFile(recoveryPath, JSON.stringify({ historyAnchor: { bytes: prefix.length, sha256: createHash("sha256").update(prefix).digest("hex"), lastSequence: 2 } }));
+    const valid = run(["plan", "--intent", "documentation"]);
+    assert.equal(valid.status, 0, valid.stderr);
+    const appended = await readFile(logPath);
+    assert.deepEqual(appended.subarray(0, accepted.length), accepted);
+    assert.equal(JSON.parse(appended.subarray(accepted.length).toString("utf8").trim()).sequence, 4);
+  });
+});
+
+test("remediation inventory preserves a report generation on rejection and publication failure", async (context) => {
+  const files = ["skill-inventory.json", "skill-inventory.md", "skill-details.json", "skill-details.md", "artifact-ownership.json"];
+  for (const failure of ["duplicate-owner", ...files]) {
+    await context.test(failure, async () => {
+      await withRemediationRuntimeFixture(async (project, run) => {
+        const first = run(["inventory"]);
+        assert.equal(first.status, 0, first.stderr);
+        const before = new Map(await Promise.all(files.map(async (file) => [file, await readFile(path.join(project, "reports", file))])));
+        const contract = path.join(project, ".github", "skills", "skill-registry", "SKILL.md");
+        const source = await readFile(contract, "utf8");
+        await writeFile(contract, failure === "duplicate-owner" ? source.replace("reports/skill-registry.json", "reports/skill-inventory.json") : source.replace("Manage governed skill package metadata", "Inspect governed skill package metadata"));
+        let hook;
+        if (failure !== "duplicate-owner") {
+          hook = path.join(project, "publication-failure.mjs");
+          await writeFile(hook, `import fs from "node:fs/promises"; import path from "node:path"; import { syncBuiltinESMExports } from "node:module";
+const rename = fs.rename; let failed = false;
+      fs.rename = async (from, to) => { if (!failed && path.resolve(String(to)) === ${JSON.stringify(path.join(project, "reports", failure))}) { failed = true; throw new Error("Injected inventory publication failure"); } return rename(from, to); }; syncBuiltinESMExports();\n`);
+        }
+        const failed = run(["inventory"], hook);
+        assert.notEqual(failed.status, 0);
+        assert.match(failed.stderr, failure === "duplicate-owner" ? /multiple producers/ : /publication failure/);
+        for (const [file, bytes] of before) assert.deepEqual(await readFile(path.join(project, "reports", file)), bytes, `${file} must preserve the previous complete generation`);
+      });
+    });
+  }
+});
 
 test("Microsoft and industry best-practice standards cover all seven technology areas", async () => {
   const manifest = JSON.parse(await readFile(path.join(root, "templates", "scaffold-manifest.json"), "utf8"));
@@ -1282,9 +1419,13 @@ test("deployment and companion engines survive provisioning with read-only capab
       ["agent-deployment", "agent-deployment", "external"],
       ["visual-companion-builder", "visual-companion-builder", "phase"]
     ]) {
-      const planned = spawnSync(process.execPath, [runtime, "plan", "--root", project, "--intent", intent], { cwd: project, encoding: "utf8" });
+      const routingRoot = path.join(destination, `routing-${owner}`);
+      await mkdir(path.join(routingRoot, ".github"), { recursive: true });
+      await cp(path.join(project, ".github", "skills"), path.join(routingRoot, ".github", "skills"), { recursive: true });
+      await cp(path.join(project, "schemas"), path.join(routingRoot, "schemas"), { recursive: true });
+      const planned = spawnSync(process.execPath, [runtime, "plan", "--root", routingRoot, "--intent", intent], { cwd: routingRoot, encoding: "utf8" });
       assert.equal(planned.status, 0, `${planned.stdout}\n${planned.stderr}`);
-      const plan = JSON.parse(await readFile(path.join(project, "reports", "workflow-plan.json"), "utf8"));
+      const plan = JSON.parse(await readFile(path.join(routingRoot, "reports", "workflow-plan.json"), "utf8"));
       const step = plan.steps.find((entry) => entry.owner.id === owner);
       assert.ok(step, `workflow must route to ${owner}`);
       assert.equal(step.requiresApproval, true);

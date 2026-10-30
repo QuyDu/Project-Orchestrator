@@ -1,67 +1,73 @@
 {
   "schemaVersion": "1.1.0",
-  "workflowId": "WF-REMEDIATION-4da7d0e8-28fc-43a9-8ac5-3c9f80009aac",
-  "runId": "RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
-  "intent": "Execute all 45 approved local items of PLAN-b9be041a-c060-4172-b294-67b388b84ba6; no external/deployment/commit/push authority; preserve accepted history.",
+  "workflowId": "WF-REMEDIATION-b02206bb-f6f7-42f6-9da7-3acceb241e3c",
+  "runId": "RUN-REMEDIATION-cef842bb-45e3-4f66-ae32-02302b914457",
+  "intent": "Execute the approved eight-item local audit remediation plan",
   "status": "planned",
-  "createdAt": "2026-10-01T00:14:22.491Z",
-  "terminalStepId": "STEP-048",
+  "createdAt": "2026-10-29T18:41:36.160Z",
+  "terminalStepId": "STEP-009",
   "steps": [
     {
       "id": "STEP-001",
       "owner": {
         "type": "skill",
-        "id": "project-skills-orchestrator"
+        "id": "audit-remediation"
       },
-      "action": "Route the approved all-selection remediation",
+      "action": "REM-0147: Planning silently replaces a workflow that is waiting for approval",
       "status": "ready",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
-      "requiresApproval": false,
-      "approvalClasses": [],
+      "requiresApproval": true,
+      "approvalClasses": [
+        "phase"
+      ],
       "prerequisites": [],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "Given a valid active plan and waiting-approval snapshot, new planning must fail without modifying the plan, snapshot, or accepted log.",
+        "Separately approved supersession must preserve the prior workflow identity, approval disposition, and a recoverable event trail."
       ],
-      "checkpoint": "CP-STEP-001",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0147",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-002",
       "owner": {
         "type": "skill",
-        "id": "policy-engine"
+        "id": "audit-remediation"
       },
-      "action": "Evaluate all selected local items and their controls",
+      "action": "REM-0148: Planner emits new events that fail the shipped event schema",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
-      "requiresApproval": false,
-      "approvalClasses": [],
+      "requiresApproval": true,
+      "approvalClasses": [
+        "phase"
+      ],
       "prerequisites": [
         "STEP-001"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "Validate every newly appended planner event against schemas/workflow-event.schema.json.",
+        "Replay its state with the shipped state contract and prove existing accepted history bytes remain unchanged."
       ],
-      "checkpoint": "CP-STEP-002",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0148",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-003",
@@ -69,14 +75,14 @@
         "type": "skill",
         "id": "audit-remediation"
       },
-      "action": "REM-0146: Checkpoint collection fails when a legitimate Git diff exceeds one MiB",
+      "action": "REM-0149: Planner reuses event sequence numbers for accepted legacy history",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
       "requiresApproval": true,
       "approvalClasses": [
@@ -86,13 +92,14 @@
         "STEP-002"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "A joined-record legacy fixture must not generate a duplicate or regressing sequence.",
+        "Malformed or noncontiguous suffixes must fail before any append; accepted prefix hashes must remain unchanged."
       ],
-      "checkpoint": "CP-STEP-003",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0149",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-004",
@@ -100,31 +107,31 @@
         "type": "skill",
         "id": "audit-remediation"
       },
-      "action": "REM-0108: Publishing audit evidence invalidates the secret-scan binding it certifies",
+      "action": "REM-0150: Failed inventory publication leaves a mixed report generation",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
       "requiresApproval": true,
       "approvalClasses": [
         "phase"
       ],
       "prerequisites": [
-        "STEP-002",
         "STEP-003"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "On a duplicate producer, all prior report bytes must remain unchanged.",
+        "Inject failures at each publication boundary and verify recoverable, generation-consistent artifacts."
       ],
-      "checkpoint": "CP-STEP-004",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0150",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-005",
@@ -132,31 +139,31 @@
         "type": "skill",
         "id": "audit-remediation"
       },
-      "action": "REM-0106: Declared provider response-token ceiling is not enforced",
+      "action": "REM-0151: Caller transcript metadata bypasses the aggregate input ceiling",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
       "requiresApproval": true,
       "approvalClasses": [
         "phase"
       ],
       "prerequisites": [
-        "STEP-002",
         "STEP-004"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "The reproduced 10,000-character request must fail before credentials or fetch are invoked.",
+        "Test absent, zero, negative, nonfinite, and mismatched metadata, plus exact limit boundaries."
       ],
-      "checkpoint": "CP-STEP-005",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0151",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-006",
@@ -164,31 +171,31 @@
         "type": "skill",
         "id": "audit-remediation"
       },
-      "action": "REM-0128: Pinned FFmpeg executes before its integrity check",
+      "action": "REM-0152: Provider rate records retain completed sessions without a bound",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
       "requiresApproval": true,
       "approvalClasses": [
         "phase"
       ],
       "prerequisites": [
-        "STEP-002",
-        "STEP-004"
+        "STEP-005"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "Run many completed sessions across expired windows and assert retained bookkeeping has a documented finite bound.",
+        "Verify cleanup does not permit rate-limit bypass or corrupt active concurrent sessions."
       ],
-      "checkpoint": "CP-STEP-006",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0152",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-007",
@@ -196,31 +203,31 @@
         "type": "skill",
         "id": "audit-remediation"
       },
-      "action": "REM-0110: Pre-write failure can delete the existing agent",
+      "action": "REM-0154: A stalled credential call outlives the request deadline and retains the identity slot",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
       "requiresApproval": true,
       "approvalClasses": [
         "phase"
       ],
       "prerequisites": [
-        "STEP-002",
-        "STEP-004"
+        "STEP-006"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "An unresolved fake credential must not retain an active slot after request deadline/cancellation.",
+        "Verify eventual credential completion causes no late transport call or unhandled rejection and that cleanup occurs once."
       ],
-      "checkpoint": "CP-STEP-007",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0154",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-008",
@@ -228,1359 +235,60 @@
         "type": "skill",
         "id": "audit-remediation"
       },
-      "action": "REM-0111: Native build overwrites an input spec that aliases an output",
+      "action": "REM-0153: Retry telemetry reports one attempt after three transport attempts",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-plans/49ebd37fa770262fe8be58373bf561cf187a5e71ee66e8c67ec4f01502733dd0.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/audit-remediation-execution.json",
+        "reports/audit-remediation-execution.md"
       ],
       "requiresApproval": true,
       "approvalClasses": [
         "phase"
       ],
       "prerequisites": [
-        "STEP-002",
-        "STEP-004"
+        "STEP-007"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "Assert telemetry for first-attempt success, one retry, maximum retries, and cancellation before another attempt."
       ],
-      "checkpoint": "CP-STEP-008",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-REM-0153",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "recovery": "Preserve the accepted event history and evidence; resume only from a validated checkpoint.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     },
     {
       "id": "STEP-009",
       "owner": {
         "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0122: Adoption rollback leaves the newly written baseline lock",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-009",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-010",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0129: Failed rerender removes artifacts owned by an earlier invocation",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-010",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-011",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0130: Incomplete rollback deletes the remaining recovery backups",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-011",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-012",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0131: Failed MP4 publication leaves a mixed-generation artifact set",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-011",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-012",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-013",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0121: Checksum symlink target is read and echoed before link rejection",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-013",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-014",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0115: Native source comments bypass credential-material checks",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-014",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-015",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0116: Classic validation echoes credential-bearing rejected values",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-015",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-016",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0137: Private profile storage is accepted despite effective Git ignore negation",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-016",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-017",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0138: Rejected sensitive-looking profile content is copied into diagnostics",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-017",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-018",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0101: Final transcripts submit the preceding interim text",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-018",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-019",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0102: New conversation turns append to the prior response",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-019",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-020",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0103: Late microphone permission completion reverses cancellation",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-020",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-021",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0104: Malformed grounding manifests throw before the safe fallback",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-021",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-022",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0105: Rate-limited requests permanently consume an identity concurrency slot",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-022",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-023",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0107: Streaming decoder corrupts UTF-8 characters split across chunks",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-023",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-024",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0109: Cleanup derives a different resource group for supported long project names",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-024",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-025",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0112: Classic apply interprets an explicit negative risk value as approval",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-025",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-026",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0114: Native parser treats ambiguous implicit scalars as validated text",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-026",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-027",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0117: Complete push handoff accepts blocked or missing draft approval",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-027",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-028",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0118: Cycle detection misses ordinary YAML agent-list formats",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-028",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-029",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0120: Partial initial lock write leaves an orphan project lock",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-029",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-030",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0123: Scaffold apply selects Launch Pad content instead of the hashed template",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-030",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-031",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0125: Profile validation blocks additive restoration of required skills",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-031",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-032",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0126: Legacy update plans omit required source provenance metadata",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-032",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-033",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0127: Candidate freshness ignores added and deleted shipped sources",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-033",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-034",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0134: Plan parsing and hashing can bind different file revisions",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-034",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-035",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0135: The emitted third voice profile is rejected by four owned schemas",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-035",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-036",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0136: Selected-SKU quota falls back to another SKU's capacity",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-036",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-037",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0139: Future sync timestamps are reported healthy",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-037",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-038",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0142: Documentation build publishes new verified guides from stale source snapshots",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-038",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-039",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0143: Media response caps are enforced only after full body buffering",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-039",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-040",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0113: Classic result-persistence failure leaves the new agent installed",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-007",
-        "STEP-029",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-040",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-041",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0124: Safe-all accepts local-only edits then rolls back while verifying them",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-030",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-041",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-042",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0132: Header-only invalid PNGs pass automated image qualification",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-039",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-042",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-043",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0140: Documentation promotes planned items into verified claims",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-038",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-043",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-044",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0141: Empty understanding Markdown bypasses its digest check",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-038",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-044",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-045",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0119: Boolean solution name passes runtime but violates emitted schema",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-045",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-046",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0144: A flat directory bypasses the repository file-count limit",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-046",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-047",
-      "owner": {
-        "type": "skill",
-        "id": "audit-remediation"
-      },
-      "action": "REM-0145: Default opted-in MCP services violate the environment schema",
-      "status": "planned",
-      "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
-      ],
-      "outputs": [
-        "Validated bounded outcome and checkpoint"
-      ],
-      "requiresApproval": true,
-      "approvalClasses": [
-        "phase"
-      ],
-      "prerequisites": [
-        "STEP-002",
-        "STEP-004"
-      ],
-      "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
-      ],
-      "checkpoint": "CP-STEP-047",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
-    },
-    {
-      "id": "STEP-048",
-      "owner": {
-        "type": "skill",
         "id": "project-handoff"
       },
-      "action": "Publish verified remediation continuity without overstating assurance",
+      "action": "Record verified local remediation and remaining assurance limitations",
       "status": "planned",
       "inputs": [
-        "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
-        "Current explicit local approval"
+        "reports/audit-remediation-execution.json"
       ],
       "outputs": [
-        "Validated bounded outcome and checkpoint"
+        "reports/project-handoff.json",
+        "reports/project-handoff.md",
+        "reports/current-work-state.json"
       ],
       "requiresApproval": false,
       "approvalClasses": [],
       "prerequisites": [
-        "STEP-003",
-        "STEP-004",
-        "STEP-005",
-        "STEP-006",
-        "STEP-007",
-        "STEP-008",
-        "STEP-009",
-        "STEP-010",
-        "STEP-011",
-        "STEP-012",
-        "STEP-013",
-        "STEP-014",
-        "STEP-015",
-        "STEP-016",
-        "STEP-017",
-        "STEP-018",
-        "STEP-019",
-        "STEP-020",
-        "STEP-021",
-        "STEP-022",
-        "STEP-023",
-        "STEP-024",
-        "STEP-025",
-        "STEP-026",
-        "STEP-027",
-        "STEP-028",
-        "STEP-029",
-        "STEP-030",
-        "STEP-031",
-        "STEP-032",
-        "STEP-033",
-        "STEP-034",
-        "STEP-035",
-        "STEP-036",
-        "STEP-037",
-        "STEP-038",
-        "STEP-039",
-        "STEP-040",
-        "STEP-041",
-        "STEP-042",
-        "STEP-043",
-        "STEP-044",
-        "STEP-045",
-        "STEP-046",
-        "STEP-047"
+        "STEP-008"
       ],
       "completionCriteria": [
-        "Owning skill records verified outcome or an explicit blocker without exceeding approval."
+        "All selected items and required local gates have current evidence; remaining external assurance gaps are explicit."
       ],
-      "checkpoint": "CP-STEP-048",
-      "rollback": "Restore only owned edits from pre-mutation backups; preserve user data and accepted history.",
-      "recovery": "Fail closed and route through workflow-recovery before dependent work.",
-      "onBlocked": "STEP-048",
-      "onFailed": "STEP-048"
+      "checkpoint": "CP-HANDOFF",
+      "rollback": "Preserve prior continuity backups and accepted events.",
+      "recovery": "Regenerate derived continuity from the latest accepted event.",
+      "onBlocked": "STEP-009",
+      "onFailed": "STEP-009"
     }
   ]
 }

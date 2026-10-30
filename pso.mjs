@@ -622,6 +622,74 @@ async function writeBufferAtomic(target, content) {
   }
 }
 
+async function optionalFileBytes(file) {
+  try { return await readFile(file); }
+  catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+function equalOptionalBytes(left, right) {
+  return left === null ? right === null : right !== null && left.equals(right);
+}
+
+async function publishInventoryReports(root, outputs) {
+  const lockPath = path.join(root, "reports", "inventory-report.lock");
+  let lock;
+  try { lock = await open(lockPath, "wx", 0o600); }
+  catch (error) {
+    if (error.code === "EEXIST") throw new Error("Another inventory report publisher holds reports/inventory-report.lock");
+    throw error;
+  }
+  const directory = path.join(root, ".skills-orchestrator", "report-publications", randomUUID());
+  const prepared = [];
+  const applied = [];
+  try {
+    await assertSafeManagedPath(root, path.relative(root, directory));
+    await mkdir(directory, { recursive: true });
+    for (const [relative, content] of outputs) {
+      await assertSafeManagedPath(root, relative);
+      const target = path.join(root, relative);
+      const original = await optionalFileBytes(target);
+      const next = Buffer.from(content, "utf8");
+      const name = path.basename(relative);
+      if (original !== null) await writeFile(path.join(directory, `${name}.before`), original, { flag: "wx", mode: 0o600 });
+      await writeFile(path.join(directory, `${name}.after`), next, { flag: "wx", mode: 0o600 });
+      prepared.push({ relative, target, original, next });
+    }
+    await writeJsonAtomic(path.join(directory, "journal.json"), {
+      schemaVersion: "1.0.0", scope: "inventory-report-publication", createdAt: new Date().toISOString(),
+      entries: prepared.map((entry) => ({ path: entry.relative, existed: entry.original !== null }))
+    });
+    try {
+      for (const entry of prepared) {
+        await assertSafeManagedPath(root, entry.relative);
+        if (!equalOptionalBytes(entry.original, await optionalFileBytes(entry.target))) throw new Error("Inventory report changed during publication preparation");
+        await writeBufferAtomic(entry.target, entry.next);
+        applied.push(entry);
+      }
+    } catch (error) {
+      const failures = [];
+      for (const entry of [...applied].reverse()) {
+        try {
+          await assertSafeManagedPath(root, entry.relative);
+          if (!equalOptionalBytes(entry.next, await optionalFileBytes(entry.target))) throw new Error("Published report changed before rollback");
+          if (entry.original === null) await rm(entry.target, { force: true });
+          else await writeBufferAtomic(entry.target, entry.original);
+        } catch { failures.push(entry.relative); }
+      }
+      if (failures.length) throw new Error(`Inventory publication recovery required; preserve ${path.relative(root, directory).replaceAll("\\", "/")}`, { cause: error });
+      await rm(directory, { recursive: true, force: true });
+      throw error;
+    }
+    await rm(directory, { recursive: true, force: true });
+  } finally {
+    await lock.close();
+    await rm(lockPath, { force: true });
+  }
+}
+
 async function prepareAdoptionTransaction(plan, transactionId, riskAcceptance, additionalPaths = []) {
   const directory = path.join(plan.projectRoot, ".skills-orchestrator", "transactions", transactionId);
   const backupRoot = path.join(directory, "backup");
@@ -3931,7 +3999,6 @@ async function inventory(requestedRoot, { projectOwnedSkillIds = new Set() } = {
   const generatedAt = new Date().toISOString();
   const skills = details.map(({ sha256, audit, ...skill }) => skill);
   const output = { schemaVersion: "1.0.0", runtimeVersion: VERSION, generatedAt, skills };
-  await writeTextAtomic(path.join(reports, "skill-inventory.json"), `${JSON.stringify(output, null, 2)}\n`);
   const inventoryMarkdown = [
     "# Skill Inventory",
     "",
@@ -3942,8 +4009,6 @@ async function inventory(requestedRoot, { projectOwnedSkillIds = new Set() } = {
     ...skills.map((skill) => `| ${skill.name} | ${skill.description.replaceAll("|", "\\|")} |`),
     ""
   ].join("\n");
-  await writeTextAtomic(path.join(reports, "skill-inventory.md"), inventoryMarkdown);
-  await writeTextAtomic(path.join(reports, "skill-details.json"), `${JSON.stringify({ schemaVersion: "1.0.0", runtimeVersion: VERSION, generatedAt, skills: details }, null, 2)}\n`);
   const ownership = details
     .filter((skill) => !projectOwnedSkillIds.has(skill.name))
     .flatMap((skill) => skill.reports.map((report) => ({ report, producer: skill.name })))
@@ -3951,7 +4016,6 @@ async function inventory(requestedRoot, { projectOwnedSkillIds = new Set() } = {
     .sort((left, right) => left.report < right.report ? -1 : left.report > right.report ? 1 : 0);
   const duplicateReports = ownership.filter((item, index) => ownership.findIndex((candidate) => candidate.report === item.report) !== index);
   if (duplicateReports.length) throw new Error(`Reports have multiple producers: ${[...new Set(duplicateReports.map((item) => item.report))].join(", ")}`);
-  await writeTextAtomic(path.join(reports, "artifact-ownership.json"), `${JSON.stringify({ schemaVersion: "1.0.0", generatedAt, artifacts: ownership }, null, 2)}\n`);
   const markdown = [
     "# Skill Details",
     "",
@@ -3962,7 +4026,13 @@ async function inventory(requestedRoot, { projectOwnedSkillIds = new Set() } = {
     ...details.map((skill) => `| ${skill.name} | ${skill.lifecycle} | ${skill.confidence} | ${skill.audit.status} | ${skill.dependencies.join(", ") || "None"} |`),
     ""
   ].join("\n");
-  await writeTextAtomic(path.join(reports, "skill-details.md"), markdown);
+  await publishInventoryReports(root, new Map([
+    ["reports/skill-inventory.json", `${JSON.stringify(output, null, 2)}\n`],
+    ["reports/skill-inventory.md", inventoryMarkdown],
+    ["reports/skill-details.json", `${JSON.stringify({ schemaVersion: "1.0.0", runtimeVersion: VERSION, generatedAt, skills: details }, null, 2)}\n`],
+    ["reports/artifact-ownership.json", `${JSON.stringify({ schemaVersion: "1.0.0", generatedAt, artifacts: ownership }, null, 2)}\n`],
+    ["reports/skill-details.md", markdown]
+  ]));
   console.log(`Inventoried ${skills.length} skills`);
   console.log(`Audited ${details.length} skills (${details.filter((skill) => skill.audit.status === "passed").length} passed)`);
 }
@@ -4093,6 +4163,80 @@ async function validateWorkflowPlanFile(requestedRoot, requestedFile) {
   console.log(`Validated workflow plan: ${workflow.workflowId}`);
 }
 
+function assertFlatWorkflowRecord(record, schema) {
+  if (!record || typeof record !== "object" || Array.isArray(record)) throw new Error("Workflow record must be an object");
+  for (const field of schema.required ?? []) {
+    if (!Object.hasOwn(record, field)) throw new Error(`Workflow record is missing required field: ${field}`);
+  }
+  for (const [field, value] of Object.entries(record)) {
+    const rule = schema.properties?.[field];
+    if (!rule) {
+      if (schema.additionalProperties === false) throw new Error(`Workflow record has an unexpected field: ${field}`);
+      continue;
+    }
+    const validType = rule.type === undefined || (rule.type === "integer" ? Number.isSafeInteger(value)
+      : rule.type === "object" ? value !== null && typeof value === "object" && !Array.isArray(value) : typeof value === rule.type);
+    if (!validType || (Object.hasOwn(rule, "const") && value !== rule.const) || (rule.enum && !rule.enum.includes(value))
+        || (rule.minimum !== undefined && value < rule.minimum) || (rule.minLength !== undefined && value.length < rule.minLength)
+        || (rule.pattern && !new RegExp(rule.pattern).test(value)) || (rule.format === "date-time" && (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || Number.isNaN(Date.parse(value))))) throw new Error(`Workflow record field violates its shipped contract: ${field}`);
+  }
+}
+
+async function inspectPlannerHistory(root) {
+  const statePath = path.join(root, "reports", "current-execution-state.json");
+  const logPath = path.join(root, "reports", "execution-log.jsonl");
+  await assertSafeManagedPath(root, "reports/current-execution-state.json");
+  await assertSafeManagedPath(root, "reports/execution-log.jsonl");
+  const loadSchema = async (name) => {
+    const relative = `schemas/${name}.schema.json`;
+    await assertSafeManagedPath(root, relative);
+    return JSON.parse(await readFile(path.join(root, relative), "utf8"));
+  };
+  const [stateSchema, eventSchema] = await Promise.all([loadSchema("current-execution-state"), loadSchema("workflow-event")]);
+  const stateBytes = await optionalFileBytes(statePath);
+  let snapshot = null;
+  if (stateBytes !== null) {
+    try { snapshot = JSON.parse(stateBytes.toString("utf8")); }
+    catch { throw new Error("Existing workflow state is invalid; recover it before planning"); }
+    assertFlatWorkflowRecord(snapshot, stateSchema);
+    const statuses = new Set(["planned", "running", "waiting-approval", "paused", "recovering", "blocked", "failed", "cancelled", "completed"]);
+    if (!snapshot || !statuses.has(snapshot.status) || !Number.isSafeInteger(snapshot.lastSequence) || snapshot.lastSequence < 0) throw new Error("Existing workflow state is invalid; recover it before planning");
+    if (!["completed", "cancelled", "failed"].includes(snapshot.status)) throw new Error(`Existing workflow is ${snapshot.status}; complete it or use governed recovery before planning`);
+  }
+  const bytes = await optionalFileBytes(logPath);
+  let sequence = 0;
+  let records = [];
+  const parseRecords = (buffer) => buffer.toString("utf8").split(/\r?\n/).filter((line) => line.trim()).map((line) => JSON.parse(line));
+  if (bytes?.length) {
+    if (bytes.at(-1) !== 10) throw new Error("Workflow history does not end at a record boundary; recover it before planning");
+    try { records = parseRecords(bytes); }
+    catch {
+      await assertSafeManagedPath(root, "reports/recovery-plan.json");
+      let anchor;
+      try {
+        const recovery = JSON.parse(await readFile(path.join(root, "reports", "recovery-plan.json"), "utf8"));
+        anchor = recovery.acceptedHistoryAnchor ?? recovery.historyAnchor;
+      }
+      catch { throw new Error("Workflow history is malformed and has no verified legacy anchor"); }
+      if (!anchor || !Number.isSafeInteger(anchor.bytes) || anchor.bytes < 1 || anchor.bytes > bytes.length || !Number.isSafeInteger(anchor.lastSequence) || anchor.lastSequence < 0
+          || !/^[a-f0-9]{64}$/i.test(anchor.sha256 ?? "") || bytes[anchor.bytes - 1] !== 10
+          || createHash("sha256").update(bytes.subarray(0, anchor.bytes)).digest("hex") !== anchor.sha256.toLowerCase()) throw new Error("Workflow history legacy anchor is invalid or does not match accepted bytes");
+      sequence = anchor.lastSequence;
+      try { records = parseRecords(bytes.subarray(anchor.bytes)); }
+      catch { throw new Error("Workflow history suffix is malformed; recover it before planning"); }
+    }
+    for (const event of records) {
+      assertFlatWorkflowRecord(event, eventSchema);
+      if (!Number.isSafeInteger(event?.sequence) || event.sequence !== sequence + 1) throw new Error("Workflow history sequence is not contiguous; recover it before planning");
+      sequence = event.sequence;
+    }
+  }
+  if (snapshot && snapshot.lastSequence !== sequence) throw new Error("Existing workflow snapshot and accepted history disagree; recover before planning");
+  const last = records.at(-1);
+  if (snapshot && last && (last.workflowId !== snapshot.workflowId || last.runId !== snapshot.runId || (last.payload?.state && last.payload.state.status !== snapshot.status))) throw new Error("Existing workflow snapshot and latest event disagree; recover before planning");
+  return { bytes, stateBytes, sequence: sequence + 1, logPath, statePath, stateSchema, eventSchema };
+}
+
 async function plan(requestedRoot, intent) {
   if (!intent) throw new Error("Use --intent to describe the requested outcome");
   const root = await realpath(path.resolve(requestedRoot));
@@ -4113,7 +4257,16 @@ async function plan(requestedRoot, intent) {
     if (error.code === "EEXIST") throw new Error("Another workflow planner holds reports/workflow-plan.lock");
     throw error;
   }
+  const eventLockPath = path.join(reports, "execution-log.lock");
+  let eventLock;
   try {
+    await assertSafeManagedPath(root, "reports/execution-log.lock");
+    try { eventLock = await open(eventLockPath, "wx", 0o600); }
+    catch (error) {
+      if (error.code === "EEXIST") throw new Error("Another event publisher holds reports/execution-log.lock");
+      throw error;
+    }
+    const history = await inspectPlannerHistory(root);
     const workflowId = `WF-${randomUUID()}`;
     const runId = `RUN-${randomUUID()}`;
     const now = new Date().toISOString();
@@ -4166,22 +4319,19 @@ async function plan(requestedRoot, intent) {
     await validateWorkflowPlan(workflow, root);
     const eventFile = path.join(reports, "execution-log.jsonl");
     await assertSafeManagedPath(root, "reports/execution-log.jsonl");
-    let sequence = 1;
-    try {
-      const content = await readFile(eventFile, "utf8");
-      sequence = content.split(/\r?\n/).filter(Boolean).length + 1;
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-    }
-    const event = {
-      schemaVersion: "1.0.0", sequence, timestamp: now, workflowId, runId,
-      event: "workflow-planned", actor: "pso-standalone", intent, totalSteps: workflow.steps.length
-    };
+    const sequence = history.sequence;
     const state = {
       schemaVersion: "1.0.0", workflowId, runId, status: "planned", currentStep: 1,
       totalSteps: workflow.steps.length, activeSkill: workflow.steps[0].owner.id,
       lastCompletedStep: 0, resumeFromStep: 1, lastSequence: sequence, updatedAt: now
     };
+    const event = {
+      eventId: `EVT-${runId}-${sequence}`, eventType: "workflow-planned", occurredAt: now, sequence, workflowId, runId,
+      actor: "pso-standalone", payload: { intent, totalSteps: workflow.steps.length, state }
+    };
+    assertFlatWorkflowRecord(state, history.stateSchema);
+    assertFlatWorkflowRecord(event, history.eventSchema);
+    if (!equalOptionalBytes(history.bytes, await optionalFileBytes(history.logPath)) || !equalOptionalBytes(history.stateBytes, await optionalFileBytes(history.statePath))) throw new Error("Existing workflow changed during planning; retry only after reconciliation");
     await appendFile(eventFile, `${JSON.stringify(event)}\n`, "utf8");
     await writeTextAtomic(path.join(reports, "workflow-plan.json"), `${JSON.stringify(workflow, null, 2)}\n`);
     await writeTextAtomic(path.join(reports, "workflow-plan.md"), workflowPlanMarkdown(workflow));
@@ -4189,6 +4339,10 @@ async function plan(requestedRoot, intent) {
     await writeTextAtomic(path.join(reports, "current-execution-state.md"), workflowStateMarkdown(state));
     console.log(`Created workflow ${workflowId}`);
   } finally {
+    if (eventLock) {
+      await eventLock.close();
+      await rm(eventLockPath, { force: true });
+    }
     await rm(lockPath, { force: true });
   }
 }

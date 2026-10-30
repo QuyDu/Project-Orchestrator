@@ -1,64 +1,38 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-28T17:57:43.920Z",
-  "reviewId": "REVIEW-STANDARDS-COMMIT-20261028",
+  "generatedAt": "2026-10-30T01:26:09.365Z",
   "status": "passed",
-  "scope": "Selected standards guidance, stack-aware provisioning, Node pure-import harness repair, and regenerated documentation evidence. Excludes unrelated pending framework, Skills.sh proposal, and recovery changes.",
-  "baseRevision": "c0dff7a6dd76d5e7512b45658e7f19f36a291f6c",
-  "files": [
-    ".github/copilot-instructions.md",
-    ".github/instructions/best-practices.instructions.md",
-    "README.md",
-    "docs/PROJECT-GUIDE.md",
-    "reports/microsoft-reference.json",
-    "reports/microsoft-reference.md",
-    "reports/project-guide.json",
-    "reports/project-understanding.json",
-    "reports/project-understanding.md",
-    "templates/project/.github/instructions/azure-deployment.instructions.md",
-    "templates/project/.github/instructions/best-practices.instructions.md",
-    "templates/project/.github/instructions/csharp.instructions.md",
-    "templates/project/.github/instructions/dotnet.instructions.md",
-    "templates/project/.github/instructions/node.instructions.md",
-    "templates/project/.github/instructions/powershell.instructions.md",
-    "templates/project/.github/instructions/python.instructions.md",
-    "templates/project/.github/instructions/typescript.instructions.md",
-    "templates/scaffold-manifest.json",
-    "tests/adoption-rerun.test.mjs",
-    "tests/agent-builder.test.mjs",
-    "tests/skill-contracts.test.mjs"
+  "boundary": "Audit-only commit candidate relative to fd46d377; pre-existing creation-handoff, instruction, guide and Skills.sh changes excluded",
+  "baseRevision": "fd46d377183ea7efdc41317e064bb731568a7719",
+  "sourcePaths": [
+    "pso.mjs",
+    "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+    "tests/skill-contracts.test.mjs",
+    "tests/live-chat-provider-adapter.test.mjs",
+    "tests/security-fuzz.test.mjs",
+    "tests/native-copilot-studio.test.mjs",
+    "docs/THREAT-MODEL.md"
   ],
   "findings": [],
-  "validation": {
-    "command": "npm run check",
-    "exitCode": 0,
-    "runtime": "v24.22.1",
-    "tests": {
-      "total": 958,
-      "passed": 954,
-      "failed": 0,
-      "skipped": 4
+  "validation": [
+    {
+      "command": "npm run check",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": "1001 tests, 997 passed, 0 failed, 4 skipped; exact candidate log sha256 48d24df1ece6a4b34dcd28ee02e6aa90c36da0c472de56fac78b0c03c725eb25"
     },
-    "logSha256": "70360b538b5c87b308a426e6e0f7e15f43f8cb57b49b3a3d3ec31c8d1ef422c9",
-    "isolation": "Index-derived snapshot, not all original working-tree changes.",
-    "focusedRepairTests": {
-      "passed": 7,
-      "failed": 0
-    },
-    "postGateChanges": "Only reference/review metadata and owner-generated guide bindings; no runtime, instructions, or test implementation changes."
-  },
-  "evidence": [
-    "All seven standards have dated authoritative references and tested stack-aware provisioning.",
-    "Current import guards still deny module-body IO; exact source is supplied only for the subject being loaded.",
-    "A negative regression proves module-body filesystem access remains denied.",
-    "Generated and adopted projects receive applicable standards and preserve customized guidance.",
-    "Git index isolates earlier user-owned mixed-file hunks; protected working-file hashes are unchanged."
+    {
+      "command": "Focused candidate audit/planner/guide checks",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": "49 passed, zero failed or skipped; retained in the ignored delivery validation directory"
+    }
   ],
   "limitations": [
-    "Four platform/environment-dependent skips remain explicit.",
-    "No independent security certification or live-cloud/provider verification is implied.",
-    "Formal release signing/publication requirements are unchanged.",
-    "Only normal commit/push to the existing upstream is approved; no force push, hooks bypass, deployment, or package publication.",
-    "Original user-modified working reports remain preserved and may differ from the selected, rebuilt candidate."
+    "Only the audit-remediation boundary and required evidence are reviewed; unrelated pending changes are preserved and excluded.",
+    "The historical source audit remains insufficient-evidence for hosted security, unavailable analyzers, current external standards and live services.",
+    "Windows and recorded Node 26.13.0 only; skipped platform checks and independent release approval remain separate.",
+    "The committed secret certificate remains historical remediation evidence. The fresh independently verified pre-commit receipt is retained outside this commit because staging a newly generated certificate changes the index bound by the receipt; no claim survives HEAD/ref/input changes automatically.",
+    "Accepted execution and policy history bytes are preserved, including documented legacy formatting defects."
   ]
 }

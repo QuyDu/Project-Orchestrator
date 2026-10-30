@@ -4,6 +4,8 @@ const MAX_RESPONSE_TOKENS = 1500;
 const MAX_RESPONSE_BYTES = 64 * 1024;
 const MAX_STREAM_BYTES = 1024 * 1024;
 const MAX_STREAM_LINE_BYTES = 64 * 1024;
+const MAX_SESSION_RECORDS = 1000;
+const MAX_CIRCUIT_RECORDS = 1000;
 
 export const providerCompatibilityMatrix = Object.freeze({
   AzureCloud: Object.freeze({
@@ -89,9 +91,45 @@ function createDeadline(signal, deadlineMs) {
   return { signal: controller.signal, abort: () => controller.abort(), clear: () => { clearTimeout(timer); signal?.removeEventListener("abort", abort); } };
 }
 
-async function* responseChunks(body) {
+function awaitWithAbort(operation, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) { reject(signal.reason ?? new Error("Request aborted")); return; }
+    let settled = false;
+    const finish = (handler, value) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener("abort", abort);
+      handler(value);
+    };
+    const abort = () => finish(reject, signal.reason ?? new Error("Request aborted"));
+    signal.addEventListener("abort", abort, { once: true });
+    try { Promise.resolve(operation()).then((value) => finish(resolve, value), (error) => finish(reject, error)); }
+    catch (error) { finish(reject, error); }
+  });
+}
+
+async function finishResponse(operation, signal) {
+  let pending;
+  try { pending = Promise.resolve(operation()); }
+  catch (error) { if (!signal.aborted) throw error; return; }
+  if (signal.aborted) { pending.catch(() => {}); return; }
+  try { await awaitWithAbort(() => pending, signal); }
+  catch (error) { if (!signal.aborted) throw error; }
+}
+
+async function* responseChunks(body, signal) {
   if (body && body[Symbol.asyncIterator]) {
-    yield* body;
+    const iterator = body[Symbol.asyncIterator]();
+    let complete = false;
+    try {
+      while (true) {
+        const next = await awaitWithAbort(() => iterator.next(), signal);
+        if (next.done) { complete = true; break; }
+        yield next.value;
+      }
+    } finally {
+      if (!complete && typeof iterator.return === "function") await finishResponse(() => iterator.return(), signal);
+    }
     return;
   }
   if (body?.getReader) {
@@ -99,13 +137,13 @@ async function* responseChunks(body) {
     let complete = false;
     try {
       while (true) {
-        const next = await reader.read();
+        const next = await awaitWithAbort(() => reader.read(), signal);
         if (next.done) { complete = true; break; }
         yield next.value;
       }
     } finally {
       try {
-        if (!complete) await reader.cancel();
+        if (!complete) await finishResponse(() => reader.cancel(), signal);
       } finally {
         reader.releaseLock();
       }
@@ -115,11 +153,11 @@ async function* responseChunks(body) {
   fail("invalid-output", "Provider returned no readable response body");
 }
 
-async function* responseLines(body) {
+async function* responseLines(body, signal) {
   const decoder = new TextDecoder();
   let pending = "";
   let receivedBytes = 0;
-  for await (const chunk of responseChunks(body)) {
+  for await (const chunk of responseChunks(body, signal)) {
     if (typeof chunk !== "string" && !(chunk instanceof Uint8Array)) fail("invalid-output", "Provider returned a non-byte stream chunk");
     const length = typeof chunk === "string" ? Buffer.byteLength(chunk, "utf8") : chunk.byteLength;
     receivedBytes += length;
@@ -151,33 +189,52 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
   const maxTranscriptChars = limits.maxTranscriptChars ?? MAX_TRANSCRIPT_CHARS;
   const maxResponseTokens = limits.maxResponseTokens ?? MAX_RESPONSE_TOKENS;
   const maxResponseBytes = limits.maxResponseBytes ?? MAX_RESPONSE_BYTES;
-  for (const [name, value] of Object.entries({ maxResponseTokens, maxResponseBytes })) {
-    if (!Number.isSafeInteger(value) || value < 1) fail("invalid-config", `${name} must be a positive safe integer`);
-  }
   const circuitFailureThreshold = limits.circuitFailureThreshold ?? 3;
   const circuitResetMs = limits.circuitResetMs ?? 30_000;
+  const maxSessionRecords = limits.maxSessionRecords ?? MAX_SESSION_RECORDS;
+  const maxCircuitRecords = limits.maxCircuitRecords ?? MAX_CIRCUIT_RECORDS;
+  if (!Number.isSafeInteger(maxRetries) || maxRetries < 0) fail("invalid-config", "maxRetries must be a nonnegative safe integer");
+  for (const [name, value] of Object.entries({ maxTranscriptChars, maxResponseTokens, maxResponseBytes, maxRequestsPerMinute, maxConcurrentPerIdentity, circuitFailureThreshold, circuitResetMs, maxSessionRecords, maxCircuitRecords })) {
+    if (!Number.isSafeInteger(value) || value < 1) fail("invalid-config", `${name} must be a positive safe integer`);
+  }
   const requests = new Map();
   const activeByIdentity = new Map();
   const circuits = new Map();
 
   function guardRate(sessionId) {
-    const current = requests.get(sessionId) ?? { started: now(), count: 0 };
-    if (now() - current.started >= 60_000) { current.started = now(); current.count = 0; }
+    const stamp = now();
+    for (const [key, record] of requests) {
+      if (stamp - record.started >= 60_000) requests.delete(key);
+    }
+    if (!requests.has(sessionId) && requests.size >= maxSessionRecords) fail("capacity-limited", "Provider session bookkeeping capacity reached", { retryAfterMs: 60_000 });
+    const current = requests.get(sessionId) ?? { started: stamp, count: 0 };
     if (current.count >= maxRequestsPerMinute) fail("rate-limited", "Session request rate exceeded", { retryAfterMs: 60_000 });
     current.count += 1;
     requests.set(sessionId, current);
   }
 
+  function expireCircuits(stamp) {
+    for (const [key, record] of circuits) {
+      if (stamp - record.updatedAt >= circuitResetMs) circuits.delete(key);
+    }
+  }
+
   function guardCircuit(identity) {
+    const stamp = now();
+    expireCircuits(stamp);
     const circuit = circuits.get(identity);
-    if (circuit?.openedAt && now() - circuit.openedAt < circuitResetMs) fail("circuit-open", "Provider circuit is open", { retryAfterMs: circuitResetMs - (now() - circuit.openedAt) });
-    if (circuit?.openedAt) circuits.delete(identity);
+    if (circuit && circuit.openedAt !== null && stamp - circuit.openedAt < circuitResetMs) fail("circuit-open", "Provider circuit is open", { retryAfterMs: circuitResetMs - (stamp - circuit.openedAt) });
+    if (!circuit && circuits.size >= maxCircuitRecords) fail("capacity-limited", "Provider circuit bookkeeping capacity reached", { retryAfterMs: circuitResetMs });
   }
 
   function recordFailure(identity) {
-    const circuit = circuits.get(identity) ?? { failures: 0, openedAt: 0 };
+    const stamp = now();
+    expireCircuits(stamp);
+    if (!circuits.has(identity) && circuits.size >= maxCircuitRecords) return;
+    const circuit = circuits.get(identity) ?? { failures: 0, openedAt: null, updatedAt: stamp };
     circuit.failures += 1;
-    if (circuit.failures >= circuitFailureThreshold) circuit.openedAt = now();
+    circuit.updatedAt = stamp;
+    if (circuit.failures >= circuitFailureThreshold) circuit.openedAt = stamp;
     circuits.set(identity, circuit);
   }
 
@@ -185,8 +242,8 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
     circuits.delete(identity);
   }
 
-  async function token() {
-    const result = await credential.getToken(cloudContract(validated.cloud).tokenScope);
+  async function token(signal) {
+    const result = await awaitWithAbort(() => credential.getToken(cloudContract(validated.cloud).tokenScope, { abortSignal: signal }), signal);
     if (!result?.token) fail("credential-invalid", "Server credential did not return a token");
     return result.token;
   }
@@ -196,10 +253,12 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
     requireString(identity, "identity");
     requireString(turnId, "turnId");
     if (!Array.isArray(messages) || messages.some((message) => !message || typeof message.role !== "string" || typeof message.content !== "string")) fail("invalid-input", "messages must contain role and content strings");
-    if (messages.some((message) => message.content.length > maxTranscriptChars) || (transcriptChars ?? messages.reduce((total, message) => total + message.content.length, 0)) > maxTranscriptChars) fail("transcript-limited", "Transcript length exceeds the approved ceiling");
+    const measuredTranscriptChars = messages.reduce((total, message) => total + message.content.length, 0);
+    if (measuredTranscriptChars > maxTranscriptChars) fail("transcript-limited", "Transcript length exceeds the approved ceiling");
+    if (transcriptChars !== undefined && (!Number.isSafeInteger(transcriptChars) || transcriptChars < 0 || transcriptChars !== measuredTranscriptChars)) fail("invalid-input", "Transcript metadata must match the measured message length");
     if (!Number.isInteger(responseTokens) || responseTokens < 0 || responseTokens > maxResponseTokens) fail("response-limited", "Response token request exceeds the approved ceiling");
     if (!Number.isFinite(estimatedCostUsd) || estimatedCostUsd < 0 || estimatedCostUsd > MAX_SESSION_COST_USD) fail("cost-limited", "Estimated session cost exceeds the approved ceiling");
-    if (hooks.inputSafety && !(await hooks.inputSafety({ messages }))) fail("input-blocked", "Input safety policy blocked the request");
+    if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 2 ** 31 - 1) fail("invalid-input", "deadlineMs must be a positive supported timer integer");
     guardCircuit(identity);
     const active = activeByIdentity.get(identity) ?? 0;
     if (active >= maxConcurrentPerIdentity) fail("concurrency-limited", "Identity already has an active request");
@@ -210,18 +269,26 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
     const deadline = createDeadline(signal, deadlineMs);
     activeByIdentity.set(identity, active + 1);
     let response;
+    let attempts = 0;
     try {
+      if (hooks.inputSafety && !(await awaitWithAbort(() => hooks.inputSafety({ messages }), deadline.signal))) fail("input-blocked", "Input safety policy blocked the request");
       for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
         if (deadline.signal.aborted) fail(signal?.aborted ? "cancelled" : "deadline-exceeded", signal?.aborted ? "Request cancelled" : "Request deadline exceeded");
-        response = await fetchImpl(requestUrl, { method: "POST", headers: { authorization: `Bearer ${await token()}`, "content-type": "application/json" }, body: JSON.stringify({ messages, stream: true, max_completion_tokens: responseTokens || maxResponseTokens }), signal: deadline.signal });
+        const accessToken = await token(deadline.signal);
+        if (deadline.signal.aborted) fail(signal?.aborted ? "cancelled" : "deadline-exceeded", signal?.aborted ? "Request cancelled" : "Request deadline exceeded");
+        response = await awaitWithAbort(() => {
+          const request = { method: "POST", headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" }, body: JSON.stringify({ messages, stream: true, max_completion_tokens: responseTokens || maxResponseTokens }), signal: deadline.signal };
+          attempts += 1;
+          return fetchImpl(requestUrl, request);
+        }, deadline.signal);
         if (!retryable(response.status) || attempt === maxRetries) break;
-        await sleep(2 ** attempt * 100);
+        await awaitWithAbort(() => sleep(2 ** attempt * 100), deadline.signal);
       }
-      telemetry({ event: "provider.request", provider: "azure-openai", status: response.status, attempts: Math.min(maxRetries + 1, 1), durationMs: now() - started });
+      telemetry({ event: "provider.request", provider: "azure-openai", status: response.status, attempts, durationMs: now() - started });
       if (!response.ok) fail(response.status === 429 ? "rate-limited" : "provider-error", "Provider request failed", { status: response.status });
       let output = "";
       let outputBytes = 0;
-      for await (const line of responseLines(response.body)) {
+      for await (const line of responseLines(response.body, deadline.signal)) {
         if (!line.startsWith("data:")) continue;
         const payload = line.slice(5).trim();
         if (payload === "[DONE]") break;
@@ -233,16 +300,17 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
         outputBytes += Buffer.byteLength(text, "utf8");
         if (outputBytes > maxResponseBytes) fail("response-limited", "Provider output exceeds the byte ceiling");
         output += text;
-        if (hooks.outputSafety && !(await hooks.outputSafety({ text, output }))) fail("output-blocked", "Output safety policy blocked the response");
+        if (hooks.outputSafety && !(await awaitWithAbort(() => hooks.outputSafety({ text, output }), deadline.signal))) fail("output-blocked", "Output safety policy blocked the response");
         yield { type: "RESPONSE_DELTA", text };
       }
-      if (hooks.validateOutput && !(await hooks.validateOutput({ output }))) fail("output-invalid", "Output validation rejected the response");
+      if (hooks.validateOutput && !(await awaitWithAbort(() => hooks.validateOutput({ output }), deadline.signal))) fail("output-invalid", "Output validation rejected the response");
+      if (deadline.signal.aborted) fail(signal?.aborted ? "cancelled" : "deadline-exceeded", signal?.aborted ? "Request cancelled" : "Request deadline exceeded");
       recordSuccess(identity);
       telemetry({ event: "provider.complete", provider: "azure-openai", outputLength: output.length, durationMs: now() - started });
     } catch (error) {
-      if (error.code !== "cancelled" && error.code !== "deadline-exceeded" && error.code !== "rate-limited" && error.code !== "cost-limited" && error.code !== "response-limited") recordFailure(identity);
       const code = deadline.signal.aborted ? (signal?.aborted ? "cancelled" : "deadline-exceeded") : error.code;
-      telemetry({ event: "provider.error", provider: "azure-openai", code: code ?? "provider-error" });
+      if (!["cancelled", "deadline-exceeded", "rate-limited", "cost-limited", "response-limited", "capacity-limited", "input-blocked"].includes(code)) recordFailure(identity);
+      telemetry({ event: "provider.error", provider: "azure-openai", code: code ?? "provider-error", attempts });
       if (code && code !== error.code) fail(code, code === "cancelled" ? "Request cancelled" : "Request deadline exceeded");
       throw error;
     } finally {
@@ -254,5 +322,5 @@ export function createProviderAdapter({ config, credential, fetchImpl = globalTh
     }
   }
 
-  return { cloud: validated.cloud, location: validated.location, apiVersion: validated.openAI.apiVersion, credentialMode: "server-only", streamOpenAI };
+  return { cloud: validated.cloud, location: validated.location, apiVersion: validated.openAI.apiVersion, credentialMode: "server-only", bookkeepingLimits: Object.freeze({ maxSessionRecords, maxCircuitRecords }), streamOpenAI };
 }

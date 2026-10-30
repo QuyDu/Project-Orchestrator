@@ -1,74 +1,116 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-01T19:45:45.335Z",
-  "auditRunId": "b9be041a-c060-4172-b294-67b388b84ba6",
+  "auditRunId": "b02206bb-f6f7-42f6-9da7-3acceb241e3c",
+  "generatedAt": "2026-10-29T19:41:23.296Z",
   "status": "passed",
-  "scope": "All current repository checks for the implemented source; pending scope expansion remains unimplemented.",
-  "command": "npm run check",
-  "exitCode": 0,
-  "tests": {
-    "total": 948,
-    "passed": 945,
-    "failed": 0,
-    "skipped": 3
+  "sourcePaths": [
+    "pso.mjs",
+    "tests/skill-contracts.test.mjs",
+    "templates/project/.skills-orchestrator/live-chat/server/provider-adapter.mjs",
+    "tests/live-chat-provider-adapter.test.mjs",
+    "tests/security-fuzz.test.mjs",
+    "tests/native-copilot-studio.test.mjs",
+    "docs/THREAT-MODEL.md",
+    "reports/project-guide.json"
+  ],
+  "redEvidence": [
+    ".skills-orchestrator/validation/remediation-20261029/m1-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m1-lock-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m1-schema-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m2-input-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m2-bookkeeping-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m2-credential-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m2-lifetime-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m2-policy-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m3-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m3-serialization-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/m1-existing-fixtures-red.log",
+    ".skills-orchestrator/validation/remediation-20261029/guide-binding-red.log"
+  ],
+  "passingPhaseEvidence": [
+    ".skills-orchestrator/validation/remediation-20261029/m1-acceptance.log",
+    ".skills-orchestrator/validation/remediation-20261029/m2-acceptance.log",
+    ".skills-orchestrator/validation/remediation-20261029/m3-acceptance.log",
+    ".skills-orchestrator/validation/remediation-20261029/m1-existing-fixtures-green.log",
+    ".skills-orchestrator/validation/remediation-20261029/guide-binding-green.log"
+  ],
+  "fullGate": {
+    "command": "npm run check",
+    "status": "passed",
+    "exitCode": 0,
+    "tests": "1001",
+    "passed": "997",
+    "failed": "0",
+    "skipped": "4",
+    "logSha256": "0e224440dcee55827b10b1f27c327757abb50ab15ed332aabf6ef2bb69842a3f"
   },
-  "evidenceSha256": "21ca6a8241c4c009bdfedb5a393ce0855bfff30214c85f6ad826145fb6d1f1c3",
-  "sourceInputSha256": "d64da83d40ae352d86b420fc9b8f1b716c0da7de244d199467dad7e21b70fa0e",
-  "currentSourceFilesMatched": 473,
-  "completedItemIds": [
-    "REM-0146",
-    "REM-0108",
-    "REM-0106",
-    "REM-0128",
-    "REM-0110",
-    "REM-0111",
-    "REM-0122",
-    "REM-0129",
-    "REM-0130",
-    "REM-0131",
-    "REM-0121",
-    "REM-0115",
-    "REM-0116",
-    "REM-0137",
-    "REM-0138",
-    "REM-0101",
-    "REM-0102",
-    "REM-0103",
-    "REM-0104",
-    "REM-0105",
-    "REM-0107",
-    "REM-0109",
-    "REM-0112",
-    "REM-0114",
-    "REM-0117",
-    "REM-0118",
-    "REM-0120",
-    "REM-0123",
-    "REM-0125",
-    "REM-0126",
-    "REM-0127",
-    "REM-0134",
-    "REM-0135",
-    "REM-0136",
-    "REM-0139",
-    "REM-0142",
-    "REM-0143",
-    "REM-0113",
-    "REM-0124",
-    "REM-0140",
-    "REM-0141",
-    "REM-0119",
-    "REM-0144",
-    "REM-0145"
-  ],
-  "pendingItemIds": [
-    "REM-0132"
-  ],
+  "auditFollowup": {
+    "auditRunId": "b02206bb-f6f7-42f6-9da7-3acceb241e3c",
+    "performedAt": "2026-10-29T19:40:44.213Z",
+    "owner": "audit-code",
+    "kind": "targeted post-remediation verification; not a new complete audit",
+    "command": "node --test --test-reporter=spec --test-name-pattern=remediation tests/skill-contracts.test.mjs tests/live-chat-provider-adapter.test.mjs",
+    "status": "passed",
+    "exitCode": 0,
+    "sourceBinding": "Same source bytes as full-gate-prepared.json",
+    "findings": [
+      {
+        "id": "AUD-0147",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0148",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0149",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0150",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0151",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0152",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0154",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      },
+      {
+        "id": "AUD-0153",
+        "originalFailureReproduced": false,
+        "status": "verified-fixed-in-local-scope"
+      }
+    ],
+    "logSha256": "960c0dba01883c9ad74d37874f72413992850bfe29b7d9b2126d50f23c646cf3",
+    "limitations": [
+      "Preserves the original audit, review and immutable plan as historical evidence.",
+      "Does not establish hosted, live-service, multi-platform, unavailable-analyzer, new standards-currency or independent-release assurance."
+    ]
+  },
   "limitations": [
-    "Passing tests do not establish live/hosted/provider qualification or resolve the pending PNG scope.",
-    "Three platform-specific tests were explicitly skipped.",
-    "Earlier timeouts and the obsolete assertion failure remain retained private evidence, not overwritten success."
-  ],
-  "sourceVersion": "1.3.0",
-  "frameworkVersion": "9.2.0"
+    "All eight original failures are no longer reproduced by the targeted local audit follow-up; this is not a new whole-repository assurance assessment.",
+    "The original audit conclusion remains insufficient-evidence for hosted security, current external standards/advisories, unavailable specialist analyzers and live-service behavior.",
+    "Verification used Windows and the recorded Node 26.13.0 executable only; no new Linux/macOS qualification is claimed.",
+    "No independent release approval, signing, production readiness, installation, cloud operation, external publication, commit or push was performed or authorized.",
+    "Accepted legacy event bytes remain unchanged; strict JSONL/current-schema conformance is claimed only for the new remediation suffix.",
+    "Inventory report publication is recoverable, not multi-file operating-system atomicity. Abrupt termination or rollback conflicts require review of retained local journals/backups.",
+    "Session and circuit histories use finite default capacities of 1000 each with lazy expiry. Capacity admission fails closed without evicting live rate windows.",
+    "The first full gate failed five checks: four planner fixtures needed installed schemas/current event fields/independent plans, and the historical guide binding had two stale digests. Diagnostics are retained; only the passing rerun establishes the full gate.",
+    "The guide content and historical producer outputs were preserved; repairing their saved digest binding does not establish a fresh project-understanding scan.",
+    "Current-request inverse edits reconstruct pre-remediation normalized source; pre-existing source edits are retained, and historical line-ending bytes are not independently certified."
+  ]
 }

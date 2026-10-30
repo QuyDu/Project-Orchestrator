@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0.0",
-  "recoveryId": "RECOVERY-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
-  "generatedAt": "2026-10-01T00:14:22.471Z",
-  "status": "ready-for-new-run",
-  "strategy": "new approved run from the corroborated completed terminal snapshot; not legacy resume",
+  "recoveryId": "RECOVERY-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-20261028",
+  "generatedAt": "2026-10-28T16:03:58.579Z",
+  "status": "reconciled",
+  "strategy": "append one approved historical completion event, then derive synchronized snapshots; no legacy rewrite or remediation rerun",
   "historyAnchor": {
     "bytes": 41760,
     "sha256": "7d85b36ed62a1a977969c60c1862eac49fd703656fb0673c11674d46f8f3d23d",
@@ -15,18 +15,104 @@
     "legacyActorMissing": "sequences 1-31",
     "currentSchemaConformanceClaimed": false
   },
-  "rationale": [
-    "The accepted prefix is byte-bound and unambiguously parses into 79 contiguous legacy JSON objects.",
-    "Legacy framing, actor omissions, and wall-clock regression remain explicit limitations; no old record or approval is repaired or reused.",
-    "The matching completed terminal snapshot permits a new workflow, not a manual override of an active run.",
-    "Only the newly appended, schema-valid suffix is used to derive this remediation run's materialized state."
-  ],
+  "acceptedHistoryAnchor": {
+    "bytes": 98858,
+    "sha256": "ac73248632c9b86698b391a497f3c95ef89472d5e3504f1b753dc2474e4cf6c5",
+    "lastSequence": 136
+  },
+  "diagnosis": {
+    "expected": "completed",
+    "observed": "waiting-approval",
+    "cause": "The later schema-valid all-item completion report was not appended as a terminal state event, leaving the snapshot faithfully reproducing the older approval wait.",
+    "redCheck": "Historical execution validation passed, then snapshot.status === execution.status failed before repair."
+  },
+  "approval": {
+    "request": "fix issues --proceed",
+    "scope": "Local append-only reconciliation and derived reports only; no Skills.sh workflow activation, skill edits, installation, cloud operations, publication, commit, or push."
+  },
+  "reconciliationEvent": {
+    "eventId": "EVT-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-137",
+    "sequence": 137,
+    "eventType": "workflow.state-reconciled",
+    "occurredAt": "2026-10-28T16:03:58.579Z"
+  },
+  "evidence": {
+    "acceptedPrefixBytes": 98858,
+    "acceptedPrefixSha256": "ac73248632c9b86698b391a497f3c95ef89472d5e3504f1b753dc2474e4cf6c5",
+    "executionPath": "reports/audit-remediation-execution.json",
+    "executionSha256": "53a6ee0be5b49f09a45e0979e9d37de69d11d5a8a8aeb37a3a31ff2bc10a1d69",
+    "sourcePlanPath": "reports/audit-remediation-plans/f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0.json",
+    "sourcePlanSha256": "f7897178a50fc212809ecb325a34b3d54e24333cd3d9d6719eed716feb68d3c0",
+    "terminalCheckpoint": "CP-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8-REM-0132-COMPLETE",
+    "historicalEvidenceAt": "2026-10-02T00:30:36.938Z"
+  },
+  "completedItems": 45,
+  "remainingItemIds": [],
+  "pendingApprovals": [],
   "controls": [
-    "Never change the accepted prefix.",
-    "Verify the anchor and contiguous suffix before every append.",
-    "Stop on concurrent writes, incomplete framing, unexpected identifiers, or snapshot mismatch.",
-    "Do not claim strict historical JSONL/current-schema conformance.",
-    "Obtain fresh authority for any external/destructive/privileged action."
+    "Preserve all 98858 accepted history bytes and the documented 41760-byte legacy prefix.",
+    "Do not claim strict JSONL or current-schema conformance for legacy history.",
+    "Validate the immutable source-plan digest, item outcomes, approvals, and terminal checkpoint before state reconciliation.",
+    "Append before publishing derived state; a repeated approved invocation reuses the event rather than appending another.",
+    "Keep current Skills.sh integration and source changes unactivated and untouched."
   ],
-  "checkpointRepair": "The first approved item repairs checkpoint collection before post-item checkpoints; this is not -Resume and no failed checkpoint is labeled valid."
+  "priorRecovery": {
+    "schemaVersion": "1.0.0",
+    "recoveryId": "RECOVERY-RUN-REMEDIATION-1ed9388a-2c6f-4003-b634-bac7af8ec5c8",
+    "generatedAt": "2026-10-01T00:14:22.471Z",
+    "status": "ready-for-new-run",
+    "strategy": "new approved run from the corroborated completed terminal snapshot; not legacy resume",
+    "historyAnchor": {
+      "bytes": 41760,
+      "sha256": "7d85b36ed62a1a977969c60c1862eac49fd703656fb0673c11674d46f8f3d23d",
+      "lastSequence": 79,
+      "lastCheckpoint": "CP-LIVE-CHAT-HANDED-OFF",
+      "strictJsonlValid": false,
+      "joinedLine": 71,
+      "timestampRegressionSequence": 56,
+      "legacyActorMissing": "sequences 1-31",
+      "currentSchemaConformanceClaimed": false
+    },
+    "rationale": [
+      "The accepted prefix is byte-bound and unambiguously parses into 79 contiguous legacy JSON objects.",
+      "Legacy framing, actor omissions, and wall-clock regression remain explicit limitations; no old record or approval is repaired or reused.",
+      "The matching completed terminal snapshot permits a new workflow, not a manual override of an active run.",
+      "Only the newly appended, schema-valid suffix is used to derive this remediation run's materialized state."
+    ],
+    "controls": [
+      "Never change the accepted prefix.",
+      "Verify the anchor and contiguous suffix before every append.",
+      "Stop on concurrent writes, incomplete framing, unexpected identifiers, or snapshot mismatch.",
+      "Do not claim strict historical JSONL/current-schema conformance.",
+      "Obtain fresh authority for any external/destructive/privileged action."
+    ],
+    "checkpointRepair": "The first approved item repairs checkpoint collection before post-item checkpoints; this is not -Resume and no failed checkpoint is labeled valid."
+  },
+  "rollback": "Preserve the accepted reconciliation event. If snapshot publication is interrupted, replay that event idempotently; never truncate history or restore an older stream over accepted events.",
+  "nextAction": "Review the discovery/provenance proposal for separate activation and exact-skill update approval; the prior remediation approval mismatch is resolved.",
+  "limitations": [
+    "Completion reconciles historical evidence; it does not certify the current dirty worktree or re-execute old tests.",
+    "The accepted legacy stream retains previously documented framing, actor, and timestamp defects."
+  ],
+  "validation": {
+    "historicalExecution": "passed",
+    "staleSnapshotReproduction": "failed-as-expected-before-repair",
+    "postRepairChecks": "passed",
+    "snapshotReplay": "passed: snapshot equals sequence 137 payload.state and validated historical execution status",
+    "acceptedPrefixIntegrity": "passed: original 98858-byte prefix and documented 41760-byte legacy anchor retain their exact SHA-256 digests",
+    "eventAndStateSchemas": "passed: workflow-event.schema.json and current-execution-state.schema.json",
+    "idempotentReplay": "passed: repeating the approved recovery did not change the execution-stream SHA-256",
+    "focusedRegression": {
+      "command": "node --test --test-reporter=spec --test-name-pattern=\"AUD-0132|PNG codec emits\" tests/project-visual-storytelling.test.mjs tests/visual-companion-builder.test.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullRepositoryGate": {
+      "status": "not-run",
+      "reason": "This repair changes historical state and reports only, not implementation. The user's existing dirty source/report baseline is preserved; no current full-gate success is claimed."
+    }
+  }
 }

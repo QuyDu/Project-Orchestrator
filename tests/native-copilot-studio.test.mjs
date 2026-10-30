@@ -268,6 +268,7 @@ test("native workflow planning binds the loaded instruction before its first nat
     assert.deepEqual(await readdir(project), []);
     await mkdir(path.join(project, ".github"), { recursive: true });
     await cp(path.join(root, ".github", "skills"), path.join(project, ".github", "skills"), { recursive: true });
+    await cp(path.join(root, "schemas"), path.join(project, "schemas"), { recursive: true });
     await mkdir(path.join(project, ".github", "instructions"));
     await cp(guideFile, path.join(project, guideRelative));
     const planned = run(["plan", "--root", project, "--intent", "Create a native Copilot Studio agent"]);
@@ -277,9 +278,13 @@ test("native workflow planning binds the loaded instruction before its first nat
     assert.ok(plan.steps[0].inputs.includes(`sha256:${sha256(await readFile(guideFile))}`));
     assert.ok(plan.steps.some((step) => step.owner.id === "agent-builder"));
     assert.equal(plan.steps.some((step) => step.owner.id === "agent-deployment"), false);
-    const delivery = run(["plan", "--root", project, "--intent", "Import then publish a Copilot Studio agent"]);
+    const deliveryProject = path.join(project, "independent-delivery-fixture");
+    await mkdir(deliveryProject);
+    await cp(path.join(project, ".github"), path.join(deliveryProject, ".github"), { recursive: true });
+    await cp(path.join(project, "schemas"), path.join(deliveryProject, "schemas"), { recursive: true });
+    const delivery = run(["plan", "--root", deliveryProject, "--intent", "Import then publish a Copilot Studio agent"]);
     assert.equal(delivery.status, 0, delivery.stderr);
-    const deliveryPlan = JSON.parse(await readFile(path.join(project, "reports", "workflow-plan.json"), "utf8"));
+    const deliveryPlan = JSON.parse(await readFile(path.join(deliveryProject, "reports", "workflow-plan.json"), "utf8"));
     const nativeSteps = deliveryPlan.steps.filter((step) => step.owner.id === "agent-deployment");
     assert.equal(nativeSteps.length, 2, "import and publication need separate operation steps");
     assert.deepEqual(nativeSteps.map((step) => step.approvalClasses), [["external"], ["external", "publication"]]);

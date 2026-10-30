@@ -1,0 +1,446 @@
+{
+  "schemaVersion": "2.1.0",
+  "auditRunId": "b02206bb-f6f7-42f6-9da7-3acceb241e3c",
+  "sourceReviewSha256": "2ec5717bbafa0d0753538afe510da613627c7f49ffd77c20d71f10aacb21eecb",
+  "planId": "PLAN-b02206bb-f6f7-42f6-9da7-3acceb241e3c",
+  "generatedAt": "2026-10-29T18:15:14.046Z",
+  "sourceReview": "reports/code-audit-review.json",
+  "prioritization": [
+    "prerequisite",
+    "containment",
+    "security-severity",
+    "user-impact",
+    "confidence",
+    "complexity",
+    "remediation-cost"
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Protect workflow lineage and report publication",
+      "itemIds": [
+        "REM-0147",
+        "REM-0148",
+        "REM-0149",
+        "REM-0150"
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "Enforce provider input and resource lifetimes",
+      "itemIds": [
+        "REM-0151",
+        "REM-0152",
+        "REM-0154"
+      ]
+    },
+    {
+      "id": "M3",
+      "title": "Correct retry observability",
+      "itemIds": [
+        "REM-0153"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "REM-0147",
+      "title": "Planning silently replaces a workflow that is waiting for approval",
+      "findingIds": [
+        "AUD-0147"
+      ],
+      "securitySeverity": "none",
+      "priority": 1,
+      "complexity": "medium",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Framework runtime maintainer",
+      "dependsOn": [],
+      "scope": "pso.mjs plan/state publication and neighboring workflow tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Read and reconcile the existing workflow/state before publication. Refuse nonterminal supersession by default; require an explicit operation-bound decision and append a valid transition when supersession is approved.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "Given a valid active plan and waiting-approval snapshot, new planning must fail without modifying the plan, snapshot, or accepted log.",
+        "Separately approved supersession must preserve the prior workflow identity, approval disposition, and a recoverable event trail."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0148",
+      "title": "Planner emits new events that fail the shipped event schema",
+      "findingIds": [
+        "AUD-0148"
+      ],
+      "securitySeverity": "none",
+      "priority": 2,
+      "complexity": "medium",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Framework runtime maintainer",
+      "dependsOn": [],
+      "scope": "pso.mjs event publication, workflow-event/state contracts, and focused tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Use a single trusted event constructor and validate before append. Put intent, step count, and state in the schema-defined payload; preserve legacy history unchanged.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "Validate every newly appended planner event against schemas/workflow-event.schema.json.",
+        "Replay its state with the shipped state contract and prove existing accepted history bytes remain unchanged."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0149",
+      "title": "Planner reuses event sequence numbers for accepted legacy history",
+      "findingIds": [
+        "AUD-0149"
+      ],
+      "securitySeverity": "none",
+      "priority": 3,
+      "complexity": "medium",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Framework runtime maintainer",
+      "dependsOn": [
+        "REM-0148"
+      ],
+      "scope": "pso.mjs event sequencing and legacy-history validation tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Derive sequence from a validated event stream or verified legacy-prefix/suffix anchor, not newline counts. Refuse ambiguous history and coordinate append under a single event-store lock.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "A joined-record legacy fixture must not generate a duplicate or regressing sequence.",
+        "Malformed or noncontiguous suffixes must fail before any append; accepted prefix hashes must remain unchanged."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0150",
+      "title": "Failed inventory publication leaves a mixed report generation",
+      "findingIds": [
+        "AUD-0150"
+      ],
+      "securitySeverity": "none",
+      "priority": 4,
+      "complexity": "medium",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Framework runtime maintainer",
+      "dependsOn": [],
+      "scope": "pso.mjs inventory publication and report-generation failure fixtures",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Complete ownership and consistency validation before publishing. Stage the complete report set and provide recovery/rollback if any replacement fails; do not claim operating-system atomicity across multiple files.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "On a duplicate producer, all prior report bytes must remain unchanged.",
+        "Inject failures at each publication boundary and verify recoverable, generation-consistent artifacts."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0151",
+      "title": "Caller transcript metadata bypasses the aggregate input ceiling",
+      "findingIds": [
+        "AUD-0151"
+      ],
+      "securitySeverity": "none",
+      "priority": 5,
+      "complexity": "low",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Live Chat maintainer through the owning skill-update boundary when its package/contract changes",
+      "dependsOn": [],
+      "scope": "Provider adapter input guards, owning live-chat contract if required, and provider-adapter tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Always compute and validate the aggregate from messages, validate numeric limit configuration, and reject inconsistent optional counts before token acquisition or transport.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "The reproduced 10,000-character request must fail before credentials or fetch are invoked.",
+        "Test absent, zero, negative, nonfinite, and mismatched metadata, plus exact limit boundaries."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0152",
+      "title": "Provider rate records retain completed sessions without a bound",
+      "findingIds": [
+        "AUD-0152"
+      ],
+      "securitySeverity": "none",
+      "priority": 6,
+      "complexity": "medium",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Live Chat maintainer through the owning skill-update boundary when its package/contract changes",
+      "dependsOn": [],
+      "scope": "Provider-adapter session/circuit ownership and deterministic lifecycle tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Add bounded expiry/eviction or explicit session disposal and review similar circuit bookkeeping. Avoid replacing one unbounded structure with unbounded per-entry timers.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "Run many completed sessions across expired windows and assert retained bookkeeping has a documented finite bound.",
+        "Verify cleanup does not permit rate-limit bypass or corrupt active concurrent sessions."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0153",
+      "title": "Retry telemetry reports one attempt after three transport attempts",
+      "findingIds": [
+        "AUD-0153"
+      ],
+      "securitySeverity": "none",
+      "priority": 7,
+      "complexity": "low",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Live Chat maintainer through the owning skill-update boundary when its package/contract changes",
+      "dependsOn": [],
+      "scope": "Provider-adapter request telemetry and retry tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Track attempts actually executed and emit the observed count rather than the configured maximum or a constant minimum expression.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "Assert telemetry for first-attempt success, one retry, maximum retries, and cancellation before another attempt."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    },
+    {
+      "id": "REM-0154",
+      "title": "A stalled credential call outlives the request deadline and retains the identity slot",
+      "findingIds": [
+        "AUD-0154"
+      ],
+      "securitySeverity": "none",
+      "priority": 8,
+      "complexity": "medium",
+      "complexityRationale": "Bounded controlling path with negative tests; legacy state/publication and lifecycle compatibility require explicit validation.",
+      "ownerRole": "Live Chat maintainer through the owning skill-update boundary when its package/contract changes",
+      "dependsOn": [],
+      "scope": "Provider-adapter deadline/token acquisition and ownership tests",
+      "implementationSteps": [
+        "Present exact files and behavior boundaries and obtain explicit remediation approval before editing.",
+        "Make credential and other awaited pre-transport work cancellation-aware, including bounded settlement for noncooperative dependencies, and guarantee adapter-owned slot/timer cleanup.",
+        "Capture failing reproductions, implement the smallest repair, and rerun focused then required full gates."
+      ],
+      "bestPracticeReferences": [
+        {
+          "title": "Node.js security best practices",
+          "publisher": "Node.js / OpenJS Foundation",
+          "url": "https://nodejs.org/en/learn/getting-started/security-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "vendor"
+        },
+        {
+          "title": "Best practices for writing unit tests",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+          "accessedAt": "2026-10-28",
+          "kind": "microsoft"
+        }
+      ],
+      "acceptanceCriteria": [
+        "An unresolved fake credential must not retain an active slot after request deadline/cancellation.",
+        "Verify eventual credential completion causes no late transport call or unhandled rejection and that cleanup occurs once."
+      ],
+      "verification": [
+        "Rerun the corroborated reproduction as a durable regression test.",
+        "Run the nearest existing tests, schema/contract checks, and npm run check; disclose platform skips."
+      ],
+      "rollout": "Local fixtures first, then governed generated/adopted propagation where applicable; no deployment or publication is authorized.",
+      "rollback": "Restore only approved source/artifact changes from their exact pre-change versions; never rewrite accepted event history or revert unrelated work.",
+      "requiresApproval": true,
+      "approvalReason": "The audit request authorizes reporting and planning only, not remediation, installations, remote changes, commits, or pushes.",
+      "residualRisk": "Other unavailable hosted, standards, analyzer, and live-service coverage remains blocked even after this individual repair."
+    }
+  ],
+  "dispositions": [],
+  "limitations": [
+    "Hosted GitHub controls/alerts, remote-only refs, advisory services, package registries, cloud tenants, live providers, organizational policies, and fresh authoritative standards retrieval were not authorized or queried.",
+    "ESLint, a configured JavaScript type checker, PSScriptAnalyzer, and a local Bicep security/semantic validation result are unavailable; syntax checks are not substitutes.",
+    "No C#, Python, TypeScript, or other compiled-language application source is present in the committed baseline. Their instruction files do not establish native analyzer coverage.",
+    "Unreachable/pruned objects, forks, remote PR refs, hosted Actions logs/artifacts/releases/packages, issues/discussions/wikis, and caches outside approved local scope remain unassessed.",
+    "Manual analysis is trust-boundary and call-path focused, not a claim that every possible execution, concurrency race, browser/device state, or external service behavior was exhaustively explored.",
+    "No source remediation, installation, credential validation, cloud operation, commit, push, publication, event-history rewrite, or approval-state transition was performed.",
+    "The 26 pending worktree entries are separately inspected as deltas; the full gate applies to committed source only. Report outputs are the audit's permitted changes.",
+    "The full gate recorded 925 passed, 29 failed, and 4 skipped on Node 24.22.2/npm 11.19.1. The foreground terminal later resolved Node 26.13.0; one affected case and standalone verification passed there. Runtime drift was observed, but the null subprocess statuses were not conclusively diagnosed or treated as source defects.",
+    "This audit's reviewed-analysis phase does not replace the independently authored security-review approval required by the formal release policy.",
+    "Current secret-scan completion must be independently verified after findings/review/plan are frozen; no additional tracked publication may follow that closing verification without a new explicit scan.",
+    "Execution is in approval-wait. No remediation item was executed. Missing assurance evidence must be addressed separately before release conformance can be claimed."
+  ]
+}

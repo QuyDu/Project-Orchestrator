@@ -1,12 +1,10 @@
-# Versioned Delivery Policy
+# Audit Commit And Push Policy
 
-Decision: **allow with controls** for the current explicit version/date, commit and normal upstream push request.
+Decision: allow under the current explicit request and delegated clarification answers.
 
-Target: existing public QuyDu/Project-Orchestrator, origin/release/1.1.2.
+Scope: reviewed audit fixes and required evidence to origin/release/1.1.2; runtime/framework metadata unchanged.
 
-- Current bounded review and required full validation must pass.
-- Stage an explicit reviewed path list; exclude ignored profiles, credentials, temporary outputs and unrelated changes.
-- No force push, branch rename, history rewrite, tag, GitHub Release, package publication or deployment.
-- Stop on authentication/protection/non-fast-forward rejection; do not bypass protections.
-- Include the required Copilot co-author trailer.
-- Retain historical records and pending PNG scope honestly.
+- The exact isolated candidate must pass focused and full checks plus a fresh offline secret scan.
+- Verify no worktree/index drift before staging; preserve unrelated pending changes.
+- Reject a changed upstream or non-fast-forward push; no force push, branch replacement, history rewrite, dependency installation, cloud operation, tag or release publication.
+- Do not reuse historical scan receipts as current proof after candidate, index, ref or HEAD changes.
