@@ -3,10 +3,14 @@ name: Security validation
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
 
 permissions:
   contents: read
+
+env:
+  NPM_CONFIG_OFFLINE: "true"
+  NPM_CONFIG_UPDATE_NOTIFIER: "false"
 
 concurrency:
   group: security-validation-${{ github.ref }}
@@ -49,7 +53,7 @@ jobs:
   check:
     name: ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -66,6 +70,15 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
+      - name: Verify approved package manager
+        shell: bash
+        run: |
+          expected="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value = JSON.parse(readFileSync("package.json", "utf8")).packageManager; if (!/^npm@\d+\.\d+\.\d+$/.test(value)) process.exit(1); process.stdout.write(value.slice(4));')"
+          actual="$(npm --version)"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Provision the pinned npm version from an approved offline cache before CI qualification."
+            exit 1
+          fi
       - name: Validate locked dependency graph without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run syntax, contracts, security fixtures, and verification

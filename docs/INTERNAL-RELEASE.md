@@ -12,21 +12,50 @@ Skills Orchestrator is licensed and configured for authorized internal use only.
 - Provision an organization-controlled signing identity outside this repository.
 - Appoint a qualified reviewer who did not author the release changes.
 
+Compare the active toolchain with the declared package-manager pin before qualification. The [verified local toolchain snapshot](../README.md#verified-local-toolchain), observed October 30, 2026, records Node.js `26.13.0`, npm `11.20.0`, Git for Windows `2.56.0.windows.3`, PowerShell `7.6.9`, and VS Code `1.144.0`. The selected offline toolchain pins `npm@11.20.0`, matching the installed CLI; release packaging verifies that exact version before creating output. The npm `11.21.1` update remains deferred, not installed or production-qualified.
+
+Use the dated [core-tool update report](../reports/environment-update.md) to review official-source availability, actual outcomes, and compatibility limits. Organizationally blocked package URLs must not be retried through alternate routes or bypassed by disabling TLS verification. Use an organization-approved source or pre-provisioned offline cache for future updates; do not silently change registry configuration.
+
 ## Build And Candidate Verification
 
 ```powershell
-npm run check
-npm run release
-npm run release:verify:candidate
+npm --offline --update-notifier=false run check
+npm --offline --update-notifier=false run release
+npm --offline --update-notifier=false run release:verify:candidate
 ```
 
 The candidate is written under `dist/project-skills-orchestrator-VERSION/` and contains the standalone distribution, restricted package, payload checksums, final checksums, CycloneDX SBOM, SLSA-format provenance statement, and release contract. Candidate verification rejects stale source bytes, links, missing files, unexpected files, and checksum mismatches.
+
+The security-validation workflow also disables npm registry access and update notifications. It verifies the declared npm version before the frozen dependency check and fails closed if a runner lacks that version; provision it through an approved offline cache before claiming matrix qualification. Release branches are covered by both security workflows. File-level test concurrency is bounded at two without changing individual test timeouts or assertions.
+
+## Evidence Validation
+
+Refresh the built-in source scan after source changes, then verify its saved evidence without rewriting it:
+
+```powershell
+node scripts/security-check.mjs
+node scripts/security-check.mjs --verify-report
+```
+
+Read-only verification reruns the existing local checks and requires the saved report to match the current source digest, scanner identity/version, file and dependency counts, empty findings, and the producer's canonical UTC timestamp. Evidence must not be future-dated or older than 24 hours. The regular root coordination file `.pso-release.lock` is excluded from this source digest because its contents change with each operation; symbolic links remain rejected. This built-in check does not replace the pinned specialist secret-history scan or hosted security analysis.
+
+CI recording must run on the operating system and Node major it claims to qualify. The aggregator requires exactly nine unique supported OS/Node records, all bound to the selected commit, with the declared fields and valid nonfuture completion times. Invalid inputs leave prior published evidence unchanged; valid output is replaced through a same-directory temporary file and rename. Schema and commit checks do not authenticate a CI artifact's origin: retrieve evidence from the approved workflow for the exact release commit.
+
+Readiness also validates the operational report's candidate digest, exact owner/signal fields, seven unique signals, nonempty evidence, matching revocation owner, and fresh, ordered timestamps. Optional evidence and checksum reads are bounded and reject links before reads. Missing, malformed, oversized, stale, or inconsistent evidence produces a blocked result rather than reusing an old success report.
 
 ## Signing
 
 Sign the exact bytes of `SHA256SUMS` with the approved organizational signing service. Store detached evidence as `release-signature.json` using `schemas/release-signature.schema.json`. Configure the independently distributed SHA-256 fingerprint of the trusted public key as `PSO_TRUSTED_SIGNING_KEY_SHA256` when verifying. Never place a private key, certificate password, token, or HSM credential in this repository, command history, logs, or release directory.
 
 The signature evidence identifies the signer, algorithm, signing time, public verification key, signed artifact, and base64 signature. Key provisioning, custody, rotation, revocation, and authorization remain organization-owned controls.
+
+For a signing diagnostic, the following verifies the checksummed artifact and its signature against the configured external trust anchor:
+
+```powershell
+node scripts/verify-release.mjs --signature-only
+```
+
+This diagnostic does not approve independent review or production distribution. Unknown or conflicting verifier modes are rejected. Default production verification still requires both the trusted signature and the signed independent review.
 
 ## Independent Review
 
@@ -42,6 +71,15 @@ npm run release:status
 ```
 
 Both commands must exit successfully. `release:status` writes `reports/release-readiness.json`. Distribution is prohibited unless its status is `production-ready` and every check is `passed` for the same committed revision and candidate digest.
+
+## Resolving Blocked Results
+
+- Use a clean checkout of the intended release commit; do not discard pending source changes to make the cleanliness check pass.
+- Refresh a stale source scan through its producer. The read-only verifier never refreshes evidence itself.
+- Rebuild a stale candidate and obtain current-commit CI artifacts from the approved workflow. Do not repair provenance by editing a commit field or timestamp.
+- Obtain real organizational signing and an independent human review. File presence or a configured fingerprint alone does not pass attestation gates; readiness verifies their cryptographic evidence.
+- Configure the approved internal destination and monitoring, then exercise the owner-approved revocation route and record its actual result. Local synthetic tests are not operational evidence.
+- Rerun final verification only after the underlying conditions are satisfied. Local validation does not promote draft skills, qualify untested live integrations, or authorize distribution.
 
 ## Internal Distribution
 

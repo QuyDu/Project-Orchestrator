@@ -158,6 +158,40 @@ test("npm supply-chain policy is reproducible and automated", async () => {
   assert.match(workflow, /npm ci --ignore-scripts --no-audit --no-fund/);
 });
 
+test("release CI verifies pinned npm offline and covers release branches", async () => {
+  const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+  const workflow = await readFile(path.join(root, ".github", "workflows", "security-validation.yml"), "utf8");
+  const codeql = await readFile(path.join(root, ".github", "workflows", "codeql.yml"), "utf8");
+  assert.match(workflow, /NPM_CONFIG_OFFLINE: "true"/);
+  assert.match(workflow, /NPM_CONFIG_UPDATE_NOTIFIER: "false"/);
+  assert.match(workflow, /actual="\$\(npm --version\)"/);
+  assert.match(workflow, /approved offline cache/);
+  assert.doesNotMatch(workflow, /npm (?:install|update|exec)\b|\bnpx\b/);
+  assert.ok(workflow.indexOf("Verify approved package manager") < workflow.indexOf("npm ci --ignore-scripts"));
+  for (const source of [workflow, codeql]) assert.match(source, /branches: \[main, "release\/\*\*"\]/);
+  assert.match(manifest.scripts.check, /node --test --test-concurrency=2 /);
+  assert.match(manifest.scripts.test, /node --test --test-concurrency=2 /);
+});
+
+test("release packaging rejects an unpinned npm CLI before publishing", async () => {
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "pso-unpinned-npm-"));
+  try {
+    const npmCli = path.join(temporary, "npm.cjs");
+    await writeFile(npmCli, 'process.stdout.write("0.0.0\\n");\n');
+    const result = spawnSync(process.execPath, [path.join(root, "scripts", "build-release.mjs")], {
+      cwd: root,
+      env: { ...process.env, npm_execpath: npmCli },
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 15_000
+    });
+    assert.equal(result.status, 1, result.error?.message || result.stderr);
+    assert.match(result.stderr, /Release blocked: npm 0\.0\.0 does not match packageManager npm@\d+\.\d+\.\d+/);
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
+});
+
 test("a clean clone has every input the conformance gate reads", async (context) => {
   const git = spawnSync("git", ["--version"], { encoding: "utf8" });
   if (git.status !== 0) return context.skip("Git is required to verify tracked inputs");
@@ -327,6 +361,268 @@ async function withReleaseFixture(action) {
   }
 }
 
+async function withReadinessFixture(action) {
+  await withReleaseFixture(async (fixture) => {
+    for (const file of ["release-status.mjs", "release-lock.mjs", "release-worktree.mjs", "security-check.mjs"]) {
+      await writeFile(path.join(fixture.source, "scripts", file), await readFile(path.join(root, "scripts", file)));
+    }
+    await mkdir(path.join(fixture.source, "release"));
+    await mkdir(path.join(fixture.source, "reports"));
+    await writeFile(path.join(fixture.source, "release", "release-manifest.json"), await readFile(path.join(root, "release", "release-manifest.json")));
+    const packageManifest = JSON.parse(await readFile(path.join(fixture.source, "package.json"), "utf8"));
+    const frameworkManifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+    packageManifest.packageManager = frameworkManifest.packageManager;
+    packageManifest.engines = frameworkManifest.engines;
+    const packageSource = `${JSON.stringify(packageManifest)}\n`;
+    await writeFile(path.join(fixture.source, "package.json"), packageSource);
+    await writeFile(path.join(fixture.artifact, "package.json"), packageSource);
+    await writeFile(path.join(fixture.source, "package-lock.json"), JSON.stringify({ name: packageManifest.name, version: packageManifest.version, lockfileVersion: 3, packages: { "": { name: packageManifest.name, version: packageManifest.version, engines: packageManifest.engines } } }));
+    await writeFile(path.join(fixture.source, ".npmrc"), await readFile(path.join(root, ".npmrc")));
+    await writeFile(path.join(fixture.source, ".gitignore"), await readFile(path.join(root, ".gitignore")));
+    const payload = [];
+    for (const name of ["package.json", "fixture.txt", "schemas/base.schema.json", "templates/base.txt"]) payload.push(`${releaseDigest(await readFile(path.join(fixture.artifact, name)))}  ${name}`);
+    const payloadSource = `${payload.join("\n")}\n`;
+    await writeFile(path.join(fixture.artifact, "PAYLOAD-SHA256SUMS"), payloadSource);
+    await writeFile(path.join(fixture.artifact, "provenance.intoto.json"), JSON.stringify({ subject: [{ name: "PAYLOAD-SHA256SUMS", digest: { sha256: releaseDigest(payloadSource) } }] }));
+    await writeFixtureChecksums(fixture.artifact);
+    for (const args of [["init", "--quiet"], ["config", "user.name", "Release Fixture"], ["config", "user.email", "release@example.invalid"], ["add", "."], ["commit", "--quiet", "-m", "Synthetic readiness baseline"]]) {
+      const result = spawnSync("git", args, { cwd: fixture.source, encoding: "utf8" });
+      assert.equal(result.status, 0, result.stderr);
+    }
+    const revision = spawnSync("git", ["rev-parse", "HEAD"], { cwd: fixture.source, encoding: "utf8" });
+    assert.equal(revision.status, 0, revision.stderr);
+    const commit = revision.stdout.trim();
+    const timestamp = "2026-10-29T12:00:00.000Z";
+    const clock = path.join(fixture.directory, "readiness-clock.mjs");
+    await writeFile(clock, `const NativeDate = Date; globalThis.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [${JSON.stringify(timestamp)}])); } static now() { return NativeDate.parse(${JSON.stringify(timestamp)}); } };\n`);
+    const env = { ...process.env, NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --import=${pathToFileURL(clock).href}`.trim(), PSO_TRUSTED_SIGNING_KEY_SHA256: "", PSO_TRUSTED_REVIEW_KEY_SHA256: "" };
+    const evidence = {
+      schemaVersion: "1.0.0", generatedAt: timestamp, commit,
+      runs: ["windows", "linux", "macos"].flatMap((operatingSystem) => [22, 24, 26].map((node) => ({ schemaVersion: "1.0.0", os: operatingSystem, node, commit, status: "passed", completedAt: timestamp })))
+    };
+    const inspect = async ({ environment = {}, expectedExitCode = 1 } = {}) => {
+      const result = spawnSync(process.execPath, [path.join(fixture.source, "scripts", "release-status.mjs")], { cwd: fixture.source, encoding: "utf8", env: { ...env, ...environment } });
+      assert.equal(result.status, expectedExitCode, `${result.stdout}\n${result.stderr}`);
+      return JSON.parse(await readFile(path.join(fixture.source, "reports", "release-readiness.json"), "utf8"));
+    };
+    const evaluate = async (ciEvidence = evidence, options) => {
+      await writeFile(path.join(fixture.source, "reports", "cross-platform-ci-evidence.json"), JSON.stringify(ciEvidence));
+      return inspect(options);
+    };
+    const scan = (verify = false) => spawnSync(process.execPath, [path.join(fixture.source, "scripts", "security-check.mjs"), ...(verify ? ["--verify-report"] : [])], { cwd: fixture.source, encoding: "utf8", env });
+    await action({ ...fixture, commit, timestamp, clock, evidence, evaluate, inspect, scan });
+  });
+}
+
+test("production readiness rejects old CI runs hidden behind a current summary", async () => {
+  await withReadinessFixture(async (fixture) => {
+    const stale = structuredClone(fixture.evidence);
+    for (const run of stale.runs) run.commit = "0".repeat(40);
+    const report = await fixture.evaluate(stale);
+    assert.equal(report.checks.find((check) => check.id === "cross-platform-ci").status, "blocked");
+  });
+});
+
+test("production readiness accepts only complete coherent CI evidence", async (context) => {
+  await withReadinessFixture(async (fixture) => {
+    const valid = await fixture.evaluate();
+    assert.equal(valid.checks.find((check) => check.id === "cross-platform-ci").status, "passed");
+    assert.equal(valid.status, "blocked", "CI evidence alone must not satisfy signing or independent review");
+    for (const [label, mutate] of [
+      ["wrong schema", (value) => { value.schemaVersion = "0.0.0"; }],
+      ["missing generation time", (value) => { delete value.generatedAt; }],
+      ["unknown summary field", (value) => { value.bypassApproval = true; }],
+      ["non-array runs", (value) => { value.runs = {}; }],
+      ["null run", (value) => { value.runs[0] = null; }],
+      ["duplicate run", (value) => { value.runs.push(structuredClone(value.runs[0])); }],
+      ["missing matrix entry", (value) => { value.runs.pop(); }],
+      ["failed run", (value) => { value.runs[0].status = "failed"; }],
+      ["unknown run field", (value) => { value.runs[0].approved = true; }],
+      ["missing run time", (value) => { delete value.runs[0].completedAt; }],
+      ["invalid run time", (value) => { value.runs[0].completedAt = "not-a-date"; }],
+      ["future summary", (value) => { value.generatedAt = "2026-10-30T12:00:00.000Z"; }],
+      ["future run", (value) => { value.runs[0].completedAt = "2026-10-30T12:00:00.000Z"; }],
+      ["run newer than summary", (value) => { value.generatedAt = "2026-10-29T11:59:00.000Z"; }]
+    ]) {
+      await context.test(label, async () => {
+        const evidence = structuredClone(fixture.evidence);
+        mutate(evidence);
+        const result = await fixture.evaluate(evidence);
+        assert.equal(result.checks.find((check) => check.id === "cross-platform-ci").status, "blocked");
+      });
+    }
+  });
+});
+
+test("production readiness rejects a stale passed security report", async () => {
+  await withReadinessFixture(async (fixture) => {
+    await writeFile(path.join(fixture.source, "reports", "security-check.json"), JSON.stringify({ schemaVersion: "1.0.0", generatedAt: fixture.timestamp, scanner: { name: "skills-orchestrator-security-check", version: "1.0.0" }, sourceDigest: "0".repeat(64), filesScanned: 1, dependencyCount: 0, status: "passed", findings: [] }));
+    const report = await fixture.evaluate();
+    assert.equal(report.checks.find((check) => check.id === "security-scan").status, "blocked");
+  });
+});
+
+test("security evidence verification is read-only and bound to current source", async () => {
+  await withReadinessFixture(async (fixture) => {
+    const scanned = fixture.scan();
+    assert.equal(scanned.status, 0, scanned.stderr);
+    const reportPath = path.join(fixture.source, "reports", "security-check.json");
+    const previous = await readFile(reportPath);
+    const verified = fixture.scan(true);
+    assert.equal(verified.status, 0, verified.stderr);
+    assert.deepEqual(await readFile(reportPath), previous);
+    assert.equal(existsSync(path.join(fixture.source, ".pso-release.lock")), false);
+    const valid = await fixture.evaluate();
+    assert.equal(valid.checks.find((check) => check.id === "security-scan").status, "passed");
+    await writeFile(path.join(fixture.source, "fixture.txt"), "Changed source after the scan.\n");
+    const stale = fixture.scan(true);
+    assert.equal(stale.status, 1);
+    assert.deepEqual(await readFile(reportPath), previous, "Verification must not refresh stale evidence itself");
+    const blocked = await fixture.evaluate();
+    assert.equal(blocked.checks.find((check) => check.id === "security-scan").status, "blocked");
+  });
+});
+
+test("security evidence verification rejects malformed current metadata without refresh", async (context) => {
+  await withReadinessFixture(async (fixture) => {
+    assert.equal(fixture.scan().status, 0);
+    const reportPath = path.join(fixture.source, "reports", "security-check.json");
+    const original = JSON.parse(await readFile(reportPath, "utf8"));
+    for (const [label, mutate] of [
+      ["non-ISO time", (value) => { value.generatedAt = "October 29, 2026 12:00:00 GMT"; }],
+      ["date without time", (value) => { value.generatedAt = "2026-10-29"; }],
+      ["unknown scanner field", (value) => { value.scanner.bypass = true; }],
+      ["stale time", (value) => { value.generatedAt = "2026-10-28T11:59:00.000Z"; }],
+      ["future time", (value) => { value.generatedAt = "2026-10-30T12:00:00.000Z"; }],
+      ["wrong scanner version", (value) => { value.scanner.version = "0.0.0"; }]
+    ]) {
+      await context.test(label, async () => {
+        const value = structuredClone(original);
+        mutate(value);
+        const bytes = Buffer.from(JSON.stringify(value));
+        await writeFile(reportPath, bytes);
+        assert.equal(fixture.scan(true).status, 1);
+        assert.deepEqual(await readFile(reportPath), bytes);
+      });
+    }
+  });
+});
+
+async function readinessOperations(fixture) {
+  const contract = JSON.parse(await readFile(path.join(root, "release", "release-manifest.json"), "utf8"));
+  const owners = Object.fromEntries(contract.requiredOperationalRoles.map((role) => [role, `@synthetic-${role}`]));
+  return {
+    schemaVersion: "1.0.0", generatedAt: fixture.timestamp,
+    candidateSha256: releaseDigest(await readFile(path.join(fixture.artifact, "SHA256SUMS"))), owners,
+    signals: contract.monitoringSignals.map((id) => ({ id, status: "passing", checkedAt: fixture.timestamp, evidence: "Synthetic local fixture; not operational approval." })),
+    revocation: { status: "ready", owner: owners.artifactRevocation, testedAt: fixture.timestamp, evidence: "Synthetic local fixture; no real artifact was revoked." }
+  };
+}
+
+test("production readiness validates candidate-bound operational evidence", async (context) => {
+  await withReadinessFixture(async (fixture) => {
+    const operations = await readinessOperations(fixture);
+    const file = path.join(fixture.source, "reports", "release-operations.json");
+    await writeFile(file, JSON.stringify(operations));
+    const valid = await fixture.evaluate();
+    assert.equal(valid.checks.find((check) => check.id === "operational-readiness").status, "passed");
+    for (const [label, mutate] of [
+      ["wrong schema", (value) => { value.schemaVersion = "0.0.0"; }],
+      ["missing generation time", (value) => { delete value.generatedAt; }],
+      ["future generation time", (value) => { value.generatedAt = "2026-10-30T12:00:00.000Z"; }],
+      ["unknown owner field", (value) => { value.owners.bypass = "@synthetic-extra"; }],
+      ["non-array signals", (value) => { value.signals = {}; }],
+      ["null signal", (value) => { value.signals[0] = null; }],
+      ["duplicate signal", (value) => { value.signals.push(structuredClone(value.signals[0])); }],
+      ["missing signal", (value) => { value.signals.pop(); }],
+      ["empty signal evidence", (value) => { value.signals[0].evidence = ""; }],
+      ["future signal", (value) => { value.signals[0].checkedAt = "2026-10-30T12:00:00.000Z"; }],
+      ["signals newer than summary", (value) => { value.generatedAt = "2026-10-29T11:59:00.000Z"; }],
+      ["empty revocation evidence", (value) => { value.revocation.evidence = ""; }],
+      ["wrong revocation owner", (value) => { value.revocation.owner = "@synthetic-other"; }],
+      ["stale revocation", (value) => { value.revocation.testedAt = "2026-10-28T11:59:00.000Z"; }]
+    ]) {
+      await context.test(label, async () => {
+        const invalid = structuredClone(operations);
+        mutate(invalid);
+        await writeFile(file, JSON.stringify(invalid));
+        const result = await fixture.evaluate();
+        assert.equal(result.checks.find((check) => check.id === "operational-readiness").status, "blocked");
+      });
+    }
+    await context.test("missing artifact cannot match a null candidate digest", async () => {
+      const checksum = path.join(fixture.artifact, "SHA256SUMS");
+      const moved = path.join(fixture.directory, "preserved-checksums");
+      await rename(checksum, moved);
+      try {
+        await writeFile(file, JSON.stringify({ ...operations, candidateSha256: null }));
+        const result = await fixture.evaluate();
+        assert.equal(result.checks.find((check) => check.id === "operational-readiness").status, "blocked");
+      } finally { await rename(moved, checksum); }
+    });
+  });
+});
+
+test("production readiness replaces stale success when optional evidence is malformed", async (context) => {
+  for (const [file, gate] of [["cross-platform-ci-evidence.json", "cross-platform-ci"], ["release-operations.json", "operational-readiness"], ["security-check.json", "security-scan"]]) {
+    await context.test(file, async () => withReadinessFixture(async (fixture) => {
+      await writeFile(path.join(fixture.source, "reports", file), "{malformed-synthetic-evidence");
+      await writeFile(path.join(fixture.source, "reports", "release-readiness.json"), JSON.stringify({ status: "production-ready", checks: [{ id: gate, status: "passed" }] }));
+      const result = await fixture.inspect();
+      assert.equal(result.status, "blocked");
+      assert.equal(result.checks.find((check) => check.id === gate).status, "blocked");
+      assert.doesNotMatch(JSON.stringify(result), /malformed-synthetic-evidence/);
+    }));
+  }
+});
+
+test("production readiness derives attestation gates from cryptographic verification", async () => {
+  await withReadinessFixture(async (fixture) => {
+    const signingKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const reviewerKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const publicKeyPem = signingKeys.publicKey.export({ type: "spki", format: "pem" });
+    const reviewerPublicKeyPem = reviewerKeys.publicKey.export({ type: "spki", format: "pem" });
+    const checksums = await readFile(path.join(fixture.artifact, "SHA256SUMS"));
+    const signaturePath = path.join(fixture.artifact, "release-signature.json");
+    const reviewPath = path.join(fixture.artifact, "independent-review.json");
+    const signature = { schemaVersion: "1.0.0", algorithm: "RSA-SHA256", signedArtifact: "SHA256SUMS", publicKeyPem, signature: sign("RSA-SHA256", checksums, signingKeys.privateKey).toString("base64") };
+    const review = { schemaVersion: "1.0.0", algorithm: "RSA-SHA256", status: "approved", reviewer: "synthetic-independent-reviewer", reviewedSha256: releaseDigest(checksums), approvedAt: fixture.timestamp, scope: ["source", "security-scan", "codeql", "threat-model", "recovery", "package-installation"], findings: [], reviewerPublicKeyPem };
+    review.signature = sign("RSA-SHA256", Buffer.from(canonicalReviewPayload(review)), reviewerKeys.privateKey).toString("base64");
+    const environment = { PSO_TRUSTED_SIGNING_KEY_SHA256: publicKeyFingerprint(publicKeyPem), PSO_TRUSTED_REVIEW_KEY_SHA256: publicKeyFingerprint(reviewerPublicKeyPem) };
+    await writeFile(path.join(fixture.source, "reports", "release-operations.json"), JSON.stringify(await readinessOperations(fixture)));
+    const scanned = fixture.scan();
+    assert.equal(scanned.status, 0, scanned.stderr);
+    await writeFile(signaturePath, JSON.stringify({ ...signature, signature: "invalid-synthetic-signature" }));
+    await writeFile(reviewPath, JSON.stringify({ ...review, signature: "invalid-synthetic-review" }));
+    const invalid = await fixture.evaluate(fixture.evidence, { environment });
+    assert.equal(invalid.checks.find((check) => check.id === "trusted-signature").status, "blocked");
+    assert.equal(invalid.checks.find((check) => check.id === "independent-review").status, "blocked");
+    await writeFile(signaturePath, JSON.stringify(signature));
+    await writeFile(reviewPath, JSON.stringify(review));
+    const valid = await fixture.evaluate(fixture.evidence, { environment, expectedExitCode: 0 });
+    assert.equal(valid.status, "production-ready", "Only the disposable fully satisfied synthetic fixture may become ready");
+    await writeFile(reviewPath, JSON.stringify({ ...review, findings: ["Synthetic unresolved finding"] }));
+    const changed = await fixture.evaluate(fixture.evidence, { environment });
+    assert.equal(changed.checks.find((check) => check.id === "trusted-signature").status, "passed");
+    assert.equal(changed.checks.find((check) => check.id === "independent-review").status, "blocked");
+    assert.equal(changed.status, "blocked");
+  });
+});
+
+test("production readiness rejects linked checksum evidence before reading it", async () => {
+  await withReadinessFixture(async (fixture) => {
+    const canary = `sensitive-fixture-${randomUUID()}`;
+    await writeFile(path.join(fixture.artifact, "SHA256SUMS"), `${canary}\n`);
+    const observer = await checksumReadObserver(fixture, true);
+    const environment = { NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --import=${pathToFileURL(fixture.clock).href} --import=${pathToFileURL(observer.hook).href}`.trim() };
+    const result = await fixture.inspect({ environment });
+    assert.equal(existsSync(observer.marker), false, "Readiness must not read or hash a linked checksum target");
+    assert.equal(result.candidateSha256, null);
+    assert.equal(result.status, "blocked");
+    assert.equal(JSON.stringify(result).includes(canary), false);
+  });
+});
+
 async function checksumReadObserver(fixture, modeledLink = false) {
   const hook = path.join(fixture.directory, "checksum-read-observer.mjs");
   const marker = path.join(fixture.directory, "checksum-read-attempted.json");
@@ -466,6 +762,16 @@ test("release verification preserves candidate and signed synthetic fixture chec
   });
 });
 
+test("release verification rejects unknown or conflicting modes", async () => {
+  await withReleaseFixture(async (fixture) => {
+    for (const args of [["--candidate", "--signature-only"], ["--candidate", "--candidate"], ["--candidate", "--unknown"], ["--unknown"]]) {
+      const result = spawnSync(process.execPath, [path.join(fixture.source, "scripts", "verify-release.mjs"), ...args], { cwd: fixture.source, encoding: "utf8" });
+      assert.equal(result.status, 1);
+      assert.doesNotMatch(result.stdout, /Verified/);
+    }
+  });
+});
+
 test("release candidate freshness compares the current shipped file set", async (context) => {
   for (const change of ["added schema", "deleted schema", "added template", "deleted template", "nonshipped outputs", "generated private package"]) {
     await context.test(change, async () => withReleaseFixture(async (fixture) => {
@@ -557,4 +863,94 @@ test("CI evidence aggregation requires every OS and supported Node major", async
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }
+});
+
+test("CI evidence recording rejects mislabeled runtimes without replacing evidence", async (context) => {
+  await withReadinessFixture(async (fixture) => {
+    const operatingSystem = process.platform === "win32" ? "windows" : process.platform === "darwin" ? "macos" : "linux";
+    const nodeMajor = process.versions.node.split(".")[0];
+    const output = path.join(fixture.directory, "recorded-ci.json");
+    const record = (osValue, nodeValue) => spawnSync(process.execPath, ["--import", pathToFileURL(fixture.clock).href, path.join(root, "scripts", "ci-evidence.mjs"), "record", "--os", osValue, "--node", nodeValue, "--commit", fixture.commit, "--output", output], { cwd: root, encoding: "utf8" });
+    const valid = record(operatingSystem, nodeMajor);
+    assert.equal(valid.status, 0, valid.stderr);
+    const previous = await readFile(output);
+    const otherNode = ["22", "24", "26"].find((value) => value !== nodeMajor);
+    const otherOs = ["windows", "linux", "macos"].find((value) => value !== operatingSystem);
+    for (const [label, osValue, nodeValue] of [
+      ["major suffix", operatingSystem, `${nodeMajor}invalid`],
+      ["minor version", operatingSystem, `${nodeMajor}.5`],
+      ["scientific notation", operatingSystem, `${nodeMajor}e0`],
+      ["different Node major", operatingSystem, otherNode],
+      ["different operating system", otherOs, nodeMajor]
+    ]) {
+      await context.test(label, async () => {
+        await writeFile(output, previous);
+        const invalid = record(osValue, nodeValue);
+        assert.equal(invalid.status, 1);
+        assert.deepEqual(await readFile(output), previous);
+      });
+    }
+  });
+});
+
+test("CI evidence aggregation rejects malformed or inconsistent records without publication", async (context) => {
+  await withReadinessFixture(async (fixture) => {
+    const input = path.join(fixture.directory, "ci-input");
+    const output = path.join(fixture.directory, "aggregate.json");
+    await mkdir(input);
+    const writeRuns = async () => {
+      for (const run of fixture.evidence.runs) await writeFile(path.join(input, `${run.os}-${run.node}.json`), JSON.stringify(run));
+    };
+    const aggregate = () => spawnSync(process.execPath, ["--import", pathToFileURL(fixture.clock).href, path.join(root, "scripts", "ci-evidence.mjs"), "aggregate", "--input", input, "--output", output, "--commit", fixture.commit], { cwd: root, encoding: "utf8" });
+    await writeRuns();
+    const valid = aggregate();
+    assert.equal(valid.status, 0, valid.stderr);
+    const previous = await readFile(output);
+    for (const [label, mutate] of [
+      ["unknown field", (run) => { run.bypassApproval = true; }],
+      ["missing completion time", (run) => { delete run.completedAt; }],
+      ["invalid completion time", (run) => { run.completedAt = "not-a-date"; }],
+      ["non-ISO completion time", (run) => { run.completedAt = "October 29, 2026 12:00:00 GMT"; }],
+      ["future completion time", (run) => { run.completedAt = "2026-10-30T12:00:00.000Z"; }],
+      ["wrong source revision", (run) => { run.commit = "0".repeat(40); }]
+    ]) {
+      await context.test(label, async () => {
+        await writeRuns();
+        await writeFile(output, previous);
+        const run = structuredClone(fixture.evidence.runs[0]);
+        mutate(run);
+        await writeFile(path.join(input, "windows-22.json"), JSON.stringify(run));
+        const invalid = aggregate();
+        assert.equal(invalid.status, 1);
+        assert.deepEqual(await readFile(output), previous);
+      });
+    }
+    await context.test("malformed JSON is not echoed", async () => {
+      await writeRuns();
+      await writeFile(output, previous);
+      const marker = "malformed-synthetic-private-evidence";
+      await writeFile(path.join(input, "windows-22.json"), `{${marker}`);
+      const invalid = aggregate();
+      assert.equal(invalid.status, 1);
+      assert.deepEqual(await readFile(output), previous);
+      assert.equal(`${invalid.stdout}${invalid.stderr}`.includes(marker), false);
+    });
+  });
+});
+
+test("CI evidence publication preserves prior bytes when replacement fails", async () => {
+  await withReadinessFixture(async (fixture) => {
+    const input = path.join(fixture.directory, "ci-publication-input");
+    const output = path.join(fixture.directory, "ci-publication.json");
+    const hook = path.join(fixture.directory, "ci-publication-failure.mjs");
+    const previous = Buffer.from("Prior accepted fixture evidence.\n");
+    await mkdir(input);
+    for (const run of fixture.evidence.runs) await writeFile(path.join(input, `${run.os}-${run.node}.json`), JSON.stringify(run));
+    await writeFile(output, previous);
+    await writeFile(hook, `import fs from "node:fs/promises"; import { syncBuiltinESMExports } from "node:module"; const rename = fs.rename; fs.rename = async (from, to) => { if (String(to) === ${JSON.stringify(output)}) throw new Error("Injected evidence publication failure"); return rename(from, to); }; syncBuiltinESMExports();\n`);
+    const result = spawnSync(process.execPath, ["--import", pathToFileURL(fixture.clock).href, "--import", pathToFileURL(hook).href, path.join(root, "scripts", "ci-evidence.mjs"), "aggregate", "--input", input, "--output", output, "--commit", fixture.commit], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 1);
+    assert.deepEqual(await readFile(output), previous);
+    assert.equal((await readdir(fixture.directory)).some((name) => name.startsWith("ci-publication.json.") && name.endsWith(".tmp")), false);
+  });
 });

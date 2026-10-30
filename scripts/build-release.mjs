@@ -10,8 +10,21 @@ import { resolveReleaseMetadata } from "./release-metadata.mjs";
 import { assertSafeRelativePath } from "./safe-path.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const releaseLock = await acquireReleaseLock(root, "build-release");
 const packageManifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+const npmCli = process.env.npm_execpath;
+if (!/^npm@\d+\.\d+\.\d+$/.test(packageManifest.packageManager || "")) throw new Error("Release blocked: exact npm packageManager pin is required");
+if (!npmCli || !existsSync(npmCli)) throw new Error("Release blocked: npm CLI path is unavailable");
+const npmVersionResult = spawnSync(process.execPath, [npmCli, "--version"], {
+  cwd: root,
+  encoding: "utf8",
+  windowsHide: true,
+  timeout: 15_000,
+  maxBuffer: 64 * 1024
+});
+const npmVersion = npmVersionResult.stdout?.trim();
+if (npmVersionResult.status !== 0 || !/^\d+\.\d+\.\d+$/.test(npmVersion || "")) throw new Error("Release blocked: npm CLI version could not be verified");
+if (`npm@${npmVersion}` !== packageManifest.packageManager) throw new Error(`Release blocked: npm ${npmVersion} does not match packageManager ${packageManifest.packageManager}`);
+const releaseLock = await acquireReleaseLock(root, "build-release");
 const releaseContract = JSON.parse(await readFile(path.join(root, "release", "release-manifest.json"), "utf8"));
 const shipped = [".github/skills", "config", "docs", "schemas", "templates", "DISCLAIMER.md", "LICENSE", "README.md", "SECURITY.md", "STANDALONE-WINDOWS.md", "package.json", "pso.mjs", "pso.ps1"];
 for (const relative of shipped) {
@@ -68,8 +81,6 @@ try {
     const source = path.join(root, relative);
     await cp(source, path.join(stagingRoot, relative), { recursive: (await stat(source)).isDirectory() });
   }
-  const npmCli = process.env.npm_execpath;
-  if (!npmCli || !existsSync(npmCli)) throw new Error("Release blocked: npm CLI path is unavailable");
   const packageResult = spawnSync(process.execPath, [npmCli, "pack", "--pack-destination", stagingRoot, "--ignore-scripts"], {
     cwd: root,
     encoding: "utf8",

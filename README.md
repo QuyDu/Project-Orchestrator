@@ -68,6 +68,22 @@ The opt-in server adapter forwards its configured completion-token limit to the 
 - Git on `PATH` (only for `clone-setup`)
 - Visual Studio Code with GitHub Copilot and Copilot Chat, to use the installed skills
 
+### Verified Local Toolchain
+
+Observed on October 30, 2026 on the current Windows development machine. These are installed versions, not minimum requirements, update recommendations, or a replacement for the supported Node.js matrix above.
+
+| Tool | Installed Version |
+| --- | --- |
+| Node.js | `26.13.0` |
+| npm | `11.20.0` |
+| Git for Windows | `2.56.0.windows.3` |
+| PowerShell | `7.6.9` |
+| Visual Studio Code | `1.144.0` |
+
+The declared package-manager pin in [package.json](package.json) is `npm@11.20.0`, matching the installed CLI selected for offline qualification. Release packaging rejects a different npm version before publishing output. Global npm remains unchanged; the proposed npm `11.21.1` update is deferred because package access is blocked by organizational policy.
+
+The dated [core-tool update report](reports/environment-update.md) distinguishes installed tools, blocked or deferred updates, and actual actions. Do not retry blocked package URLs, use alternate sources to evade policy, or disable TLS verification. New package access requires an organization-approved source.
+
 ## Install
 
 ```powershell
@@ -78,10 +94,10 @@ node .\pso.mjs verify
 
 `verify` confirms the distribution is complete and every skill contract, schema, dependency, and ownership claim is valid. Do not provision another project if it fails.
 
-To run the full conformance gate — security scan, release build, verification, and the complete test suite:
+To run the full conformance gate — security scan, release build, verification, and the complete test suite — without npm registry requests or update notifications:
 
 ```powershell
-npm run check
+npm --offline --update-notifier=false run check
 ```
 
 No dependencies are installed. `npm run check` needs no network access.

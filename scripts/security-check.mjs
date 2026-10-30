@@ -9,10 +9,12 @@ import { assertSafeRelativePath } from "./safe-path.mjs";
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
-if (args.length !== 0 && (args.length !== 2 || args[0] !== "--root" || !args[1])) throw new Error("Use --root PATH or no arguments");
-const root = args.length === 2 ? path.resolve(args[1]) : sourceRoot;
+const verifyOnly = args[0] === "--verify-report";
+const rootArgs = verifyOnly ? args.slice(1) : args;
+if (rootArgs.length !== 0 && (rootArgs.length !== 2 || rootArgs[0] !== "--root" || !rootArgs[1])) throw new Error("Use [--verify-report] [--root PATH]");
+const root = rootArgs.length === 2 ? path.resolve(rootArgs[1]) : sourceRoot;
 if (!existsSync(root)) throw new Error(`Security scan root does not exist: ${root}`);
-const releaseLock = await acquireReleaseLock(root, "security-check");
+const releaseLock = verifyOnly ? null : await acquireReleaseLock(root, "security-check");
 const excludedDirectories = new Set([".git", ".skills-orchestrator", "dist", "node_modules", "reports"]);
 const maximumScannedFileBytes = 10 * 1024 * 1024;
 const findings = [];
@@ -26,7 +28,7 @@ async function walk(directory, relative = "") {
       findings.push({ ruleId: "SEC-PATH-001", severity: "high", path: child.replaceAll("\\", "/"), message: "Symbolic links are not allowed in the release source tree" });
     } else if (entry.isDirectory()) {
       if (!excludedDirectories.has(entry.name)) files.push(...await walk(directory, child));
-    } else if (entry.isFile()) {
+    } else if (entry.isFile() && child !== ".pso-release.lock") {
       files.push(child.replaceAll("\\", "/"));
     }
   }
@@ -142,14 +144,38 @@ const report = {
   status: findings.length ? "failed" : "passed",
   findings
 };
-const reportsRoot = await assertSafeRelativePath(root, "reports");
-await mkdir(reportsRoot, { recursive: true });
-await assertSafeRelativePath(root, "reports/security-check.json");
-await writeFile(path.join(reportsRoot, "security-check.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
-await releaseLock();
-if (findings.length) {
+let verified = false;
+if (verifyOnly) {
+  let previous;
+  try {
+    const reportPath = await assertSafeRelativePath(root, "reports/security-check.json");
+    const bytes = await readFile(reportPath);
+    if (bytes.length > 1024 * 1024) throw new Error("Security evidence exceeds its input bound");
+    previous = JSON.parse(bytes.toString("utf8"));
+  } catch { previous = null; }
+  const generatedAt = typeof previous?.generatedAt === "string" ? Date.parse(previous.generatedAt) : NaN;
+  verified = previous !== null && typeof previous === "object" && !Array.isArray(previous)
+    && Object.keys(previous).length === Object.keys(report).length && Object.keys(report).every((field) => Object.hasOwn(previous, field))
+    && previous.schemaVersion === report.schemaVersion && previous.status === "passed" && report.status === "passed"
+    && previous.scanner?.name === report.scanner.name && previous.scanner?.version === report.scanner.version
+    && Object.keys(previous.scanner).length === 2 && Object.hasOwn(previous.scanner, "name") && Object.hasOwn(previous.scanner, "version")
+    && previous.sourceDigest === report.sourceDigest && previous.filesScanned === report.filesScanned && previous.dependencyCount === report.dependencyCount
+    && Array.isArray(previous.findings) && previous.findings.length === 0
+    && Number.isFinite(generatedAt) && new Date(generatedAt).toISOString() === previous.generatedAt
+    && generatedAt <= Date.now() && Date.now() - generatedAt <= 24 * 60 * 60 * 1000;
+} else {
+  const reportsRoot = await assertSafeRelativePath(root, "reports");
+  await mkdir(reportsRoot, { recursive: true });
+  await assertSafeRelativePath(root, "reports/security-check.json");
+  await writeFile(path.join(reportsRoot, "security-check.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  await releaseLock();
+}
+if (verifyOnly && !verified) {
+  console.error("Security evidence verification failed: evidence is missing, malformed, stale, failed, or does not match current source and scanner metadata");
+  process.exitCode = 1;
+} else if (findings.length) {
   for (const finding of findings) console.error(`${finding.severity.toUpperCase()} ${finding.ruleId} ${finding.path}: ${finding.message}`);
   process.exitCode = 1;
 } else {
-  console.log(`Security checks passed: ${files.length} files scanned, ${dependencyCount} package dependencies`);
+  console.log(`${verifyOnly ? "Security evidence verified" : "Security checks passed"}: ${files.length} files scanned, ${dependencyCount} package dependencies`);
 }

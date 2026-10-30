@@ -9,7 +9,10 @@ import { canonicalReviewPayload, requireTrustedPublicKey } from "./trust.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageManifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
-const candidateOnly = process.argv.includes("--candidate");
+const args = process.argv.slice(2);
+if (args.length > 1 || (args.length === 1 && !["--candidate", "--signature-only"].includes(args[0]))) throw new Error("Use --candidate, --signature-only, or no arguments");
+const candidateOnly = args[0] === "--candidate";
+const signatureOnly = args[0] === "--signature-only";
 const artifactRoot = path.join(root, "dist", `${packageManifest.name}-${packageManifest.version}`);
 await assertSafeRelativePath(root, "dist");
 await assertSafeRelativePath(root, path.relative(root, artifactRoot));
@@ -110,6 +113,10 @@ if (signature.schemaVersion !== "1.0.0" || signature.algorithm !== "RSA-SHA256" 
 requireTrustedPublicKey(signature.publicKeyPem, process.env.PSO_TRUSTED_SIGNING_KEY_SHA256, "signing");
 const verified = verifySignature("RSA-SHA256", Buffer.from(checksumContent), signature.publicKeyPem, Buffer.from(signature.signature, "base64"));
 if (!verified) throw new Error("Production release signature is invalid");
+if (signatureOnly) {
+  console.log(`Verified trusted release signature: ${expected.size} checksum-covered files`);
+  process.exit(0);
+}
 
 const reviewPath = path.join(artifactRoot, "independent-review.json");
 if (!existsSync(reviewPath)) throw new Error("Production release blocked: independent-review.json is missing");
