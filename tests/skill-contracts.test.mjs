@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -104,7 +104,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, ".github", "skills");
 
 async function withRemediationRuntimeFixture(action) {
-  const project = await mkdtemp(path.join(os.tmpdir(), "pso-remediation-runtime-"));
+  const project = await realpath(await mkdtemp(path.join(os.tmpdir(), "pso-remediation-runtime-")));
   try {
     await cp(skillsRoot, path.join(project, ".github", "skills"), { recursive: true });
     await cp(path.join(root, "schemas"), path.join(project, "schemas"), { recursive: true });
@@ -1356,7 +1356,7 @@ test("deployment and companion engines survive provisioning with read-only capab
   const companion = (await loadSkills()).find((skill) => skill.metadata.name === "visual-companion-builder");
   assert.ok(companion);
   assert.ok(sectionItems(companion.source, "Outputs").includes("artifacts/visual-companions/<id>/<target>/"), "companion output ownership must be discoverable");
-  const destination = await mkdtemp(path.join(os.tmpdir(), "pso-agent-feature-contract-"));
+  const destination = await realpath(await mkdtemp(path.join(os.tmpdir(), "pso-agent-feature-contract-")));
   const runtime = path.join(root, "pso.mjs");
   try {
     const created = spawnSync(process.execPath, [

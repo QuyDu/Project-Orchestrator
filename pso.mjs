@@ -263,6 +263,7 @@ const CREATION_WORKSPACE_OPENING_ANCHOR = "After creating a new project or agent
 const CREATION_WORKSPACE_OPENING_INSTRUCTION = `## Open created projects and agents
 
 - ${CREATION_WORKSPACE_OPENING_ANCHOR} Prefer the generated \`.code-workspace\` file; otherwise open the project folder. Use a new window for a different project so the current workspace is preserved.
+- After new-project creation or project adoption is verified and the target workspace opens, report the project location and stop the current workflow. Do not begin project-specific work or dispatch additional skills unless explicitly requested.
 - For a new agent, also open its definition. If only a blueprint or review plan was created, open that preview and state that installation or deployment is still pending.
 - When using \`create-project\`, include \`--open\`; agent creation outside that command still requires an explicit workspace-opening step. Writing files or changing a shell directory is not the same as opening the project.
 - The only scope exception is an explicit user request to upgrade Project Orchestrator itself to include the new projects, agents, files, or other framework artifacts. Keep that work in the Project Orchestrator workspace instead.
@@ -428,6 +429,30 @@ function mergeInstructionBlocks(current, blocks) {
 
 function mergedInstructionContent(current, blocks) {
   return mergeInstructionBlocks(current, blocks).content;
+}
+
+function configuredClarificationProtocol(clarification) {
+  const defaults = DEFAULT_CONFIGURATION.clarification;
+  if (Object.keys(defaults).every((key) => clarification[key] === defaults[key])) return CLARIFICATION_PROTOCOL;
+  const questions = clarification.askEveryPrompt
+    ? `Ask exactly ${clarification.questionsPerPrompt} clarification questions in one round for each new prompt.`
+    : `Ask only material clarification questions when needed, at most ${clarification.maxQuestionsPerRound} in one round; ask none when the request is sufficiently defined.`;
+  const procedure = clarification.enabled
+    ? `1. Run \`clarify-the-ask\` and inspect nearby project evidence.\n2. ${questions}\n3. Wait for answers to questions asked; do not repeat clarification for the same prompt.\n4. ${clarification.blockOnMaterialAmbiguity ? "Stop when material ambiguity remains unresolved." : "State unresolved assumptions; never infer authority for ambiguous consequential actions."}\n5. State the objective, concrete steps, affected files and risks. ${clarification.confirmPlanBeforeExecution ? "Wait for explicit plan confirmation before execution." : "Continue within the current authorized scope after clarification."}`
+    : `Clarification questioning is disabled by the project configuration. State the objective, affected files, risks and safe assumptions. ${clarification.confirmPlanBeforeExecution ? "Wait for explicit plan confirmation before execution." : "Continue only within the user's authorized scope."} Material uncertainty about a consequential action remains blocked.`;
+  return `${CLARIFICATION_PROTOCOL_HEADING}\n\nUse the resolved clarification settings in \`config/skills-orchestrator.json\`.\n\n${procedure}\n\nApproval gates remain active regardless of clarification settings. Disabling questions or plan confirmation never authorizes destructive, external, privileged, irreversible, commit, push, or production-data actions. Require the applicable explicit approval. The current prompt's \`--proceed\` token skips clarification only; it does not bypass approval gates.`;
+}
+
+function configuredInstructionBlocks(blocks, clarification) {
+  return blocks.map((block) => block.id === "clarification-protocol"
+    ? { ...block, content: configuredClarificationProtocol(clarification) }
+    : block);
+}
+
+function configuredClarificationInstructions(source, clarification) {
+  const protocol = configuredClarificationProtocol(clarification);
+  if (protocol === CLARIFICATION_PROTOCOL) return source;
+  return `---\napplyTo: "**"\ndescription: "Project-configured clarification and unchanged approval gates."\n---\n\n# Clarification Protocol\n\n<!-- pso:configured-clarification -->\n${protocol}\n`;
 }
 
 function mergeProjectOrchestratorConfiguration(current, baseline) {
@@ -964,8 +989,12 @@ async function resolveConfiguration(projectRoot, profileOverride) {
   if (!clarification || typeof clarification.enabled !== "boolean"
     || !Number.isInteger(clarification.maxQuestionsPerRound)
     || clarification.maxQuestionsPerRound < 1 || clarification.maxQuestionsPerRound > 10
-    || typeof clarification.blockOnMaterialAmbiguity !== "boolean") {
-    throw new Error("clarification must define enabled, maxQuestionsPerRound from 1 to 10, and blockOnMaterialAmbiguity");
+    || typeof clarification.blockOnMaterialAmbiguity !== "boolean"
+    || typeof clarification.askEveryPrompt !== "boolean"
+    || !Number.isInteger(clarification.questionsPerPrompt)
+    || clarification.questionsPerPrompt < 1 || clarification.questionsPerPrompt > 10
+    || typeof clarification.confirmPlanBeforeExecution !== "boolean") {
+    throw new Error("clarification must define boolean enabled, blockOnMaterialAmbiguity, askEveryPrompt and confirmPlanBeforeExecution, and integer question limits from 1 to 10");
   }
   const approvalClasses = resolved.policy?.requireApprovalFor;
   if (!Array.isArray(approvalClasses) || new Set(approvalClasses).size !== approvalClasses.length
@@ -1561,17 +1590,6 @@ values.
 `;
 }
 
-// Kept pure so the composed handover text can be asserted without launching an editor.
-function kickoffPrompt({ createdAt, intent }) {
-  return [
-    `This project was created by Project Orchestrator at ${createdAt}.`,
-    "Read docs/PROJECT-BRIEF.md and .github/copilot-instructions.md before proposing anything.",
-    `Requested outcome: ${intent}`,
-    "Resolve relative times against the creation timestamp in the brief.",
-    "Follow the repository engagement protocol: ask three clarifying questions, state the plan, and wait for explicit approval."
-  ].join(" ");
-}
-
 // VS Code ships a .cmd launcher on Windows, which Node refuses to spawn without a shell, so the real executable is resolved instead.
 async function resolveEditorLauncher() {
   const directories = (process.env.PATH ?? "").split(path.delimiter).filter(Boolean);
@@ -1599,21 +1617,6 @@ async function resolveEditorExecutable() {
   return resolved ? resolved.executable : null;
 }
 
-// Subcommands such as `chat` live in cli.js, not in the Electron binary: passing one straight to
-// Code.exe opens a window and silently discards it. An install can also stage a newer versioned
-// cli.js beside the active one, so the launcher script is the only authoritative record of which
-// copy belongs to the running build.
-async function resolveEditorCli() {
-  const resolved = await resolveEditorLauncher();
-  if (!resolved) return null;
-  if (process.platform !== "win32") return { executable: resolved.executable, cliPath: null };
-  const script = await readFile(resolved.launcherPath, "utf8").catch(() => "");
-  const referenced = script.match(/%~dp0([^"]*?cli\.js)/i);
-  if (!referenced) return null;
-  const cliPath = path.normalize(path.join(path.dirname(resolved.launcherPath), referenced[1]));
-  return existsSync(cliPath) ? { executable: resolved.executable, cliPath } : null;
-}
-
 async function openInEditor(targets) {
   if (process.env.PSO_SUPPRESS_EDITOR_LAUNCH === "1") {
     return { opened: false, reason: "Editor launch suppressed by PSO_SUPPRESS_EDITOR_LAUNCH" };
@@ -1626,31 +1629,6 @@ async function openInEditor(targets) {
     return { opened: true, executable };
   } catch (error) {
     return { opened: false, reason: error.message };
-  }
-}
-
-// Opens the project and seeds the handover prompt in one invocation; launching the workspace
-// separately would race the chat call, which could target whichever window was active first.
-async function openWithKickoff(root, briefRelativePath, prompt) {
-  if (process.env.PSO_SUPPRESS_EDITOR_LAUNCH === "1") {
-    return { opened: false, seeded: false, reason: "Editor launch suppressed by PSO_SUPPRESS_EDITOR_LAUNCH" };
-  }
-  const resolved = await resolveEditorCli();
-  if (!resolved) return { opened: false, seeded: false, reason: "The Visual Studio Code command line was not found on PATH" };
-  const { executable, cliPath } = resolved;
-  // The prompt is a discrete argument and never reaches a shell, so its content cannot be interpreted as a command.
-  const args = ["chat", "--mode", "ask", "--add-file", briefRelativePath, prompt];
-  const environment = { ...process.env };
-  if (cliPath) {
-    args.unshift(cliPath);
-    environment.ELECTRON_RUN_AS_NODE = "1";
-  }
-  try {
-    const child = spawn(executable, args, { cwd: root, detached: true, stdio: "ignore", env: environment });
-    child.unref();
-    return { opened: true, seeded: true, executable };
-  } catch (error) {
-    return { opened: false, seeded: false, reason: error.message };
   }
 }
 
@@ -1847,11 +1825,9 @@ async function createProject({ name: enteredName, destination, profile = DEFAULT
     throw new Error(`Project creation stopped. Staging path preserved for recovery: ${staging}\n${error.message}`);
   }
   const workspace = path.join(root, `${name}.code-workspace`);
-  const prompt = requestedOutcome ? kickoffPrompt({ createdAt, intent: requestedOutcome }) : null;
   let launch = null;
-  if (open && prompt) launch = await openWithKickoff(root, BRIEF_RELATIVE_PATH, prompt);
-  else if (open) launch = await openInEditor([workspace, path.join(root, "README.md")]);
-  return { name, root, workspace, profile, launch, prompt, brief: prompt ? path.join(root, BRIEF_RELATIVE_PATH) : null };
+  if (open) launch = await openInEditor([workspace, path.join(root, "README.md")]);
+  return { name, root, workspace, profile, launch, brief: requestedOutcome ? path.join(root, BRIEF_RELATIVE_PATH) : null };
 }
 
 async function sameFile(left, right) {
@@ -2016,10 +1992,13 @@ async function buildBaselineLock(projectRoot, baselineAt, installedSource) {
   await addFile("config/profiles.yaml", { scope: "framework-configuration" });
 
   const scaffoldTemplates = await loadScaffoldManifest();
+  const configuration = await resolveConfiguration(projectRoot);
   for (const template of scaffoldTemplates) {
     const source = path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, template.path);
     const destination = path.join(projectRoot, template.path);
-    if (existsSync(destination) && await sameFile(source, destination)) {
+    const matchesConfiguredGuidance = template.path === ".github/instructions/clarification.instructions.md" && existsSync(destination)
+      && await readFile(destination, "utf8") === configuredClarificationInstructions(await readFile(source, "utf8"), configuration.clarification);
+    if (existsSync(destination) && (matchesConfiguredGuidance || await sameFile(source, destination))) {
       await addFile(template.path, { scope: `scaffold:${template.kind}` });
     }
   }
@@ -2240,6 +2219,22 @@ async function buildAdoptionPlan(projectRoot, profileOverride, projectNameOverri
     if (template.createOnly || ADOPTION_TEMPLATE_EXCLUSIONS.has(template.path)) continue;
     const destination = path.join(root, template.path);
     const projectRelative = path.relative(root, destination).replaceAll("\\", "/");
+    if (template.path === ".github/instructions/clarification.instructions.md") {
+      const source = path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, template.path);
+      const content = configuredClarificationInstructions(await readFile(source, "utf8"), resolvedConfiguration.clarification);
+      let matchesBaseline = false;
+      if (existsSync(destination) && existsSync(path.join(root, PROJECT_LOCK_PATH))) {
+        await assertSafeManagedPath(root, PROJECT_LOCK_PATH);
+        const lock = JSON.parse(await readFile(path.join(root, PROJECT_LOCK_PATH), "utf8"));
+        const baseline = lock.entries?.find((entry) => entry.path === template.path && entry.scope === `scaffold:${template.kind}`);
+        matchesBaseline = baseline?.normalizedBaseDigest === await digestManagedPath(destination, { scope: `scaffold:${template.kind}` });
+      }
+      if (!existsSync(destination)) actions.push({ action: "create", kind: "scaffold", path: projectRelative, content });
+      else if (await readFile(destination, "utf8") === content) actions.push({ action: "already-current", kind: "scaffold", path: projectRelative });
+      else if (matchesBaseline || await sameFile(source, destination)) actions.push({ action: "update-wiring-file", kind: "scaffold", path: projectRelative, content, reason: "Align framework clarification guidance with the resolved project configuration" });
+      else actions.push({ action: "conflict", kind: "scaffold", path: projectRelative, reason: "Clarification guidance differs from the framework; preserve project-authored content and review an explicit merge." });
+      continue;
+    }
     if (existsSync(destination)) {
       if (template.path === STUDIO_GUIDE_PATH) await assertSafeManagedPath(root, projectRelative);
       const conflict = template.path === STUDIO_GUIDE_PATH && detectedStack.has("copilot-studio")
@@ -2326,11 +2321,11 @@ async function buildAdoptionPlan(projectRoot, profileOverride, projectNameOverri
   );
   const instructionPath = path.join(root, ".github", "copilot-instructions.md");
   const currentInstructions = existsSync(instructionPath) ? await readFile(instructionPath, "utf8") : "";
-  const mergedInstructions = mergeInstructionBlocks(currentInstructions, COPILOT_INSTRUCTION_BLOCKS);
+  const mergedInstructions = mergeInstructionBlocks(currentInstructions, configuredInstructionBlocks(COPILOT_INSTRUCTION_BLOCKS, resolvedConfiguration.clarification));
   const instructionContent = mergedInstructions.content;
   const agentPath = path.join(root, "AGENTS.md");
   const currentAgentInstructions = existsSync(agentPath) ? await readFile(agentPath, "utf8") : "";
-  const mergedAgentInstructions = mergeInstructionBlocks(currentAgentInstructions, AGENT_INSTRUCTION_BLOCKS);
+  const mergedAgentInstructions = mergeInstructionBlocks(currentAgentInstructions, configuredInstructionBlocks(AGENT_INSTRUCTION_BLOCKS, resolvedConfiguration.clarification));
   const agentContent = mergedAgentInstructions.content;
   for (const [relative, merge] of [[".github/copilot-instructions.md", mergedInstructions], ["AGENTS.md", mergedAgentInstructions]]) {
     for (const reason of merge.conflicts) {
@@ -2874,9 +2869,15 @@ async function buildUpstreamCatalog(projectRoot, manifest, lock) {
     source: path.join(SCRIPT_ROOT, "config", "profiles.yaml"), scope: "framework-configuration", dependencies: [], generatedCompanions: []
   });
   const detectedStack = (await detectProjectStack(projectRoot)).tags;
+  const configuration = await resolveConfiguration(projectRoot, manifest.conformanceProfile);
   for (const template of await loadScaffoldManifest()) {
     const alreadyTracked = lock.entries.some((entry) => entry.path === template.path);
     if (!alreadyTracked && (template.createOnly || ADOPTION_TEMPLATE_EXCLUSIONS.has(template.path) || !templateApplies(template, detectedStack))) continue;
+    if (template.path === ".github/instructions/clarification.instructions.md") {
+      const content = configuredClarificationInstructions(await readFile(path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, template.path), "utf8"), configuration.clarification);
+      add({ assetId: `managed:${template.path}`, path: template.path, scope: `scaffold:${template.kind}`, upstreamDigest: digestManagedBuffer(Buffer.from(content), { kind: "text" }) });
+      continue;
+    }
     await addSourceFile(template.path, {
       source: path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, template.path),
       scope: `scaffold:${template.kind}`,
@@ -2891,7 +2892,7 @@ async function buildUpstreamCatalog(projectRoot, manifest, lock) {
     }
   }
   for (const entry of managedRegionEntries) {
-    const blocks = entry.path === "AGENTS.md" ? AGENT_INSTRUCTION_BLOCKS : COPILOT_INSTRUCTION_BLOCKS;
+    const blocks = configuredInstructionBlocks(entry.path === "AGENTS.md" ? AGENT_INSTRUCTION_BLOCKS : COPILOT_INSTRUCTION_BLOCKS, configuration.clarification);
     const content = blocks.map(wrapManagedRegion).join("\n");
     add({ ...entry, upstreamDigest: digestManagedBuffer(Buffer.from(content, "utf8"), { kind: "text" }) });
   }
@@ -3329,7 +3330,8 @@ async function upstreamAssetContent(projectRoot, asset) {
   if (asset.scope === "managed-regions") {
     const target = path.join(projectRoot, asset.path);
     const current = existsSync(target) ? await readFile(target, "utf8") : "";
-    const blocks = asset.path === "AGENTS.md" ? AGENT_INSTRUCTION_BLOCKS : COPILOT_INSTRUCTION_BLOCKS;
+    const configuration = await resolveConfiguration(projectRoot);
+    const blocks = configuredInstructionBlocks(asset.path === "AGENTS.md" ? AGENT_INSTRUCTION_BLOCKS : COPILOT_INSTRUCTION_BLOCKS, configuration.clarification);
     return Buffer.from(mergedInstructionContent(current, blocks), "utf8");
   }
   if (asset.path === "config/orchestrator.yaml") {
@@ -3344,6 +3346,10 @@ async function upstreamAssetContent(projectRoot, asset) {
     ? path.join(SCRIPT_ROOT, TEMPLATE_ROOT_RELATIVE, asset.path)
     : path.join(SCRIPT_ROOT, asset.path);
   if (!existsSync(source)) throw new Error(`Upstream asset source is missing: ${asset.path}`);
+  if (asset.path === ".github/instructions/clarification.instructions.md") {
+    const configuration = await resolveConfiguration(projectRoot);
+    return Buffer.from(configuredClarificationInstructions(await readFile(source, "utf8"), configuration.clarification));
+  }
   return readFile(source);
 }
 
@@ -4407,22 +4413,17 @@ async function guidedCreate() {
   }
 }
 
-function reportLaunch({ launch, prompt, brief }) {
+function reportLaunch({ launch, brief }) {
   if (brief) console.log(`Project brief: ${brief}`);
   if (!launch) {
-    if (prompt) console.log("Rerun with --open to launch Visual Studio Code and hand the requested outcome to the agent.");
-    else console.log("Rerun with --open to launch Visual Studio Code automatically.");
+    console.log("Rerun with --open to launch Visual Studio Code automatically.");
     return;
   }
   if (launch.opened) {
     console.log("Opening Visual Studio Code. Accept the workspace trust prompt and the recommended extensions to enable tasks, debugging, and MCP servers.");
-    if (launch.seeded) {
-      console.log("The requested outcome was handed to chat in ask mode, so the first turn can plan and ask questions but cannot change files. Switch to Agent mode once you approve the plan.");
-    }
     return;
   }
   console.log(`Could not open Visual Studio Code automatically: ${launch.reason}. Open the workspace file listed above manually.`);
-  if (prompt) console.log(`Paste this into Copilot Chat in the new project:\n\n${prompt}\n`);
 }
 
 function runAgentBuilder(options) {
@@ -4660,10 +4661,9 @@ New project:
   --open launches Visual Studio Code on the generated workspace when the editor
   is installed. Accept the workspace trust prompt to enable tasks, debugging,
   and MCP servers.
-  --intent records the outcome you want built first. It is written to
-  docs/PROJECT-BRIEF.md, and with --open it is handed to Copilot Chat in ask
-  mode so the first turn can plan and ask questions but cannot change files.
-  Describe the application only; the project itself already exists by then.
+  --intent records the requested outcome in docs/PROJECT-BRIEF.md. It does not
+  start Copilot Chat or begin implementation; the current workflow stops after
+  project verification and optional workspace opening.
 
 Agent Builder:
   agent build accepts --type, --id, --name, --description, --purpose, --risk,

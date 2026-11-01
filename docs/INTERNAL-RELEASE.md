@@ -26,7 +26,7 @@ npm --offline --update-notifier=false run release:verify:candidate
 
 The candidate is written under `dist/project-skills-orchestrator-VERSION/` and contains the standalone distribution, restricted package, payload checksums, final checksums, CycloneDX SBOM, SLSA-format provenance statement, and release contract. Candidate verification rejects stale source bytes, links, missing files, unexpected files, and checksum mismatches.
 
-The security-validation workflow also disables npm registry access and update notifications. It verifies the declared npm version before the frozen dependency check and fails closed if a runner lacks that version; provision it through an approved offline cache before claiming matrix qualification. Release branches are covered by both security workflows. File-level test concurrency is bounded at two without changing individual test timeouts or assertions.
+The security-validation workflow disables npm registry access and update notifications. It first uses the pinned Node.js `26.13.0` vendor runtime, verifies its bundled npm against the project pin, and packages that existing bundle into a SHA-256-bound runner-local cache. After selecting the matrix runtime, it verifies and installs only that local archive with offline and lifecycle-script-disabled options, then verifies the exact active npm version before the frozen dependency check. No npm registry or alternate package source is used. A mismatched bundle or tampered archive fails closed; bootstrap updates require a reviewed pin change. Release branches remain covered by both security workflows, and file-level test concurrency remains two without changing individual test timeouts or assertions.
 
 ## Evidence Validation
 

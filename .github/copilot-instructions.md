@@ -39,6 +39,7 @@ This repository is the Project Orchestrator launch pad and source framework. Do 
 ## Open created projects and agents
 
 - After creating a new project or agent, open its owning project in VS Code before reporting completion. Prefer the generated `.code-workspace` file; otherwise open the project folder. Use a new window for a different project so the current workspace is preserved.
+- After new-project creation or project adoption is verified and the target workspace opens, report the project location and stop the current workflow. Do not begin project-specific work or dispatch additional skills unless explicitly requested.
 - For a new agent, also open its definition. If only a blueprint or review plan was created, open that preview and state that installation or deployment is still pending.
 - When using `create-project`, include `--open`; agent creation outside that command still requires an explicit workspace-opening step. Writing files or changing a shell directory is not the same as opening the project.
 - The only scope exception is an explicit user request to upgrade Project Orchestrator itself to include the new projects, agents, files, or other framework artifacts. Keep that work in the Project Orchestrator workspace instead.

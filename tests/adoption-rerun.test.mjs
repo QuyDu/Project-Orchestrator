@@ -1113,6 +1113,105 @@ test("adoption installs only the scoped instructions the detected stack needs", 
   }
 });
 
+test("clarification configuration controls generated guidance without disabling approval gates", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-clarification-config-"));
+  try {
+    await writeFile(path.join(project, "package.json"), '{"name":"clarification-fixture","private":true}\n');
+    await mkdir(path.join(project, "config"), { recursive: true });
+    const configuration = JSON.parse(await readFile(path.join(root, "config/skills-orchestrator.json"), "utf8"));
+    configuration.clarification = {
+      enabled: false, maxQuestionsPerRound: 1, blockOnMaterialAmbiguity: false,
+      askEveryPrompt: false, questionsPerPrompt: 1, confirmPlanBeforeExecution: false
+    };
+    await writeFile(path.join(project, "config/skills-orchestrator.json"), `${JSON.stringify(configuration, null, 2)}\n`);
+    runAdoption(project, "--apply");
+    const installed = JSON.parse(await readFile(path.join(project, "config/skills-orchestrator.json"), "utf8"));
+    assert.deepEqual(installed.clarification, configuration.clarification);
+    for (const relative of [".github/copilot-instructions.md", "AGENTS.md", ".github/instructions/clarification.instructions.md"]) {
+      const guidance = await readFile(path.join(project, relative), "utf8");
+      assert.doesNotMatch(guidance, /ask three questions|every new user prompt, without exception/i, relative);
+      assert.match(guidance, /approval gates remain/i, relative);
+    }
+    runAdoption(project, "--apply");
+    const verification = JSON.parse(await readFile(path.join(project, "reports/adoption-verification.json"), "utf8"));
+    assert.equal(verification.status, "passed");
+    const updated = spawnSync(process.execPath, [runtime, "update", "--project", project, "--apply", "--accept-risk"], {
+      cwd: root, encoding: "utf8", maxBuffer: 10 * 1024 * 1024
+    });
+    assert.equal(updated.status, 0, `${updated.stdout}\n${updated.stderr}`);
+    for (const relative of [".github/copilot-instructions.md", "AGENTS.md", ".github/instructions/clarification.instructions.md"]) {
+      assert.doesNotMatch(await readFile(path.join(project, relative), "utf8"), /ask three questions|every new user prompt, without exception/i, relative);
+    }
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("clarification custom limits and plan confirmation survive configuration changes", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-clarification-transition-"));
+  try {
+    await writeFile(path.join(project, "package.json"), '{"name":"clarification-transition","private":true}\n');
+    await mkdir(path.join(project, "config"), { recursive: true });
+    const configuration = JSON.parse(await readFile(path.join(root, "config/skills-orchestrator.json"), "utf8"));
+    configuration.clarification = {
+      enabled: true, maxQuestionsPerRound: 2, blockOnMaterialAmbiguity: true,
+      askEveryPrompt: true, questionsPerPrompt: 2, confirmPlanBeforeExecution: false
+    };
+    const configurationPath = path.join(project, "config/skills-orchestrator.json");
+    await writeFile(configurationPath, `${JSON.stringify(configuration, null, 2)}\n`);
+    runAdoption(project, "--apply");
+    for (const relative of [".github/copilot-instructions.md", "AGENTS.md", ".github/instructions/clarification.instructions.md"]) {
+      const content = await readFile(path.join(project, relative), "utf8");
+      assert.match(content, /Ask exactly 2 clarification questions/);
+      assert.match(content, /Continue within the current authorized scope/);
+      assert.doesNotMatch(content, /ask three questions/i);
+    }
+    configuration.clarification.enabled = false;
+    configuration.clarification.askEveryPrompt = false;
+    configuration.clarification.confirmPlanBeforeExecution = true;
+    await writeFile(configurationPath, `${JSON.stringify(configuration, null, 2)}\n`);
+    runAdoption(project, "--apply");
+    for (const relative of [".github/copilot-instructions.md", "AGENTS.md", ".github/instructions/clarification.instructions.md"]) {
+      const content = await readFile(path.join(project, relative), "utf8");
+      assert.match(content, /Clarification questioning is disabled/);
+      assert.match(content, /Wait for explicit plan confirmation/);
+      assert.match(content, /Approval gates remain active/);
+    }
+    const customized = path.join(project, ".github/instructions/clarification.instructions.md");
+    const projectOwned = `${await readFile(customized, "utf8")}\nProject-authored clarification note.\n`;
+    await writeFile(customized, projectOwned);
+    configuration.clarification.confirmPlanBeforeExecution = false;
+    await writeFile(configurationPath, `${JSON.stringify(configuration, null, 2)}\n`);
+    const conflict = spawnSync(process.execPath, [runtime, "adopt", "--project", project, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+    assert.notEqual(conflict.status, 0);
+    assert.equal(await readFile(customized, "utf8"), projectOwned);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("clarification configuration rejects malformed questioning settings before adoption writes", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "pso-clarification-invalid-"));
+  try {
+    await writeFile(path.join(project, "package.json"), '{"name":"clarification-invalid","private":true}\n');
+    await mkdir(path.join(project, "config"), { recursive: true });
+    for (const clarification of [
+      { askEveryPrompt: "false" }, { questionsPerPrompt: 0 },
+      { questionsPerPrompt: 1.5 }, { questionsPerPrompt: 11 }, { confirmPlanBeforeExecution: "false" }
+    ]) {
+      const configuration = JSON.parse(await readFile(path.join(root, "config/skills-orchestrator.json"), "utf8"));
+      configuration.clarification = { ...configuration.clarification, ...clarification };
+      await writeFile(path.join(project, "config/skills-orchestrator.json"), `${JSON.stringify(configuration, null, 2)}\n`);
+      const result = spawnSync(process.execPath, [runtime, "adopt", "--project", project, "--apply", "--accept-risk"], { cwd: root, encoding: "utf8" });
+      assert.notEqual(result.status, 0, JSON.stringify(clarification));
+      assert.match(result.stderr, /clarification/i);
+      assert.equal(existsSync(path.join(project, "project-orchestrator.json")), false);
+    }
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
 test("source-aligned standards reach generated projects without unrelated language guidance", async (context) => {
   const cases = [
     { stack: "javascript", included: ["typescript.instructions.md", "node.instructions.md"], excluded: ["csharp.instructions.md", "dotnet.instructions.md", "python.instructions.md"] },
@@ -1381,6 +1480,7 @@ test("managed instruction regions survive heading edits without duplicating", as
     assert.equal([...result.matchAll(/## Open created projects and agents/g)].length, 1);
     assert.doesNotMatch(result, /Workspace follow-through \(our house rules\)/);
     assert.match(result, /Project-authored trailing note\./);
+    assert.match(result, /stop the current workflow/);
 
     const verification = JSON.parse(await readFile(path.join(project, "reports", "adoption-verification.json"), "utf8"));
     assert.equal(verification.status, "passed");
@@ -1585,8 +1685,7 @@ test("--intent records the requested outcome and stamps an unambiguous creation 
     assert.ok(brief.includes(manifest.createdAt), "the brief and the manifest agree on the creation instant");
 
     assert.match(created.stdout, /Project brief:/);
-    assert.match(created.stdout, /Paste this into Copilot Chat/);
-    assert.ok(created.stdout.includes(outcome), "the fallback prints a prompt the user can actually paste");
+    assert.doesNotMatch(created.stdout, /Copilot Chat|Paste this into/);
   } finally {
     await rm(parent, { recursive: true, force: true });
   }
@@ -2971,14 +3070,11 @@ test("adoption accepts an explicit stack override", async () => {
   }
 });
 
-// Regression guard: `chat` is implemented in cli.js, so handing it to the Electron binary opens a
-// window and silently discards the subcommand, which looked like success.
-test("the chat handover invokes the VS Code CLI entry point, not the Electron binary alone", async () => {
+test("project creation opens the workspace without starting a Copilot chat handover", async () => {
   const source = await readFile(runtime, "utf8");
-  assert.match(source, /ELECTRON_RUN_AS_NODE/, "the CLI entry point is invoked the way the launcher does");
-  assert.match(source, /args\.unshift\(cliPath\)/, "cli.js is prepended to the chat arguments");
-  assert.match(source, /%~dp0\(\[\^"\]\*\?cli\\\.js\)/, "the cli.js path is read from the launcher rather than guessed");
-  assert.doesNotMatch(source, /shell:\s*true/, "no spawn uses a shell, so intent text cannot be interpreted as a command");
+  assert.match(source, /if \(open\) launch = await openInEditor\(\[workspace, path\.join\(root, "README\.md"\)\]\)/);
+  assert.doesNotMatch(source, /resolveEditorCli|openWithKickoff|ELECTRON_RUN_AS_NODE/);
+  assert.doesNotMatch(source, /chat --mode|Copilot Chat in ask mode/);
 });
 
 test("created projects wire a usable VS Code workspace for the declared stack", async () => {  const parent = await mkdtemp(path.join(os.tmpdir(), "pso-workspace-"));

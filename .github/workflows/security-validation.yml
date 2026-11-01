@@ -65,11 +65,22 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Use pinned runtime bundle for package-manager bootstrap
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 26.13.0
+      - name: Prepare approved offline npm cache
+        run: node scripts/ci-toolchain.mjs prepare
       - name: Use maintained Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
+      - name: Install verified runtime-bundled npm offline
+        shell: bash
+        run: |
+          node scripts/ci-toolchain.mjs verify
+          npm install --global --offline --ignore-scripts --no-audit --no-fund "$NPM_OFFLINE_PACKAGE"
       - name: Verify approved package manager
         shell: bash
         run: |

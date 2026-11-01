@@ -166,11 +166,54 @@ test("release CI verifies pinned npm offline and covers release branches", async
   assert.match(workflow, /NPM_CONFIG_UPDATE_NOTIFIER: "false"/);
   assert.match(workflow, /actual="\$\(npm --version\)"/);
   assert.match(workflow, /approved offline cache/);
-  assert.doesNotMatch(workflow, /npm (?:install|update|exec)\b|\bnpx\b/);
+  assert.match(workflow, /node-version: 26\.13\.0/);
+  assert.match(workflow, /node scripts\/ci-toolchain\.mjs prepare/);
+  assert.match(workflow, /node scripts\/ci-toolchain\.mjs verify/);
+  assert.match(workflow, /npm install --global --offline --ignore-scripts --no-audit --no-fund "\$NPM_OFFLINE_PACKAGE"/);
+  assert.doesNotMatch(workflow, /npm install --global npm@|npm (?:update|exec)\b|\bnpx\b|registry\.npmjs\.org/);
+  assert.ok(workflow.indexOf("Prepare approved offline npm cache") < workflow.indexOf("Use maintained Node.js", workflow.indexOf("  check:")));
   assert.ok(workflow.indexOf("Verify approved package manager") < workflow.indexOf("npm ci --ignore-scripts"));
   for (const source of [workflow, codeql]) assert.match(source, /branches: \[main, "release\/\*\*"\]/);
   assert.match(manifest.scripts.check, /node --test --test-concurrency=2 /);
   assert.match(manifest.scripts.test, /node --test --test-concurrency=2 /);
+});
+
+test("offline CI toolchain cache comes from the installed runtime and rejects tampering", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "pso-ci-toolchain-"));
+  try {
+    const environmentFile = path.join(directory, "github-env");
+    await writeFile(environmentFile, "");
+    const env = { ...process.env, RUNNER_TEMP: directory, GITHUB_ENV: environmentFile, npm_config_offline: "true", npm_config_update_notifier: "false" };
+    const prepared = spawnSync(env.NPM_BOOTSTRAP_NODE || process.execPath, [path.join(root, "scripts", "ci-toolchain.mjs"), "prepare"], { cwd: root, env, encoding: "utf8", windowsHide: true, timeout: 60_000 });
+    assert.equal(prepared.status, 0, prepared.error?.message || prepared.stderr);
+    const value = JSON.parse(prepared.stdout);
+    const archive = path.join(directory, value.relativeArchive);
+    assert.equal(value.source, "pinned-node-runtime-bundle");
+    assert.match(value.archiveSha256, /^[a-f0-9]{64}$/);
+    const verificationEnv = { ...env, NPM_OFFLINE_PACKAGE: archive, NPM_OFFLINE_PACKAGE_SHA256: value.archiveSha256 };
+    const verified = spawnSync(process.execPath, [path.join(root, "scripts", "ci-toolchain.mjs"), "verify"], { cwd: root, env: verificationEnv, encoding: "utf8", windowsHide: true });
+    assert.equal(verified.status, 0, verified.stderr);
+    const bootstrapNode = env.NPM_BOOTSTRAP_NODE || process.execPath;
+    const bootstrapDirectory = path.dirname(bootstrapNode);
+    const npmCli = process.platform === "win32"
+      ? path.join(bootstrapDirectory, "node_modules/npm/bin/npm-cli.js")
+      : path.resolve(bootstrapDirectory, "../lib/node_modules/npm/bin/npm-cli.js");
+    const prefix = path.join(directory, "installed");
+    const installed = spawnSync(process.execPath, [npmCli, "install", "--prefix", prefix, "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--no-save", "--package-lock=false", archive], {
+      cwd: directory, env: verificationEnv, encoding: "utf8", windowsHide: true, timeout: 60_000
+    });
+    assert.equal(installed.status, 0, installed.error?.message || installed.stderr);
+    const installedCli = path.join(prefix, "node_modules/npm/bin/npm-cli.js");
+    const installedVersion = spawnSync(process.execPath, [installedCli, "--version"], { cwd: directory, env: verificationEnv, encoding: "utf8", windowsHide: true });
+    assert.equal(installedVersion.status, 0, installedVersion.stderr);
+    assert.equal(installedVersion.stdout.trim(), value.npmVersion);
+    await writeFile(archive, "tampered");
+    const rejected = spawnSync(process.execPath, [path.join(root, "scripts", "ci-toolchain.mjs"), "verify"], { cwd: root, env: verificationEnv, encoding: "utf8", windowsHide: true });
+    assert.notEqual(rejected.status, 0);
+    assert.match(rejected.stderr, /integrity/i);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test("release packaging rejects an unpinned npm CLI before publishing", async () => {
@@ -210,6 +253,7 @@ test("a clean clone has every input the conformance gate reads", async (context)
     "templates/scaffold-manifest.json",
     "config/profiles.yaml",
     "pso.mjs",
+    "scripts/ci-toolchain.mjs",
     "SECURITY.md",
     "docs/THREAT-MODEL.md"
   ];

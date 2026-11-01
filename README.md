@@ -49,7 +49,7 @@ The opt-in server adapter forwards its configured completion-token limit to the 
 
 ### What makes it different
 
-- **Every prompt gets one bounded clarification round.** Provisioned projects normally receive three useful questions; complex, confusing, high-impact, or potentially damaging requests may receive up to five. After the answers, the agent asks no more clarification questions for that prompt.
+- **Project-configured clarification.** The default is one bounded round with three questions. Adopted projects can configure whether questioning is enabled, whether every prompt needs questions, question limits, and plan confirmation. Generated guidance follows the resolved settings; approval gates remain independent and mandatory.
 - **It adapts to your repository.** A Python repo does not get C# standards. Detection drives what gets installed.
 - **Source-aligned standards.** Dated, referenced guidance covers PowerShell, JavaScript, Node.js, C#, .NET, Python, and Azure services. The [routing guide](templates/project/.github/instructions/best-practices.instructions.md) selects relevant standards; contract and fixture tests verify provisioning, not Microsoft certification or application-wide compliance.
 - **It will not duplicate your work.** If your repo already has a security instruction file, it reports that coverage instead of adding a second one.
@@ -292,7 +292,7 @@ published locally only after installation verification passes.
 
 `--intent` is an optional description of what the application should do. It records the brief
 but does not choose a stack or implement the application. See [the intent handoff](#hand-the-first-task-over-with---intent)
-for its file output and Ask-mode behavior.
+for its durable file output and explicit continuation boundary.
 
 `--profile` is optional and defaults to `durable`. All 56 skills are installed; the profile
 determines which skills are required for conformance, not which packages are copied. Pass
@@ -701,7 +701,7 @@ declarations record operator attestations, not automated legal verification.
 
 ### Hand the first task over with `--intent`
 
-`--intent` records what you want built first, so the new workspace opens with the work already in front of the agent.
+`--intent` records the requested outcome in the new project's brief. It does not start a Copilot conversation or implement the application.
 
 ```powershell
 node .\pso.mjs create-project `
@@ -713,18 +713,26 @@ node .\pso.mjs create-project `
   --accept-risk
 ```
 
-Describe the **application** only. The project itself already exists by the time the agent reads this, so an intent that says "create a new project" tells the agent to create something it is already sitting inside.
+Describe the **application** only. The project foundation is created by this command; the brief supplies context for a separately requested implementation task.
 
 Two things happen:
 
 - `docs/PROJECT-BRIEF.md` is written into the project, recording the requested outcome verbatim alongside an ISO 8601 creation timestamp. The brief is the durable copy; it survives closing the window.
-- With `--open`, the outcome is handed to Copilot Chat **in ask mode**, with the brief attached as context.
+- With `--open`, the generated workspace and README are opened in VS Code. Creation stops after installation verification and optional workspace opening; it does not seed Chat or begin implementation.
 
-Ask mode is deliberate. A newly created folder has not been trusted yet, and the text arrived over a command-line argument that a script could just as easily have supplied. The first turn therefore reads the brief, asks its three clarifying questions, and proposes a plan — it cannot write files. Switch to Agent mode once you approve.
+In the target workspace, select Agent mode and explicitly request the next task using the project brief. Apply the project's configured clarification and approval requirements. Workspace trust, recommended extensions, credentials and consequential actions remain separate controls.
 
 Relative times are left alone. `--intent` is never parsed for dates; the agent resolves "10:30 am" against the recorded creation timestamp and asks if that is ambiguous.
 
-If Visual Studio Code cannot be launched, project creation still succeeds and the composed prompt is printed for you to paste.
+If Visual Studio Code cannot be launched, the result reports the reason and workspace path. No opening, conversation or implementation success is claimed.
+
+### Peer Release Scope
+
+The supported local foundation is project creation, stack-scoped adoption, reviewed updates, preservation checks, recovery and package verification. The CLI planner writes a workflow plan; execution depends on Copilot and the owning skill's implementation and approvals, not a background autonomous application builder.
+
+The catalog contains 56 governed contracts, including 46 skills currently labeled draft. Contract validation does not establish live cloud, native-channel, publishing or full application-delivery support. Review each skill's maturity, prerequisites and unavailable/manual operations before using it.
+
+Distribute only to authorized internal personnel under the [license](LICENSE), after the [internal release gates](docs/INTERNAL-RELEASE.md) pass for the exact candidate. A source push, local test pass or unsigned package is not a production-ready peer release.
 
 ### Copilot cloud agent and code review
 
