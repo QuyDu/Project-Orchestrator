@@ -768,7 +768,7 @@ test("adoption rollback and recovery preserve every metadata write", async (cont
   for (const baseline of ["absent", "legacy", "existing", "no-op"]) {
     for (const outcome of ["failure", "interruption"]) {
       await context.test(`${baseline} baseline after ${outcome}`, async () => {
-        const parent = await mkdtemp(path.join(os.tmpdir(), "pso-adoption-metadata-"));
+        const parent = await realpath(await mkdtemp(path.join(os.tmpdir(), "pso-adoption-metadata-")));
         const project = path.join(parent, "project");
         try {
           await mkdir(project);

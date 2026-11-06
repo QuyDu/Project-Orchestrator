@@ -164,6 +164,9 @@ test("release CI verifies pinned npm offline and covers release branches", async
   const codeql = await readFile(path.join(root, ".github", "workflows", "codeql.yml"), "utf8");
   assert.match(workflow, /NPM_CONFIG_OFFLINE: "true"/);
   assert.match(workflow, /NPM_CONFIG_UPDATE_NOTIFIER: "false"/);
+  assert.match(workflow, /TMPDIR: \$\{\{ runner\.temp \}\}/);
+  assert.match(workflow, /TEMP: \$\{\{ runner\.temp \}\}/);
+  assert.match(workflow, /TMP: \$\{\{ runner\.temp \}\}/);
   assert.match(workflow, /actual="\$\(npm --version\)"/);
   assert.match(workflow, /approved offline cache/);
   assert.match(workflow, /node-version: 26\.13\.0/);

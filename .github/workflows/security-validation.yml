@@ -93,6 +93,10 @@ jobs:
       - name: Validate locked dependency graph without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run syntax, contracts, security fixtures, and verification
+        env:
+          TMPDIR: ${{ runner.temp }}
+          TEMP: ${{ runner.temp }}
+          TMP: ${{ runner.temp }}
         run: npm run check
       - name: Record successful matrix evidence
         run: node scripts/ci-evidence.mjs record --os "${{ runner.os }}" --node "${{ matrix.node }}" --commit "${{ github.sha }}" --output "reports/ci-runs/${{ runner.os }}-${{ matrix.node }}.json"

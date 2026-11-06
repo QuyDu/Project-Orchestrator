@@ -571,7 +571,7 @@ test("PAC known bad status query blocks explicitly and never alters schema or pr
     return true;
   });
 
-  test("PAC accepts an exact reviewed Power Platform target without an Azure hosting profile", async (t) => {
+  await t.test("PAC accepts an exact reviewed Power Platform target without an Azure hosting profile", async (t) => {
     const f = await pacFixture(t);
     f.context.profile = null;
     f.context.studioTarget = studioTarget;
